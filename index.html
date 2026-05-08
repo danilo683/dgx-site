@@ -3,129 +3,188 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Hawks Beauty MT | Dashboard</title>
+<title>Hawks Beauty | Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6f9;color:#1E2D40;min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1E2D40}
 
-  /* LOGIN */
-  #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1E2D40}
-  .login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
-  .login-logo{margin-bottom:1.5rem}
-  .login-logo .tri{display:inline-block;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:24px solid #00B4D8;margin:0 3px}
-  .login-title{font-size:20px;font-weight:600;color:#1E2D40;margin-bottom:4px}
-  .login-sub{font-size:13px;color:#6b7a8d;margin-bottom:1.5rem}
-  .login-box input{width:100%;padding:11px 14px;border:1px solid #d0d9e4;border-radius:8px;font-size:15px;outline:none;margin-bottom:12px;color:#1E2D40;transition:border .2s}
-  .login-box input:focus{border-color:#00B4D8}
-  .login-box button{width:100%;padding:11px;background:#00B4D8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
-  .login-box button:hover{background:#0099b8}
-  .login-error{font-size:12px;color:#e24b4a;margin-top:8px;min-height:16px}
-  .login-footer{font-size:11px;color:#aab;margin-top:1.5rem}
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1E2D40}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
+.login-logo-wrap{background:#111;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.5rem;display:inline-block}
+.login-logo-wrap img{height:60px;display:block}
+.login-title{font-size:15px;color:#6b7a8d;margin-bottom:1.5rem}
+.login-box input{width:100%;padding:11px 14px;border:1px solid #d0d9e4;border-radius:8px;font-size:15px;outline:none;margin-bottom:12px;color:#1E2D40;transition:border .2s}
+.login-box input:focus{border-color:#00B4D8}
+.login-box button{width:100%;padding:11px;background:#00B4D8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
+.login-box button:hover{background:#0099b8}
+.login-error{font-size:12px;color:#e24b4a;margin-top:8px;min-height:16px}
+.login-footer{font-size:11px;color:#aab;margin-top:1.5rem}
 
-  /* DASHBOARD */
-  #dashboard{display:none;padding:1.5rem;max-width:960px;margin:0 auto}
-  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
-  .header-left{display:flex;align-items:center;gap:12px}
-  .logo-box{width:42px;height:42px;border-radius:8px;background:#1E2D40;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .logo-box .tri-sm{display:inline-block;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid #00B4D8}
-  .header h1{font-size:18px;font-weight:600;color:#1E2D40}
-  .header p{font-size:12px;color:#6b7a8d;margin-top:2px}
-  .badge{font-size:11px;padding:2px 8px;border-radius:20px;background:#e0f7fc;color:#006d8f;margin-left:8px}
-  .logout-btn{font-size:12px;color:#6b7a8d;cursor:pointer;border:1px solid #d0d9e4;padding:5px 12px;border-radius:20px;background:#fff}
-  .logout-btn:hover{color:#1E2D40;border-color:#1E2D40}
+/* APP LAYOUT */
+#app{display:none;height:100vh;overflow:hidden;flex-direction:row}
 
-  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
-  @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-  .kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #00B4D8;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-  .kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
-  .kpi-value{font-size:20px;font-weight:600;color:#1E2D40}
-  .kpi-sub{font-size:11px;color:#6b7a8d;margin-top:3px}
-  .kpi-hi{color:#006d8f}
+/* SIDEBAR */
+.sidebar{width:230px;min-width:230px;background:#111;display:flex;flex-direction:column;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-logo img{width:100%;max-height:70px;object-fit:contain}
+.sidebar-section{padding:1rem 0.75rem 0.5rem;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 1rem;margin:1px 0.5rem;border-radius:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.65);transition:all .15s;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
+.nav-item.active{background:#00B4D8;color:#fff}
+.nav-item.disabled{opacity:0.45;cursor:default;pointer-events:none}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.5)}
+.sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid rgba(255,255,255,0.08)}
+.dgx-badge{background:#1E2D40;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px}
+.dgx-tri{display:flex;flex-direction:column;gap:2px}
+.dgx-tri span{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #00B4D8;display:block}
+.dgx-text{font-size:11px;font-weight:600;color:#fff;letter-spacing:0.5px}
+.dgx-text small{display:block;font-size:9px;color:rgba(255,255,255,0.4);font-weight:400}
 
-  .chart-card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-  .chart-title{font-size:13px;font-weight:600;color:#1E2D40;margin-bottom:2px}
-  .chart-sub{font-size:11px;color:#6b7a8d;margin-bottom:12px}
-  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
-  .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#6b7a8d}
-  .leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-  .leg-line{width:16px;height:3px;border-radius:2px;flex-shrink:0}
-  .chart-wrap{position:relative;width:100%}
-  .confidential{text-align:center;font-size:11px;color:#aab;margin-top:1.5rem;padding-bottom:1rem}
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:#fff;border-bottom:1px solid #e5e9ef;padding:0 1.5rem;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:600;color:#1E2D40}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-period{font-size:12px;color:#6b7a8d;background:#f0f2f5;padding:4px 10px;border-radius:20px}
+.logout-btn{font-size:12px;color:#6b7a8d;cursor:pointer;border:1px solid #d0d9e4;padding:5px 12px;border-radius:20px;background:#fff}
+.logout-btn:hover{color:#1E2D40;border-color:#1E2D40}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+
+/* COMING SOON */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center}
+.coming-soon .cs-icon{font-size:48px;margin-bottom:1rem;opacity:0.3}
+.coming-soon h2{font-size:20px;font-weight:500;color:#1E2D40;margin-bottom:8px}
+.coming-soon p{font-size:14px;color:#6b7a8d;max-width:320px}
+.coming-soon .cs-badge{margin-top:1.5rem;font-size:12px;padding:6px 16px;border-radius:20px;background:#e0f7fc;color:#006d8f;display:inline-block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #00B4D8;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
+.kpi-value{font-size:20px;font-weight:600;color:#1E2D40}
+.kpi-sub{font-size:11px;color:#6b7a8d;margin-top:3px}
+.kpi-hi{color:#006d8f}
+
+/* CHART CARDS */
+.chart-card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.chart-title{font-size:13px;font-weight:600;color:#1E2D40;margin-bottom:2px}
+.chart-sub{font-size:11px;color:#6b7a8d;margin-bottom:12px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#6b7a8d}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.leg-line{width:16px;height:3px;border-radius:2px;flex-shrink:0}
+.chart-wrap{position:relative;width:100%}
+
+/* DRE */
+.dre-table{width:100%;border-collapse:collapse;font-size:13px}
+.dre-table th{text-align:left;padding:10px 12px;background:#f0f2f5;color:#6b7a8d;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.dre-table th:not(:first-child){text-align:right}
+.dre-table td{padding:9px 12px;border-bottom:1px solid #f0f2f5;color:#1E2D40}
+.dre-table td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.dre-table tr.separator td{padding:4px;background:#f8f9fa}
+.dre-table tr.total td{font-weight:600;background:#f0f2f5}
+.dre-table tr.subtotal td{font-weight:500;color:#1E2D40;background:#f8fafc}
+.dre-table tr.highlight td{font-weight:700;background:#e0f7fc;color:#006d8f}
+.dre-table tr.negative td:not(:first-child){color:#c0392b}
+.dre-table tr.positive td:not(:first-child){color:#0F6E56}
+.dre-table tr.na td:not(:first-child){color:#aab}
+.dre-label-indent{padding-left:24px !important;color:#6b7a8d}
+.tag-ainformar{font-size:10px;padding:1px 6px;border-radius:8px;background:#f0f2f5;color:#aab;margin-left:6px}
+.section-header{font-size:13px;font-weight:600;color:#1E2D40;margin:1.25rem 0 0.5rem;padding-bottom:6px;border-bottom:2px solid #00B4D8;display:inline-block}
+
+.confidential{text-align:center;font-size:11px;color:#aab;margin-top:1.5rem;padding-bottom:1rem}
 </style>
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
+<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">
-      <span class="tri"></span><span class="tri"></span><span class="tri"></span>
+    <div class="login-logo-wrap">
+      <img src="https://i.imgur.com/placeholder.png" id="loginLogo" alt="Hawks Beauty" onerror="this.style.display='none';document.getElementById('loginFallback').style.display='block'"/>
+      <div id="loginFallback" style="display:none;color:#fff;font-size:22px;font-weight:700;letter-spacing:2px">HAWKS<br><span style="font-size:12px;font-weight:400;letter-spacing:4px">BEAUTY</span></div>
     </div>
-    <div class="login-title">DGX Consulting</div>
-    <div class="login-sub">Acesse seu dashboard de vendas</div>
+    <div class="login-title">Acesse seu dashboard de vendas</div>
     <input type="password" id="pwdInput" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button onclick="doLogin()">Entrar</button>
     <div class="login-error" id="loginError"></div>
-    <div class="login-footer">Hawks Beauty MT · Dados confidenciais</div>
+    <div class="login-footer">Powered by DGX Consulting · Dados confidenciais</div>
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
-  <div class="header">
-    <div class="header-left">
-      <div class="logo-box"><span class="tri-sm"></span></div>
-      <div>
-        <h1>Hawks Beauty MT <span class="badge">Jan–Mar 2026</span></h1>
-        <p>DGX Consulting · Dashboard de vendas · Dados confidenciais</p>
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div style="background:#000;border-radius:8px;padding:10px 8px;text-align:center">
+        <div style="color:#fff;font-size:20px;font-weight:700;font-style:italic;letter-spacing:1px">Hawks</div>
+        <div style="color:#fff;font-size:9px;letter-spacing:4px;margin-top:2px">BEAUTY</div>
       </div>
     </div>
-    <button class="logout-btn" onclick="doLogout()">Sair</button>
-  </div>
 
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div>
-    <div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div>
-    <div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div>
-    <div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div>
-  </div>
-
-  <div class="chart-card">
-    <div class="chart-title">Receita bruta por canal — mês a mês</div>
-    <div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div>
-    <div class="legend">
-      <span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span>
-      <span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span>
-      <span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span>
+    <div class="sidebar-section">Principal</div>
+    <div class="nav-item active" onclick="setPage('vendas',this)">
+      <span class="nav-icon">📊</span> Vendas
     </div>
-    <div class="chart-wrap" style="height:260px"><canvas id="chartCanal" role="img" aria-label="Barras empilhadas de receita por canal"></canvas></div>
-  </div>
-
-  <div class="chart-card">
-    <div class="chart-title">Receita por categoria — mês a mês</div>
-    <div class="chart-sub">Linhas com valor em R$ e % de participação anotados em cada ponto</div>
-    <div class="legend">
-      <span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span>
-      <span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span>
-      <span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span>
-      <span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span>
+    <div class="nav-item" onclick="setPage('margem',this)">
+      <span class="nav-icon">💹</span> Margem
+      <span class="nav-badge">Em breve</span>
     </div>
-    <div class="chart-wrap" style="height:290px"><canvas id="chartCat" role="img" aria-label="Linhas de receita por categoria"></canvas></div>
-  </div>
 
-  <div class="chart-card">
-    <div class="chart-title">Volume de unidades por canal — mês a mês</div>
-    <div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados internamente</div>
-    <div class="legend">
-      <span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span>
-      <span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span>
-      <span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span>
+    <div class="sidebar-section">Financeiro</div>
+    <div class="nav-item" onclick="setPage('dre',this)">
+      <span class="nav-icon">📋</span> DRE
     </div>
-    <div class="chart-wrap" style="height:260px"><canvas id="chartVol" role="img" aria-label="Barras empilhadas de volume por canal"></canvas></div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">💰</span> DFC
+      <span class="nav-badge">Em breve</span>
+    </div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">🏦</span> Endividamento
+      <span class="nav-badge">Em breve</span>
+    </div>
+
+    <div class="sidebar-section">Comercial</div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">👥</span> Clientes
+      <span class="nav-badge">Em breve</span>
+    </div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">🧑‍💼</span> Vendedores
+      <span class="nav-badge">Em breve</span>
+    </div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">📦</span> Produtos
+      <span class="nav-badge">Em breve</span>
+    </div>
+    <div class="nav-item disabled">
+      <span class="nav-icon">🏭</span> Estoque
+      <span class="nav-badge">Em breve</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="dgx-badge">
+        <div class="dgx-tri"><span></span><span></span><span></span></div>
+        <div class="dgx-text">DGX Consulting<small>Business Intelligence</small></div>
+      </div>
+    </div>
   </div>
 
-  <div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Vendas</div>
+      <div class="topbar-right">
+        <span class="topbar-period">Jan – Mar 2026</span>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
 </div>
 
 <script>
@@ -135,123 +194,252 @@ function doLogin(){
   const v = document.getElementById('pwdInput').value;
   if(v === SENHA){
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    initCharts();
+    const app = document.getElementById('app');
+    app.style.display = 'flex';
+    renderPage('vendas');
   } else {
     document.getElementById('loginError').textContent = 'Senha incorreta. Tente novamente.';
     document.getElementById('pwdInput').value = '';
   }
 }
 function doLogout(){
-  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('pwdInput').value = '';
   document.getElementById('loginError').textContent = '';
+  chartsInit = false;
 }
 
+let currentPage = '';
 let chartsInit = false;
+
+function setPage(page, el){
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  renderPage(page);
+}
+
+function renderPage(page){
+  currentPage = page;
+  const titles = { vendas:'Vendas', margem:'Margem / Rentabilidade', dre:'DRE — Demonstrativo de Resultado', dfc:'DFC — Fluxo de Caixa', endividamento:'Endividamento', clientes:'Clientes / Base Ativa', vendedores:'Vendedores / Comissões', produtos:'Produtos / Mix', estoque:'Estoque' };
+  document.getElementById('topbarTitle').textContent = titles[page] || page;
+  const c = document.getElementById('content');
+  if(page === 'vendas') { c.innerHTML = vendasHTML(); initCharts(); }
+  else if(page === 'dre') { c.innerHTML = dreHTML(); }
+  else { c.innerHTML = comingSoonHTML(titles[page]); }
+}
+
+function comingSoonHTML(title){
+  return `<div class="coming-soon">
+    <div class="cs-icon">🔒</div>
+    <h2>${title}</h2>
+    <p>Esta seção está em desenvolvimento e estará disponível em breve com seus dados.</p>
+    <span class="cs-badge">Em breve</span>
+  </div>`;
+}
+
+/* ─── VENDAS ─── */
+function vendasHTML(){
+  return `
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div>
+    <div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div>
+    <div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div>
+    <div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Receita bruta por canal — mês a mês</div>
+    <div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div>
+    <div class="legend">
+      <span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span>
+      <span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span>
+      <span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span>
+    </div>
+    <div class="chart-wrap" style="height:250px"><canvas id="chartCanal" role="img" aria-label="Receita por canal"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Receita por categoria — mês a mês</div>
+    <div class="chart-sub">Linhas com valor em R$ e % de participação em cada ponto</div>
+    <div class="legend">
+      <span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span>
+      <span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span>
+      <span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span>
+      <span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span>
+    </div>
+    <div class="chart-wrap" style="height:280px"><canvas id="chartCat" role="img" aria-label="Receita por categoria"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Volume de unidades por canal — mês a mês</div>
+    <div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados</div>
+    <div class="legend">
+      <span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span>
+      <span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span>
+      <span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span>
+    </div>
+    <div class="chart-wrap" style="height:250px"><canvas id="chartVol" role="img" aria-label="Volume por canal"></canvas></div>
+  </div>
+  <div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>`;
+}
+
+/* ─── DRE ─── */
+function dreHTML(){
+  const fmtR = v => v ? 'R$ '+v.toLocaleString('pt-BR') : '—';
+  const fmtP = v => v ? v+'%' : '—';
+  const ai = '<span class="tag-ainformar">a informar</span>';
+  const rows = [
+    {label:'Receita Bruta de Vendas', jan:'308.011', fev:'289.463', mar:'469.057', type:'subtotal'},
+    {label:'(-) Devoluções e Abatimentos', jan:'(1.921)', fev:'(1.723)', mar:'(238)', type:'negative'},
+    {label:'(-) Descontos Concedidos', jan:'(1.772)', fev:'(11.720)', mar:'(12.919)', type:'negative'},
+    {label:'= Receita Líquida', jan:'304.318', fev:'276.020', mar:'455.900', type:'highlight'},
+    {label:'(-) CMV — Custo da Mercadoria Vendida', jan:'(8.000)', fev:'(8.000)', mar:'(8.000)', type:'negative'},
+    {label:'= Margem Bruta', jan:'296.318', fev:'268.020', mar:'447.900', type:'highlight'},
+    {label:'% Margem Bruta', jan:'97,4%', fev:'97,1%', mar:'98,2%', type:'positive'},
+    {label:'separator', type:'separator'},
+    {label:'Despesas Operacionais', jan:'', fev:'', mar:'', type:'total'},
+    {label:'(-) Despesas Comerciais', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
+    {label:'(-) Despesas Administrativas', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
+    {label:'(-) Despesas com Pessoal', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
+    {label:'(-) Outras Despesas Operacionais', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
+    {label:'= EBITDA', jan:'—', fev:'—', mar:'—', type:'highlight'},
+    {label:'% EBITDA', jan:'—', fev:'—', mar:'—', type:'na'},
+    {label:'separator', type:'separator'},
+    {label:'(-) Depreciação e Amortização', jan:ai, fev:ai, mar:ai, type:'na'},
+    {label:'= EBIT (Resultado Operacional)', jan:'—', fev:'—', mar:'—', type:'subtotal'},
+    {label:'separator', type:'separator'},
+    {label:'Resultado Financeiro', jan:'', fev:'', mar:'', type:'total'},
+    {label:'(+) Receitas Financeiras', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
+    {label:'(-) Despesas Financeiras', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
+    {label:'= EBT (Resultado antes dos Impostos)', jan:'—', fev:'—', mar:'—', type:'subtotal'},
+    {label:'(-) Impostos (IR / CSLL)', jan:ai, fev:ai, mar:ai, type:'na'},
+    {label:'= LUCRO LÍQUIDO', jan:'—', fev:'—', mar:'—', type:'highlight'},
+    {label:'% Lucro Líquido / Receita Líquida', jan:'—', fev:'—', mar:'—', type:'na'},
+  ];
+
+  let rowsHTML = rows.map(r => {
+    if(r.type === 'separator') return `<tr class="separator"><td colspan="4"></td></tr>`;
+    const classes = r.type.split(' ').map(t => t === 'dre-label-indent' ? '' : t).join(' ');
+    const labelClass = r.type.includes('dre-label-indent') ? 'dre-label-indent' : '';
+    return `<tr class="${classes}"><td class="${labelClass}">${r.label}</td><td>${r.jan||''}</td><td>${r.fev||''}</td><td>${r.mar||''}</td></tr>`;
+  }).join('');
+
+  return `
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">R$ 1,04M</div><div class="kpi-sub">Jan – Mar 2026</div></div>
+    <div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value">R$ 1,01M</div><div class="kpi-sub kpi-hi">Média 97,6%</div></div>
+    <div class="kpi"><div class="kpi-label">EBITDA</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando despesas</div></div>
+    <div class="kpi"><div class="kpi-label">Lucro Líquido</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando dados</div></div>
+  </div>
+  <div class="chart-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div>
+        <div class="chart-title">DRE — Demonstrativo de Resultado do Exercício</div>
+        <div class="chart-sub">Jan – Mar 2026 · valores em R$ · linhas marcadas com <span class="tag-ainformar">a informar</span> serão preenchidas conforme dados chegam</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="dre-table">
+        <thead><tr><th style="min-width:260px">Descrição</th><th style="min-width:110px">Janeiro</th><th style="min-width:110px">Fevereiro</th><th style="min-width:110px">Março</th></tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>`;
+}
+
+/* ─── CHARTS ─── */
 function initCharts(){
   if(chartsInit) return;
   chartsInit = true;
-
-  const gridC = 'rgba(0,0,0,0.07)';
-  const tickC = '#6b7a8d';
-  const months = ['Janeiro','Fevereiro','Março'];
-  const receitaTotal = [308011,289463,469057];
-  const volTotal = [4424,4874,7343];
-
-  const canalData = { salao:[193000,178000,295000], loja:[88000,72000,122000], func:[27011,39463,52057] };
-  const catData = { hc:[145000,128000,210000], prof:[112000,108000,178000], col:[38000,42000,62000], qui:[13011,11463,19057] };
-  const volData = { salao:[2750,2980,4620], loja:[1100,980,1780], func:[574,914,943] };
-
-  const fmtR = v => 'R$ '+Math.round(v/1000)+'K';
-  const fmtN = v => v.toLocaleString('pt-BR');
-  const pct  = (v,t) => (v/t*100).toFixed(0)+'%';
-
-  function stackTotals(data){ return data.datasets[0].data.map((_,i)=>data.datasets.reduce((s,ds)=>s+(ds.data[i]||0),0)); }
-
-  function barPlugin(fmtIn, fmtTop){
-    return { id:'bp'+Math.random(),
+  setTimeout(()=>{
+    const gridC='rgba(0,0,0,0.07)', tickC='#6b7a8d';
+    const months=['Janeiro','Fevereiro','Março'];
+    const receitaTotal=[308011,289463,469057];
+    const volTotal=[4424,4874,7343];
+    const canalData={salao:[193000,178000,295000],loja:[88000,72000,122000],func:[27011,39463,52057]};
+    const catData={hc:[145000,128000,210000],prof:[112000,108000,178000],col:[38000,42000,62000],qui:[13011,11463,19057]};
+    const volData={salao:[2750,2980,4620],loja:[1100,980,1780],func:[574,914,943]};
+    const fmtR=v=>'R$ '+Math.round(v/1000)+'K';
+    const fmtN=v=>v.toLocaleString('pt-BR');
+    const pct=(v,t)=>(v/t*100).toFixed(0)+'%';
+    function stackTotals(data){return data.datasets[0].data.map((_,i)=>data.datasets.reduce((s,ds)=>s+(ds.data[i]||0),0));}
+    function barPlugin(fmtIn,fmtTop){
+      return{id:'bp'+Math.random(),
+        afterDatasetsDraw(chart){
+          const{ctx,data}=chart;const tots=stackTotals(data);
+          data.datasets.forEach((ds,di)=>{
+            chart.getDatasetMeta(di).data.forEach((bar,i)=>{
+              const val=ds.data[i];if(!val)return;
+              const h=Math.abs(bar.base-bar.y);if(h<16)return;
+              const cx=bar.x,cy=(bar.y+bar.base)/2,p=pct(val,tots[i]);
+              ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';
+              if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fmtIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(p,cx,cy+7);}
+              else{ctx.font='500 10px sans-serif';ctx.fillText(p,cx,cy);}
+              ctx.restore();
+            });
+          });
+        },
+        afterDraw(chart){
+          const{ctx,data,scales:{x,y}}=chart;const tots=stackTotals(data);
+          ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';
+          tots.forEach((t,i)=>{ctx.fillText(fmtTop(t),x.getPixelForValue(i),y.getPixelForValue(t)-8);});
+          ctx.restore();
+        }
+      };
+    }
+    const CAT_COLORS=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
+    const pointPlugin={id:'pp',
       afterDatasetsDraw(chart){
-        const {ctx,data}=chart; const tots=stackTotals(data);
+        const{ctx,data}=chart;
         data.datasets.forEach((ds,di)=>{
-          chart.getDatasetMeta(di).data.forEach((bar,i)=>{
-            const val=ds.data[i]; if(!val) return;
-            const h=Math.abs(bar.base-bar.y); if(h<16) return;
-            const cx=bar.x, cy=(bar.y+bar.base)/2, p=pct(val,tots[i]);
-            ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#fff';
-            if(h>38){ ctx.font='500 11px sans-serif'; ctx.fillText(fmtIn(val),cx,cy-7); ctx.font='400 10px sans-serif'; ctx.fillStyle='rgba(255,255,255,0.82)'; ctx.fillText(p,cx,cy+7); }
-            else { ctx.font='500 10px sans-serif'; ctx.fillText(p,cx,cy); }
+          chart.getDatasetMeta(di).data.forEach((pt,i)=>{
+            const val=ds.data[i],p=pct(val,receitaTotal[i]),above=di<2,oy=above?-22:14;
+            ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.fillStyle=CAT_COLORS[di];ctx.font='500 10px sans-serif';ctx.fillText(fmtR(val),pt.x,pt.y+oy);
+            ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);
             ctx.restore();
           });
         });
-      },
-      afterDraw(chart){
-        const {ctx,data,scales:{x,y}}=chart; const tots=stackTotals(data);
-        ctx.save(); ctx.font='500 11px sans-serif'; ctx.fillStyle='#333'; ctx.textAlign='center';
-        tots.forEach((t,i)=>{ ctx.fillText(fmtTop(t), x.getPixelForValue(i), y.getPixelForValue(t)-8); });
-        ctx.restore();
       }
     };
-  }
-
-  const CAT_COLORS=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
-  const pointPlugin = { id:'pp',
-    afterDatasetsDraw(chart){
-      const {ctx,data,scales:{x,y}}=chart;
-      data.datasets.forEach((ds,di)=>{
-        chart.getDatasetMeta(di).data.forEach((pt,i)=>{
-          const val=ds.data[i], p=pct(val,receitaTotal[i]);
-          const above=di<2, oy=above?-22:14;
-          ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillStyle=CAT_COLORS[di]; ctx.font='500 10px sans-serif'; ctx.fillText(fmtR(val),pt.x,pt.y+oy);
-          ctx.fillStyle='rgba(80,80,80,0.85)'; ctx.font='400 10px sans-serif'; ctx.fillText(p,pt.x,pt.y+oy+12);
-          ctx.restore();
-        });
-      });
-    }
-  };
-
-  new Chart(document.getElementById('chartCanal'),{
-    type:'bar', plugins:[barPlugin(fmtR,fmtR)],
-    data:{ labels:months, datasets:[
-      {label:'Salão',      data:canalData.salao, backgroundColor:'#00B4D8', stack:'a', borderRadius:0},
-      {label:'Loja',       data:canalData.loja,  backgroundColor:'#1E2D40', stack:'a', borderRadius:0},
-      {label:'Funcionário',data:canalData.func,  backgroundColor:'#5B8DB8', stack:'a', borderRadius:0}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtR(c.raw)+' ('+pct(c.raw,receitaTotal[c.dataIndex])+')'}}},
-      scales:{x:{stacked:true,ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tickC,font:{size:11},callback:fmtR},grid:{color:gridC}}}
-    }
-  });
-
-  new Chart(document.getElementById('chartCat'),{
-    type:'line', plugins:[pointPlugin],
-    data:{ labels:months, datasets:[
-      {label:'Home Care',   data:catData.hc,   borderColor:'#00B4D8',backgroundColor:'rgba(0,180,216,0.08)',  fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},
-      {label:'Profissional',data:catData.prof,  borderColor:'#1E2D40',backgroundColor:'rgba(30,45,64,0.08)',   fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},
-      {label:'Coloração',   data:catData.col,   borderColor:'#5B8DB8',backgroundColor:'rgba(91,141,184,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},
-      {label:'Química',     data:catData.qui,   borderColor:'#A8C8E0',backgroundColor:'rgba(168,200,224,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      layout:{padding:{top:36,bottom:20}},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtR(c.raw)+' ('+pct(c.raw,receitaTotal[c.dataIndex])+')'}}},
-      scales:{x:{ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{ticks:{color:tickC,font:{size:11},callback:fmtR},grid:{color:gridC}}}
-    }
-  });
-
-  new Chart(document.getElementById('chartVol'),{
-    type:'bar', plugins:[barPlugin(fmtN,fmtN)],
-    data:{ labels:months, datasets:[
-      {label:'Salão',      data:volData.salao, backgroundColor:'#00B4D8', stack:'c', borderRadius:0},
-      {label:'Loja',       data:volData.loja,  backgroundColor:'#1E2D40', stack:'c', borderRadius:0},
-      {label:'Funcionário',data:volData.func,  backgroundColor:'#5B8DB8', stack:'c', borderRadius:0}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtN(c.raw)+' un. ('+pct(c.raw,volTotal[c.dataIndex])+')'}}},
-      scales:{x:{stacked:true,ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tickC,font:{size:11},callback:v=>fmtN(v)},grid:{color:gridC}}}
-    }
-  });
+    new Chart(document.getElementById('chartCanal'),{
+      type:'bar',plugins:[barPlugin(fmtR,fmtR)],
+      data:{labels:months,datasets:[
+        {label:'Salão',data:canalData.salao,backgroundColor:'#00B4D8',stack:'a',borderRadius:0},
+        {label:'Loja',data:canalData.loja,backgroundColor:'#1E2D40',stack:'a',borderRadius:0},
+        {label:'Funcionário',data:canalData.func,backgroundColor:'#5B8DB8',stack:'a',borderRadius:0}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtR(c.raw)+' ('+pct(c.raw,receitaTotal[c.dataIndex]}}}},
+        scales:{x:{stacked:true,ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tickC,font:{size:11},callback:fmtR},grid:{color:gridC}}}
+      }
+    });
+    new Chart(document.getElementById('chartCat'),{
+      type:'line',plugins:[pointPlugin],
+      data:{labels:months,datasets:[
+        {label:'Home Care',data:catData.hc,borderColor:'#00B4D8',backgroundColor:'rgba(0,180,216,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},
+        {label:'Profissional',data:catData.prof,borderColor:'#1E2D40',backgroundColor:'rgba(30,45,64,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},
+        {label:'Coloração',data:catData.col,borderColor:'#5B8DB8',backgroundColor:'rgba(91,141,184,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},
+        {label:'Química',data:catData.qui,borderColor:'#A8C8E0',backgroundColor:'rgba(168,200,224,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        layout:{padding:{top:36,bottom:20}},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtR(c.raw)+' ('+pct(c.raw,receitaTotal[c.dataIndex])+')'}}},
+        scales:{x:{ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{ticks:{color:tickC,font:{size:11},callback:fmtR},grid:{color:gridC}}}
+      }
+    });
+    new Chart(document.getElementById('chartVol'),{
+      type:'bar',plugins:[barPlugin(fmtN,fmtN)],
+      data:{labels:months,datasets:[
+        {label:'Salão',data:volData.salao,backgroundColor:'#00B4D8',stack:'c',borderRadius:0},
+        {label:'Loja',data:volData.loja,backgroundColor:'#1E2D40',stack:'c',borderRadius:0},
+        {label:'Funcionário',data:volData.func,backgroundColor:'#5B8DB8',stack:'c',borderRadius:0}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtN(c.raw)+' un. ('+pct(c.raw,volTotal[c.dataIndex])+')'}}},
+        scales:{x:{stacked:true,ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tickC,font:{size:11},callback:v=>fmtN(v)},grid:{color:gridC}}}
+      }
+    });
+  }, 100);
 }
 </script>
 </body>
