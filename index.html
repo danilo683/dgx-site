@@ -10,11 +10,13 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1E2D40}
 
 /* LOGIN */
-#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1E2D40}
-.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
-.login-logo-wrap{background:#111;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.5rem;display:inline-block}
-.login-logo-wrap img{height:60px;display:block}
-.login-title{font-size:15px;color:#6b7a8d;margin-bottom:1.5rem}
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A2B3E;position:relative;overflow:hidden}
+.login-bg{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.35);position:relative;z-index:2}
+.login-hawks-logo{background:#000;border-radius:10px;padding:14px 20px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:center;min-height:90px}
+.login-hawks-logo img{max-height:75px;max-width:220px;object-fit:contain}
+.login-hawks-fallback{display:none;color:#fff;font-size:24px;font-style:italic;font-weight:700;line-height:1.2}
+.login-title{font-size:14px;color:#6b7a8d;margin-bottom:1.5rem}
 .login-box input{width:100%;padding:11px 14px;border:1px solid #d0d9e4;border-radius:8px;font-size:15px;outline:none;margin-bottom:12px;color:#1E2D40;transition:border .2s}
 .login-box input:focus{border-color:#00B4D8}
 .login-box button{width:100%;padding:11px;background:#00B4D8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
@@ -102,12 +104,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- LOGIN -->
 <div id="loginScreen">
+  <svg class="login-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- 3 principais equiláteros L=44 h=38 apontando para cima -->
+    <polygon points="22,70   0,108  44,108"  fill="#00B4D8" opacity="1"/>
+    <polygon points="22,136  0,174  44,174"  fill="#00B4D8" opacity="1"/>
+    <polygon points="22,202  0,240  44,240"  fill="#00B4D8" opacity="1"/>
+    <!-- decorativos equiláteros espalhados -->
+    <polygon points="88,412  74,436  102,436"  fill="#00B4D8" opacity="0.22"/>
+    <polygon points="570,322 552,353 588,353"  fill="#00B4D8" opacity="0.18"/>
+    <polygon points="626,78  616,95  636,95"   fill="#00B4D8" opacity="0.14"/>
+    <polygon points="154,464 143,483 165,483"  fill="#00B4D8" opacity="0.13"/>
+    <polygon points="546,435 531,461 561,461"  fill="#00B4D8" opacity="0.16"/>
+    <polygon points="638,412 629,428 647,428"  fill="#00B4D8" opacity="0.11"/>
+    <polygon points="36,345  24,366  48,366"   fill="#00B4D8" opacity="0.15"/>
+    <!-- linha ciano meia tela rodapé -->
+    <rect x="360" y="894" width="720" height="4" fill="#00B4D8"/>
+  </svg>
+
+  <!-- Logo DGX canto superior direito -->
+  <div style="position:absolute;top:1.5rem;right:1.5rem;z-index:3">
+    <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-dgx" alt="DGX Consulting" style="height:52px;object-fit:contain"
+      onerror="this.outerHTML='<svg width=115 height=54 viewBox=\'0 0 115 54\' xmlns=\'http://www.w3.org/2000/svg\'><text x=0 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>D</text><text x=32 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>G</text><polygon points=\'46,15 46,33 62,24\' fill=\'#00B4D8\'/><text x=65 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>X</text><text x=2 y=52 font-family=\'Arial,sans-serif\' font-size=10 fill=\'#fff\' letter-spacing=2>CONSULTING</text></svg>'"/>
+  </div>
+
   <div class="login-box">
-    <div class="login-logo-wrap">
-      <img src="https://i.imgur.com/placeholder.png" id="loginLogo" alt="Hawks Beauty" onerror="this.style.display='none';document.getElementById('loginFallback').style.display='block'"/>
-      <div id="loginFallback" style="display:none;color:#fff;font-size:22px;font-weight:700;letter-spacing:2px">HAWKS<br><span style="font-size:12px;font-weight:400;letter-spacing:4px">BEAUTY</span></div>
+    <div class="login-hawks-logo">
+      <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-hawks.png" alt="Hawks Beauty"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+      <div class="login-hawks-fallback">Hawks<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div>
     </div>
-    <div class="login-title">Acesse seu dashboard de vendas</div>
+    <div class="login-title">Acesse seu dashboard</div>
     <input type="password" id="pwdInput" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button onclick="doLogin()">Entrar</button>
     <div class="login-error" id="loginError"></div>
@@ -189,10 +215,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 const SENHA = 'DGX123456';
+function checkPwd(input){ return input.trim() === SENHA; }
 
 function doLogin(){
   const v = document.getElementById('pwdInput').value;
-  if(v === SENHA){
+  if(checkPwd(v)){
     document.getElementById('loginScreen').style.display = 'none';
     const app = document.getElementById('app');
     app.style.display = 'flex';
