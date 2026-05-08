@@ -259,6 +259,14 @@ function doLogout(){
   chartsInit = false;
 }
 
+// Garante que o botão funciona mesmo se o onclick falhar
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.querySelector('#loginScreen button');
+  var inp = document.getElementById('pwdInput');
+  if(btn) btn.addEventListener('click', doLogin);
+  if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+});
+
 let currentPage = '';
 let chartsInit = false;
 
