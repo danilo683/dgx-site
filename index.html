@@ -235,12 +235,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-const SENHA = 'DGX123456';
-function checkPwd(input){ return input.trim() === 'DGX123456'; }
-
 function doLogin(){
-  const v = document.getElementById('pwdInput').value;
-  if(checkPwd(v)){
+  const v = document.getElementById('pwdInput').value.trim();
+  if(v === 'DGX123456'){
     document.getElementById('loginScreen').style.display = 'none';
     const app = document.getElementById('app');
     app.style.display = 'flex';
