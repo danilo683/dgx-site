@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DGX Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;700;900&family=Barlow+Condensed:ital,wght@0,600;0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0D1B2E;--navy2:#0A1525;--navy3:#111f35;
+  --cyan:#00AEEF;--cyan-dark:#0090C8;
+  --orange:#E87B1E;--orange-dark:#C96A10;
+  --black:#0D0D0D;
+  --white:#FFFFFF;--gray:#8BA0B0;--gray2:#c5d3dc;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
+
+/* ============ NAV ============ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(10,21,37,0.97);
+  border-bottom:1px solid rgba(0,174,239,0.15);
+  backdrop-filter:blur(8px);
+}
+.nav-logo img{height:44px;display:block}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--gray);text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-btn{
+  background:var(--cyan);color:var(--navy2);border:none;
+  padding:.5rem 1.4rem;font-size:.75rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  font-family:'Barlow',sans-serif;transition:background .2s;text-decoration:none;
+}
+.nav-btn:hover{background:var(--cyan-dark)}
+
+/* ============ SEÇÃO BASE ============ */
+section{padding:5rem 3rem;position:relative;overflow:hidden}
+.topline{width:100%;height:1px;background:linear-gradient(90deg,var(--cyan) 0%,transparent 50%);margin-bottom:4rem}
+.bottomline{width:100%;height:1px;background:linear-gradient(90deg,transparent 0%,var(--cyan) 50%,transparent 100%);margin-top:4rem;opacity:.2}
+.section-label{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+.section-label span{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:var(--cyan)}
+.section-label::before{content:'';display:block;width:28px;height:2px;background:var(--cyan);flex-shrink:0}
+.section-label.center{justify-content:center}
+.section-label.center::after{content:'';display:block;width:28px;height:2px;background:var(--cyan);flex-shrink:0}
+.section-titulo{font-family:'Barlow Condensed',sans-serif;font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:700;text-transform:uppercase;color:var(--white);line-height:1.1;margin-bottom:.75rem}
+.section-titulo em{color:var(--cyan);font-style:normal}
+.section-titulo.center{text-align:center}
+.section-desc{font-size:.9rem;color:var(--gray2);line-height:1.8;max-width:520px}
+.section-desc.center{margin:0 auto;text-align:center}
+
+/* ============ HERO ============ */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  background:var(--navy2);padding-top:6rem;
+}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,174,239,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,174,239,0.05) 1px,transparent 1px);background-size:55px 55px}
+.bg-tris{position:absolute;right:8%;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.13}
+.tri{width:0;height:0;border-left:52px solid transparent;border-right:52px solid transparent;border-bottom:88px solid var(--cyan)}
+.tri.md{border-left-width:38px;border-right-width:38px;border-bottom-width:64px}
+.tri.sm{border-left-width:26px;border-right-width:26px;border-bottom-width:44px}
+.cyan-accent{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan) 0%,transparent 60%)}
+.hero-inner{position:relative;z-index:2;max-width:720px}
+.hero-frase{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.1;text-transform:uppercase;letter-spacing:.02em;color:var(--white)}
+.hero-frase .d{background:var(--cyan);color:var(--navy2);padding:0 .2em;display:inline}
+
+/* ============ SOBRE ============ */
+#sobre{background:var(--navy)}
+.cards-topo{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);margin-bottom:1px}
+.card{background:var(--navy3);padding:2.5rem 2rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .25s}
+.card:hover{background:#152236}
+.card-icon-wrap{width:52px;height:52px;border:1px solid rgba(0,174,239,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;color:var(--cyan);font-size:1.4rem}
+.card-type{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:.6rem}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.9rem;line-height:1.1}
+.card-text{font-size:.875rem;color:var(--gray2);line-height:1.8}
+.cards-valores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,174,239,0.12)}
+.card-valor{background:var(--navy2);padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .25s;min-height:160px;justify-content:center}
+.card-valor:hover{background:#0e1e32}
+.valor-icon{font-size:1.6rem;color:var(--cyan);margin-bottom:.9rem}
+.valor-nome{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);letter-spacing:.05em;margin-bottom:.35rem}
+.valor-desc{font-size:.78rem;color:var(--gray);line-height:1.6}
+
+/* ============ VOCÊ SE IDENTIFICA ============ */
+#dores{background:var(--navy)}
+.dores-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);margin-bottom:3rem}
+.dor-card{background:var(--navy3);padding:1.5rem 1.75rem;display:flex;align-items:center;gap:1rem;transition:background .25s;cursor:default}
+.dor-card:hover{background:#152236}
+.dor-card:hover .dor-icon{border-color:var(--cyan);color:var(--white);background:var(--cyan)}
+.dor-card:hover .dor-text{color:var(--white)}
+.dor-icon{width:42px;height:42px;flex-shrink:0;border:1px solid rgba(0,174,239,0.2);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:1.1rem;transition:all .25s}
+.dor-text{font-size:.875rem;color:var(--gray2);line-height:1.5;transition:color .25s}
+.dores-cta{text-align:center;padding-top:1rem}
+.cta-pergunta{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.5rem}
+.cta-pergunta em{color:var(--cyan);font-style:normal}
+.cta-btn{display:inline-block;background:var(--cyan);color:var(--navy2);padding:.85rem 2.5rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;transition:background .2s}
+.cta-btn:hover{background:var(--cyan-dark)}
+
+/* ============ METODOLOGIA ============ */
+#metodologia{background:var(--navy2)}
+.etapas{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12)}
+.etapa{background:var(--navy3);padding:3rem 2.5rem;display:flex;gap:2rem;align-items:flex-start;position:relative;transition:background .25s;overflow:hidden}
+.etapa:hover{background:#152236}
+.etapa-num{font-family:'Barlow Condensed',sans-serif;font-size:6rem;font-weight:700;color:rgba(0,174,239,0.05);position:absolute;bottom:-1rem;right:1.5rem;line-height:1;pointer-events:none;transition:color .25s}
+.etapa:hover .etapa-num{color:rgba(0,174,239,0.09)}
+.etapa-icon{width:52px;height:52px;flex-shrink:0;border:1px solid rgba(0,174,239,0.25);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:1.4rem;transition:all .25s}
+.etapa:hover .etapa-icon{background:var(--cyan);color:var(--navy2);border-color:var(--cyan)}
+.etapa-label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:.5rem}
+.etapa-title{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.75rem;line-height:1.1}
+.etapa-text{font-size:.875rem;color:var(--gray2);line-height:1.8}
+
+/* ============ CLIENTES ============ */
+#clientes{background:var(--navy)}
+.logos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,174,239,0.12);max-width:900px;margin:0 auto}
+.logo-card{background:var(--navy3);padding:2.5rem 2rem;display:flex;align-items:center;justify-content:center;min-height:130px;transition:background .25s}
+.logo-card:hover{background:#152236}
+.logo-box{width:90px;height:36px;border:1px dashed rgba(0,174,239,0.25);display:flex;align-items:center;justify-content:center}
+.logo-box span{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(0,174,239,0.35)}
+
+/* ============ PATROCÍNIO ============ */
+#patrocinio{background:var(--black);padding:0}
+.pat-hero{position:relative;min-height:420px;display:flex;align-items:center;overflow:hidden}
+.pat-hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1400&q=80') center/cover no-repeat;filter:saturate(.5) brightness(.35)}
+.pat-hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,13,0.98) 0%,rgba(13,13,13,0.85) 45%,rgba(232,123,30,0.15) 100%)}
+.pat-hero-line{position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--orange) 0%,var(--cyan) 100%)}
+.pat-hero-inner{position:relative;z-index:2;padding:4rem 3rem;display:flex;align-items:center;gap:3rem;width:100%}
+.wolves-badge{width:130px;height:130px;flex-shrink:0;border-radius:50%;border:2px solid rgba(232,123,30,0.4);overflow:hidden;background:#111;display:flex;align-items:center;justify-content:center}
+.wolves-badge img{width:100%;height:100%;object-fit:cover}
+.pat-tag{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);margin-bottom:.9rem}
+.pat-tag::before{content:'';width:20px;height:2px;background:var(--orange)}
+.pat-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4.5vw,3.4rem);font-weight:900;text-transform:uppercase;line-height:1.0;color:var(--white);margin-bottom:.6rem}
+.pat-title .t-orange{color:var(--orange)}
+.pat-title .t-cyan{color:var(--cyan)}
+.pat-subtitle{font-size:.9rem;color:var(--gray2);line-height:1.7;max-width:480px;margin-top:.8rem}
+.pat-body{display:grid;grid-template-columns:1.1fr 1fr;gap:1px;background:rgba(232,123,30,0.15)}
+.pat-foto{position:relative;min-height:300px;overflow:hidden}
+.pat-foto img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85)}
+.pat-foto-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(13,13,13,0) 60%,rgba(13,13,13,0.7) 100%)}
+.pat-info{background:#111;padding:2.5rem 2rem;display:flex;flex-direction:column;justify-content:center;gap:1.5rem}
+.pat-uniforme{display:flex;align-items:center;gap:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,123,30,0.2)}
+.pat-uniforme img{width:90px;flex-shrink:0;filter:drop-shadow(0 4px 16px rgba(232,123,30,0.3))}
+.pu-label{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:.4rem}
+.pu-title{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.4rem}
+.pu-desc{font-size:.8rem;color:var(--gray);line-height:1.6}
+.pat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(232,123,30,0.15)}
+.stat{background:#111;padding:1rem .75rem;text-align:center}
+.stat-num{font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;color:var(--orange);line-height:1;margin-bottom:.3rem}
+.stat-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray)}
+.pat-msg{font-size:.875rem;color:var(--gray2);line-height:1.75;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05)}
+.pat-msg strong{color:var(--white)}
+.pat-footer{background:var(--navy2);padding:1.5rem 3rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(232,123,30,0.2)}
+.pat-footer-logos{display:flex;align-items:center;gap:1.5rem}
+.pat-footer-sep{width:1px;height:28px;background:rgba(255,255,255,0.1)}
+.pat-footer-text{font-size:.72rem;color:var(--gray);letter-spacing:.08em}
+.pat-footer-text span{color:var(--orange)}
+
+/* ============ CONTATO ============ */
+#contato{background:var(--navy2)}
+.contato-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:1px;background:rgba(0,174,239,0.12)}
+.contato-info{background:var(--navy3);padding:2.5rem 2rem;display:flex;flex-direction:column;justify-content:space-between}
+.info-desc{font-size:.9rem;color:var(--gray2);line-height:1.8;margin-bottom:2.5rem}
+.info-items{display:flex;flex-direction:column;gap:1.5rem;margin-bottom:2.5rem}
+.info-item{display:flex;align-items:flex-start;gap:.9rem}
+.info-icon{width:36px;height:36px;flex-shrink:0;border:1px solid rgba(0,174,239,0.25);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:1rem;margin-top:.1rem}
+.info-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:.25rem}
+.info-value{font-size:.875rem;color:var(--gray2);line-height:1.5}
+.social-link{display:inline-flex;align-items:center;gap:.6rem;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid rgba(0,174,239,0.2);padding:.5rem 1rem;transition:all .25s}
+.social-link:hover{border-color:var(--cyan);color:var(--cyan)}
+.social-link i{font-size:1rem}
+.contato-form{background:var(--navy3);padding:2.5rem 2rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.form-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan)}
+.form-input{background:rgba(255,255,255,0.03);border:1px solid rgba(0,174,239,0.15);border-bottom:1px solid rgba(0,174,239,0.3);color:var(--white);padding:.75rem .9rem;font-family:'Barlow',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--cyan)}
+.form-input::placeholder{color:rgba(139,160,176,0.4)}
+textarea.form-input{resize:vertical;min-height:100px}
+.form-btn{width:100%;background:var(--cyan);color:var(--navy2);border:none;padding:.85rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.form-btn:hover{background:var(--cyan-dark)}
+
+/* ============ FOOTER ============ */
+footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo img{height:36px}
+.footer-copy{font-size:.72rem;color:var(--gray)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{font-size:.72rem;color:var(--gray);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.footer-links a:hover{color:var(--cyan)}
+
+/* ============ LOGO BASE64 VAR ============ */
+.logo-img{height:44px;display:block}
+</style>
+</head>
+<body>
+
+<!-- ====== NAV ====== -->
+<nav>
+  <div class="nav-logo">
+    <img class="logo-img" src="data:image/png;base64,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" alt="DGX Consulting">
+  </div>
+  <ul class="nav-links">
+    <li><a href="#sobre">Sobre</a></li>
+    <li><a href="#metodologia">Metodologia</a></li>
+    <li><a href="#clientes">Clientes</a></li>
+    <li><a href="dgx_wolves.html">Patrocínio</a></li>
+    <li><a href="/clientes">Área do Cliente</a></li>
+  </ul>
+  <a href="#contato" class="nav-btn">Entre em contato</a>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section id="hero">
+  <div class="bg-grid"></div>
+  <div class="bg-tris">
+    <div class="tri"></div>
+    <div class="tri md"></div>
+    <div class="tri sm"></div>
+  </div>
+  <div class="cyan-accent"></div>
+  <div class="hero-inner">
+    <h1 class="hero-frase">
+      <span>Existimos para elevar empresas<br>ao patamar de </span><span class="d">alta performance,</span><br>
+      <span>transformando dados complexos<br>em </span><span class="d">clareza para decisão.</span>
+    </h1>
+  </div>
+</section>
+
+<!-- ====== SOBRE ====== -->
+<section id="sobre">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Quem somos</span></div>
+  <h2 class="section-titulo center">Inteligência financeira<br>a serviço do seu <em>crescimento</em></h2>
+  <p class="section-desc center" style="margin-bottom:3.5rem">A DGX Consulting nasceu para ser mais do que uma consultoria — somos parceiros estratégicos que traduzem a complexidade financeira em clareza, direção e resultado.</p>
+  <div class="cards-topo">
+    <div class="card">
+      <div class="card-icon-wrap"><i class="ti ti-rocket"></i></div>
+      <div class="card-type">Missão</div>
+      <div class="card-title">O que nos move</div>
+      <p class="card-text">Impulsionar empresas com inteligência financeira, buscando rentabilidade e um desenvolvimento saudável e sustentável.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon-wrap"><i class="ti ti-eye"></i></div>
+      <div class="card-type">Visão</div>
+      <div class="card-title">Onde queremos chegar</div>
+      <p class="card-text">Ser a consultoria de referência em alta performance e gestão de resultados, reconhecida por transformar a saúde financeira dos clientes em diferencial competitivo.</p>
+    </div>
+  </div>
+  <div class="cards-valores">
+    <div class="card-valor">
+      <div class="valor-icon"><i class="ti ti-user-heart"></i></div>
+      <div class="valor-nome">Foco no Cliente</div>
+      <div class="valor-desc">Cada decisão começa pelo que é melhor para o seu negócio.</div>
+    </div>
+    <div class="card-valor">
+      <div class="valor-icon"><i class="ti ti-shield-check"></i></div>
+      <div class="valor-nome">Integridade</div>
+      <div class="valor-desc">Transparência e honestidade em cada análise e recomendação.</div>
+    </div>
+    <div class="card-valor">
+      <div class="valor-icon"><i class="ti ti-medal"></i></div>
+      <div class="valor-nome">Comprometimento</div>
+      <div class="valor-desc">Parceria real, do diagnóstico à execução e acompanhamento.</div>
+    </div>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<!-- ====== VOCÊ SE IDENTIFICA ====== -->
+<section id="dores">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Você se identifica?</span></div>
+  <h2 class="section-titulo center">Por que sua empresa<br>precisa de uma <em>consultoria?</em></h2>
+  <p class="section-desc center" style="margin-bottom:3rem">Se algum desses cenários soa familiar, a DGX Consulting pode ser o parceiro que faltava para transformar sua gestão financeira.</p>
+  <div class="dores-grid">
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-eye-off"></i></div><div class="dor-text">Sentimento de não "enxergar" o dinheiro em caixa</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-clipboard-x"></i></div><div class="dor-text">Processos mal definidos, dependentes de uma só pessoa</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-trending-down"></i></div><div class="dor-text">Baixa lucratividade, apesar de boas vendas</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-cash-off"></i></div><div class="dor-text">Desperdícios recorrentes sem origem identificada</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-credit-card-off"></i></div><div class="dor-text">Endividamento crescente e não planejado</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-mood-confuzed"></i></div><div class="dor-text">Baixa produtividade, mesmo com o time sempre ocupado</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-currency-dollar-off"></i></div><div class="dor-text">Dificuldade ou medo de tomar decisões financeiras</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-refresh-alert"></i></div><div class="dor-text">Alto volume de retrabalho nos processos financeiros</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-chess"></i></div><div class="dor-text">Ausência de planejamento e metas financeiras claras</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-building-skyscraper"></i></div><div class="dor-text">Necessidade de reestruturação ou crescimento acelerado</div></div>
+  </div>
+  <div class="dores-cta">
+    <p class="cta-pergunta">Reconheceu algum desses<br><em>cenários no seu negócio?</em></p>
+    <a href="#contato" class="cta-btn">Fale com a DGX →</a>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<!-- ====== METODOLOGIA ====== -->
+<section id="metodologia">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Como trabalhamos</span></div>
+  <h2 class="section-titulo center">Um método pensado<br>para gerar <em>resultado real</em></h2>
+  <p class="section-desc center" style="margin-bottom:4rem">Nossa atuação segue um processo estruturado em quatro etapas — do primeiro diagnóstico à governança contínua.</p>
+  <div class="etapas">
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-search"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 01</div>
+        <div class="etapa-title">Diagnóstico</div>
+        <p class="etapa-text">Mapeamos a situação financeira da empresa — indicadores, processos, gargalos e oportunidades — com profundidade e imparcialidade.</p>
+      </div>
+      <span class="etapa-num">01</span>
+    </div>
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-list-check"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 02</div>
+        <div class="etapa-title">Plano de Ação</div>
+        <p class="etapa-text">Definimos prioridades claras e um plano estruturado com ações, responsáveis e indicadores de sucesso para cada frente.</p>
+      </div>
+      <span class="etapa-num">02</span>
+    </div>
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-rocket"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 03</div>
+        <div class="etapa-title">Execução</div>
+        <p class="etapa-text">Acompanhamos de perto a implementação das ações, garantindo ritmo, foco e os ajustes necessários ao longo do caminho.</p>
+      </div>
+      <span class="etapa-num">03</span>
+    </div>
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-chart-bar"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 04</div>
+        <div class="etapa-title">Governança</div>
+        <p class="etapa-text">Reuniões periódicas de resultado, revisão de metas e ciclos de melhoria contínua — para que a evolução nunca pare.</p>
+      </div>
+      <span class="etapa-num">04</span>
+    </div>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<!-- ====== CLIENTES ====== -->
+<section id="clientes">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Clientes</span></div>
+  <h2 class="section-titulo center">Empresas que confiam<br>na <em>DGX Consulting</em></h2>
+  <p class="section-desc center" style="margin-bottom:3.5rem">Parceiros que escolheram transformar sua gestão financeira com método, dados e resultado.</p>
+  <div class="logos-grid">
+    <div class="logo-card"><div class="logo-box"><span>Cliente 01</span></div></div>
+    <div class="logo-card"><div class="logo-box"><span>Cliente 02</span></div></div>
+    <div class="logo-card"><div class="logo-box"><span>Cliente 03</span></div></div>
+    <div class="logo-card"><div class="logo-box"><span>Cliente 04</span></div></div>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<!-- ====== PATROCÍNIO ====== -->
+<section id="patrocinio">
+  <div class="pat-hero">
+    <div class="pat-hero-bg"></div>
+    <div class="pat-hero-overlay"></div>
+    <div class="pat-hero-line"></div>
+    <div class="pat-hero-inner">
+      <div class="wolves-badge">
+        <!-- Substitua pelo logo do Wolves F.C. -->
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:900;color:#E87B1E;text-align:center;line-height:1.2">WOLVES<br>F.C.</div>
+      </div>
+      <div>
+        <div class="pat-tag">Patrocínio Esportivo</div>
+        <h2 class="pat-title"><span class="t-orange">DGX</span> apoia o <span class="t-cyan">Wolves F.C.</span></h2>
+        <p class="pat-subtitle">Acreditamos que performance vai além dos negócios. Por isso apoiamos o esporte amador e a comunidade — porque times vencedores se constroem dentro e fora de campo.</p>
+      </div>
+    </div>
+  </div>
+  <div class="pat-body">
+    <div class="pat-foto">
+      <!-- Substitua pela foto do time -->
+      <div style="width:100%;height:100%;min-height:300px;background:linear-gradient(135deg,#111 0%,#1a2a1a 100%);display:flex;align-items:center;justify-content:center">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;color:rgba(232,123,30,0.4);letter-spacing:.2em;text-transform:uppercase">Foto do time</span>
+      </div>
+      <div class="pat-foto-overlay"></div>
+    </div>
+    <div class="pat-info">
+      <div class="pat-uniforme">
+        <div style="width:90px;height:110px;background:rgba(232,123,30,0.08);border:1px dashed rgba(232,123,30,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:.6rem;color:rgba(232,123,30,0.4);letter-spacing:.1em;text-transform:uppercase;text-align:center">Arte<br>Uniforme</span>
+        </div>
+        <div>
+          <div class="pu-label">Uniforme oficial</div>
+          <div class="pu-title">DGX no campo</div>
+          <div class="pu-desc">A marca DGX Consulting estampada no uniforme do Wolves F.C., levando nosso nome a cada partida.</div>
+        </div>
+      </div>
+      <div class="pat-stats">
+        <div class="stat"><div class="stat-num">2019</div><div class="stat-label">Fundação</div></div>
+        <div class="stat"><div class="stat-num">15+</div><div class="stat-label">Atletas</div></div>
+        <div class="stat"><div class="stat-num">Jundiaí</div><div class="stat-label">Cidade</div></div>
+      </div>
+      <p class="pat-msg">O patrocínio ao <strong>Wolves F.C.</strong> reflete nosso compromisso com a comunidade. Acreditamos que apoiar quem joga junto — dentro e fora do escritório — faz parte de construir algo maior.</p>
+      <div style="margin-top:1.5rem">
+        <a href="dgx_wolves.html" style="display:inline-flex;align-items:center;gap:.6rem;background:var(--orange);color:var(--black);padding:.7rem 1.5rem;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;">Ver calendário e estatísticas →</a>
+      </div>
+    </div>
+  </div>
+  <div class="pat-footer">
+    <div class="pat-footer-logos">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:#fff;letter-spacing:.05em">DG<span style="color:var(--cyan)">X</span></span>
+      <div class="pat-footer-sep"></div>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;color:var(--orange);letter-spacing:.05em">WOLVES F.C.</span>
+    </div>
+    <div class="pat-footer-text">Juntos em campo desde <span>2025</span></div>
+  </div>
+</section>
+
+<!-- ====== CONTATO ====== -->
+<section id="contato">
+  <div class="topline"></div>
+  <div class="section-label"><span>Contato</span></div>
+  <h2 class="section-titulo">Vamos conversar<br>sobre o seu <em>negócio?</em></h2>
+  <div style="margin-bottom:2.5rem"></div>
+  <div class="contato-grid">
+    <div class="contato-info">
+      <div>
+        <p class="info-desc">Preencha o formulário ao lado e entraremos em contato em breve. Estamos prontos para entender o seu negócio e propor o melhor caminho.</p>
+        <div class="info-items">
+          <div class="info-item">
+            <div class="info-icon"><i class="ti ti-clock"></i></div>
+            <div>
+              <div class="info-label">Atendimento</div>
+              <div class="info-value">Segunda a sexta, das 8h às 18h<br>Remoto em todo o Brasil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a href="https://www.instagram.com/dgxconsulting/" target="_blank" class="social-link">
+        <i class="ti ti-brand-instagram"></i>@dgxconsulting
+      </a>
+    </div>
+    <div class="contato-form">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Nome</label><input type="text" class="form-input" placeholder="Seu nome"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Empresa</label><input type="text" class="form-input" placeholder="Nome da empresa"></div>
+      </div>
+      <div style="margin-bottom:1rem"></div>
+      <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input" placeholder="seu@email.com"></div>
+      <div class="form-group"><label class="form-label">Assunto</label><input type="text" class="form-input" placeholder="Como podemos ajudar?"></div>
+      <div class="form-group"><label class="form-label">Mensagem</label><textarea class="form-input" placeholder="Conte um pouco sobre o seu negócio..."></textarea></div>
+      <button class="form-btn">Enviar mensagem</button>
+    </div>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<!-- ====== FOOTER ====== -->
+<footer>
+  <div class="footer-logo"><img class="logo-img" src="data:image/png;base64,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" alt="DGX Consulting"></div>
+  <div class="footer-copy">© 2025 DGX Consulting · CNPJ 65.842.762/0001-80 · Jundiaí, SP</div>
+  <div class="footer-links">
+    <a href="#sobre">Sobre</a>
+    <a href="#metodologia">Metodologia</a>
+    <a href="#clientes">Clientes</a>
+    <a href="dgx_wolves.html">Patrocínio</a>
+    <a href="#contato">Contato</a>
+  </div>
+</footer>
+
+</body>
+</html>
