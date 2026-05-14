@@ -18,29 +18,13 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:'Barlow',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
-
-/* ============ NAV ============ */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:1rem 3rem;
-  background:rgba(10,21,37,0.97);
-  border-bottom:1px solid rgba(0,174,239,0.15);
-  backdrop-filter:blur(8px);
-}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(10,21,37,0.97);border-bottom:1px solid rgba(0,174,239,0.15);backdrop-filter:blur(8px)}
 .nav-logo img{height:44px;display:block}
 .nav-links{display:flex;gap:2rem;list-style:none}
 .nav-links a{color:var(--gray);text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
 .nav-links a:hover{color:var(--cyan)}
-.nav-btn{
-  background:var(--cyan);color:var(--navy2);border:none;
-  padding:.5rem 1.4rem;font-size:.75rem;font-weight:700;
-  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-  font-family:'Barlow',sans-serif;transition:background .2s;text-decoration:none;
-}
+.nav-btn{background:var(--cyan);color:var(--navy2);border:none;padding:.5rem 1.4rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Barlow',sans-serif;transition:background .2s;text-decoration:none}
 .nav-btn:hover{background:var(--cyan-dark)}
-
-/* ============ SEÇÃO BASE ============ */
 section{padding:5rem 3rem;position:relative;overflow:hidden}
 .topline{width:100%;height:1px;background:linear-gradient(90deg,var(--cyan) 0%,transparent 50%);margin-bottom:4rem}
 .bottomline{width:100%;height:1px;background:linear-gradient(90deg,transparent 0%,var(--cyan) 50%,transparent 100%);margin-top:4rem;opacity:.2}
@@ -54,12 +38,7 @@ section{padding:5rem 3rem;position:relative;overflow:hidden}
 .section-titulo.center{text-align:center}
 .section-desc{font-size:.9rem;color:var(--gray2);line-height:1.8;max-width:520px}
 .section-desc.center{margin:0 auto;text-align:center}
-
-/* ============ HERO ============ */
-#hero{
-  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  background:var(--navy2);padding-top:6rem;
-}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;background:var(--navy2);padding-top:6rem}
 .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,174,239,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,174,239,0.05) 1px,transparent 1px);background-size:55px 55px}
 .bg-tris{position:absolute;right:8%;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.13}
 .tri{width:0;height:0;border-left:52px solid transparent;border-right:52px solid transparent;border-bottom:88px solid var(--cyan)}
@@ -69,8 +48,6 @@ section{padding:5rem 3rem;position:relative;overflow:hidden}
 .hero-inner{position:relative;z-index:2;max-width:720px}
 .hero-frase{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.1;text-transform:uppercase;letter-spacing:.02em;color:var(--white)}
 .hero-frase .d{background:var(--cyan);color:var(--navy2);padding:0 .2em;display:inline}
-
-/* ============ SOBRE ============ */
 #sobre{background:var(--navy)}
 .cards-topo{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);margin-bottom:1px}
 .card{background:var(--navy3);padding:2.5rem 2rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .25s}
@@ -85,8 +62,6 @@ section{padding:5rem 3rem;position:relative;overflow:hidden}
 .valor-icon{font-size:1.6rem;color:var(--cyan);margin-bottom:.9rem}
 .valor-nome{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);letter-spacing:.05em;margin-bottom:.35rem}
 .valor-desc{font-size:.78rem;color:var(--gray);line-height:1.6}
-
-/* ============ VOCÊ SE IDENTIFICA ============ */
 #dores{background:var(--navy)}
 .dores-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);margin-bottom:3rem}
 .dor-card{background:var(--navy3);padding:1.5rem 1.75rem;display:flex;align-items:center;gap:1rem;transition:background .25s;cursor:default}
@@ -100,8 +75,6 @@ section{padding:5rem 3rem;position:relative;overflow:hidden}
 .cta-pergunta em{color:var(--cyan);font-style:normal}
 .cta-btn{display:inline-block;background:var(--cyan);color:var(--navy2);padding:.85rem 2.5rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;transition:background .2s}
 .cta-btn:hover{background:var(--cyan-dark)}
-
-/* ============ METODOLOGIA ============ */
 #metodologia{background:var(--navy2)}
 .etapas{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12)}
 .etapa{background:var(--navy3);padding:3rem 2.5rem;display:flex;gap:2rem;align-items:flex-start;position:relative;transition:background .25s;overflow:hidden}
@@ -113,53 +86,10 @@ section{padding:5rem 3rem;position:relative;overflow:hidden}
 .etapa-label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:.5rem}
 .etapa-title{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.75rem;line-height:1.1}
 .etapa-text{font-size:.875rem;color:var(--gray2);line-height:1.8}
-
-/* ============ CLIENTES ============ */
 #clientes{background:var(--navy)}
 .logos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,174,239,0.12);max-width:900px;margin:0 auto}
 .logo-card{background:var(--navy3);padding:2.5rem 2rem;display:flex;align-items:center;justify-content:center;min-height:130px;transition:background .25s}
 .logo-card:hover{background:#152236}
-.logo-box{width:90px;height:36px;border:1px dashed rgba(0,174,239,0.25);display:flex;align-items:center;justify-content:center}
-.logo-box span{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(0,174,239,0.35)}
-
-/* ============ PATROCÍNIO ============ */
-#patrocinio{background:var(--black);padding:0}
-.pat-hero{position:relative;min-height:420px;display:flex;align-items:center;overflow:hidden}
-.pat-hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1400&q=80') center/cover no-repeat;filter:saturate(.5) brightness(.35)}
-.pat-hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,13,0.98) 0%,rgba(13,13,13,0.85) 45%,rgba(232,123,30,0.15) 100%)}
-.pat-hero-line{position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--orange) 0%,var(--cyan) 100%)}
-.pat-hero-inner{position:relative;z-index:2;padding:4rem 3rem;display:flex;align-items:center;gap:3rem;width:100%}
-.wolves-badge{width:130px;height:130px;flex-shrink:0;border-radius:50%;border:2px solid rgba(232,123,30,0.4);overflow:hidden;background:#111;display:flex;align-items:center;justify-content:center}
-.wolves-badge img{width:100%;height:100%;object-fit:cover}
-.pat-tag{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);margin-bottom:.9rem}
-.pat-tag::before{content:'';width:20px;height:2px;background:var(--orange)}
-.pat-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4.5vw,3.4rem);font-weight:900;text-transform:uppercase;line-height:1.0;color:var(--white);margin-bottom:.6rem}
-.pat-title .t-orange{color:var(--orange)}
-.pat-title .t-cyan{color:var(--cyan)}
-.pat-subtitle{font-size:.9rem;color:var(--gray2);line-height:1.7;max-width:480px;margin-top:.8rem}
-.pat-body{display:grid;grid-template-columns:1.1fr 1fr;gap:1px;background:rgba(232,123,30,0.15)}
-.pat-foto{position:relative;min-height:300px;overflow:hidden}
-.pat-foto img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85)}
-.pat-foto-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(13,13,13,0) 60%,rgba(13,13,13,0.7) 100%)}
-.pat-info{background:#111;padding:2.5rem 2rem;display:flex;flex-direction:column;justify-content:center;gap:1.5rem}
-.pat-uniforme{display:flex;align-items:center;gap:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,123,30,0.2)}
-.pat-uniforme img{width:90px;flex-shrink:0;filter:drop-shadow(0 4px 16px rgba(232,123,30,0.3))}
-.pu-label{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:.4rem}
-.pu-title{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.4rem}
-.pu-desc{font-size:.8rem;color:var(--gray);line-height:1.6}
-.pat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(232,123,30,0.15)}
-.stat{background:#111;padding:1rem .75rem;text-align:center}
-.stat-num{font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;color:var(--orange);line-height:1;margin-bottom:.3rem}
-.stat-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray)}
-.pat-msg{font-size:.875rem;color:var(--gray2);line-height:1.75;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05)}
-.pat-msg strong{color:var(--white)}
-.pat-footer{background:var(--navy2);padding:1.5rem 3rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(232,123,30,0.2)}
-.pat-footer-logos{display:flex;align-items:center;gap:1.5rem}
-.pat-footer-sep{width:1px;height:28px;background:rgba(255,255,255,0.1)}
-.pat-footer-text{font-size:.72rem;color:var(--gray);letter-spacing:.08em}
-.pat-footer-text span{color:var(--orange)}
-
-/* ============ CONTATO ============ */
 #contato{background:var(--navy2)}
 .contato-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:1px;background:rgba(0,174,239,0.12)}
 .contato-info{background:var(--navy3);padding:2.5rem 2rem;display:flex;flex-direction:column;justify-content:space-between}
@@ -182,25 +112,20 @@ section{padding:5rem 3rem;position:relative;overflow:hidden}
 textarea.form-input{resize:vertical;min-height:100px}
 .form-btn{width:100%;background:var(--cyan);color:var(--navy2);border:none;padding:.85rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s}
 .form-btn:hover{background:var(--cyan-dark)}
-
-/* ============ FOOTER ============ */
 footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
 .footer-logo img{height:36px}
 .footer-copy{font-size:.72rem;color:var(--gray)}
 .footer-links{display:flex;gap:1.5rem}
 .footer-links a{font-size:.72rem;color:var(--gray);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
 .footer-links a:hover{color:var(--cyan)}
-
-/* ============ LOGO BASE64 VAR ============ */
 .logo-img{height:44px;display:block}
 </style>
 </head>
 <body>
 
-<!-- ====== NAV ====== -->
 <nav>
   <div class="nav-logo">
-    <img class="logo-img" src="logo-dgx.png" alt="DGX Consulting" style="filter:brightness(0) invert(1)">
+    <img class="logo-img" src="logo-dgx.png" alt="DGX Consulting">
   </div>
   <ul class="nav-links">
     <li><a href="#sobre">Sobre</a></li>
@@ -212,7 +137,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   <a href="#contato" class="nav-btn">Entre em contato</a>
 </nav>
 
-<!-- ====== HERO ====== -->
 <section id="hero">
   <div class="bg-grid"></div>
   <div class="bg-tris">
@@ -229,7 +153,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   </div>
 </section>
 
-<!-- ====== SOBRE ====== -->
 <section id="sobre">
   <div class="topline"></div>
   <div class="section-label center"><span>Quem somos</span></div>
@@ -269,7 +192,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   <div class="bottomline"></div>
 </section>
 
-<!-- ====== VOCÊ SE IDENTIFICA ====== -->
 <section id="dores">
   <div class="topline"></div>
   <div class="section-label center"><span>Você se identifica?</span></div>
@@ -294,7 +216,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   <div class="bottomline"></div>
 </section>
 
-<!-- ====== METODOLOGIA ====== -->
 <section id="metodologia">
   <div class="topline"></div>
   <div class="section-label center"><span>Como trabalhamos</span></div>
@@ -341,7 +262,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   <div class="bottomline"></div>
 </section>
 
-<!-- ====== CLIENTES ====== -->
 <section id="clientes">
   <div class="topline"></div>
   <div class="section-label center"><span>Clientes</span></div>
@@ -349,14 +269,13 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   <p class="section-desc center" style="margin-bottom:3.5rem">Parceiros que escolheram transformar sua gestão financeira com método, dados e resultado.</p>
   <div class="logos-grid">
     <div class="logo-card"><img src="logo-hawks.png" alt="Hawks" style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
-    <div class="logo-card"><img src="logo-oak.png" alt="Oak &amp; Co." style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
+    <div class="logo-card"><img src="logo-oak.png" alt="Oak & Co." style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
     <div class="logo-card"><img src="logo-mp.png" alt="MP Prudente" style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
     <div class="logo-card"><img src="logo-fnyx.png" alt="FNYX Cosmetics" style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
   </div>
   <div class="bottomline"></div>
 </section>
 
-<!-- ====== CONTATO ====== -->
 <section id="contato">
   <div class="topline"></div>
   <div class="section-label"><span>Contato</span></div>
@@ -395,7 +314,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   <div class="bottomline"></div>
 </section>
 
-<!-- ====== PATROCÍNIO ====== -->
 <section id="patrocinio" style="background:#0D0D0D;padding:5rem 3rem;position:relative;overflow:hidden">
   <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,#E87B1E,#00AEEF)"></div>
   <div style="max-width:800px;margin:0 auto;text-align:center">
@@ -416,8 +334,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding
   </div>
 </section>
 
-
-<!-- ====== FOOTER ====== -->
 <footer>
   <div class="footer-logo"><img class="logo-img" src="logo-dgx.png" alt="DGX Consulting"></div>
   <div class="footer-copy">© 2025 DGX Consulting · CNPJ 65.842.762/0001-80 · Jundiaí, SP</div>
