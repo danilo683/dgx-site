@@ -15,7 +15,6 @@
 html,body{min-height:100vh}
 body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--white)}
 
-/* NAV */
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(10,21,37,0.98);border-bottom:1px solid rgba(232,123,30,0.2);position:sticky;top:0;z-index:100}
 .nav-left{display:flex;align-items:center;gap:1.5rem}
 .nav-logo img{height:40px;display:block}
@@ -25,38 +24,35 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .nav-back::before{content:'←';font-size:.9rem}
 .nav-back:hover{color:var(--orange)}
 
-/* HERO */
 .wolves-hero{position:relative;overflow:hidden;background:var(--black)}
 .hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1400&q=80') center/cover;filter:saturate(.4) brightness(.2)}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,13,.98) 0%,rgba(13,13,13,.75) 60%,transparent 100%)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(13,13,13,.97) 0%,rgba(13,13,13,.8) 100%)}
 .hero-line{position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--orange),var(--cyan))}
-.hero-inner{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:3.5rem 3rem;display:flex;align-items:center;gap:3rem}
-.hero-badge{width:160px;height:160px;flex-shrink:0;border-radius:50%;border:3px solid rgba(232,123,30,.6);background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.hero-badge img{width:100%;height:100%;object-fit:contain;padding:10px}
-.hero-badge-text{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:900;color:var(--orange);text-align:center;line-height:1.2}
+.hero-inner{position:relative;z-index:2;max-width:960px;margin:0 auto;padding:4rem 3rem;display:flex;align-items:center;gap:3.5rem}
+.hero-badge{width:200px;height:200px;flex-shrink:0;border-radius:50%;border:3px solid rgba(232,123,30,.6);background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 40px rgba(232,123,30,.15)}
+.hero-badge img{width:100%;height:100%;object-fit:contain;padding:12px}
+.hero-badge-text{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:900;color:var(--orange);text-align:center;line-height:1.2}
 .hero-tag{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:.75rem}
 .hero-tag::before{content:'';width:16px;height:2px;background:var(--orange)}
-.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2.2rem,5vw,3.5rem);font-weight:900;text-transform:uppercase;line-height:1;color:var(--white);margin-bottom:.5rem}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:900;text-transform:uppercase;line-height:1;color:var(--white);margin-bottom:.5rem}
 .hero-title span{color:var(--orange)}
 .hero-sub{font-size:.875rem;color:var(--gray2);margin-bottom:1.5rem}
-.hero-stats{display:flex;gap:2rem}
+.hero-stats{display:flex;gap:2.5rem}
 .hstat{text-align:center}
-.hstat-num{font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;line-height:1}
+.hstat-num{font-family:'Barlow Condensed',sans-serif;font-size:2.2rem;font-weight:900;line-height:1}
 .hstat-num.win{color:#4CD97B}
 .hstat-num.draw{color:#FFCC44}
 .hstat-num.loss{color:#FF5A5A}
 .hstat-label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-top:.3rem}
 
-/* TABS */
 .tabs-bar{display:flex;background:rgba(10,21,37,.98);border-bottom:1px solid rgba(232,123,30,.15);overflow-x:auto}
 .tab{padding:1rem 2rem;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
 .tab:hover{color:var(--orange)}
 .tab.active{color:var(--orange);border-bottom-color:var(--orange)}
 
-/* CONTENT */
 .tab-content{display:none;padding:2.5rem 3rem}
 .tab-content.active{display:block}
-.content-inner{max-width:900px;margin:0 auto}
+.content-inner{max-width:960px;margin:0 auto}
 
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem}
 .spinner{width:36px;height:36px;border:3px solid rgba(232,123,30,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
@@ -66,23 +62,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .section-title{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem}
 .section-title::before{content:'';width:3px;height:1.2em;background:var(--orange);flex-shrink:0}
 
+/* TABELA COM FOTO */
 .data-table{width:100%;border-collapse:collapse}
 .data-table th{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);padding:.75rem 1rem;border-bottom:1px solid rgba(232,123,30,.25);text-align:left}
-.data-table th:not(:first-child){text-align:center}
-.data-table td{padding:.75rem 1rem;font-size:.9rem;color:var(--gray2);border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+.data-table th:not(:first-child):not(:nth-child(2)){text-align:center}
+.data-table td{padding:.6rem 1rem;font-size:.9rem;color:var(--gray2);border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;vertical-align:middle}
 .data-table tr:hover td{background:rgba(232,123,30,.05)}
-.data-table td:not(:first-child){text-align:center}
+.data-table td:not(:first-child):not(:nth-child(2)){text-align:center}
 .rank{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:rgba(232,123,30,.4);font-weight:700;min-width:24px;display:inline-block}
 .rank.gold{color:#FFD700}
 .rank.silver{color:#C0C0C0}
 .rank.bronze{color:#CD7F32}
+
+/* FOTO JOGADOR */
+.player-cell{display:flex;align-items:center;gap:.9rem}
+.player-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:rgba(232,123,30,.1);border:1px solid rgba(232,123,30,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.player-avatar img{width:100%;height:100%;object-fit:cover}
+.player-avatar-placeholder{width:36px;height:36px;border-radius:50%;background:rgba(232,123,30,.12);border:1px solid rgba(232,123,30,.25);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;color:var(--orange)}
+.player-name{color:var(--white);font-weight:500}
+
 .freq-bar-wrap{display:flex;align-items:center;gap:.75rem}
 .freq-bar{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;max-width:160px}
 .freq-bar-fill{height:100%;background:var(--orange);border-radius:3px}
 .freq-pct{font-size:.8rem;color:var(--orange);min-width:36px;text-align:right}
 .val-big{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;color:var(--white)}
 
-/* CALENDÁRIO */
 .cal-filters{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
 .cal-filter{padding:.4rem 1rem;background:transparent;border:1px solid rgba(232,123,30,.2);color:var(--gray);font-family:'Barlow',sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .cal-filter:hover,.cal-filter.active{background:var(--orange);color:var(--black);border-color:var(--orange)}
@@ -90,7 +94,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .cal-table th{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);padding:.75rem 1rem;border-bottom:1px solid rgba(232,123,30,.25);text-align:left;white-space:nowrap}
 .cal-table td{padding:.7rem 1rem;font-size:.85rem;color:var(--gray2);border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
 .cal-table tr:hover td{background:rgba(232,123,30,.04)}
-.cal-table tr.future td{opacity:.45}
+.cal-table tr.future td{opacity:.5}
 .badge{display:inline-block;padding:.2rem .6rem;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif}
 .badge-win{background:rgba(76,217,123,.15);color:#4CD97B}
 .badge-draw{background:rgba(255,204,68,.12);color:#FFCC44}
@@ -99,7 +103,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .badge-pending{background:rgba(0,174,239,.08);color:var(--cyan)}
 .placar{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--white);letter-spacing:.05em}
 
-/* FOOTER */
 footer{background:var(--navy2);border-top:1px solid rgba(232,123,30,.15);padding:1.5rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:2rem}
 .footer-brand{display:flex;align-items:center;gap:1rem}
 .footer-sep{width:1px;height:24px;background:rgba(255,255,255,.1)}
@@ -124,7 +127,7 @@ footer{background:var(--navy2);border-top:1px solid rgba(232,123,30,.15);padding
   <div class="hero-line"></div>
   <div class="hero-inner">
     <div class="hero-badge">
-      <img src="logo-wolves.png" alt="Wolves F.C." onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <img src="logo-wolves.png" alt="Wolves F.C." onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="hero-badge-text" style="display:none">WOLVES<br>F.C.<br>2019</div>
     </div>
     <div class="hero-content">
@@ -155,9 +158,9 @@ footer{background:var(--navy2);border-top:1px solid rgba(232,123,30,.15);padding
       <div class="section-title">Calendário de Jogos 2026</div>
       <div class="cal-filters">
         <button class="cal-filter active" onclick="filterCal('todos',this)">Todos</button>
-        <button class="cal-filter" onclick="filterCal('Vitória',this)">Vitórias</button>
-        <button class="cal-filter" onclick="filterCal('Empate',this)">Empates</button>
-        <button class="cal-filter" onclick="filterCal('Derrota',this)">Derrotas</button>
+        <button class="cal-filter" onclick="filterCal('vitoria',this)">Vitórias</button>
+        <button class="cal-filter" onclick="filterCal('empate',this)">Empates</button>
+        <button class="cal-filter" onclick="filterCal('derrota',this)">Derrotas</button>
         <button class="cal-filter" onclick="filterCal('pendente',this)">Próximos</button>
       </div>
       <div style="overflow-x:auto">
@@ -233,33 +236,47 @@ async function fetchCSV(url) {
   return text.trim().split('\n').map(row => {
     const result = []; let cur = '', inQ = false;
     for (let c of row) {
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
-      else { cur += c; }
+      if (c==='"'){inQ=!inQ;}
+      else if (c===','&&!inQ){result.push(cur.trim());cur='';}
+      else{cur+=c;}
     }
     result.push(cur.trim());
     return result;
   });
 }
 
+// Avatar do jogador — tenta carregar foto pelo nome, fallback para iniciais
+function playerCell(nome) {
+  const slug = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+  const iniciais = nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  return `<div class="player-cell">
+    <div class="player-avatar-placeholder" id="av-${slug}" title="${nome}">${iniciais}</div>
+    <span class="player-name">${nome}</span>
+  </div>`;
+}
+
 // ====== CALENDÁRIO ======
-// Estrutura: col B=Data, C=Local, D=Mandante, E=Gols1, F=X, G=Gols2, H=Adversário, I=Realizado, J=Cartel, N=Obs
-// CSV: idx 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I, 9=J, 13=N
+// Planilha: A(vazio), B=Data, C=Local, D=Mandante, E=Gols1, F=X, G=Gols2, H=Adversário, I=Realizado, J=Cartel, N=Obs
+// CSV idx:  0=A,      1=B,    2=C,     3=D,        4=E,     5=F, 6=G,     7=H,          8=I,         9=J,      13=N
 async function loadCalendario() {
   try {
     const rows = await fetchCSV(SHEETS.calendario);
-    const dataRows = rows.filter(r => {
-      const b = (r[1]||'').trim();
-      return b.match(/^\d{2}\/\d{2}\/\d{4}$/);
-    });
+
+    // Debug: loga as primeiras linhas no console
+    console.log('Total rows:', rows.length);
+    rows.slice(0,15).forEach((r,i) => console.log(`Row ${i}:`, r));
+
+    // Filtra apenas linhas com data no formato dd/mm/aaaa na coluna B (idx 1)
+    const dataRows = rows.filter(r => /^\d{2}\/\d{2}\/\d{4}$/.test((r[1]||'').trim()));
+    console.log('Data rows found:', dataRows.length);
 
     let vit=0, emp=0, der=0, jog=0;
     for (let r of dataRows) {
       const realizado = (r[8]||'').trim().toLowerCase();
       const cartel    = (r[9]||'').trim().toLowerCase();
-      if (realizado === 'sim') {
+      if (realizado==='sim') {
         jog++;
-        if (cartel.includes('vitória') || cartel.includes('vitoria')) vit++;
+        if (cartel.includes('vitória')||cartel.includes('vitoria')) vit++;
         else if (cartel.includes('empate')) emp++;
         else if (cartel.includes('derrota')) der++;
       }
@@ -272,39 +289,40 @@ async function loadCalendario() {
     const body = document.getElementById('calBody');
     body.innerHTML = '';
     for (let r of dataRows) {
-      const data       = r[1]||'';
-      const mandante   = r[3]||'';
-      const gols1      = r[4]||'0';
-      const gols2      = r[6]||'0';
-      const adversario = r[7]||'';
+      const data       = (r[1]||'').trim();
+      const mandante   = (r[3]||'').trim();
+      const gols1      = (r[4]||'').trim();
+      const gols2      = (r[6]||'').trim();
+      const adversario = (r[7]||'').trim();
       const realizado  = (r[8]||'').trim().toLowerCase();
       const cartel     = (r[9]||'').trim();
-      const obs        = r[13]||'';
+      const obs        = (r[13]||'').trim();
 
-      const isPast     = realizado === 'sim';
-      const isCanceled = !isPast && obs.toLowerCase().includes('cancelado');
-      const isPending  = !isPast && !isCanceled;
+      const isPast    = realizado==='sim';
+      const isCanceled= !isPast && obs.toLowerCase().includes('cancelado');
+      const isPending = !isPast && !isCanceled;
 
-      let badge = '', placarHtml = '<span style="color:var(--gray);font-size:.8rem">—</span>';
+      let badge='', placarHtml='<span style="color:var(--gray);font-size:.8rem">—</span>';
       if (isPast) {
         placarHtml = `<span class="placar">${gols1} × ${gols2}</span>`;
         const c = cartel.toLowerCase();
-        if (c.includes('vitória')||c.includes('vitoria')) badge = '<span class="badge badge-win">Vitória</span>';
-        else if (c.includes('empate')) badge = '<span class="badge badge-draw">Empate</span>';
-        else if (c.includes('derrota')) badge = '<span class="badge badge-loss">Derrota</span>';
-        else badge = '<span class="badge badge-pending">Realizado</span>';
+        if (c.includes('vitória')||c.includes('vitoria')) badge='<span class="badge badge-win">Vitória</span>';
+        else if (c.includes('empate')) badge='<span class="badge badge-draw">Empate</span>';
+        else if (c.includes('derrota')) badge='<span class="badge badge-loss">Derrota</span>';
+        else badge='<span class="badge badge-pending">Realizado</span>';
       } else if (isCanceled) {
-        badge = '<span class="badge badge-cancel">Cancelado</span>';
+        badge='<span class="badge badge-cancel">Cancelado</span>';
       } else {
-        badge = '<span class="badge badge-pending">Aguardando</span>';
+        badge='<span class="badge badge-pending">Aguardando</span>';
       }
 
+      const filterKey = isPast ? cartel.toLowerCase() : (isCanceled?'cancelado':'pendente');
       const tr = document.createElement('tr');
-      if (isPending) tr.classList.add('future');
-      tr.dataset.filter = isPast ? cartel : (isCanceled ? 'cancelado' : 'pendente');
+      if (isPending||isCanceled) tr.classList.add('future');
+      tr.dataset.filter = filterKey;
       tr.innerHTML = `
         <td>${data}</td>
-        <td>${mandante}</td>
+        <td style="color:var(--white)">${mandante||'—'}</td>
         <td>${placarHtml}</td>
         <td style="color:var(--white)">${adversario||'<span style="opacity:.3">—</span>'}</td>
         <td>${badge}</td>
@@ -313,21 +331,22 @@ async function loadCalendario() {
       body.appendChild(tr);
     }
 
-    document.getElementById('loading-calendario').style.display = 'none';
-    document.getElementById('content-calendario').style.display = 'block';
+    document.getElementById('loading-calendario').style.display='none';
+    document.getElementById('content-calendario').style.display='block';
   } catch(e) {
-    document.getElementById('loading-calendario').innerHTML = '<p style="color:var(--gray);font-size:.85rem">Erro ao carregar. Verifique a conexão.</p>';
-    console.error(e);
+    console.error('Erro calendário:', e);
+    document.getElementById('loading-calendario').innerHTML='<p style="color:var(--gray);font-size:.85rem">Erro ao carregar. Verifique a conexão.</p>';
   }
 }
 
 function filterCal(type, btn) {
-  document.querySelectorAll('.cal-filter').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cal-filter').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelectorAll('#calBody tr').forEach(tr => {
-    if (type === 'todos') tr.style.display = '';
-    else if (type === 'pendente') tr.style.display = tr.dataset.filter === 'pendente' ? '' : 'none';
-    else tr.style.display = (tr.dataset.filter||'').toLowerCase().includes(type.toLowerCase()) ? '' : 'none';
+  document.querySelectorAll('#calBody tr').forEach(tr=>{
+    const f=(tr.dataset.filter||'').toLowerCase();
+    if (type==='todos') tr.style.display='';
+    else if (type==='pendente') tr.style.display=f==='pendente'?'':'none';
+    else tr.style.display=f.includes(type)?'':'none';
   });
 }
 
@@ -336,24 +355,26 @@ async function loadArtilharia() {
   try {
     const rows = await fetchCSV(SHEETS.gols);
     const body = document.getElementById('artBody');
-    body.innerHTML = '';
-    const data = rows.slice(1).filter(r => {
-      const nome = (r[1]||'').trim();
-      const gols = parseInt(r[2])||0;
-      return nome && nome.toLowerCase() !== 'jogador' && gols > 0;
+    body.innerHTML='';
+    const data = rows.slice(1).filter(r=>{
+      const nome=(r[1]||'').trim();
+      const gols=parseInt(r[2])||0;
+      return nome && nome.toLowerCase()!=='jogador' && gols>0;
     });
-    data.forEach((r, i) => {
-      const nome = r[1].trim(), gols = parseInt(r[2])||0;
-      const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><span class="rank ${rc}">${i+1}°</span></td><td style="color:var(--white);font-weight:500">${nome}</td><td><span class="val-big">${gols}</span></td>`;
+    data.forEach((r,i)=>{
+      const nome=r[1].trim(), gols=parseInt(r[2])||0;
+      const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><span class="rank ${rc}">${i+1}°</span></td>
+        <td>${playerCell(nome)}</td>
+        <td><span class="val-big">${gols}</span></td>
+      `;
       body.appendChild(tr);
     });
-    document.getElementById('loading-artilharia').style.display = 'none';
-    document.getElementById('content-artilharia').style.display = 'block';
-  } catch(e) {
-    document.getElementById('loading-artilharia').innerHTML = '<p style="color:var(--gray)">Erro ao carregar.</p>';
-  }
+    document.getElementById('loading-artilharia').style.display='none';
+    document.getElementById('content-artilharia').style.display='block';
+  } catch(e){document.getElementById('loading-artilharia').innerHTML='<p style="color:var(--gray)">Erro ao carregar.</p>';}
 }
 
 // ====== ASSISTÊNCIAS ======
@@ -361,24 +382,26 @@ async function loadAssistencias() {
   try {
     const rows = await fetchCSV(SHEETS.assistencias);
     const body = document.getElementById('assBody');
-    body.innerHTML = '';
-    const data = rows.slice(1).filter(r => {
-      const nome = (r[1]||'').trim();
-      const ass = parseInt(r[2])||0;
-      return nome && nome.toLowerCase() !== 'jogador' && ass > 0;
+    body.innerHTML='';
+    const data = rows.slice(1).filter(r=>{
+      const nome=(r[1]||'').trim();
+      const ass=parseInt(r[2])||0;
+      return nome && nome.toLowerCase()!=='jogador' && ass>0;
     });
-    data.forEach((r, i) => {
-      const nome = r[1].trim(), ass = parseInt(r[2])||0;
-      const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><span class="rank ${rc}">${i+1}°</span></td><td style="color:var(--white);font-weight:500">${nome}</td><td><span class="val-big">${ass}</span></td>`;
+    data.forEach((r,i)=>{
+      const nome=r[1].trim(), ass=parseInt(r[2])||0;
+      const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><span class="rank ${rc}">${i+1}°</span></td>
+        <td>${playerCell(nome)}</td>
+        <td><span class="val-big">${ass}</span></td>
+      `;
       body.appendChild(tr);
     });
-    document.getElementById('loading-assistencias').style.display = 'none';
-    document.getElementById('content-assistencias').style.display = 'block';
-  } catch(e) {
-    document.getElementById('loading-assistencias').innerHTML = '<p style="color:var(--gray)">Erro ao carregar.</p>';
-  }
+    document.getElementById('loading-assistencias').style.display='none';
+    document.getElementById('content-assistencias').style.display='block';
+  } catch(e){document.getElementById('loading-assistencias').innerHTML='<p style="color:var(--gray)">Erro ao carregar.</p>';}
 }
 
 // ====== FREQUÊNCIA ======
@@ -386,49 +409,47 @@ async function loadFrequencia() {
   try {
     const rows = await fetchCSV(SHEETS.frequencia);
     const body = document.getElementById('freqBody');
-    body.innerHTML = '';
-    const data = rows.slice(1).filter(r => {
-      const nome = (r[1]||'').trim();
-      const jogos = parseInt(r[2])||0;
-      return nome && nome.toLowerCase() !== 'jogador' && jogos > 0;
+    body.innerHTML='';
+    const data = rows.slice(1).filter(r=>{
+      const nome=(r[1]||'').trim();
+      const jogos=parseInt(r[2])||0;
+      return nome && nome.toLowerCase()!=='jogador' && jogos>0;
     });
-    data.forEach((r, i) => {
-      const nome = r[1].trim();
-      const jogos = parseInt(r[2])||0;
-      const pctNum = parseInt((r[3]||'0').replace('%','').trim())||0;
-      const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+    data.forEach((r,i)=>{
+      const nome=r[1].trim();
+      const jogos=parseInt(r[2])||0;
+      const pctNum=parseInt((r[3]||'0').replace('%','').trim())||0;
+      const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
         <td><span class="rank ${rc}">${i+1}°</span></td>
-        <td style="color:var(--white);font-weight:500">${nome}</td>
+        <td>${playerCell(nome)}</td>
         <td style="text-align:center"><span class="val-big">${jogos}</span></td>
         <td><div class="freq-bar-wrap"><div class="freq-bar"><div class="freq-bar-fill" style="width:${pctNum}%"></div></div><span class="freq-pct">${pctNum}%</span></div></td>
       `;
       body.appendChild(tr);
     });
-    document.getElementById('loading-frequencia').style.display = 'none';
-    document.getElementById('content-frequencia').style.display = 'block';
-  } catch(e) {
-    document.getElementById('loading-frequencia').innerHTML = '<p style="color:var(--gray)">Erro ao carregar.</p>';
-  }
+    document.getElementById('loading-frequencia').style.display='none';
+    document.getElementById('content-frequencia').style.display='block';
+  } catch(e){document.getElementById('loading-frequencia').innerHTML='<p style="color:var(--gray)">Erro ao carregar.</p>';}
 }
 
 // ====== TABS ======
-const loaded = {calendario:false,artilharia:false,assistencias:false,frequencia:false};
-function showTab(name, btn) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+const loaded={calendario:false,artilharia:false,assistencias:false,frequencia:false};
+function showTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
-  if (!loaded[name]) {
-    loaded[name] = true;
-    if (name==='artilharia') loadArtilharia();
-    if (name==='assistencias') loadAssistencias();
-    if (name==='frequencia') loadFrequencia();
+  if(!loaded[name]){
+    loaded[name]=true;
+    if(name==='artilharia') loadArtilharia();
+    if(name==='assistencias') loadAssistencias();
+    if(name==='frequencia') loadFrequencia();
   }
 }
 loadCalendario();
-loaded.calendario = true;
+loaded.calendario=true;
 </script>
 </body>
 </html>
