@@ -16,222 +16,86 @@
 html,body{min-height:100vh}
 body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--white)}
 
-/* ====== NAV ====== */
-nav{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:1rem 2.5rem;
-  background:rgba(10,21,37,0.98);
-  border-bottom:1px solid rgba(232,123,30,0.2);
-  position:sticky;top:0;z-index:100;
-}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;background:rgba(10,21,37,0.98);border-bottom:1px solid rgba(232,123,30,0.2);position:sticky;top:0;z-index:100}
 .nav-left{display:flex;align-items:center;gap:1.5rem}
 .nav-logo img{height:40px;display:block}
 .nav-sep{width:1px;height:28px;background:rgba(255,255,255,0.1)}
-.nav-team{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1rem;font-weight:700;color:var(--orange);
-  letter-spacing:.08em;text-transform:uppercase;
-}
-.nav-back{
-  display:inline-flex;align-items:center;gap:.5rem;
-  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--gray);text-decoration:none;transition:color .2s;
-}
+.nav-team{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--orange);letter-spacing:.08em;text-transform:uppercase}
+.nav-back{display:inline-flex;align-items:center;gap:.5rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;transition:color .2s}
 .nav-back::before{content:'←';font-size:.9rem}
 .nav-back:hover{color:var(--orange)}
 
-/* ====== HERO ====== */
-.wolves-hero{
-  position:relative;min-height:320px;
-  display:flex;align-items:center;overflow:hidden;
-  background:var(--black);
-}
-.hero-bg{
-  position:absolute;inset:0;
-  background:url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1400&q=80') center/cover;
-  filter:saturate(.4) brightness(.25);
-}
-.hero-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(90deg,rgba(13,13,13,.98) 0%,rgba(13,13,13,.7) 60%,transparent 100%);
-}
+.wolves-hero{position:relative;min-height:320px;display:flex;align-items:center;overflow:hidden;background:var(--black)}
+.hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1400&q=80') center/cover;filter:saturate(.4) brightness(.25)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,13,.98) 0%,rgba(13,13,13,.7) 60%,transparent 100%)}
 .hero-line{position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,var(--orange),var(--cyan))}
 .hero-inner{position:relative;z-index:2;padding:3rem 2.5rem;display:flex;align-items:center;gap:2.5rem;width:100%}
-.hero-badge{
-  width:110px;height:110px;flex-shrink:0;
-  border-radius:50%;border:2px solid rgba(232,123,30,.5);
-  background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-.hero-badge-text{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1rem;font-weight:900;color:var(--orange);
-  text-align:center;line-height:1.2;letter-spacing:.05em;
-}
-.hero-content{}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:.5rem;
-  font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--orange);margin-bottom:.75rem;
-}
+.hero-badge{width:110px;height:110px;flex-shrink:0;border-radius:50%;border:2px solid rgba(232,123,30,.5);background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.hero-badge img{width:100%;height:100%;object-fit:contain;padding:8px}
+.hero-badge-text{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:900;color:var(--orange);text-align:center;line-height:1.2;letter-spacing:.05em}
+.hero-tag{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:.75rem}
 .hero-tag::before{content:'';width:16px;height:2px;background:var(--orange)}
-.hero-title{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:clamp(2rem,5vw,3.2rem);
-  font-weight:900;text-transform:uppercase;line-height:1;
-  color:var(--white);margin-bottom:.5rem;
-}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:900;text-transform:uppercase;line-height:1;color:var(--white);margin-bottom:.5rem}
 .hero-title span{color:var(--orange)}
 .hero-sub{font-size:.875rem;color:var(--gray2);margin-bottom:1.5rem}
-
-/* stats hero */
 .hero-stats{display:flex;gap:2rem}
 .hstat{text-align:center}
-.hstat-num{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.8rem;font-weight:900;line-height:1;
-}
+.hstat-num{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:900;line-height:1}
 .hstat-num.win{color:#4CD97B}
 .hstat-num.draw{color:#FFCC44}
 .hstat-num.loss{color:#FF5A5A}
 .hstat-label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-top:.2rem}
 
-/* ====== TABS ====== */
-.tabs-bar{
-  display:flex;gap:0;
-  background:rgba(10,21,37,.98);
-  border-bottom:1px solid rgba(232,123,30,.15);
-  overflow-x:auto;
-}
-.tab{
-  padding:1rem 2rem;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.85rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--gray);cursor:pointer;border:none;background:none;
-  border-bottom:3px solid transparent;
-  transition:all .2s;white-space:nowrap;
-}
+.tabs-bar{display:flex;gap:0;background:rgba(10,21,37,.98);border-bottom:1px solid rgba(232,123,30,.15);overflow-x:auto}
+.tab{padding:1rem 2rem;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
 .tab:hover{color:var(--orange)}
 .tab.active{color:var(--orange);border-bottom-color:var(--orange)}
 
-/* ====== CONTEÚDO ====== */
 .tab-content{display:none;padding:2.5rem}
 .tab-content.active{display:block}
 
-/* loading */
-.loading{
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:4rem;gap:1rem;
-}
-.spinner{
-  width:36px;height:36px;border:3px solid rgba(232,123,30,.2);
-  border-top-color:var(--orange);border-radius:50%;
-  animation:spin .8s linear infinite;
-}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem}
+.spinner{width:36px;height:36px;border:3px solid rgba(232,123,30,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:.75rem;color:var(--gray);letter-spacing:.1em;text-transform:uppercase}
 
-/* tabelas */
-.section-title{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.3rem;font-weight:700;text-transform:uppercase;
-  color:var(--white);margin-bottom:1.5rem;
-  display:flex;align-items:center;gap:.75rem;
-}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem}
 .section-title::before{content:'';width:3px;height:1.2em;background:var(--orange);flex-shrink:0}
 
 .data-table{width:100%;border-collapse:collapse;max-width:600px}
-.data-table th{
-  font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--orange);padding:.75rem 1rem;
-  border-bottom:1px solid rgba(232,123,30,.25);
-  text-align:left;
-}
+.data-table th{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);padding:.75rem 1rem;border-bottom:1px solid rgba(232,123,30,.25);text-align:left}
 .data-table th:not(:first-child){text-align:center}
-.data-table td{
-  padding:.75rem 1rem;
-  font-size:.9rem;color:var(--gray2);
-  border-bottom:1px solid rgba(255,255,255,.04);
-  transition:background .2s;
-}
+.data-table td{padding:.75rem 1rem;font-size:.9rem;color:var(--gray2);border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
 .data-table tr:hover td{background:rgba(232,123,30,.05)}
 .data-table td:not(:first-child){text-align:center}
-.rank{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:.8rem;color:rgba(232,123,30,.4);
-  font-weight:700;min-width:24px;display:inline-block;
-}
+.rank{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:rgba(232,123,30,.4);font-weight:700;min-width:24px;display:inline-block}
 .rank.gold{color:#FFD700}
 .rank.silver{color:#C0C0C0}
 .rank.bronze{color:#CD7F32}
 
-/* barra de frequência */
 .freq-bar-wrap{display:flex;align-items:center;gap:.75rem}
-.freq-bar{
-  flex:1;height:6px;background:rgba(255,255,255,.07);
-  border-radius:3px;overflow:hidden;max-width:120px;
-}
+.freq-bar{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;max-width:120px}
 .freq-bar-fill{height:100%;background:var(--orange);border-radius:3px;transition:width .4s ease}
 .freq-pct{font-size:.8rem;color:var(--orange);min-width:36px;text-align:right}
+.val-big{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;color:var(--white)}
 
-/* valor em destaque */
-.val-big{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.4rem;font-weight:700;color:var(--white);
-}
-
-/* ====== CALENDÁRIO ====== */
 .cal-filters{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.cal-filter{
-  padding:.4rem 1rem;background:transparent;
-  border:1px solid rgba(232,123,30,.2);
-  color:var(--gray);font-family:'Barlow',sans-serif;
-  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-  cursor:pointer;transition:all .2s;
-}
+.cal-filter{padding:.4rem 1rem;background:transparent;border:1px solid rgba(232,123,30,.2);color:var(--gray);font-family:'Barlow',sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .cal-filter:hover,.cal-filter.active{background:var(--orange);color:var(--black);border-color:var(--orange)}
-
 .cal-table{width:100%;border-collapse:collapse}
-.cal-table th{
-  font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--orange);padding:.75rem 1rem;
-  border-bottom:1px solid rgba(232,123,30,.25);
-  text-align:left;white-space:nowrap;
-}
-.cal-table td{
-  padding:.7rem 1rem;font-size:.85rem;color:var(--gray2);
-  border-bottom:1px solid rgba(255,255,255,.04);
-  white-space:nowrap;
-}
+.cal-table th{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);padding:.75rem 1rem;border-bottom:1px solid rgba(232,123,30,.25);text-align:left;white-space:nowrap}
+.cal-table td{padding:.7rem 1rem;font-size:.85rem;color:var(--gray2);border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
 .cal-table tr:hover td{background:rgba(232,123,30,.04)}
 .cal-table tr.future td{opacity:.45}
-
-.badge{
-  display:inline-block;
-  padding:.2rem .6rem;font-size:.65rem;
-  font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  font-family:'Barlow Condensed',sans-serif;
-}
+.badge{display:inline-block;padding:.2rem .6rem;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif}
 .badge-win{background:rgba(76,217,123,.15);color:#4CD97B}
 .badge-draw{background:rgba(255,204,68,.12);color:#FFCC44}
 .badge-loss{background:rgba(255,90,90,.12);color:#FF5A5A}
 .badge-cancel{background:rgba(139,160,176,.1);color:var(--gray)}
 .badge-pending{background:rgba(0,174,239,.08);color:var(--cyan)}
+.placar{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--white);letter-spacing:.05em}
 
-.placar{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1rem;font-weight:700;color:var(--white);
-  letter-spacing:.05em;
-}
-
-/* ====== FOOTER ====== */
-footer{
-  background:var(--navy2);
-  border-top:1px solid rgba(232,123,30,.15);
-  padding:1.5rem 2.5rem;
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:1rem;
-  margin-top:2rem;
-}
+footer{background:var(--navy2);border-top:1px solid rgba(232,123,30,.15);padding:1.5rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:2rem}
 .footer-brand{display:flex;align-items:center;gap:1rem}
 .footer-sep{width:1px;height:24px;background:rgba(255,255,255,.1)}
 .footer-text{font-size:.72rem;color:var(--gray)}
@@ -240,11 +104,10 @@ footer{
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <div class="nav-left">
     <div class="nav-logo">
-      <img src="data:image/png;base64,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" alt="DGX">
+      <img src="logo-dgx.png" alt="DGX Consulting">
     </div>
     <div class="nav-sep"></div>
     <div class="nav-team">Wolves F.C.</div>
@@ -252,14 +115,14 @@ footer{
   <a href="index.html" class="nav-back">Voltar ao site</a>
 </nav>
 
-<!-- HERO -->
 <div class="wolves-hero">
   <div class="hero-bg"></div>
   <div class="hero-overlay"></div>
   <div class="hero-line"></div>
   <div class="hero-inner">
     <div class="hero-badge">
-      <div class="hero-badge-text">WOLVES<br>F.C.<br>2019</div>
+      <img src="logo-wolves.png" alt="Wolves F.C." onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="hero-badge-text" style="display:none">WOLVES<br>F.C.<br>2019</div>
     </div>
     <div class="hero-content">
       <div class="hero-tag">Temporada 2026</div>
@@ -275,20 +138,15 @@ footer{
   </div>
 </div>
 
-<!-- TABS -->
 <div class="tabs-bar">
-  <button class="tab active" onclick="showTab('calendario')">📅 Calendário</button>
-  <button class="tab" onclick="showTab('artilharia')">⚽ Artilharia</button>
-  <button class="tab" onclick="showTab('assistencias')">🎯 Assistências</button>
-  <button class="tab" onclick="showTab('frequencia')">📊 Frequência</button>
+  <button class="tab active" onclick="showTab('calendario',this)">📅 Calendário</button>
+  <button class="tab" onclick="showTab('artilharia',this)">⚽ Artilharia</button>
+  <button class="tab" onclick="showTab('assistencias',this)">🎯 Assistências</button>
+  <button class="tab" onclick="showTab('frequencia',this)">📊 Frequência</button>
 </div>
 
-<!-- TAB: CALENDÁRIO -->
 <div class="tab-content active" id="tab-calendario">
-  <div class="loading" id="loading-calendario">
-    <div class="spinner"></div>
-    <div class="loading-text">Carregando calendário...</div>
-  </div>
+  <div class="loading" id="loading-calendario"><div class="spinner"></div><div class="loading-text">Carregando calendário...</div></div>
   <div id="content-calendario" style="display:none">
     <div class="section-title">Calendário de Jogos 2026</div>
     <div class="cal-filters">
@@ -300,90 +158,49 @@ footer{
     </div>
     <div style="overflow-x:auto">
       <table class="cal-table" id="calTable">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Mandante</th>
-            <th>Resultado</th>
-            <th>Adversário</th>
-            <th>Status</th>
-            <th>Obs</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Data</th><th>Mandante</th><th>Resultado</th><th>Adversário</th><th>Status</th><th>Obs</th></tr></thead>
         <tbody id="calBody"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- TAB: ARTILHARIA -->
 <div class="tab-content" id="tab-artilharia">
-  <div class="loading" id="loading-artilharia">
-    <div class="spinner"></div>
-    <div class="loading-text">Carregando artilharia...</div>
-  </div>
+  <div class="loading" id="loading-artilharia"><div class="spinner"></div><div class="loading-text">Carregando artilharia...</div></div>
   <div id="content-artilharia" style="display:none">
     <div class="section-title">Artilharia — Temporada 2026</div>
     <table class="data-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Jogador</th>
-          <th>⚽ Gols</th>
-        </tr>
-      </thead>
+      <thead><tr><th>#</th><th>Jogador</th><th>⚽ Gols</th></tr></thead>
       <tbody id="artBody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- TAB: ASSISTÊNCIAS -->
 <div class="tab-content" id="tab-assistencias">
-  <div class="loading" id="loading-assistencias">
-    <div class="spinner"></div>
-    <div class="loading-text">Carregando assistências...</div>
-  </div>
+  <div class="loading" id="loading-assistencias"><div class="spinner"></div><div class="loading-text">Carregando assistências...</div></div>
   <div id="content-assistencias" style="display:none">
     <div class="section-title">Assistências — Temporada 2026</div>
     <table class="data-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Jogador</th>
-          <th>🎯 Assistências</th>
-        </tr>
-      </thead>
+      <thead><tr><th>#</th><th>Jogador</th><th>🎯 Assistências</th></tr></thead>
       <tbody id="assBody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- TAB: FREQUÊNCIA -->
 <div class="tab-content" id="tab-frequencia">
-  <div class="loading" id="loading-frequencia">
-    <div class="spinner"></div>
-    <div class="loading-text">Carregando frequência...</div>
-  </div>
+  <div class="loading" id="loading-frequencia"><div class="spinner"></div><div class="loading-text">Carregando frequência...</div></div>
   <div id="content-frequencia" style="display:none">
     <div class="section-title">Frequência — Temporada 2026</div>
     <table class="data-table" style="max-width:700px">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Jogador</th>
-          <th>Jogos</th>
-          <th style="text-align:left;min-width:180px">Presença</th>
-        </tr>
-      </thead>
+      <thead><tr><th>#</th><th>Jogador</th><th>Jogos</th><th style="text-align:left;min-width:180px">Presença</th></tr></thead>
       <tbody id="freqBody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- FOOTER -->
 <footer>
   <div class="footer-brand">
-    <span style="font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;color:#fff;letter-spacing:.05em">DG<span style="color:var(--cyan)">X</span></span>
+    <img src="logo-dgx.png" alt="DGX Consulting" style="height:28px">
     <div class="footer-sep"></div>
     <span style="font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;color:var(--orange);letter-spacing:.05em">WOLVES F.C.</span>
   </div>
@@ -399,7 +216,6 @@ const SHEETS = {
   calendario:  BASE + '&gid=1076627501',
 };
 
-// Busca CSV e converte para array de arrays
 async function fetchCSV(url) {
   const res = await fetch(url);
   const text = await res.text();
@@ -421,28 +237,26 @@ let calData = [];
 async function loadCalendario() {
   try {
     const rows = await fetchCSV(SHEETS.calendario);
-    // Pula linhas até encontrar o cabeçalho (linha com DATA)
     let dataRows = [];
     let started = false;
     for (let r of rows) {
       if (!started) {
-        if (r.join('').toLowerCase().includes('data') && r.join('').toLowerCase().includes('mandante')) {
+        const joined = r.join('').toLowerCase();
+        if (joined.includes('data') && (joined.includes('mandante') || joined.includes('adversario') || joined.includes('adversário'))) {
           started = true;
         }
         continue;
       }
-      // linha válida: coluna B (idx 1) tem data, coluna H (idx 7) tem adversário ou resultado
       if (r[1] && r[1].match(/\d{2}\/\d{2}\/\d{4}/)) {
         dataRows.push(r);
       }
     }
     calData = dataRows;
 
-    // Calcula stats
     let vit=0, emp=0, der=0, jog=0;
     for (let r of dataRows) {
-      const realizado = (r[8]||'').toLowerCase();
-      const cartel = (r[9]||'').toLowerCase();
+      const realizado = (r[8]||'').trim().toLowerCase();
+      const cartel = (r[9]||'').trim().toLowerCase();
       if (realizado === 'sim') {
         jog++;
         if (cartel.includes('vitória') || cartel.includes('vitoria')) vit++;
@@ -460,6 +274,7 @@ async function loadCalendario() {
     document.getElementById('content-calendario').style.display = 'block';
   } catch(e) {
     document.getElementById('loading-calendario').innerHTML = '<p style="color:var(--gray);font-size:.85rem">Erro ao carregar. Verifique a conexão.</p>';
+    console.error(e);
   }
 }
 
@@ -467,18 +282,18 @@ function renderCal(rows) {
   const body = document.getElementById('calBody');
   body.innerHTML = '';
   for (let r of rows) {
-    const data     = r[1] || '';
-    const mandante = r[3] || '';
-    const gols1    = r[4] || '0';
-    const gols2    = r[6] || '0';
+    const data      = r[1] || '';
+    const mandante  = r[3] || '';
+    const gols1     = r[4] || '0';
+    const gols2     = r[6] || '0';
     const adversario = r[7] || '';
-    const realizado  = (r[8]||'').toLowerCase();
-    const cartel     = r[9] || '';
+    const realizado  = (r[8]||'').trim().toLowerCase();
+    const cartel     = (r[9]||'').trim();
     const obs        = r[13] || '';
 
-    const isPast = realizado === 'sim';
-    const isCanceled = realizado === 'não' && obs.toLowerCase().includes('cancelado');
-    const isPending = !isPast && !isCanceled;
+    const isPast     = realizado === 'sim';
+    const isCanceled = !isPast && obs.toLowerCase().includes('cancelado');
+    const isPending  = !isPast && !isCanceled;
 
     let badge = '';
     let placarHtml = '<span style="color:var(--gray);font-size:.8rem">—</span>';
@@ -488,6 +303,7 @@ function renderCal(rows) {
       if (c.includes('vitória') || c.includes('vitoria')) badge = '<span class="badge badge-win">Vitória</span>';
       else if (c.includes('empate')) badge = '<span class="badge badge-draw">Empate</span>';
       else if (c.includes('derrota')) badge = '<span class="badge badge-loss">Derrota</span>';
+      else badge = '<span class="badge badge-pending">Realizado</span>';
     } else if (isCanceled) {
       badge = '<span class="badge badge-cancel">Cancelado</span>';
     } else {
@@ -512,16 +328,10 @@ function renderCal(rows) {
 function filterCal(type, btn) {
   document.querySelectorAll('.cal-filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const rows = document.querySelectorAll('#calBody tr');
-  rows.forEach(tr => {
-    if (type === 'todos') {
-      tr.style.display = '';
-    } else if (type === 'pendente') {
-      tr.style.display = tr.dataset.filter === 'pendente' ? '' : 'none';
-    } else {
-      const f = tr.dataset.filter || '';
-      tr.style.display = f.toLowerCase().includes(type.toLowerCase()) ? '' : 'none';
-    }
+  document.querySelectorAll('#calBody tr').forEach(tr => {
+    if (type === 'todos') tr.style.display = '';
+    else if (type === 'pendente') tr.style.display = tr.dataset.filter === 'pendente' ? '' : 'none';
+    else tr.style.display = (tr.dataset.filter||'').toLowerCase().includes(type.toLowerCase()) ? '' : 'none';
   });
 }
 
@@ -531,11 +341,15 @@ async function loadArtilharia() {
     const rows = await fetchCSV(SHEETS.gols);
     const body = document.getElementById('artBody');
     body.innerHTML = '';
-    // Pula cabeçalho (linha 1)
-    const data = rows.slice(1).filter(r => r[1] && r[2] !== undefined);
+    // Pula linha de cabeçalho e filtra: nome não vazio, gols > 0, nome não é cabeçalho
+    const data = rows.slice(1).filter(r => {
+      const nome = (r[1]||'').trim();
+      const gols = parseInt(r[2]) || 0;
+      return nome && nome.toLowerCase() !== 'jogador' && gols > 0;
+    });
     let rank = 1;
     for (let r of data) {
-      const nome = r[1];
+      const nome = r[1].trim();
       const gols = parseInt(r[2]) || 0;
       const rankClass = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
       const tr = document.createElement('tr');
@@ -560,10 +374,14 @@ async function loadAssistencias() {
     const rows = await fetchCSV(SHEETS.assistencias);
     const body = document.getElementById('assBody');
     body.innerHTML = '';
-    const data = rows.slice(1).filter(r => r[1] && r[2] !== undefined);
+    const data = rows.slice(1).filter(r => {
+      const nome = (r[1]||'').trim();
+      const ass = parseInt(r[2]) || 0;
+      return nome && nome.toLowerCase() !== 'jogador' && ass > 0;
+    });
     let rank = 1;
     for (let r of data) {
-      const nome = r[1];
+      const nome = r[1].trim();
       const ass = parseInt(r[2]) || 0;
       const rankClass = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
       const tr = document.createElement('tr');
@@ -588,12 +406,16 @@ async function loadFrequencia() {
     const rows = await fetchCSV(SHEETS.frequencia);
     const body = document.getElementById('freqBody');
     body.innerHTML = '';
-    const data = rows.slice(1).filter(r => r[1] && r[2]);
+    const data = rows.slice(1).filter(r => {
+      const nome = (r[1]||'').trim();
+      const jogos = parseInt(r[2]) || 0;
+      return nome && nome.toLowerCase() !== 'jogador' && jogos > 0;
+    });
     let rank = 1;
     for (let r of data) {
-      const nome = r[1];
+      const nome = r[1].trim();
       const jogos = parseInt(r[2]) || 0;
-      const pct = r[3] ? r[3].replace('%','') : '0';
+      const pct = (r[3]||'0').replace('%','').trim();
       const pctNum = parseInt(pct) || 0;
       const rankClass = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
       const tr = document.createElement('tr');
@@ -620,12 +442,11 @@ async function loadFrequencia() {
 
 // ====== TABS ======
 const loaded = {calendario:false, artilharia:false, assistencias:false, frequencia:false};
-
-function showTab(name) {
+function showTab(name, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  event.target.classList.add('active');
+  btn.classList.add('active');
   if (!loaded[name]) {
     loaded[name] = true;
     if (name === 'artilharia') loadArtilharia();
@@ -634,7 +455,6 @@ function showTab(name) {
   }
 }
 
-// Carrega calendário na abertura
 loadCalendario();
 loaded.calendario = true;
 </script>
