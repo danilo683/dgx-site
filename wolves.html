@@ -262,18 +262,27 @@ async function loadCalendario() {
   try {
     const rows = await fetchCSV(SHEETS.calendario);
 
-    // Debug: loga as primeiras linhas no console
-    console.log('Total rows:', rows.length);
-    rows.slice(0,15).forEach((r,i) => console.log(`Row ${i}:`, r));
+    // Detecta automaticamente qual índice tem a data dd/mm/aaaa
+    let dateIdx = -1;
+    for (let r of rows) {
+      for (let i = 0; i < r.length; i++) {
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test((r[i]||'').trim())) { dateIdx=i; break; }
+      }
+      if (dateIdx>=0) break;
+    }
+    // Calcula offset: B=data na planilha, idx esperado=1. Se dateIdx=2, coluna A tem conteúdo
+    const off = dateIdx - 1;
+    const iData=dateIdx, iMandante=3+off, iGols1=4+off, iGols2=6+off;
+    const iAdv=7+off, iReal=8+off, iCartel=9+off, iObs=13+off;
+    console.log('dateIdx:', dateIdx, 'off:', off);
 
-    // Filtra apenas linhas com data no formato dd/mm/aaaa na coluna B (idx 1)
-    const dataRows = rows.filter(r => /^\d{2}\/\d{2}\/\d{4}$/.test((r[1]||'').trim()));
+    const dataRows = rows.filter(r => /^\d{2}\/\d{2}\/\d{4}$/.test((r[iData]||'').trim()));
     console.log('Data rows found:', dataRows.length);
 
     let vit=0, emp=0, der=0, jog=0;
     for (let r of dataRows) {
-      const realizado = (r[8]||'').trim().toLowerCase();
-      const cartel    = (r[9]||'').trim().toLowerCase();
+      const realizado = (r[iReal]||'').trim().toLowerCase();
+      const cartel    = (r[iCartel]||'').trim().toLowerCase();
       if (realizado==='sim') {
         jog++;
         if (cartel.includes('vitória')||cartel.includes('vitoria')) vit++;
@@ -289,14 +298,14 @@ async function loadCalendario() {
     const body = document.getElementById('calBody');
     body.innerHTML = '';
     for (let r of dataRows) {
-      const data       = (r[1]||'').trim();
-      const mandante   = (r[3]||'').trim();
-      const gols1      = (r[4]||'').trim();
-      const gols2      = (r[6]||'').trim();
-      const adversario = (r[7]||'').trim();
-      const realizado  = (r[8]||'').trim().toLowerCase();
-      const cartel     = (r[9]||'').trim();
-      const obs        = (r[13]||'').trim();
+      const data       = (r[iData]||'').trim();
+      const mandante   = (r[iMandante]||'').trim();
+      const gols1      = (r[iGols1]||'').trim();
+      const gols2      = (r[iGols2]||'').trim();
+      const adversario = (r[iAdv]||'').trim();
+      const realizado  = (r[iReal]||'').trim().toLowerCase();
+      const cartel     = (r[iCartel]||'').trim();
+      const obs        = (r[iObs]||'').trim();
 
       const isPast    = realizado==='sim';
       const isCanceled= !isPast && obs.toLowerCase().includes('cancelado');
