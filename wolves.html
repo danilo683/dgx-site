@@ -331,6 +331,8 @@ async function loadCalendario() {
 
     document.getElementById('loading-calendario').style.display='none';
     document.getElementById('content-calendario').style.display='block';
+    // Reseta filtro para Todos após carregar
+    filterCal('todos', document.querySelector('.cal-filter'));
   } catch(e) {
     console.error('Erro calendário:', e);
     document.getElementById('loading-calendario').innerHTML='<p style="color:var(--gray);font-size:.85rem">Erro ao carregar. Verifique a conexão.</p>';
