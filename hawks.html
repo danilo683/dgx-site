@@ -469,70 +469,19 @@ function renderDFCEspelhado() {
   destroyChart('dfc-espelhado');
   new Chart(document.getElementById('dfc-espelhado'),{
     type:'bar',
-    data:{
-      labels:D.meses,
-      datasets:[
-        {
-          label:'Entradas',
-          data:ent,
-          backgroundColor:'#00D4DA',
-          borderRadius:3,
-          borderSkipped:false,
-          order:2,
-          stack:'same',
-          barPercentage:0.6,
-          categoryPercentage:0.8
-        },
-        {
-          label:'Saídas',
-          data:sai,
-          backgroundColor:'#C8B89A',
-          borderRadius:3,
-          borderSkipped:false,
-          order:2,
-          stack:'same',
-          barPercentage:0.6,
-          categoryPercentage:0.8
-        },
-        {
-          label:'Saldo bancário',
-          data:D.caixaFinal,
-          type:'line',
-          borderColor:'#2C6BE0',
-          backgroundColor:'rgba(44,107,224,0.08)',
-          borderWidth:2,
-          pointRadius:4,
-          pointBackgroundColor:'#2C6BE0',
-          fill:false,
-          order:1,
-          yAxisID:'y2'
-        }
-      ]
-    },
+    data:{labels:D.meses,datasets:[
+      {label:'Entradas',data:ent,backgroundColor:'#00D4DA',borderRadius:{topLeft:3,topRight:3,bottomLeft:0,bottomRight:0},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},
+      {label:'Saídas',data:sai,backgroundColor:'#C8B89A',borderRadius:{topLeft:0,topRight:0,bottomLeft:3,bottomRight:3},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},
+      {label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',borderWidth:2,pointRadius:5,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}
+    ]},
     options:{
-      responsive:true,
-      maintainAspectRatio:false,
+      responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}
-      },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},
       scales:{
-        x:{
-          stacked:false,
-          grid:{display:false},
-          ticks:{color:'#6B8BAA',font:{size:12}}
-        },
-        y:{
-          stacked:false,
-          grid:{color:'rgba(255,255,255,0.05)'},
-          ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}
-        },
-        y2:{
-          position:'right',
-          grid:{display:false},
-          ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}
-        }
+        x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}
       }
     }
   });
