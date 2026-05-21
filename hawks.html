@@ -465,9 +465,26 @@ function renderDFCWaterfall() {
 function renderDFCEspelhado() {
   var D=DD;
   var entOp=D.meses.map(function(_,i){return D.recVendas[i]+D.emprestimos[i];});
-  var saiOp=D.meses.map(function(_,i){return Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]);});
+  var saiOp=D.meses.map(function(_,i){return -(Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]));});
   destroyChart('dfc-espelhado');
-  new Chart(document.getElementById('dfc-espelhado'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Entradas',data:entOp,backgroundColor:'#00D4DA',borderRadius:3,order:2},{label:'Saídas',data:saiOp.map(function(v){return -v;}),backgroundColor:'#C8B89A',borderRadius:3,order:2},{label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',backgroundColor:'rgba(44,107,224,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}}}});
+  new Chart(document.getElementById('dfc-espelhado'),{
+    type:'bar',
+    data:{labels:D.meses,datasets:[
+      {label:'Entradas',data:entOp,backgroundColor:'#00D4DA',borderRadius:3,borderSkipped:false,order:2,base:0},
+      {label:'Saídas',data:saiOp,backgroundColor:'#C8B89A',borderRadius:3,borderSkipped:false,order:2,base:0},
+      {label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',backgroundColor:'rgba(44,107,224,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}
+      }
+    }
+  });
 }
 
 function renderDFCSaldoBar() {
