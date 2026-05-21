@@ -470,8 +470,8 @@ function renderDFCEspelhado() {
   new Chart(document.getElementById('dfc-espelhado'),{
     type:'bar',
     data:{labels:D.meses,datasets:[
-      {label:'Entradas',data:entOp,backgroundColor:'#00D4DA',borderRadius:3,borderSkipped:false,order:2,base:0},
-      {label:'Saídas',data:saiOp,backgroundColor:'#C8B89A',borderRadius:3,borderSkipped:false,order:2,base:0},
+      {label:'Entradas',data:entOp,backgroundColor:'#00D4DA',borderRadius:3,borderSkipped:false,order:2,categoryPercentage:0.5,barPercentage:1.0},
+      {label:'Saídas',data:saiOp,backgroundColor:'#C8B89A',borderRadius:3,borderSkipped:false,order:2,categoryPercentage:0.5,barPercentage:1.0},
       {label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',backgroundColor:'rgba(44,107,224,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}
     ]},
     options:{
@@ -479,7 +479,7 @@ function renderDFCEspelhado() {
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},
       scales:{
-        x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},
+        x:{offset:true,grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},
         y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},},
         y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}
       }
