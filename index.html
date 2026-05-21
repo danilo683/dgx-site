@@ -1,577 +1,350 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Hawks Beauty | Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DGX Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;700;900&family=Barlow+Condensed:ital,wght@0,600;0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1E2D40}
-
-/* LOGIN */
-#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A2B3E;position:relative;overflow:hidden}
-.login-bg{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
-.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.35);position:relative;z-index:2}
-.login-hawks-logo{background:#000;border-radius:10px;padding:14px 20px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:center;min-height:90px}
-.login-hawks-logo img{max-height:75px;max-width:220px;object-fit:contain}
-.login-hawks-fallback{display:none;color:#fff;font-size:24px;font-style:italic;font-weight:700;line-height:1.2}
-.login-title{font-size:14px;color:#6b7a8d;margin-bottom:1.5rem}
-.login-box input{width:100%;padding:11px 14px;border:1px solid #d0d9e4;border-radius:8px;font-size:15px;outline:none;margin-bottom:12px;color:#1E2D40;transition:border .2s}
-.login-box input:focus{border-color:#00B4D8}
-.login-box button{width:100%;padding:11px;background:#00B4D8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
-.login-box button:hover{background:#0099b8}
-.login-error{font-size:12px;color:#e24b4a;margin-top:8px;min-height:16px}
-.login-footer{font-size:11px;color:#aab;margin-top:1.5rem}
-
-/* APP */
-#app{display:none;height:100vh;overflow:hidden;flex-direction:row}
-.sidebar{width:230px;min-width:230px;background:#111;display:flex;flex-direction:column;height:100vh;overflow-y:auto}
-.sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08)}
-.sidebar-logo img{width:100%;max-height:70px;object-fit:contain}
-.sidebar-section{padding:1rem 0.75rem 0.5rem;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 1rem;margin:1px 0.5rem;border-radius:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.65);transition:all .15s;user-select:none}
-.nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
-.nav-item.active{background:#00B4D8;color:#fff}
-.nav-item.disabled{opacity:0.45;cursor:default;pointer-events:none}
-.nav-icon{font-size:16px;width:20px;text-align:center}
-.nav-badge{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.5)}
-.sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid rgba(255,255,255,0.08)}
-.dgx-badge{background:#1E2D40;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px}
-.dgx-tri{display:flex;flex-direction:column;gap:2px}
-.dgx-tri span{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #00B4D8;display:block}
-.dgx-text{font-size:11px;font-weight:600;color:#fff;letter-spacing:0.5px}
-.dgx-text small{display:block;font-size:9px;color:rgba(255,255,255,0.4);font-weight:400}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{background:#fff;border-bottom:1px solid #e5e9ef;padding:0 1.5rem;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.topbar-title{font-size:15px;font-weight:600;color:#1E2D40}
-.topbar-right{display:flex;align-items:center;gap:12px}
-.topbar-period{font-size:12px;color:#6b7a8d;background:#f0f2f5;padding:4px 10px;border-radius:20px}
-.logout-btn{font-size:12px;color:#6b7a8d;cursor:pointer;border:1px solid #d0d9e4;padding:5px 12px;border-radius:20px;background:#fff}
-.logout-btn:hover{color:#1E2D40;border-color:#1E2D40}
-.content{flex:1;overflow-y:auto;padding:1.5rem}
-
-/* COMING SOON */
-.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center}
-.coming-soon .cs-icon{font-size:48px;margin-bottom:1rem;opacity:0.3}
-.coming-soon h2{font-size:20px;font-weight:500;color:#1E2D40;margin-bottom:8px}
-.coming-soon p{font-size:14px;color:#6b7a8d;max-width:320px}
-.coming-soon .cs-badge{margin-top:1.5rem;font-size:12px;padding:6px 16px;border-radius:20px;background:#e0f7fc;color:#006d8f;display:inline-block}
-
-/* KPI / CHARTS — vendas */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
-.kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #00B4D8;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-.kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
-.kpi-value{font-size:20px;font-weight:600;color:#1E2D40}
-.kpi-sub{font-size:11px;color:#6b7a8d;margin-top:3px}
-.kpi-hi{color:#006d8f}
-.chart-card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-.chart-title{font-size:13px;font-weight:600;color:#1E2D40;margin-bottom:2px}
-.chart-sub{font-size:11px;color:#6b7a8d;margin-bottom:12px}
-.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
-.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#6b7a8d}
-.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.leg-line{width:16px;height:3px;border-radius:2px;flex-shrink:0}
-.chart-wrap{position:relative;width:100%}
-
-/* DRE */
-.dre-table{width:100%;border-collapse:collapse;font-size:13px}
-.dre-table th{text-align:left;padding:10px 12px;background:#f0f2f5;color:#6b7a8d;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
-.dre-table th:not(:first-child){text-align:right}
-.dre-table td{padding:9px 12px;border-bottom:1px solid #f0f2f5;color:#1E2D40}
-.dre-table td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
-.dre-table tr.separator td{padding:4px;background:#f8f9fa}
-.dre-table tr.total td{font-weight:600;background:#f0f2f5}
-.dre-table tr.subtotal td{font-weight:500;color:#1E2D40;background:#f8fafc}
-.dre-table tr.highlight td{font-weight:700;background:#e0f7fc;color:#006d8f}
-.dre-table tr.negative td:not(:first-child){color:#c0392b}
-.dre-table tr.positive td:not(:first-child){color:#0F6E56}
-.dre-table tr.na td:not(:first-child){color:#aab}
-.dre-label-indent{padding-left:24px !important;color:#6b7a8d}
-.tag-ainformar{font-size:10px;padding:1px 6px;border-radius:8px;background:#f0f2f5;color:#aab;margin-left:6px}
-
-/* DFC */
-.dfc-outer{background:#162230;border:0.5px solid #1F3044;border-radius:10px;overflow:auto;margin-bottom:.5rem;max-height:480px}
-.dfc-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
-.dfc-tbl thead{position:sticky;top:0;z-index:2}
-.dfc-tbl th{font-size:10px;font-weight:500;color:#6B8BAA;text-align:right;padding:8px 10px;background:#0F1923;border-bottom:0.5px solid #1F3044;white-space:nowrap}
-.dfc-tbl th:first-child{text-align:left;background:#0F1923}
-.dfc-tbl td{padding:5px 10px;border-bottom:0.5px solid #1F3044;text-align:right;white-space:nowrap;color:#E2EAF4}
-.dfc-tbl td:first-child{text-align:left;color:#6B8BAA}
-.dfc-tbl tr.dfc-grp td{font-size:10px;font-weight:700;color:#00D4DA;background:#0F1923;text-transform:uppercase;letter-spacing:.05em;padding:10px 10px 4px}
-.dfc-tbl tr.dfc-sub td{font-weight:600;background:#1A2C3D;border-top:0.5px solid #1F3044;color:#E2EAF4}
-.dfc-tbl tr.dfc-tot td{font-weight:700;font-size:12px;background:#007B80;color:#0F1923}
-.dfc-tbl tr.dfc-ini td{font-weight:600;background:#1A2C3D;color:#2C6BE0}
-.dfc-pos{color:#00D4DA!important}
-.dfc-neg{color:#C8B89A!important}
-.dfc-nav{display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px;width:fit-content;margin-bottom:1rem}
-.dfc-nav-btn{padding:7px 22px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#6B8BAA;border-radius:6px;transition:all .15s}
-.dfc-nav-btn.active{background:#0F1923;color:#E2EAF4;border:0.5px solid #1F3044}
-.dfc-section-label{font-size:10px;font-weight:700;color:#6B8BAA;text-transform:uppercase;letter-spacing:.08em;margin:1rem 0 0.5rem;display:flex;align-items:center;gap:10px}
-.dfc-section-label::after{content:'';flex:1;height:0.5px;background:#1F3044}
-.dfc-chart-card{background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1.1rem}
-.dfc-chart-title{font-size:13px;font-weight:500;color:#E2EAF4;margin-bottom:3px}
-.dfc-chart-sub{font-size:10px;color:#6B8BAA;margin-bottom:14px}
-.dfc-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
-.dfc-kpi{background:#162230;border-radius:8px;padding:14px 16px;border-left:3px solid #00D4DA;border:0.5px solid #1F3044;border-left:3px solid #00D4DA}
-.dfc-kpi-label{font-size:11px;color:#6B8BAA;margin-bottom:6px}
-.dfc-kpi-value{font-size:18px;font-weight:600}
-.dfc-kpi-sub{font-size:11px;color:#4A6580;margin-top:3px}
-.dfc-legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px}
-.dfc-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:#6B8BAA}
-.dfc-leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.dfc-leg-line{width:16px;height:2px;flex-shrink:0}
-
-.confidential{text-align:center;font-size:11px;color:#aab;margin-top:1.5rem;padding-bottom:1rem}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0D1B2E;--navy2:#0A1525;--navy3:#111f35;
+  --cyan:#00AEEF;--cyan-dark:#0090C8;
+  --orange:#E87B1E;--orange-dark:#C96A10;
+  --black:#0D0D0D;
+  --white:#FFFFFF;--gray:#8BA0B0;--gray2:#c5d3dc;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(10,21,37,0.97);border-bottom:1px solid rgba(0,174,239,0.15);backdrop-filter:blur(8px)}
+.nav-logo img{height:44px;display:block}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--gray);text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-btn{background:var(--cyan);color:var(--navy2);border:none;padding:.5rem 1.4rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Barlow',sans-serif;transition:background .2s;text-decoration:none}
+.nav-btn:hover{background:var(--cyan-dark)}
+section{padding:5rem 3rem;position:relative;overflow:hidden}
+.topline{width:100%;height:1px;background:linear-gradient(90deg,var(--cyan) 0%,transparent 50%);margin-bottom:4rem}
+.bottomline{width:100%;height:1px;background:linear-gradient(90deg,transparent 0%,var(--cyan) 50%,transparent 100%);margin-top:4rem;opacity:.2}
+.section-label{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+.section-label span{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:var(--cyan)}
+.section-label::before{content:'';display:block;width:28px;height:2px;background:var(--cyan);flex-shrink:0}
+.section-label.center{justify-content:center}
+.section-label.center::after{content:'';display:block;width:28px;height:2px;background:var(--cyan);flex-shrink:0}
+.section-titulo{font-family:'Barlow Condensed',sans-serif;font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:700;text-transform:uppercase;color:var(--white);line-height:1.1;margin-bottom:.75rem}
+.section-titulo em{color:var(--cyan);font-style:normal}
+.section-titulo.center{text-align:center}
+.section-desc{font-size:.9rem;color:var(--gray2);line-height:1.8;max-width:520px}
+.section-desc.center{margin:0 auto;text-align:center}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;background:var(--navy2);padding-top:6rem}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,174,239,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,174,239,0.05) 1px,transparent 1px);background-size:55px 55px}
+.bg-tris{position:absolute;right:8%;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.13}
+.tri{width:0;height:0;border-left:52px solid transparent;border-right:52px solid transparent;border-bottom:88px solid var(--cyan)}
+.tri.md{border-left-width:38px;border-right-width:38px;border-bottom-width:64px}
+.tri.sm{border-left-width:26px;border-right-width:26px;border-bottom-width:44px}
+.cyan-accent{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan) 0%,transparent 60%)}
+.hero-inner{position:relative;z-index:2;max-width:720px}
+.hero-frase{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.1;text-transform:uppercase;letter-spacing:.02em;color:var(--white)}
+.hero-frase .d{background:var(--cyan);color:var(--navy2);padding:0 .2em;display:inline}
+#sobre{background:var(--navy)}
+.cards-topo{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);margin-bottom:1px}
+.card{background:var(--navy3);padding:2.5rem 2rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .25s}
+.card:hover{background:#152236}
+.card-icon-wrap{width:52px;height:52px;border:1px solid rgba(0,174,239,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;color:var(--cyan);font-size:1.4rem}
+.card-type{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:.6rem}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.9rem;line-height:1.1}
+.card-text{font-size:.875rem;color:var(--gray2);line-height:1.8}
+.cards-valores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,174,239,0.12)}
+.card-valor{background:var(--navy2);padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .25s;min-height:160px;justify-content:center}
+.card-valor:hover{background:#0e1e32}
+.valor-icon{font-size:1.6rem;color:var(--cyan);margin-bottom:.9rem}
+.valor-nome{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);letter-spacing:.05em;margin-bottom:.35rem}
+.valor-desc{font-size:.78rem;color:var(--gray);line-height:1.6}
+#dores{background:var(--navy)}
+.dores-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);margin-bottom:3rem}
+.dor-card{background:var(--navy3);padding:1.5rem 1.75rem;display:flex;align-items:center;gap:1rem;transition:background .25s;cursor:default}
+.dor-card:hover{background:#152236}
+.dor-card:hover .dor-icon{border-color:var(--cyan);color:var(--white);background:var(--cyan)}
+.dor-card:hover .dor-text{color:var(--white)}
+.dor-icon{width:42px;height:42px;flex-shrink:0;border:1px solid rgba(0,174,239,0.2);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:1.1rem;transition:all .25s}
+.dor-text{font-size:.875rem;color:var(--gray2);line-height:1.5;transition:color .25s}
+.dores-cta{text-align:center;padding-top:1rem}
+.cta-pergunta{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.5rem}
+.cta-pergunta em{color:var(--cyan);font-style:normal}
+.cta-btn{display:inline-block;background:var(--cyan);color:var(--navy2);padding:.85rem 2.5rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;transition:background .2s}
+.cta-btn:hover{background:var(--cyan-dark)}
+#metodologia{background:var(--navy2)}
+.etapas{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12)}
+.etapa{background:var(--navy3);padding:3rem 2.5rem;display:flex;gap:2rem;align-items:flex-start;position:relative;transition:background .25s;overflow:hidden}
+.etapa:hover{background:#152236}
+.etapa-num{font-family:'Barlow Condensed',sans-serif;font-size:6rem;font-weight:700;color:rgba(0,174,239,0.05);position:absolute;bottom:-1rem;right:1.5rem;line-height:1;pointer-events:none;transition:color .25s}
+.etapa:hover .etapa-num{color:rgba(0,174,239,0.09)}
+.etapa-icon{width:52px;height:52px;flex-shrink:0;border:1px solid rgba(0,174,239,0.25);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:1.4rem;transition:all .25s}
+.etapa:hover .etapa-icon{background:var(--cyan);color:var(--navy2);border-color:var(--cyan)}
+.etapa-label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:.5rem}
+.etapa-title{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.75rem;line-height:1.1}
+.etapa-text{font-size:.875rem;color:var(--gray2);line-height:1.8}
+#clientes{background:var(--navy)}
+.logos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,174,239,0.12);max-width:900px;margin:0 auto}
+.logo-card{background:var(--navy3);padding:2.5rem 2rem;display:flex;align-items:center;justify-content:center;min-height:130px;transition:background .25s}
+.logo-card:hover{background:#152236}
+#contato{background:var(--navy2)}
+.contato-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:1px;background:rgba(0,174,239,0.12)}
+.contato-info{background:var(--navy3);padding:2.5rem 2rem;display:flex;flex-direction:column;justify-content:space-between}
+.info-desc{font-size:.9rem;color:var(--gray2);line-height:1.8;margin-bottom:2.5rem}
+.info-items{display:flex;flex-direction:column;gap:1.5rem;margin-bottom:2.5rem}
+.info-item{display:flex;align-items:flex-start;gap:.9rem}
+.info-icon{width:36px;height:36px;flex-shrink:0;border:1px solid rgba(0,174,239,0.25);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:1rem;margin-top:.1rem}
+.info-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:.25rem}
+.info-value{font-size:.875rem;color:var(--gray2);line-height:1.5}
+.social-link{display:inline-flex;align-items:center;gap:.6rem;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid rgba(0,174,239,0.2);padding:.5rem 1rem;transition:all .25s}
+.social-link:hover{border-color:var(--cyan);color:var(--cyan)}
+.social-link i{font-size:1rem}
+.contato-form{background:var(--navy3);padding:2.5rem 2rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.form-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan)}
+.form-input{background:rgba(255,255,255,0.03);border:1px solid rgba(0,174,239,0.15);border-bottom:1px solid rgba(0,174,239,0.3);color:var(--white);padding:.75rem .9rem;font-family:'Barlow',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--cyan)}
+.form-input::placeholder{color:rgba(139,160,176,0.4)}
+textarea.form-input{resize:vertical;min-height:100px}
+.form-btn{width:100%;background:var(--cyan);color:var(--navy2);border:none;padding:.85rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.form-btn:hover{background:var(--cyan-dark)}
+footer{background:var(--navy2);border-top:1px solid rgba(0,174,239,0.12);padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo img{height:36px}
+.footer-copy{font-size:.72rem;color:var(--gray)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{font-size:.72rem;color:var(--gray);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.footer-links a:hover{color:var(--cyan)}
+.logo-img{height:44px;display:block}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-  <svg class="login-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="30,200  0,252  60,252"  fill="#00B4D8" opacity="1"/>
-    <polygon points="30,290  0,342  60,342"  fill="#00B4D8" opacity="1"/>
-    <polygon points="30,380  0,432  60,432"  fill="#00B4D8" opacity="1"/>
-    <polygon points="88,412  74,436  102,436"  fill="#00B4D8" opacity="0.22"/>
-    <polygon points="570,322 552,353 588,353"  fill="#00B4D8" opacity="0.18"/>
-    <polygon points="626,78  616,95  636,95"   fill="#00B4D8" opacity="0.14"/>
-    <polygon points="154,464 143,483 165,483"  fill="#00B4D8" opacity="0.13"/>
-    <polygon points="546,435 531,461 561,461"  fill="#00B4D8" opacity="0.16"/>
-    <polygon points="638,412 629,428 647,428"  fill="#00B4D8" opacity="0.11"/>
-    <polygon points="36,345  24,366  48,366"   fill="#00B4D8" opacity="0.15"/>
-    <polygon points="1100,200 1086,224 1114,224" fill="#00B4D8" opacity="0.13"/>
-    <polygon points="1280,350 1264,378 1296,378" fill="#00B4D8" opacity="0.15"/>
-    <polygon points="1350,500 1336,524 1364,524" fill="#00B4D8" opacity="0.12"/>
-    <polygon points="1200,650 1186,674 1214,674" fill="#00B4D8" opacity="0.10"/>
-    <polygon points="900,750  886,774  914,774"  fill="#00B4D8" opacity="0.11"/>
-    <polygon points="400,600  386,624  414,624"  fill="#00B4D8" opacity="0.12"/>
-    <polygon points="700,120  686,144  714,144"  fill="#00B4D8" opacity="0.10"/>
-    <rect x="360" y="894" width="720" height="4" fill="#00B4D8"/>
-  </svg>
-  <div style="position:absolute;top:1.5rem;right:1.5rem;z-index:3">
-    <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-dgx" alt="DGX Consulting" style="height:52px;object-fit:contain"
-      onerror="this.outerHTML='<svg width=115 height=54 viewBox=\'0 0 115 54\' xmlns=\'http://www.w3.org/2000/svg\'><text x=0 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>D</text><text x=32 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>G</text><polygon points=\'46,15 46,33 62,24\' fill=\'#00B4D8\'/><text x=65 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>X</text><text x=2 y=52 font-family=\'Arial,sans-serif\' font-size=10 fill=\'#fff\' letter-spacing=2>CONSULTING</text></svg>'"/>
+<nav>
+  <div class="nav-logo">
+    <img class="logo-img" src="logo-dgx.png" alt="DGX Consulting">
   </div>
-  <div class="login-box">
-    <div class="login-hawks-logo">
-      <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-hawks.png" alt="Hawks Beauty"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
-      <div class="login-hawks-fallback">Hawks<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div>
-    </div>
-    <div class="login-title">Acesse seu dashboard</div>
-    <input type="password" id="pwdInput" placeholder="Senha de acesso"/>
-    <button id="btnLogin">Entrar</button>
-    <div class="login-error" id="loginError"></div>
-    <div class="login-footer">Powered by DGX Consulting · Dados confidenciais</div>
-  </div>
-</div>
+  <ul class="nav-links">
+    <li><a href="#sobre">Sobre</a></li>
+    <li><a href="#metodologia">Metodologia</a></li>
+    <li><a href="#clientes">Clientes</a></li>
+    <li><a href="wolves.html">Patrocínio</a></li>
+    <li><a href="/clientes">Área do Cliente</a></li>
+  </ul>
+  <a href="#contato" class="nav-btn">Entre em contato</a>
+</nav>
 
-<!-- APP -->
-<div id="app">
-  <div class="sidebar">
-    <div class="sidebar-logo">
-      <div style="background:#000;border-radius:8px;padding:10px 8px;text-align:center">
-        <div style="color:#fff;font-size:20px;font-weight:700;font-style:italic;letter-spacing:1px">Hawks</div>
-        <div style="color:#fff;font-size:9px;letter-spacing:4px;margin-top:2px">BEAUTY</div>
+<section id="hero">
+  <div class="bg-grid"></div>
+  <div class="bg-tris">
+    <div class="tri"></div>
+    <div class="tri md"></div>
+    <div class="tri sm"></div>
+  </div>
+  <div class="cyan-accent"></div>
+  <div class="hero-inner">
+    <h1 class="hero-frase">
+      <span>Existimos para elevar empresas<br>ao patamar de </span><span class="d">alta performance,</span><br>
+      <span>transformando dados complexos<br>em </span><span class="d">clareza para decisão.</span>
+    </h1>
+  </div>
+</section>
+
+<section id="sobre">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Quem somos</span></div>
+  <h2 class="section-titulo center">Inteligência financeira<br>a serviço do seu <em>crescimento</em></h2>
+  <p class="section-desc center" style="margin-bottom:3.5rem">A DGX Consulting nasceu para ser mais do que uma consultoria — somos parceiros estratégicos que traduzem a complexidade financeira em clareza, direção e resultado.</p>
+  <div class="cards-topo">
+    <div class="card">
+      <div class="card-icon-wrap"><i class="ti ti-rocket"></i></div>
+      <div class="card-type">Missão</div>
+      <div class="card-title">O que nos move</div>
+      <p class="card-text">Impulsionar empresas com inteligência financeira, buscando rentabilidade e um desenvolvimento saudável e sustentável.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon-wrap"><i class="ti ti-eye"></i></div>
+      <div class="card-type">Visão</div>
+      <div class="card-title">Onde queremos chegar</div>
+      <p class="card-text">Ser a consultoria de referência em alta performance e gestão de resultados, reconhecida por transformar a saúde financeira dos clientes em diferencial competitivo.</p>
+    </div>
+  </div>
+  <div class="cards-valores">
+    <div class="card-valor">
+      <div class="valor-icon"><i class="ti ti-user-heart"></i></div>
+      <div class="valor-nome">Foco no Cliente</div>
+      <div class="valor-desc">Cada decisão começa pelo que é melhor para o seu negócio.</div>
+    </div>
+    <div class="card-valor">
+      <div class="valor-icon"><i class="ti ti-shield-check"></i></div>
+      <div class="valor-nome">Integridade</div>
+      <div class="valor-desc">Transparência e honestidade em cada análise e recomendação.</div>
+    </div>
+    <div class="card-valor">
+      <div class="valor-icon"><i class="ti ti-medal"></i></div>
+      <div class="valor-nome">Comprometimento</div>
+      <div class="valor-desc">Parceria real, do diagnóstico à execução e acompanhamento.</div>
+    </div>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<section id="dores">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Você se identifica?</span></div>
+  <h2 class="section-titulo center">Por que sua empresa<br>precisa de uma <em>consultoria?</em></h2>
+  <p class="section-desc center" style="margin-bottom:3rem">Se algum desses cenários soa familiar, a DGX Consulting pode ser o parceiro que faltava para transformar sua gestão financeira.</p>
+  <div class="dores-grid">
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-eye-off"></i></div><div class="dor-text">Sentimento de não "enxergar" o dinheiro em caixa</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-clipboard-x"></i></div><div class="dor-text">Processos mal definidos, dependentes de uma só pessoa</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-trending-down"></i></div><div class="dor-text">Baixa lucratividade, apesar de boas vendas</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-cash-off"></i></div><div class="dor-text">Desperdícios recorrentes sem origem identificada</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-credit-card-off"></i></div><div class="dor-text">Endividamento crescente e não planejado</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-mood-confuzed"></i></div><div class="dor-text">Baixa produtividade, mesmo com o time sempre ocupado</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-currency-dollar-off"></i></div><div class="dor-text">Dificuldade ou medo de tomar decisões financeiras</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-refresh-alert"></i></div><div class="dor-text">Alto volume de retrabalho nos processos financeiros</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-chess"></i></div><div class="dor-text">Ausência de planejamento e metas financeiras claras</div></div>
+    <div class="dor-card"><div class="dor-icon"><i class="ti ti-building-skyscraper"></i></div><div class="dor-text">Necessidade de reestruturação ou crescimento acelerado</div></div>
+  </div>
+  <div class="dores-cta">
+    <p class="cta-pergunta">Reconheceu algum desses<br><em>cenários no seu negócio?</em></p>
+    <a href="#contato" class="cta-btn">Fale com a DGX →</a>
+  </div>
+  <div class="bottomline"></div>
+</section>
+
+<section id="metodologia">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Como trabalhamos</span></div>
+  <h2 class="section-titulo center">Um método pensado<br>para gerar <em>resultado real</em></h2>
+  <p class="section-desc center" style="margin-bottom:4rem">Nossa atuação segue um processo estruturado em quatro etapas — do primeiro diagnóstico à governança contínua.</p>
+  <div class="etapas">
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-search"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 01</div>
+        <div class="etapa-title">Diagnóstico</div>
+        <p class="etapa-text">Mapeamos a situação financeira da empresa — indicadores, processos, gargalos e oportunidades — com profundidade e imparcialidade.</p>
       </div>
+      <span class="etapa-num">01</span>
     </div>
-    <div class="sidebar-section">Principal</div>
-    <div class="nav-item active" id="nav-vendas" onclick="setPage('vendas',this)"><span class="nav-icon">📊</span>Vendas</div>
-    <div class="nav-item" id="nav-margem" onclick="setPage('margem',this)"><span class="nav-icon">💹</span>Margem<span class="nav-badge">Em breve</span></div>
-    <div class="sidebar-section">Financeiro</div>
-    <div class="nav-item" id="nav-dre" onclick="setPage('dre',this)"><span class="nav-icon">📋</span>DRE</div>
-    <div class="nav-item" id="nav-dfc" onclick="setPage('dfc',this)"><span class="nav-icon">💰</span>DFC</div>
-    <div class="nav-item disabled"><span class="nav-icon">🏦</span>Endividamento<span class="nav-badge">Em breve</span></div>
-    <div class="sidebar-section">Comercial</div>
-    <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
-    <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
-    <div class="nav-item disabled"><span class="nav-icon">📦</span>Produtos<span class="nav-badge">Em breve</span></div>
-    <div class="nav-item disabled"><span class="nav-icon">🏭</span>Estoque<span class="nav-badge">Em breve</span></div>
-    <div class="sidebar-footer">
-      <div class="dgx-badge">
-        <div class="dgx-tri"><span></span><span></span><span></span></div>
-        <div class="dgx-text">DGX Consulting<small>Business Intelligence</small></div>
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-list-check"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 02</div>
+        <div class="etapa-title">Plano de Ação</div>
+        <p class="etapa-text">Definimos prioridades claras e um plano estruturado com ações, responsáveis e indicadores de sucesso para cada frente.</p>
       </div>
+      <span class="etapa-num">02</span>
+    </div>
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-rocket"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 03</div>
+        <div class="etapa-title">Execução</div>
+        <p class="etapa-text">Acompanhamos de perto a implementação das ações, garantindo ritmo, foco e os ajustes necessários ao longo do caminho.</p>
+      </div>
+      <span class="etapa-num">03</span>
+    </div>
+    <div class="etapa">
+      <div class="etapa-icon"><i class="ti ti-chart-bar"></i></div>
+      <div>
+        <div class="etapa-label">Etapa 04</div>
+        <div class="etapa-title">Governança</div>
+        <p class="etapa-text">Reuniões periódicas de resultado, revisão de metas e ciclos de melhoria contínua — para que a evolução nunca pare.</p>
+      </div>
+      <span class="etapa-num">04</span>
     </div>
   </div>
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar-title" id="topbarTitle">Vendas</div>
-      <div class="topbar-right">
-        <span class="topbar-period" id="topbarPeriod">Jan – Mar 2026</span>
-        <button class="logout-btn" onclick="doLogout()">Sair</button>
-      </div>
-    </div>
-    <div class="content" id="content"></div>
+  <div class="bottomline"></div>
+</section>
+
+<section id="clientes">
+  <div class="topline"></div>
+  <div class="section-label center"><span>Clientes</span></div>
+  <h2 class="section-titulo center">Empresas que confiam<br>na <em>DGX Consulting</em></h2>
+  <p class="section-desc center" style="margin-bottom:3.5rem">Parceiros que escolheram transformar sua gestão financeira com método, dados e resultado.</p>
+  <div class="logos-grid">
+    <div class="logo-card"><img src="logo-hawks.png" alt="Hawks" style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
+    <div class="logo-card"><img src="logo-oak.png" alt="Oak & Co." style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
+    <div class="logo-card"><img src="logo-mp.png" alt="MP Prudente" style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
+    <div class="logo-card"><img src="logo-fnyx.png" alt="FNYX Cosmetics" style="max-height:44px;max-width:130px;object-fit:contain;opacity:.85"></div>
   </div>
-</div>
+  <div class="bottomline"></div>
+</section>
 
-<script>
-// ─── LOGIN ───
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.getElementById('btnLogin');
-  var inp = document.getElementById('pwdInput');
-  if (btn) btn.addEventListener('click', doLogin);
-  if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
-});
+<section id="contato">
+  <div class="topline"></div>
+  <div class="section-label"><span>Contato</span></div>
+  <h2 class="section-titulo">Vamos conversar<br>sobre o seu <em>negócio?</em></h2>
+  <div style="margin-bottom:2.5rem"></div>
+  <div class="contato-grid">
+    <div class="contato-info">
+      <div>
+        <p class="info-desc">Preencha o formulário ao lado e entraremos em contato em breve. Estamos prontos para entender o seu negócio e propor o melhor caminho.</p>
+        <div class="info-items">
+          <div class="info-item">
+            <div class="info-icon"><i class="ti ti-clock"></i></div>
+            <div>
+              <div class="info-label">Atendimento</div>
+              <div class="info-value">Segunda a sexta, das 8h às 18h<br>Remoto em todo o Brasil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a href="https://www.instagram.com/dgxconsulting/" target="_blank" class="social-link">
+        <i class="ti ti-brand-instagram"></i>@dgxconsulting
+      </a>
+    </div>
+    <div class="contato-form">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Nome</label><input type="text" class="form-input" placeholder="Seu nome"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Empresa</label><input type="text" class="form-input" placeholder="Nome da empresa"></div>
+      </div>
+      <div style="margin-bottom:1rem"></div>
+      <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input" placeholder="seu@email.com"></div>
+      <div class="form-group"><label class="form-label">Assunto</label><input type="text" class="form-input" placeholder="Como podemos ajudar?"></div>
+      <div class="form-group"><label class="form-label">Mensagem</label><textarea class="form-input" placeholder="Conte um pouco sobre o seu negócio..."></textarea></div>
+      <button class="form-btn">Enviar mensagem</button>
+    </div>
+  </div>
+  <div class="bottomline"></div>
+</section>
 
-function doLogin() {
-  var inp = document.getElementById('pwdInput');
-  var err = document.getElementById('loginError');
-  err.textContent = '';
-  if (inp.value === 'DGX123456') {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    renderPage('vendas');
-  } else {
-    err.textContent = 'Senha incorreta. Tente novamente.';
-    inp.value = '';
-    inp.focus();
-  }
-}
+<section id="patrocinio" style="background:#0D0D0D;padding:5rem 3rem;position:relative;overflow:hidden">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,#E87B1E,#00AEEF)"></div>
+  <div style="max-width:800px;margin:0 auto;text-align:center">
+    <div style="font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:#E87B1E;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;gap:.75rem">
+      <span style="display:block;width:28px;height:2px;background:#E87B1E"></span>
+      Patrocínio Esportivo
+      <span style="display:block;width:28px;height:2px;background:#E87B1E"></span>
+    </div>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:700;text-transform:uppercase;color:#fff;line-height:1.1;margin-bottom:1rem">
+      <span style="color:#E87B1E">DGX</span> apoia o <span style="color:#00AEEF">Wolves F.C.</span>
+    </h2>
+    <p style="font-size:.95rem;color:#c5d3dc;line-height:1.8;max-width:520px;margin:0 auto 2.5rem">
+      Acreditamos que performance vai além dos negócios. Por isso apoiamos o esporte amador e a comunidade — porque times vencedores se constroem dentro e fora de campo.
+    </p>
+    <a href="wolves.html" style="display:inline-flex;align-items:center;gap:.75rem;background:#E87B1E;color:#0D0D0D;padding:.85rem 2.5rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;text-decoration:none;transition:background .2s">
+      Conheça o Wolves F.C. →
+    </a>
+  </div>
+</section>
 
-function doLogout() {
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('pwdInput').value = '';
-  document.getElementById('loginError').textContent = '';
-  vendasInit = false;
-  dfcChartsInit = false;
-}
+<footer>
+  <div class="footer-logo"><img class="logo-img" src="logo-dgx.png" alt="DGX Consulting"></div>
+  <div class="footer-copy">© 2025 DGX Consulting · CNPJ 65.842.762/0001-80 · Jundiaí, SP</div>
+  <div class="footer-links">
+    <a href="#sobre">Sobre</a>
+    <a href="#metodologia">Metodologia</a>
+    <a href="#clientes">Clientes</a>
+    <a href="wolves.html">Patrocínio</a>
+    <a href="#contato">Contato</a>
+  </div>
+</footer>
 
-// ─── NAVEGAÇÃO ───
-var currentPage = '';
-var periods = { vendas:'Jan – Mar 2026', dre:'Jan – Mar 2026', dfc:'Jan – Abr 2026', margem:'—' };
-
-function setPage(page, el) {
-  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
-  el.classList.add('active');
-  renderPage(page);
-}
-
-function renderPage(page) {
-  currentPage = page;
-  var titles = { vendas:'Vendas', margem:'Margem / Rentabilidade', dre:'DRE — Demonstrativo de Resultado', dfc:'DFC — Fluxo de Caixa', endividamento:'Endividamento', clientes:'Clientes / Base Ativa', vendedores:'Vendedores / Comissões', produtos:'Produtos / Mix', estoque:'Estoque' };
-  document.getElementById('topbarTitle').textContent = titles[page] || page;
-  document.getElementById('topbarPeriod').textContent = periods[page] || '2026';
-  var c = document.getElementById('content');
-  if (page === 'vendas') { c.innerHTML = vendasHTML(); initVendas(); }
-  else if (page === 'dre') { c.innerHTML = dreHTML(); }
-  else if (page === 'dfc') { c.innerHTML = dfcHTML(); initDFC(); }
-  else { c.innerHTML = comingSoonHTML(titles[page]); }
-}
-
-function comingSoonHTML(title) {
-  return '<div class="coming-soon"><div class="cs-icon">🔒</div><h2>' + title + '</h2><p>Esta seção está em desenvolvimento e estará disponível em breve com seus dados.</p><span class="cs-badge">Em breve</span></div>';
-}
-
-// ─── VENDAS ───
-var vendasInit = false;
-function vendasHTML() {
-  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div><div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div><div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div><div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div></div>'
-  + '<div class="chart-card"><div class="chart-title">Receita bruta por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartCanal" role="img" aria-label="Receita por canal"></canvas></div></div>'
-  + '<div class="chart-card"><div class="chart-title">Receita por categoria — mês a mês</div><div class="chart-sub">Linhas com valor em R$ e % de participação em cada ponto</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat" role="img" aria-label="Receita por categoria"></canvas></div></div>'
-  + '<div class="chart-card"><div class="chart-title">Volume de unidades por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol" role="img" aria-label="Volume por canal"></canvas></div></div>'
-  + '<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
-}
-
-function initVendas() {
-  if (vendasInit) return;
-  vendasInit = true;
-  setTimeout(function() {
-    var gc='rgba(0,0,0,0.07)', tc='#6b7a8d', months=['Janeiro','Fevereiro','Março'];
-    var rT=[308011,289463,469057], vT=[4424,4874,7343];
-    var cD={s:[193000,178000,295000],l:[88000,72000,122000],f:[27011,39463,52057]};
-    var catD={hc:[145000,128000,210000],p:[112000,108000,178000],c:[38000,42000,62000],q:[13011,11463,19057]};
-    var vD={s:[2750,2980,4620],l:[1100,980,1780],f:[574,914,943]};
-    var fR=function(v){return 'R$ '+Math.round(v/1000)+'K';};
-    var fN=function(v){return v.toLocaleString('pt-BR');};
-    var pct=function(v,t){return (v/t*100).toFixed(0)+'%';};
-    function sTot(data){return data.datasets[0].data.map(function(_,i){return data.datasets.reduce(function(s,ds){return s+(ds.data[i]||0);},0);});}
-    function barPlugin(fIn,fTop){return{id:'bp'+Math.random(),afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data,tots=sTot(data);data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(bar,i){var val=ds.data[i];if(!val)return;var h=Math.abs(bar.base-bar.y);if(h<16)return;var cx=bar.x,cy=(bar.y+bar.base)/2,p=pct(val,tots[i]);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(p,cx,cy+7);}else{ctx.font='500 10px sans-serif';ctx.fillText(p,cx,cy);}ctx.restore();});});},afterDraw:function(chart){var ctx=chart.ctx,data=chart.data,sc=chart.scales,tots=sTot(data);ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';tots.forEach(function(t,i){ctx.fillText(fTop(t),sc.x.getPixelForValue(i),sc.y.getPixelForValue(t)-8);});ctx.restore();}};}
-    var CC=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
-    var pp={id:'pp',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i],p=pct(val,rT[i]),above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);ctx.restore();});});}};
-    new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Salão',data:cD.s,backgroundColor:'#00B4D8',stack:'a',borderRadius:0},{label:'Loja',data:cD.l,backgroundColor:'#1E2D40',stack:'a',borderRadius:0},{label:'Funcionário',data:cD.f,backgroundColor:'#5B8DB8',stack:'a',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fR(c.raw)+' ('+pct(c.raw,rT[c.dataIndex])+')';}}}},scales:{x:{stacked:true,ticks:{color:tc,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tc,font:{size:11},callback:fR},grid:{color:gc}}}}});
-    new Chart(document.getElementById('chartCat'),{type:'line',plugins:[pp],data:{labels:months,datasets:[{label:'Home Care',data:catD.hc,borderColor:'#00B4D8',backgroundColor:'rgba(0,180,216,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Profissional',data:catD.p,borderColor:'#1E2D40',backgroundColor:'rgba(30,45,64,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Coloração',data:catD.c,borderColor:'#5B8DB8',backgroundColor:'rgba(91,141,184,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Química',data:catD.q,borderColor:'#A8C8E0',backgroundColor:'rgba(168,200,224,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fR(c.raw)+' ('+pct(c.raw,rT[c.dataIndex])+')';}}}},scales:{x:{ticks:{color:tc,font:{size:12}},grid:{display:false}},y:{ticks:{color:tc,font:{size:11},callback:fR},grid:{color:gc}}}}});
-    new Chart(document.getElementById('chartVol'),{type:'bar',plugins:[barPlugin(fN,fN)],data:{labels:months,datasets:[{label:'Salão',data:vD.s,backgroundColor:'#00B4D8',stack:'c',borderRadius:0},{label:'Loja',data:vD.l,backgroundColor:'#1E2D40',stack:'c',borderRadius:0},{label:'Funcionário',data:vD.f,backgroundColor:'#5B8DB8',stack:'c',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fN(c.raw)+' un. ('+pct(c.raw,vT[c.dataIndex])+')';}}}},scales:{x:{stacked:true,ticks:{color:tc,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tc,font:{size:11},callback:function(v){return fN(v);}},grid:{color:gc}}}}});
-  }, 100);
-}
-
-// ─── DRE ───
-function dreHTML() {
-  var ai='<span class="tag-ainformar">a informar</span>';
-  var rows=[
-    {l:'Receita Bruta de Vendas',j:'308.011',f:'289.463',m:'469.057',t:'subtotal'},
-    {l:'(-) Devoluções e Abatimentos',j:'(1.921)',f:'(1.723)',m:'(238)',t:'negative'},
-    {l:'(-) Descontos Concedidos',j:'(1.772)',f:'(11.720)',m:'(12.919)',t:'negative'},
-    {l:'= Receita Líquida',j:'304.318',f:'276.020',m:'455.900',t:'highlight'},
-    {l:'(-) CMV',j:'(8.000)',f:'(8.000)',m:'(8.000)',t:'negative'},
-    {l:'= Margem Bruta',j:'296.318',f:'268.020',m:'447.900',t:'highlight'},
-    {l:'% Margem Bruta',j:'97,4%',f:'97,1%',m:'98,2%',t:'positive'},
-    {l:'separator',t:'separator'},
-    {l:'Despesas Operacionais',j:'',f:'',m:'',t:'total'},
-    {l:'(-) Despesas Comerciais',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
-    {l:'(-) Despesas Administrativas',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
-    {l:'(-) Despesas com Pessoal',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
-    {l:'(-) Outras Despesas Operacionais',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
-    {l:'= EBITDA',j:'—',f:'—',m:'—',t:'highlight'},
-    {l:'% EBITDA',j:'—',f:'—',m:'—',t:'na'},
-    {l:'separator',t:'separator'},
-    {l:'(-) Depreciação e Amortização',j:ai,f:ai,m:ai,t:'na'},
-    {l:'= EBIT (Resultado Operacional)',j:'—',f:'—',m:'—',t:'subtotal'},
-    {l:'separator',t:'separator'},
-    {l:'Resultado Financeiro',j:'',f:'',m:'',t:'total'},
-    {l:'(+) Receitas Financeiras',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
-    {l:'(-) Despesas Financeiras',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
-    {l:'= EBT (Resultado antes dos Impostos)',j:'—',f:'—',m:'—',t:'subtotal'},
-    {l:'(-) Impostos (IR / CSLL)',j:ai,f:ai,m:ai,t:'na'},
-    {l:'= LUCRO LÍQUIDO',j:'—',f:'—',m:'—',t:'highlight'},
-    {l:'% Lucro Líquido / Receita Líquida',j:'—',f:'—',m:'—',t:'na'},
-  ];
-  var rowsHTML=rows.map(function(r){
-    if(r.t==='separator') return '<tr class="separator"><td colspan="4"></td></tr>';
-    var cls=r.t.split(' ').filter(function(x){return x!=='dre-label-indent';}).join(' ');
-    var lc=r.t.includes('dre-label-indent')?'dre-label-indent':'';
-    return '<tr class="'+cls+'"><td class="'+lc+'">'+r.l+'</td><td>'+r.j+'</td><td>'+r.f+'</td><td>'+r.m+'</td></tr>';
-  }).join('');
-  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">R$ 1,04M</div><div class="kpi-sub">Jan – Mar 2026</div></div><div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value">R$ 1,01M</div><div class="kpi-sub kpi-hi">Média 97,6%</div></div><div class="kpi"><div class="kpi-label">EBITDA</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando despesas</div></div><div class="kpi"><div class="kpi-label">Lucro Líquido</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando dados</div></div></div>'
-  +'<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE — Demonstrativo de Resultado do Exercício</div><div class="chart-sub">Jan – Mar 2026 · valores em R$ · linhas marcadas com <span class="tag-ainformar">a informar</span> serão preenchidas conforme dados chegam</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:260px">Descrição</th><th style="min-width:110px">Janeiro</th><th style="min-width:110px">Fevereiro</th><th style="min-width:110px">Março</th></tr></thead><tbody>'+rowsHTML+'</tbody></table></div></div>'
-  +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
-}
-
-// ─── DFC DATA ───
-var DD = {
-  meses:['Jan/26','Fev/26','Mar/26','Abr/26'],
-  caixaInicial:[120243,99797,78168,178986],
-  recVendas:[40998,85479,267400,461715],
-  jurosMultas:[0,0,0,0],
-  outrasEntOp:[0,0,0,0],
-  pgtoTruss:[0,-9302,-227344,-380230],
-  pgtoNaoTruss:[-12697,-10162,-20273,-13179],
-  pgtoPessoal:[-4536,-4948,-5172,-2488],
-  pgtoMkt:[-20893,-58488,-12825,-21387],
-  pgtoComissoes:[0,0,-43409,-50564],
-  pgtoLogistica:[-936,-2491,-2991,-2920],
-  pgtoOcupacao:[-631,-7421,-7775,-7986],
-  pgtoGerais:[-15751,-3000,-15035,-3842],
-  pgtoTerceiros:[0,-4148,-9387,0],
-  pgtoImpostos:[-6152,-7506,-9680,-34539],
-  entInvest:[0,0,0,0],
-  saiInvest:[0,0,0,0],
-  emprestimos:[0,0,200000,183000],
-  pgtoFinanc:[-96,-707,-1882,-2879],
-  caixaOp:[-20600,-21987,-86491,-55420],
-  caixaInv:[0,0,0,0],
-  caixaFin:[-96,-707,198118,180121],
-  resultado:[-20696,-22695,111627,124701],
-  caixaFinal:[99797,78168,178986,306424]
-};
-
-// ─── DFC ───
-var dfcChartsInit = false;
-
-function dfcHTML() {
-  return '<div class="dfc-nav"><button class="dfc-nav-btn active" id="dfcBtnMensal" onclick="dfcSetView(\'mensal\',this)">Mensal</button><button class="dfc-nav-btn" id="dfcBtnAcum" onclick="dfcSetView(\'acumulado\',this)">Acumulado</button></div>'
-  +'<div id="dfc-mensal">'
-  +'<div class="dfc-kpi-grid" id="dfc-kpis"></div>'
-  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall — Composição do saldo</div><div class="dfc-chart-sub">Saldo inicial → entradas → saídas por categoria → saldo final (Jan–Abr acumulado)</div><div style="height:230px;position:relative"><canvas id="dfc-waterfall"></canvas></div></div>'
-  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e saídas mensais</div><div class="dfc-chart-sub">Barras espelhadas · linha de saldo bancário acumulado</div><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Entradas</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Saídas</span><span class="dfc-leg"><span class="dfc-leg-line" style="background:#2C6BE0"></span>Saldo bancário</span></div><div style="height:220px;position:relative"><canvas id="dfc-espelhado"></canvas></div></div>'
-  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Resultado líquido mensal</div><div class="dfc-chart-sub">Positivo em ciano · negativo em creme</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-bar"></canvas></div></div>'
-  +'<div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela"></table></div>'
-  +'</div>'
-  +'<div id="dfc-acumulado" style="display:none">'
-  +'<div class="dfc-kpi-grid">'
-  +'<div class="dfc-kpi" style="border-left-color:#00D4DA"><div class="dfc-kpi-label">Total entradas Jan–Abr</div><div class="dfc-kpi-value" style="color:#00D4DA">R$ 855K</div><div class="dfc-kpi-sub">Recebimentos realizados</div></div>'
-  +'<div class="dfc-kpi" style="border-left-color:#C8B89A"><div class="dfc-kpi-label">Total saídas Jan–Abr</div><div class="dfc-kpi-value" style="color:#C8B89A">R$ 669K</div><div class="dfc-kpi-sub">Pagamentos operacionais</div></div>'
-  +'<div class="dfc-kpi" style="border-left-color:#2C6BE0"><div class="dfc-kpi-label">Captações (financ.)</div><div class="dfc-kpi-value" style="color:#2C6BE0">R$ 383K</div><div class="dfc-kpi-sub">Empréstimos tomados</div></div>'
-  +'<div class="dfc-kpi" style="border-left-color:#00D4DA"><div class="dfc-kpi-label">Saldo final Abr/26</div><div class="dfc-kpi-value" style="color:#00D4DA">R$ 306K</div><div class="dfc-kpi-sub">Posição bancária</div></div>'
-  +'</div>'
-  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Evolução do saldo bancário</div><div class="dfc-chart-sub">Saldo ao final de cada mês</div><div style="height:220px;position:relative"><canvas id="dfc-evolucao"></canvas></div></div>'
-  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Composição por atividade — acumulado</div><div class="dfc-chart-sub">Caixa Operacional · Investimento · Financiamento por mês</div><div style="height:200px;position:relative"><canvas id="dfc-composicao"></canvas></div></div>'
-  +'</div>'
-  +'<div class="confidential" style="color:#4A6580">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
-}
-
-function initDFC() {
-  setTimeout(function() {
-    renderDFCKPIs();
-    renderDFCWaterfall();
-    renderDFCEspelhado();
-    renderDFCSaldoBar();
-    renderDFCTabela();
-  }, 100);
-}
-
-function fmtDFC(v) {
-  var a=Math.abs(v);
-  if(a>=1e6) return (v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';
-  if(a>=1e3) return (v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';
-  return (v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');
-}
-
-function renderDFCKPIs() {
-  var D=DD;
-  var entTotal=D.recVendas.reduce(function(a,b){return a+b;},0)+D.emprestimos.reduce(function(a,b){return a+b;},0);
-  var saiTotal=D.meses.map(function(_,i){
-    return Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]);
-  }).reduce(function(a,b){return a+b;},0);
-  var res=D.resultado.reduce(function(a,b){return a+b;},0);
-  var kpis=[
-    {label:'Total entradas',value:entTotal,sub:'Jan–Abr 2026',color:'#00D4DA'},
-    {label:'Total saídas',value:-saiTotal,sub:'Jan–Abr 2026',color:'#C8B89A'},
-    {label:'Resultado acumulado',value:res,sub:'Variação líquida',color:'#2C6BE0'},
-    {label:'Saldo final Abr/26',value:D.caixaFinal[3],sub:'Posição bancária',color:'#00D4DA'},
-  ];
-  document.getElementById('dfc-kpis').innerHTML=kpis.map(function(k){
-    return '<div class="dfc-kpi" style="border-left-color:'+k.color+'"><div class="dfc-kpi-label">'+k.label+'</div><div class="dfc-kpi-value" style="color:'+k.color+'">'+fmtDFC(k.value)+'</div><div class="dfc-kpi-sub">'+k.sub+'</div></div>';
-  }).join('');
-}
-
-function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
-
-function renderDFCWaterfall() {
-  var D=DD;
-  var CYAN='#00D4DA',BEIGE='#C8B89A',INI='#2C6BE0',TOT='#007B80';
-  var entOp=D.recVendas.reduce(function(a,b){return a+b;},0);
-  var captacoes=D.emprestimos.reduce(function(a,b){return a+b;},0);
-  var saiF=[D.pgtoTruss,D.pgtoNaoTruss,D.pgtoPessoal,D.pgtoMkt,D.pgtoComissoes,D.pgtoLogistica,D.pgtoOcupacao,D.pgtoGerais,D.pgtoTerceiros,D.pgtoImpostos];
-  var saiOpTotal=saiF.reduce(function(tot,arr){return tot+arr.reduce(function(a,b){return a+Math.abs(b);},0);},0);
-  var pgtoFinTotal=D.pgtoFinanc.reduce(function(a,b){return a+Math.abs(b);},0);
-  var saldoIni=D.caixaInicial[0];
-  var saldoFim=D.caixaFinal[3];
-  var items=[
-    {label:'Saldo inicial',value:saldoIni,type:'ini'},
-    {label:'Rec. vendas',value:entOp,type:'pos'},
-    {label:'Captações',value:captacoes,type:'pos'},
-    {label:'Pgto. fornec.',value:-saiF[0].reduce(function(a,b){return a+Math.abs(b);},0)-saiF[1].reduce(function(a,b){return a+Math.abs(b);},0),type:'neg'},
-    {label:'Desp. operac.',value:-(saiF[2].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[3].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[4].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[5].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[6].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[7].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[8].reduce(function(a,b){return a+Math.abs(b);},0)),type:'neg'},
-    {label:'Impostos',value:-saiF[9].reduce(function(a,b){return a+Math.abs(b);},0),type:'neg'},
-    {label:'Amortizações',value:-pgtoFinTotal,type:'neg'},
-    {label:'Saldo final',value:saldoFim,type:'tot'},
-  ];
-  var starts=[],bars=[],colors=[],run=0;
-  items.forEach(function(v){
-    if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}
-    else if(v.type==='pos'){starts.push(run);bars.push(v.value);}
-    else{starts.push(run+v.value);bars.push(-v.value);}
-    if(v.type!=='tot') run+=v.value;
-    colors.push(v.type==='ini'?INI:v.type==='tot'?TOT:v.type==='pos'?CYAN:BEIGE);
-  });
-  destroyChart('dfc-waterfall');
-  new Chart(document.getElementById('dfc-waterfall'),{type:'bar',data:{labels:items.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return items[c.dataIndex].label+': '+fmtDFC(items[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:11}},stacked:true},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},stacked:true}}}});
-}
-
-function renderDFCEspelhado() {
-  var D=DD;
-  var ent=D.meses.map(function(_,i){return D.recVendas[i]+D.emprestimos[i];});
-  var sai=D.meses.map(function(_,i){return -(Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]));});
-  destroyChart('dfc-espelhado');
-
-  // Plugin que reposiciona barras para ficarem centradas no tick
-  var centerPlugin = {
-    id: 'centerBars',
-    afterUpdate: function(chart) {
-      var ds0 = chart.getDatasetMeta(0);
-      var ds1 = chart.getDatasetMeta(1);
-      if (!ds0 || !ds1) return;
-      ds0.data.forEach(function(bar, i) {
-        var b1 = ds1.data[i];
-        if (!b1) return;
-        var w = bar.width;
-        var cx = (bar.x + b1.x) / 2;
-        bar.x = cx;
-        b1.x = cx;
-        bar.width = w;
-        b1.width = w;
-      });
-    }
-  };
-
-  new Chart(document.getElementById('dfc-espelhado'),{
-    type:'bar',
-    plugins:[centerPlugin],
-    data:{
-      labels:D.meses,
-      datasets:[
-        {label:'Entradas',data:ent,backgroundColor:'#00D4DA',borderRadius:3,borderSkipped:false,order:2,stack:'s',barPercentage:0.6,categoryPercentage:0.8},
-        {label:'Saídas',data:sai,backgroundColor:'#C8B89A',borderRadius:3,borderSkipped:false,order:2,stack:'s',barPercentage:0.6,categoryPercentage:0.8},
-        {label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',backgroundColor:'rgba(44,107,224,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},
-      scales:{
-        x:{stacked:false,grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},
-        y:{stacked:false,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},
-        y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}
-      }
-    }
-  });
-}
-
-function renderDFCSaldoBar() {
-  var D=DD;
-  destroyChart('dfc-saldo-bar');
-  new Chart(document.getElementById('dfc-saldo-bar'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Resultado',data:D.resultado,backgroundColor:D.resultado.map(function(v){return v>=0?'#00D4DA':'#C8B89A';}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return 'Resultado: '+fmtDFC(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},border:{display:false}}}}});
-}
-
-function renderDFCTabela() {
-  var D=DD, n=D.meses.length;
-  function fv(v){return v===0?'—':fmtDFC(v);}
-  function tc(v){return v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}
-  function row(lbl,vals,cls){
-    cls=cls||'';
-    var tot=vals.reduce(function(a,b){return a+b;},0);
-    return '<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return '<td'+tc(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+tc(tot)+'>'+fv(tot)+'</td></tr>';
-  }
-  var h='<thead><tr><th style="min-width:240px;text-align:left">Linha</th>'+D.meses.map(function(m){return '<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';
-  h+=row('Saldo inicial',D.caixaInicial,'dfc-ini');
-  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';
-  h+=row('Recebimentos de vendas (ST)',D.recVendas);
-  h+=row('Juros e multas inadimplência',D.jurosMultas);
-  h+=row('Outras entradas operacionais',D.outrasEntOp);
-  h+=row('Pgto. compras Truss (SI)',D.pgtoTruss);
-  h+=row('Pgto. fornecedores não Truss',D.pgtoNaoTruss);
-  h+=row('Pgto. despesas com pessoal',D.pgtoPessoal);
-  h+=row('Pgto. despesas comerciais (Mkt)',D.pgtoMkt);
-  h+=row('Pgto. comissões',D.pgtoComissoes);
-  h+=row('Pgto. despesas logísticas',D.pgtoLogistica);
-  h+=row('Pgto. taxa de ocupação',D.pgtoOcupacao);
-  h+=row('Pgto. despesas gerais',D.pgtoGerais);
-  h+=row('Serviços de terceiros',D.pgtoTerceiros);
-  h+=row('Pgto. impostos (ICMS, PIS, COFINS...)',D.pgtoImpostos);
-  h+=row('= Caixa Operacional',D.caixaOp,'dfc-sub');
-  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';
-  h+=row('Entradas de investimento',D.entInvest);
-  h+=row('Saídas de investimento (CAPEX)',D.saiInvest);
-  h+=row('= Caixa de Investimento',D.caixaInv,'dfc-sub');
-  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';
-  h+=row('Empréstimos tomados',D.emprestimos);
-  h+=row('Pgto. financiamentos bancários',D.pgtoFinanc);
-  h+=row('= Caixa de Financiamento',D.caixaFin,'dfc-sub');
-  h+=row('= Resultado do mês',D.resultado,'dfc-tot');
-  h+=row('Saldo final (bancário)',D.caixaFinal,'dfc-ini');
-  h+='</tbody>';
-  document.getElementById('dfc-tabela').innerHTML=h;
-}
-
-function dfcSetView(v, el) {
-  document.getElementById('dfc-mensal').style.display=v==='mensal'?'':'none';
-  document.getElementById('dfc-acumulado').style.display=v==='acumulado'?'':'none';
-  document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});
-  el.classList.add('active');
-  if(v==='acumulado') {
-    setTimeout(function(){
-      destroyChart('dfc-evolucao');
-      new Chart(document.getElementById('dfc-evolucao'),{type:'line',data:{labels:DD.meses,datasets:[{label:'Saldo bancário',data:DD.caixaFinal,borderColor:'#00D4DA',backgroundColor:'rgba(0,212,218,0.1)',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#00D4DA',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return 'Saldo: '+fmtDFC(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtDFC(v);}}}}}});
-      destroyChart('dfc-composicao');
-      new Chart(document.getElementById('dfc-composicao'),{type:'bar',data:{labels:DD.meses,datasets:[{label:'Operacional',data:DD.caixaOp,backgroundColor:'#00D4DA',borderRadius:3,stack:'a'},{label:'Investimento',data:DD.caixaInv,backgroundColor:'#5B8DB8',borderRadius:3,stack:'a'},{label:'Financiamento',data:DD.caixaFin,backgroundColor:'#2C6BE0',borderRadius:3,stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6B8BAA',font:{size:11}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA'}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtDFC(v);}}}}}});
-    },100);
-  }
-}
-</script>
 </body>
 </html>
