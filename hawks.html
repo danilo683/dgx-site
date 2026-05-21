@@ -24,10 +24,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-error{font-size:12px;color:#e24b4a;margin-top:8px;min-height:16px}
 .login-footer{font-size:11px;color:#aab;margin-top:1.5rem}
 
-/* APP LAYOUT */
+/* APP */
 #app{display:none;height:100vh;overflow:hidden;flex-direction:row}
-
-/* SIDEBAR */
 .sidebar{width:230px;min-width:230px;background:#111;display:flex;flex-direction:column;height:100vh;overflow-y:auto}
 .sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08)}
 .sidebar-logo img{width:100%;max-height:70px;object-fit:contain}
@@ -44,8 +42,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dgx-tri span{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #00B4D8;display:block}
 .dgx-text{font-size:11px;font-weight:600;color:#fff;letter-spacing:0.5px}
 .dgx-text small{display:block;font-size:9px;color:rgba(255,255,255,0.4);font-weight:400}
-
-/* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .topbar{background:#fff;border-bottom:1px solid #e5e9ef;padding:0 1.5rem;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .topbar-title{font-size:15px;font-weight:600;color:#1E2D40}
@@ -62,15 +58,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .coming-soon p{font-size:14px;color:#6b7a8d;max-width:320px}
 .coming-soon .cs-badge{margin-top:1.5rem;font-size:12px;padding:6px 16px;border-radius:20px;background:#e0f7fc;color:#006d8f;display:inline-block}
 
-/* KPI */
+/* KPI / CHARTS — vendas */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
 .kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #00B4D8;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
 .kpi-value{font-size:20px;font-weight:600;color:#1E2D40}
 .kpi-sub{font-size:11px;color:#6b7a8d;margin-top:3px}
 .kpi-hi{color:#006d8f}
-
-/* CHART CARDS */
 .chart-card{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .chart-title{font-size:13px;font-weight:600;color:#1E2D40;margin-bottom:2px}
 .chart-sub{font-size:11px;color:#6b7a8d;margin-bottom:12px}
@@ -95,7 +89,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dre-table tr.na td:not(:first-child){color:#aab}
 .dre-label-indent{padding-left:24px !important;color:#6b7a8d}
 .tag-ainformar{font-size:10px;padding:1px 6px;border-radius:8px;background:#f0f2f5;color:#aab;margin-left:6px}
-.section-header{font-size:13px;font-weight:600;color:#1E2D40;margin:1.25rem 0 0.5rem;padding-bottom:6px;border-bottom:2px solid #00B4D8;display:inline-block}
+
+/* DFC */
+.dfc-outer{background:#162230;border:0.5px solid #1F3044;border-radius:10px;overflow:auto;margin-bottom:.5rem;max-height:480px}
+.dfc-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.dfc-tbl thead{position:sticky;top:0;z-index:2}
+.dfc-tbl th{font-size:10px;font-weight:500;color:#6B8BAA;text-align:right;padding:8px 10px;background:#0F1923;border-bottom:0.5px solid #1F3044;white-space:nowrap}
+.dfc-tbl th:first-child{text-align:left;background:#0F1923}
+.dfc-tbl td{padding:5px 10px;border-bottom:0.5px solid #1F3044;text-align:right;white-space:nowrap;color:#E2EAF4}
+.dfc-tbl td:first-child{text-align:left;color:#6B8BAA}
+.dfc-tbl tr.dfc-grp td{font-size:10px;font-weight:700;color:#00D4DA;background:#0F1923;text-transform:uppercase;letter-spacing:.05em;padding:10px 10px 4px}
+.dfc-tbl tr.dfc-sub td{font-weight:600;background:#1A2C3D;border-top:0.5px solid #1F3044;color:#E2EAF4}
+.dfc-tbl tr.dfc-tot td{font-weight:700;font-size:12px;background:#007B80;color:#0F1923}
+.dfc-tbl tr.dfc-ini td{font-weight:600;background:#1A2C3D;color:#2C6BE0}
+.dfc-pos{color:#00D4DA!important}
+.dfc-neg{color:#C8B89A!important}
+.dfc-nav{display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px;width:fit-content;margin-bottom:1rem}
+.dfc-nav-btn{padding:7px 22px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#6B8BAA;border-radius:6px;transition:all .15s}
+.dfc-nav-btn.active{background:#0F1923;color:#E2EAF4;border:0.5px solid #1F3044}
+.dfc-section-label{font-size:10px;font-weight:700;color:#6B8BAA;text-transform:uppercase;letter-spacing:.08em;margin:1rem 0 0.5rem;display:flex;align-items:center;gap:10px}
+.dfc-section-label::after{content:'';flex:1;height:0.5px;background:#1F3044}
+.dfc-chart-card{background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1.1rem}
+.dfc-chart-title{font-size:13px;font-weight:500;color:#E2EAF4;margin-bottom:3px}
+.dfc-chart-sub{font-size:10px;color:#6B8BAA;margin-bottom:14px}
+.dfc-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.dfc-kpi{background:#162230;border-radius:8px;padding:14px 16px;border-left:3px solid #00D4DA;border:0.5px solid #1F3044;border-left:3px solid #00D4DA}
+.dfc-kpi-label{font-size:11px;color:#6B8BAA;margin-bottom:6px}
+.dfc-kpi-value{font-size:18px;font-weight:600}
+.dfc-kpi-sub{font-size:11px;color:#4A6580;margin-top:3px}
+.dfc-legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px}
+.dfc-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:#6B8BAA}
+.dfc-leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.dfc-leg-line{width:16px;height:2px;flex-shrink:0}
 
 .confidential{text-align:center;font-size:11px;color:#aab;margin-top:1.5rem;padding-bottom:1rem}
 </style>
@@ -105,49 +130,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- LOGIN -->
 <div id="loginScreen">
   <svg class="login-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <!-- 3 principais L=60 h=52 apontando para cima, lado esquerdo, descidos -->
     <polygon points="30,200  0,252  60,252"  fill="#00B4D8" opacity="1"/>
     <polygon points="30,290  0,342  60,342"  fill="#00B4D8" opacity="1"/>
     <polygon points="30,380  0,432  60,432"  fill="#00B4D8" opacity="1"/>
-
-    <!-- decorativos espalhados por TODO o fundo — equiláteros, tamanhos variados -->
-    <!-- lado esquerdo baixo -->
-    <polygon points="60,580  34,628  86,628"   fill="#00B4D8" opacity="0.18"/>
-    <polygon points="120,720 100,754 140,754"  fill="#00B4D8" opacity="0.12"/>
-
-    <!-- centro esquerdo -->
-    <polygon points="320,180 304,208 336,208"  fill="#00B4D8" opacity="0.13"/>
-    <polygon points="280,420 258,458 302,458"  fill="#00B4D8" opacity="0.15"/>
-    <polygon points="380,650 362,682 398,682"  fill="#00B4D8" opacity="0.11"/>
-
-    <!-- centro -->
-    <polygon points="720,80  700,114 740,114"  fill="#00B4D8" opacity="0.12"/>
-    <polygon points="680,820 658,858 702,858"  fill="#00B4D8" opacity="0.1"/>
-    <polygon points="750,500 732,532 768,532"  fill="#00B4D8" opacity="0.13"/>
-
-    <!-- centro direito -->
-    <polygon points="1020,150 1000,184 1040,184" fill="#00B4D8" opacity="0.14"/>
-    <polygon points="1100,380 1078,418 1122,418" fill="#00B4D8" opacity="0.16"/>
-    <polygon points="980,620  962,652  998,652"  fill="#00B4D8" opacity="0.12"/>
-    <polygon points="1060,750 1044,778 1076,778" fill="#00B4D8" opacity="0.1"/>
-
-    <!-- lado direito -->
-    <polygon points="1280,90  1262,122 1298,122" fill="#00B4D8" opacity="0.13"/>
-    <polygon points="1360,280 1340,314 1380,314" fill="#00B4D8" opacity="0.15"/>
-    <polygon points="1320,520 1302,552 1338,552" fill="#00B4D8" opacity="0.12"/>
-    <polygon points="1240,700 1222,732 1258,732" fill="#00B4D8" opacity="0.1"/>
-    <polygon points="1400,700 1384,728 1416,728" fill="#00B4D8" opacity="0.09"/>
-
-    <!-- linha ciano meia tela rodapé centralizada -->
+    <polygon points="88,412  74,436  102,436"  fill="#00B4D8" opacity="0.22"/>
+    <polygon points="570,322 552,353 588,353"  fill="#00B4D8" opacity="0.18"/>
+    <polygon points="626,78  616,95  636,95"   fill="#00B4D8" opacity="0.14"/>
+    <polygon points="154,464 143,483 165,483"  fill="#00B4D8" opacity="0.13"/>
+    <polygon points="546,435 531,461 561,461"  fill="#00B4D8" opacity="0.16"/>
+    <polygon points="638,412 629,428 647,428"  fill="#00B4D8" opacity="0.11"/>
+    <polygon points="36,345  24,366  48,366"   fill="#00B4D8" opacity="0.15"/>
+    <polygon points="1100,200 1086,224 1114,224" fill="#00B4D8" opacity="0.13"/>
+    <polygon points="1280,350 1264,378 1296,378" fill="#00B4D8" opacity="0.15"/>
+    <polygon points="1350,500 1336,524 1364,524" fill="#00B4D8" opacity="0.12"/>
+    <polygon points="1200,650 1186,674 1214,674" fill="#00B4D8" opacity="0.10"/>
+    <polygon points="900,750  886,774  914,774"  fill="#00B4D8" opacity="0.11"/>
+    <polygon points="400,600  386,624  414,624"  fill="#00B4D8" opacity="0.12"/>
+    <polygon points="700,120  686,144  714,144"  fill="#00B4D8" opacity="0.10"/>
     <rect x="360" y="894" width="720" height="4" fill="#00B4D8"/>
   </svg>
-
-  <!-- Logo DGX canto superior direito -->
   <div style="position:absolute;top:1.5rem;right:1.5rem;z-index:3">
     <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-dgx" alt="DGX Consulting" style="height:52px;object-fit:contain"
       onerror="this.outerHTML='<svg width=115 height=54 viewBox=\'0 0 115 54\' xmlns=\'http://www.w3.org/2000/svg\'><text x=0 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>D</text><text x=32 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>G</text><polygon points=\'46,15 46,33 62,24\' fill=\'#00B4D8\'/><text x=65 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>X</text><text x=2 y=52 font-family=\'Arial,sans-serif\' font-size=10 fill=\'#fff\' letter-spacing=2>CONSULTING</text></svg>'"/>
   </div>
-
   <div class="login-box">
     <div class="login-hawks-logo">
       <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-hawks.png" alt="Hawks Beauty"
@@ -155,8 +160,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="login-hawks-fallback">Hawks<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div>
     </div>
     <div class="login-title">Acesse seu dashboard</div>
-    <input type="password" id="pwdInput" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button onclick="doLogin()">Entrar</button>
+    <input type="password" id="pwdInput" placeholder="Senha de acesso"/>
+    <button id="btnLogin">Entrar</button>
     <div class="login-error" id="loginError"></div>
     <div class="login-footer">Powered by DGX Consulting · Dados confidenciais</div>
   </div>
@@ -164,7 +169,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- APP -->
 <div id="app">
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-logo">
       <div style="background:#000;border-radius:8px;padding:10px 8px;text-align:center">
@@ -172,47 +176,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div style="color:#fff;font-size:9px;letter-spacing:4px;margin-top:2px">BEAUTY</div>
       </div>
     </div>
-
     <div class="sidebar-section">Principal</div>
-    <div class="nav-item active" onclick="setPage('vendas',this)">
-      <span class="nav-icon">📊</span> Vendas
-    </div>
-    <div class="nav-item" onclick="setPage('margem',this)">
-      <span class="nav-icon">💹</span> Margem
-      <span class="nav-badge">Em breve</span>
-    </div>
-
+    <div class="nav-item active" id="nav-vendas" onclick="setPage('vendas',this)"><span class="nav-icon">📊</span>Vendas</div>
+    <div class="nav-item" id="nav-margem" onclick="setPage('margem',this)"><span class="nav-icon">💹</span>Margem<span class="nav-badge">Em breve</span></div>
     <div class="sidebar-section">Financeiro</div>
-    <div class="nav-item" onclick="setPage('dre',this)">
-      <span class="nav-icon">📋</span> DRE
-    </div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">💰</span> DFC
-      <span class="nav-badge">Em breve</span>
-    </div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">🏦</span> Endividamento
-      <span class="nav-badge">Em breve</span>
-    </div>
-
+    <div class="nav-item" id="nav-dre" onclick="setPage('dre',this)"><span class="nav-icon">📋</span>DRE</div>
+    <div class="nav-item" id="nav-dfc" onclick="setPage('dfc',this)"><span class="nav-icon">💰</span>DFC</div>
+    <div class="nav-item disabled"><span class="nav-icon">🏦</span>Endividamento<span class="nav-badge">Em breve</span></div>
     <div class="sidebar-section">Comercial</div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">👥</span> Clientes
-      <span class="nav-badge">Em breve</span>
-    </div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">🧑‍💼</span> Vendedores
-      <span class="nav-badge">Em breve</span>
-    </div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">📦</span> Produtos
-      <span class="nav-badge">Em breve</span>
-    </div>
-    <div class="nav-item disabled">
-      <span class="nav-icon">🏭</span> Estoque
-      <span class="nav-badge">Em breve</span>
-    </div>
-
+    <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item disabled"><span class="nav-icon">📦</span>Produtos<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item disabled"><span class="nav-icon">🏭</span>Estoque<span class="nav-badge">Em breve</span></div>
     <div class="sidebar-footer">
       <div class="dgx-badge">
         <div class="dgx-tri"><span></span><span></span><span></span></div>
@@ -220,13 +195,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
   </div>
-
-  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Vendas</div>
       <div class="topbar-right">
-        <span class="topbar-period">Jan – Mar 2026</span>
+        <span class="topbar-period" id="topbarPeriod">Jan – Mar 2026</span>
         <button class="logout-btn" onclick="doLogout()">Sair</button>
       </div>
     </div>
@@ -235,268 +208,327 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-function doLogin(){
-  var input = document.getElementById('pwdInput');
-  var erro = document.getElementById('loginError');
-  var senha = input.value;
-  erro.textContent = '';
-  if(senha === 'DGX123456'){
+// ─── LOGIN ───
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('btnLogin');
+  var inp = document.getElementById('pwdInput');
+  if (btn) btn.addEventListener('click', doLogin);
+  if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+});
+
+function doLogin() {
+  var inp = document.getElementById('pwdInput');
+  var err = document.getElementById('loginError');
+  err.textContent = '';
+  if (inp.value === 'DGX123456') {
     document.getElementById('loginScreen').style.display = 'none';
-    var app = document.getElementById('app');
-    app.style.display = 'flex';
+    document.getElementById('app').style.display = 'flex';
     renderPage('vendas');
   } else {
-    erro.textContent = 'Senha incorreta. Tente novamente.';
-    input.value = '';
-    input.focus();
+    err.textContent = 'Senha incorreta. Tente novamente.';
+    inp.value = '';
+    inp.focus();
   }
 }
-function doLogout(){
+
+function doLogout() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('pwdInput').value = '';
   document.getElementById('loginError').textContent = '';
-  chartsInit = false;
+  vendasInit = false;
+  dfcChartsInit = false;
 }
 
-// Garante que o botão funciona mesmo se o onclick falhar
-document.addEventListener('DOMContentLoaded', function(){
-  var btn = document.querySelector('#loginScreen button');
-  var inp = document.getElementById('pwdInput');
-  if(btn) btn.addEventListener('click', doLogin);
-  if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-});
+// ─── NAVEGAÇÃO ───
+var currentPage = '';
+var periods = { vendas:'Jan – Mar 2026', dre:'Jan – Mar 2026', dfc:'Jan – Abr 2026', margem:'—' };
 
-let currentPage = '';
-let chartsInit = false;
-
-function setPage(page, el){
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+function setPage(page, el) {
+  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
   el.classList.add('active');
   renderPage(page);
 }
 
-function renderPage(page){
+function renderPage(page) {
   currentPage = page;
-  const titles = { vendas:'Vendas', margem:'Margem / Rentabilidade', dre:'DRE — Demonstrativo de Resultado', dfc:'DFC — Fluxo de Caixa', endividamento:'Endividamento', clientes:'Clientes / Base Ativa', vendedores:'Vendedores / Comissões', produtos:'Produtos / Mix', estoque:'Estoque' };
+  var titles = { vendas:'Vendas', margem:'Margem / Rentabilidade', dre:'DRE — Demonstrativo de Resultado', dfc:'DFC — Fluxo de Caixa', endividamento:'Endividamento', clientes:'Clientes / Base Ativa', vendedores:'Vendedores / Comissões', produtos:'Produtos / Mix', estoque:'Estoque' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
-  const c = document.getElementById('content');
-  if(page === 'vendas') { c.innerHTML = vendasHTML(); initCharts(); }
-  else if(page === 'dre') { c.innerHTML = dreHTML(); }
+  document.getElementById('topbarPeriod').textContent = periods[page] || '2026';
+  var c = document.getElementById('content');
+  if (page === 'vendas') { c.innerHTML = vendasHTML(); initVendas(); }
+  else if (page === 'dre') { c.innerHTML = dreHTML(); }
+  else if (page === 'dfc') { c.innerHTML = dfcHTML(); initDFC(); }
   else { c.innerHTML = comingSoonHTML(titles[page]); }
 }
 
-function comingSoonHTML(title){
-  return `<div class="coming-soon">
-    <div class="cs-icon">🔒</div>
-    <h2>${title}</h2>
-    <p>Esta seção está em desenvolvimento e estará disponível em breve com seus dados.</p>
-    <span class="cs-badge">Em breve</span>
-  </div>`;
+function comingSoonHTML(title) {
+  return '<div class="coming-soon"><div class="cs-icon">🔒</div><h2>' + title + '</h2><p>Esta seção está em desenvolvimento e estará disponível em breve com seus dados.</p><span class="cs-badge">Em breve</span></div>';
 }
 
-/* ─── VENDAS ─── */
-function vendasHTML(){
-  return `
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div>
-    <div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div>
-    <div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div>
-    <div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">Receita bruta por canal — mês a mês</div>
-    <div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div>
-    <div class="legend">
-      <span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span>
-      <span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span>
-      <span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span>
-    </div>
-    <div class="chart-wrap" style="height:250px"><canvas id="chartCanal" role="img" aria-label="Receita por canal"></canvas></div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">Receita por categoria — mês a mês</div>
-    <div class="chart-sub">Linhas com valor em R$ e % de participação em cada ponto</div>
-    <div class="legend">
-      <span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span>
-      <span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span>
-      <span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span>
-      <span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span>
-    </div>
-    <div class="chart-wrap" style="height:280px"><canvas id="chartCat" role="img" aria-label="Receita por categoria"></canvas></div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">Volume de unidades por canal — mês a mês</div>
-    <div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados</div>
-    <div class="legend">
-      <span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span>
-      <span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span>
-      <span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span>
-    </div>
-    <div class="chart-wrap" style="height:250px"><canvas id="chartVol" role="img" aria-label="Volume por canal"></canvas></div>
-  </div>
-  <div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>`;
+// ─── VENDAS ───
+var vendasInit = false;
+function vendasHTML() {
+  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div><div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div><div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div><div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div></div>'
+  + '<div class="chart-card"><div class="chart-title">Receita bruta por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartCanal" role="img" aria-label="Receita por canal"></canvas></div></div>'
+  + '<div class="chart-card"><div class="chart-title">Receita por categoria — mês a mês</div><div class="chart-sub">Linhas com valor em R$ e % de participação em cada ponto</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat" role="img" aria-label="Receita por categoria"></canvas></div></div>'
+  + '<div class="chart-card"><div class="chart-title">Volume de unidades por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol" role="img" aria-label="Volume por canal"></canvas></div></div>'
+  + '<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
 }
 
-/* ─── DRE ─── */
-function dreHTML(){
-  const fmtR = v => v ? 'R$ '+v.toLocaleString('pt-BR') : '—';
-  const fmtP = v => v ? v+'%' : '—';
-  const ai = '<span class="tag-ainformar">a informar</span>';
-  const rows = [
-    {label:'Receita Bruta de Vendas', jan:'308.011', fev:'289.463', mar:'469.057', type:'subtotal'},
-    {label:'(-) Devoluções e Abatimentos', jan:'(1.921)', fev:'(1.723)', mar:'(238)', type:'negative'},
-    {label:'(-) Descontos Concedidos', jan:'(1.772)', fev:'(11.720)', mar:'(12.919)', type:'negative'},
-    {label:'= Receita Líquida', jan:'304.318', fev:'276.020', mar:'455.900', type:'highlight'},
-    {label:'(-) CMV — Custo da Mercadoria Vendida', jan:'(8.000)', fev:'(8.000)', mar:'(8.000)', type:'negative'},
-    {label:'= Margem Bruta', jan:'296.318', fev:'268.020', mar:'447.900', type:'highlight'},
-    {label:'% Margem Bruta', jan:'97,4%', fev:'97,1%', mar:'98,2%', type:'positive'},
-    {label:'separator', type:'separator'},
-    {label:'Despesas Operacionais', jan:'', fev:'', mar:'', type:'total'},
-    {label:'(-) Despesas Comerciais', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
-    {label:'(-) Despesas Administrativas', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
-    {label:'(-) Despesas com Pessoal', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
-    {label:'(-) Outras Despesas Operacionais', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
-    {label:'= EBITDA', jan:'—', fev:'—', mar:'—', type:'highlight'},
-    {label:'% EBITDA', jan:'—', fev:'—', mar:'—', type:'na'},
-    {label:'separator', type:'separator'},
-    {label:'(-) Depreciação e Amortização', jan:ai, fev:ai, mar:ai, type:'na'},
-    {label:'= EBIT (Resultado Operacional)', jan:'—', fev:'—', mar:'—', type:'subtotal'},
-    {label:'separator', type:'separator'},
-    {label:'Resultado Financeiro', jan:'', fev:'', mar:'', type:'total'},
-    {label:'(+) Receitas Financeiras', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
-    {label:'(-) Despesas Financeiras', jan:ai, fev:ai, mar:ai, type:'na dre-label-indent'},
-    {label:'= EBT (Resultado antes dos Impostos)', jan:'—', fev:'—', mar:'—', type:'subtotal'},
-    {label:'(-) Impostos (IR / CSLL)', jan:ai, fev:ai, mar:ai, type:'na'},
-    {label:'= LUCRO LÍQUIDO', jan:'—', fev:'—', mar:'—', type:'highlight'},
-    {label:'% Lucro Líquido / Receita Líquida', jan:'—', fev:'—', mar:'—', type:'na'},
-  ];
-
-  let rowsHTML = rows.map(r => {
-    if(r.type === 'separator') return `<tr class="separator"><td colspan="4"></td></tr>`;
-    const classes = r.type.split(' ').map(t => t === 'dre-label-indent' ? '' : t).join(' ');
-    const labelClass = r.type.includes('dre-label-indent') ? 'dre-label-indent' : '';
-    return `<tr class="${classes}"><td class="${labelClass}">${r.label}</td><td>${r.jan||''}</td><td>${r.fev||''}</td><td>${r.mar||''}</td></tr>`;
-  }).join('');
-
-  return `
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">R$ 1,04M</div><div class="kpi-sub">Jan – Mar 2026</div></div>
-    <div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value">R$ 1,01M</div><div class="kpi-sub kpi-hi">Média 97,6%</div></div>
-    <div class="kpi"><div class="kpi-label">EBITDA</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando despesas</div></div>
-    <div class="kpi"><div class="kpi-label">Lucro Líquido</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando dados</div></div>
-  </div>
-  <div class="chart-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-      <div>
-        <div class="chart-title">DRE — Demonstrativo de Resultado do Exercício</div>
-        <div class="chart-sub">Jan – Mar 2026 · valores em R$ · linhas marcadas com <span class="tag-ainformar">a informar</span> serão preenchidas conforme dados chegam</div>
-      </div>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="dre-table">
-        <thead><tr><th style="min-width:260px">Descrição</th><th style="min-width:110px">Janeiro</th><th style="min-width:110px">Fevereiro</th><th style="min-width:110px">Março</th></tr></thead>
-        <tbody>${rowsHTML}</tbody>
-      </table>
-    </div>
-  </div>
-  <div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>`;
-}
-
-/* ─── CHARTS ─── */
-function initCharts(){
-  if(chartsInit) return;
-  chartsInit = true;
-  setTimeout(()=>{
-    const gridC='rgba(0,0,0,0.07)', tickC='#6b7a8d';
-    const months=['Janeiro','Fevereiro','Março'];
-    const receitaTotal=[308011,289463,469057];
-    const volTotal=[4424,4874,7343];
-    const canalData={salao:[193000,178000,295000],loja:[88000,72000,122000],func:[27011,39463,52057]};
-    const catData={hc:[145000,128000,210000],prof:[112000,108000,178000],col:[38000,42000,62000],qui:[13011,11463,19057]};
-    const volData={salao:[2750,2980,4620],loja:[1100,980,1780],func:[574,914,943]};
-    const fmtR=v=>'R$ '+Math.round(v/1000)+'K';
-    const fmtN=v=>v.toLocaleString('pt-BR');
-    const pct=(v,t)=>(v/t*100).toFixed(0)+'%';
-    function stackTotals(data){return data.datasets[0].data.map((_,i)=>data.datasets.reduce((s,ds)=>s+(ds.data[i]||0),0));}
-    function barPlugin(fmtIn,fmtTop){
-      return{id:'bp'+Math.random(),
-        afterDatasetsDraw(chart){
-          const{ctx,data}=chart;const tots=stackTotals(data);
-          data.datasets.forEach((ds,di)=>{
-            chart.getDatasetMeta(di).data.forEach((bar,i)=>{
-              const val=ds.data[i];if(!val)return;
-              const h=Math.abs(bar.base-bar.y);if(h<16)return;
-              const cx=bar.x,cy=(bar.y+bar.base)/2,p=pct(val,tots[i]);
-              ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';
-              if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fmtIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(p,cx,cy+7);}
-              else{ctx.font='500 10px sans-serif';ctx.fillText(p,cx,cy);}
-              ctx.restore();
-            });
-          });
-        },
-        afterDraw(chart){
-          const{ctx,data,scales:{x,y}}=chart;const tots=stackTotals(data);
-          ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';
-          tots.forEach((t,i)=>{ctx.fillText(fmtTop(t),x.getPixelForValue(i),y.getPixelForValue(t)-8);});
-          ctx.restore();
-        }
-      };
-    }
-    const CAT_COLORS=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
-    const pointPlugin={id:'pp',
-      afterDatasetsDraw(chart){
-        const{ctx,data}=chart;
-        data.datasets.forEach((ds,di)=>{
-          chart.getDatasetMeta(di).data.forEach((pt,i)=>{
-            const val=ds.data[i],p=pct(val,receitaTotal[i]),above=di<2,oy=above?-22:14;
-            ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
-            ctx.fillStyle=CAT_COLORS[di];ctx.font='500 10px sans-serif';ctx.fillText(fmtR(val),pt.x,pt.y+oy);
-            ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);
-            ctx.restore();
-          });
-        });
-      }
-    };
-    new Chart(document.getElementById('chartCanal'),{
-      type:'bar',plugins:[barPlugin(fmtR,fmtR)],
-      data:{labels:months,datasets:[
-        {label:'Salão',data:canalData.salao,backgroundColor:'#00B4D8',stack:'a',borderRadius:0},
-        {label:'Loja',data:canalData.loja,backgroundColor:'#1E2D40',stack:'a',borderRadius:0},
-        {label:'Funcionário',data:canalData.func,backgroundColor:'#5B8DB8',stack:'a',borderRadius:0}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtR(c.raw)+' ('+pct(c.raw,receitaTotal[c.dataIndex])+')'}}},
-        scales:{x:{stacked:true,ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tickC,font:{size:11},callback:fmtR},grid:{color:gridC}}}
-      }
-    });
-    new Chart(document.getElementById('chartCat'),{
-      type:'line',plugins:[pointPlugin],
-      data:{labels:months,datasets:[
-        {label:'Home Care',data:catData.hc,borderColor:'#00B4D8',backgroundColor:'rgba(0,180,216,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},
-        {label:'Profissional',data:catData.prof,borderColor:'#1E2D40',backgroundColor:'rgba(30,45,64,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},
-        {label:'Coloração',data:catData.col,borderColor:'#5B8DB8',backgroundColor:'rgba(91,141,184,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},
-        {label:'Química',data:catData.qui,borderColor:'#A8C8E0',backgroundColor:'rgba(168,200,224,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        layout:{padding:{top:36,bottom:20}},
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtR(c.raw)+' ('+pct(c.raw,receitaTotal[c.dataIndex])+')'}}},
-        scales:{x:{ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{ticks:{color:tickC,font:{size:11},callback:fmtR},grid:{color:gridC}}}
-      }
-    });
-    new Chart(document.getElementById('chartVol'),{
-      type:'bar',plugins:[barPlugin(fmtN,fmtN)],
-      data:{labels:months,datasets:[
-        {label:'Salão',data:volData.salao,backgroundColor:'#00B4D8',stack:'c',borderRadius:0},
-        {label:'Loja',data:volData.loja,backgroundColor:'#1E2D40',stack:'c',borderRadius:0},
-        {label:'Funcionário',data:volData.func,backgroundColor:'#5B8DB8',stack:'c',borderRadius:0}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtN(c.raw)+' un. ('+pct(c.raw,volTotal[c.dataIndex])+')'}}},
-        scales:{x:{stacked:true,ticks:{color:tickC,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tickC,font:{size:11},callback:v=>fmtN(v)},grid:{color:gridC}}}
-      }
-    });
+function initVendas() {
+  if (vendasInit) return;
+  vendasInit = true;
+  setTimeout(function() {
+    var gc='rgba(0,0,0,0.07)', tc='#6b7a8d', months=['Janeiro','Fevereiro','Março'];
+    var rT=[308011,289463,469057], vT=[4424,4874,7343];
+    var cD={s:[193000,178000,295000],l:[88000,72000,122000],f:[27011,39463,52057]};
+    var catD={hc:[145000,128000,210000],p:[112000,108000,178000],c:[38000,42000,62000],q:[13011,11463,19057]};
+    var vD={s:[2750,2980,4620],l:[1100,980,1780],f:[574,914,943]};
+    var fR=function(v){return 'R$ '+Math.round(v/1000)+'K';};
+    var fN=function(v){return v.toLocaleString('pt-BR');};
+    var pct=function(v,t){return (v/t*100).toFixed(0)+'%';};
+    function sTot(data){return data.datasets[0].data.map(function(_,i){return data.datasets.reduce(function(s,ds){return s+(ds.data[i]||0);},0);});}
+    function barPlugin(fIn,fTop){return{id:'bp'+Math.random(),afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data,tots=sTot(data);data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(bar,i){var val=ds.data[i];if(!val)return;var h=Math.abs(bar.base-bar.y);if(h<16)return;var cx=bar.x,cy=(bar.y+bar.base)/2,p=pct(val,tots[i]);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(p,cx,cy+7);}else{ctx.font='500 10px sans-serif';ctx.fillText(p,cx,cy);}ctx.restore();});});},afterDraw:function(chart){var ctx=chart.ctx,data=chart.data,sc=chart.scales,tots=sTot(data);ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';tots.forEach(function(t,i){ctx.fillText(fTop(t),sc.x.getPixelForValue(i),sc.y.getPixelForValue(t)-8);});ctx.restore();}};}
+    var CC=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
+    var pp={id:'pp',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i],p=pct(val,rT[i]),above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);ctx.restore();});});}};
+    new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Salão',data:cD.s,backgroundColor:'#00B4D8',stack:'a',borderRadius:0},{label:'Loja',data:cD.l,backgroundColor:'#1E2D40',stack:'a',borderRadius:0},{label:'Funcionário',data:cD.f,backgroundColor:'#5B8DB8',stack:'a',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fR(c.raw)+' ('+pct(c.raw,rT[c.dataIndex])+')';}}}},scales:{x:{stacked:true,ticks:{color:tc,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tc,font:{size:11},callback:fR},grid:{color:gc}}}}});
+    new Chart(document.getElementById('chartCat'),{type:'line',plugins:[pp],data:{labels:months,datasets:[{label:'Home Care',data:catD.hc,borderColor:'#00B4D8',backgroundColor:'rgba(0,180,216,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Profissional',data:catD.p,borderColor:'#1E2D40',backgroundColor:'rgba(30,45,64,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Coloração',data:catD.c,borderColor:'#5B8DB8',backgroundColor:'rgba(91,141,184,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Química',data:catD.q,borderColor:'#A8C8E0',backgroundColor:'rgba(168,200,224,0.08)',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fR(c.raw)+' ('+pct(c.raw,rT[c.dataIndex])+')';}}}},scales:{x:{ticks:{color:tc,font:{size:12}},grid:{display:false}},y:{ticks:{color:tc,font:{size:11},callback:fR},grid:{color:gc}}}}});
+    new Chart(document.getElementById('chartVol'),{type:'bar',plugins:[barPlugin(fN,fN)],data:{labels:months,datasets:[{label:'Salão',data:vD.s,backgroundColor:'#00B4D8',stack:'c',borderRadius:0},{label:'Loja',data:vD.l,backgroundColor:'#1E2D40',stack:'c',borderRadius:0},{label:'Funcionário',data:vD.f,backgroundColor:'#5B8DB8',stack:'c',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fN(c.raw)+' un. ('+pct(c.raw,vT[c.dataIndex])+')';}}}},scales:{x:{stacked:true,ticks:{color:tc,font:{size:12}},grid:{display:false}},y:{stacked:true,ticks:{color:tc,font:{size:11},callback:function(v){return fN(v);}},grid:{color:gc}}}}});
   }, 100);
+}
+
+// ─── DRE ───
+function dreHTML() {
+  var ai='<span class="tag-ainformar">a informar</span>';
+  var rows=[
+    {l:'Receita Bruta de Vendas',j:'308.011',f:'289.463',m:'469.057',t:'subtotal'},
+    {l:'(-) Devoluções e Abatimentos',j:'(1.921)',f:'(1.723)',m:'(238)',t:'negative'},
+    {l:'(-) Descontos Concedidos',j:'(1.772)',f:'(11.720)',m:'(12.919)',t:'negative'},
+    {l:'= Receita Líquida',j:'304.318',f:'276.020',m:'455.900',t:'highlight'},
+    {l:'(-) CMV',j:'(8.000)',f:'(8.000)',m:'(8.000)',t:'negative'},
+    {l:'= Margem Bruta',j:'296.318',f:'268.020',m:'447.900',t:'highlight'},
+    {l:'% Margem Bruta',j:'97,4%',f:'97,1%',m:'98,2%',t:'positive'},
+    {l:'separator',t:'separator'},
+    {l:'Despesas Operacionais',j:'',f:'',m:'',t:'total'},
+    {l:'(-) Despesas Comerciais',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
+    {l:'(-) Despesas Administrativas',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
+    {l:'(-) Despesas com Pessoal',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
+    {l:'(-) Outras Despesas Operacionais',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
+    {l:'= EBITDA',j:'—',f:'—',m:'—',t:'highlight'},
+    {l:'% EBITDA',j:'—',f:'—',m:'—',t:'na'},
+    {l:'separator',t:'separator'},
+    {l:'(-) Depreciação e Amortização',j:ai,f:ai,m:ai,t:'na'},
+    {l:'= EBIT (Resultado Operacional)',j:'—',f:'—',m:'—',t:'subtotal'},
+    {l:'separator',t:'separator'},
+    {l:'Resultado Financeiro',j:'',f:'',m:'',t:'total'},
+    {l:'(+) Receitas Financeiras',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
+    {l:'(-) Despesas Financeiras',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
+    {l:'= EBT (Resultado antes dos Impostos)',j:'—',f:'—',m:'—',t:'subtotal'},
+    {l:'(-) Impostos (IR / CSLL)',j:ai,f:ai,m:ai,t:'na'},
+    {l:'= LUCRO LÍQUIDO',j:'—',f:'—',m:'—',t:'highlight'},
+    {l:'% Lucro Líquido / Receita Líquida',j:'—',f:'—',m:'—',t:'na'},
+  ];
+  var rowsHTML=rows.map(function(r){
+    if(r.t==='separator') return '<tr class="separator"><td colspan="4"></td></tr>';
+    var cls=r.t.split(' ').filter(function(x){return x!=='dre-label-indent';}).join(' ');
+    var lc=r.t.includes('dre-label-indent')?'dre-label-indent':'';
+    return '<tr class="'+cls+'"><td class="'+lc+'">'+r.l+'</td><td>'+r.j+'</td><td>'+r.f+'</td><td>'+r.m+'</td></tr>';
+  }).join('');
+  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">R$ 1,04M</div><div class="kpi-sub">Jan – Mar 2026</div></div><div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value">R$ 1,01M</div><div class="kpi-sub kpi-hi">Média 97,6%</div></div><div class="kpi"><div class="kpi-label">EBITDA</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando despesas</div></div><div class="kpi"><div class="kpi-label">Lucro Líquido</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando dados</div></div></div>'
+  +'<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE — Demonstrativo de Resultado do Exercício</div><div class="chart-sub">Jan – Mar 2026 · valores em R$ · linhas marcadas com <span class="tag-ainformar">a informar</span> serão preenchidas conforme dados chegam</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:260px">Descrição</th><th style="min-width:110px">Janeiro</th><th style="min-width:110px">Fevereiro</th><th style="min-width:110px">Março</th></tr></thead><tbody>'+rowsHTML+'</tbody></table></div></div>'
+  +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
+}
+
+// ─── DFC DATA ───
+var DD = {
+  meses:['Jan/26','Fev/26','Mar/26','Abr/26'],
+  caixaInicial:[120243,99797,78168,178986],
+  recVendas:[40998,85479,267400,461715],
+  jurosMultas:[0,0,0,0],
+  outrasEntOp:[0,0,0,0],
+  pgtoTruss:[0,-9302,-227344,-380230],
+  pgtoNaoTruss:[-12697,-10162,-20273,-13179],
+  pgtoPessoal:[-4536,-4948,-5172,-2488],
+  pgtoMkt:[-20893,-58488,-12825,-21387],
+  pgtoComissoes:[0,0,-43409,-50564],
+  pgtoLogistica:[-936,-2491,-2991,-2920],
+  pgtoOcupacao:[-631,-7421,-7775,-7986],
+  pgtoGerais:[-15751,-3000,-15035,-3842],
+  pgtoTerceiros:[0,-4148,-9387,0],
+  pgtoImpostos:[-6152,-7506,-9680,-34539],
+  entInvest:[0,0,0,0],
+  saiInvest:[0,0,0,0],
+  emprestimos:[0,0,200000,183000],
+  pgtoFinanc:[-96,-707,-1882,-2879],
+  caixaOp:[-20600,-21987,-86491,-55420],
+  caixaInv:[0,0,0,0],
+  caixaFin:[-96,-707,198118,180121],
+  resultado:[-20696,-22695,111627,124701],
+  caixaFinal:[99797,78168,178986,306424]
+};
+
+// ─── DFC ───
+var dfcChartsInit = false;
+
+function dfcHTML() {
+  return '<div class="dfc-nav"><button class="dfc-nav-btn active" id="dfcBtnMensal" onclick="dfcSetView(\'mensal\',this)">Mensal</button><button class="dfc-nav-btn" id="dfcBtnAcum" onclick="dfcSetView(\'acumulado\',this)">Acumulado</button></div>'
+  +'<div id="dfc-mensal">'
+  +'<div class="dfc-kpi-grid" id="dfc-kpis"></div>'
+  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall — Composição do saldo</div><div class="dfc-chart-sub">Saldo inicial → entradas → saídas por categoria → saldo final (Jan–Abr acumulado)</div><div style="height:230px;position:relative"><canvas id="dfc-waterfall"></canvas></div></div>'
+  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e saídas mensais</div><div class="dfc-chart-sub">Barras espelhadas · linha de saldo bancário acumulado</div><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Entradas</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Saídas</span><span class="dfc-leg"><span class="dfc-leg-line" style="background:#2C6BE0"></span>Saldo bancário</span></div><div style="height:220px;position:relative"><canvas id="dfc-espelhado"></canvas></div></div>'
+  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Resultado líquido mensal</div><div class="dfc-chart-sub">Positivo em ciano · negativo em creme</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-bar"></canvas></div></div>'
+  +'<div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela"></table></div>'
+  +'</div>'
+  +'<div id="dfc-acumulado" style="display:none">'
+  +'<div class="dfc-kpi-grid">'
+  +'<div class="dfc-kpi" style="border-left-color:#00D4DA"><div class="dfc-kpi-label">Total entradas Jan–Abr</div><div class="dfc-kpi-value" style="color:#00D4DA">R$ 855K</div><div class="dfc-kpi-sub">Recebimentos realizados</div></div>'
+  +'<div class="dfc-kpi" style="border-left-color:#C8B89A"><div class="dfc-kpi-label">Total saídas Jan–Abr</div><div class="dfc-kpi-value" style="color:#C8B89A">R$ 669K</div><div class="dfc-kpi-sub">Pagamentos operacionais</div></div>'
+  +'<div class="dfc-kpi" style="border-left-color:#2C6BE0"><div class="dfc-kpi-label">Captações (financ.)</div><div class="dfc-kpi-value" style="color:#2C6BE0">R$ 383K</div><div class="dfc-kpi-sub">Empréstimos tomados</div></div>'
+  +'<div class="dfc-kpi" style="border-left-color:#00D4DA"><div class="dfc-kpi-label">Saldo final Abr/26</div><div class="dfc-kpi-value" style="color:#00D4DA">R$ 306K</div><div class="dfc-kpi-sub">Posição bancária</div></div>'
+  +'</div>'
+  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Evolução do saldo bancário</div><div class="dfc-chart-sub">Saldo ao final de cada mês</div><div style="height:220px;position:relative"><canvas id="dfc-evolucao"></canvas></div></div>'
+  +'<div class="dfc-chart-card"><div class="dfc-chart-title">Composição por atividade — acumulado</div><div class="dfc-chart-sub">Caixa Operacional · Investimento · Financiamento por mês</div><div style="height:200px;position:relative"><canvas id="dfc-composicao"></canvas></div></div>'
+  +'</div>'
+  +'<div class="confidential" style="color:#4A6580">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
+}
+
+function initDFC() {
+  setTimeout(function() {
+    renderDFCKPIs();
+    renderDFCWaterfall();
+    renderDFCEspelhado();
+    renderDFCSaldoBar();
+    renderDFCTabela();
+  }, 100);
+}
+
+function fmtDFC(v) {
+  var a=Math.abs(v);
+  if(a>=1e6) return (v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';
+  if(a>=1e3) return (v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';
+  return (v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');
+}
+
+function renderDFCKPIs() {
+  var D=DD;
+  var entTotal=D.recVendas.reduce(function(a,b){return a+b;},0)+D.emprestimos.reduce(function(a,b){return a+b;},0);
+  var saiTotal=D.meses.map(function(_,i){
+    return Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]);
+  }).reduce(function(a,b){return a+b;},0);
+  var res=D.resultado.reduce(function(a,b){return a+b;},0);
+  var kpis=[
+    {label:'Total entradas',value:entTotal,sub:'Jan–Abr 2026',color:'#00D4DA'},
+    {label:'Total saídas',value:-saiTotal,sub:'Jan–Abr 2026',color:'#C8B89A'},
+    {label:'Resultado acumulado',value:res,sub:'Variação líquida',color:'#2C6BE0'},
+    {label:'Saldo final Abr/26',value:D.caixaFinal[3],sub:'Posição bancária',color:'#00D4DA'},
+  ];
+  document.getElementById('dfc-kpis').innerHTML=kpis.map(function(k){
+    return '<div class="dfc-kpi" style="border-left-color:'+k.color+'"><div class="dfc-kpi-label">'+k.label+'</div><div class="dfc-kpi-value" style="color:'+k.color+'">'+fmtDFC(k.value)+'</div><div class="dfc-kpi-sub">'+k.sub+'</div></div>';
+  }).join('');
+}
+
+function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
+
+function renderDFCWaterfall() {
+  var D=DD;
+  var CYAN='#00D4DA',BEIGE='#C8B89A',INI='#2C6BE0',TOT='#007B80';
+  var entOp=D.recVendas.reduce(function(a,b){return a+b;},0);
+  var captacoes=D.emprestimos.reduce(function(a,b){return a+b;},0);
+  var saiF=[D.pgtoTruss,D.pgtoNaoTruss,D.pgtoPessoal,D.pgtoMkt,D.pgtoComissoes,D.pgtoLogistica,D.pgtoOcupacao,D.pgtoGerais,D.pgtoTerceiros,D.pgtoImpostos];
+  var saiOpTotal=saiF.reduce(function(tot,arr){return tot+arr.reduce(function(a,b){return a+Math.abs(b);},0);},0);
+  var pgtoFinTotal=D.pgtoFinanc.reduce(function(a,b){return a+Math.abs(b);},0);
+  var saldoIni=D.caixaInicial[0];
+  var saldoFim=D.caixaFinal[3];
+  var items=[
+    {label:'Saldo inicial',value:saldoIni,type:'ini'},
+    {label:'Rec. vendas',value:entOp,type:'pos'},
+    {label:'Captações',value:captacoes,type:'pos'},
+    {label:'Pgto. fornec.',value:-saiF[0].reduce(function(a,b){return a+Math.abs(b);},0)-saiF[1].reduce(function(a,b){return a+Math.abs(b);},0),type:'neg'},
+    {label:'Desp. operac.',value:-(saiF[2].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[3].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[4].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[5].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[6].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[7].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[8].reduce(function(a,b){return a+Math.abs(b);},0)),type:'neg'},
+    {label:'Impostos',value:-saiF[9].reduce(function(a,b){return a+Math.abs(b);},0),type:'neg'},
+    {label:'Amortizações',value:-pgtoFinTotal,type:'neg'},
+    {label:'Saldo final',value:saldoFim,type:'tot'},
+  ];
+  var starts=[],bars=[],colors=[],run=0;
+  items.forEach(function(v){
+    if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}
+    else if(v.type==='pos'){starts.push(run);bars.push(v.value);}
+    else{starts.push(run+v.value);bars.push(-v.value);}
+    if(v.type!=='tot') run+=v.value;
+    colors.push(v.type==='ini'?INI:v.type==='tot'?TOT:v.type==='pos'?CYAN:BEIGE);
+  });
+  destroyChart('dfc-waterfall');
+  new Chart(document.getElementById('dfc-waterfall'),{type:'bar',data:{labels:items.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return items[c.dataIndex].label+': '+fmtDFC(items[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:11}},stacked:true},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},stacked:true}}}});
+}
+
+function renderDFCEspelhado() {
+  var D=DD;
+  var entOp=D.meses.map(function(_,i){return D.recVendas[i]+D.emprestimos[i];});
+  var saiOp=D.meses.map(function(_,i){return Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]);});
+  destroyChart('dfc-espelhado');
+  new Chart(document.getElementById('dfc-espelhado'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Entradas',data:entOp,backgroundColor:'#00D4DA',borderRadius:3,order:2},{label:'Saídas',data:saiOp.map(function(v){return -v;}),backgroundColor:'#C8B89A',borderRadius:3,order:2},{label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',backgroundColor:'rgba(44,107,224,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}}}});
+}
+
+function renderDFCSaldoBar() {
+  var D=DD;
+  destroyChart('dfc-saldo-bar');
+  new Chart(document.getElementById('dfc-saldo-bar'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Resultado',data:D.resultado,backgroundColor:D.resultado.map(function(v){return v>=0?'#00D4DA':'#C8B89A';}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return 'Resultado: '+fmtDFC(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},border:{display:false}}}}});
+}
+
+function renderDFCTabela() {
+  var D=DD, n=D.meses.length;
+  function fv(v){return v===0?'—':fmtDFC(v);}
+  function tc(v){return v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}
+  function row(lbl,vals,cls){
+    cls=cls||'';
+    var tot=vals.reduce(function(a,b){return a+b;},0);
+    return '<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return '<td'+tc(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+tc(tot)+'>'+fv(tot)+'</td></tr>';
+  }
+  var h='<thead><tr><th style="min-width:240px;text-align:left">Linha</th>'+D.meses.map(function(m){return '<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';
+  h+=row('Saldo inicial',D.caixaInicial,'dfc-ini');
+  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';
+  h+=row('Recebimentos de vendas (ST)',D.recVendas);
+  h+=row('Juros e multas inadimplência',D.jurosMultas);
+  h+=row('Outras entradas operacionais',D.outrasEntOp);
+  h+=row('Pgto. compras Truss (SI)',D.pgtoTruss);
+  h+=row('Pgto. fornecedores não Truss',D.pgtoNaoTruss);
+  h+=row('Pgto. despesas com pessoal',D.pgtoPessoal);
+  h+=row('Pgto. despesas comerciais (Mkt)',D.pgtoMkt);
+  h+=row('Pgto. comissões',D.pgtoComissoes);
+  h+=row('Pgto. despesas logísticas',D.pgtoLogistica);
+  h+=row('Pgto. taxa de ocupação',D.pgtoOcupacao);
+  h+=row('Pgto. despesas gerais',D.pgtoGerais);
+  h+=row('Serviços de terceiros',D.pgtoTerceiros);
+  h+=row('Pgto. impostos (ICMS, PIS, COFINS...)',D.pgtoImpostos);
+  h+=row('= Caixa Operacional',D.caixaOp,'dfc-sub');
+  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';
+  h+=row('Entradas de investimento',D.entInvest);
+  h+=row('Saídas de investimento (CAPEX)',D.saiInvest);
+  h+=row('= Caixa de Investimento',D.caixaInv,'dfc-sub');
+  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';
+  h+=row('Empréstimos tomados',D.emprestimos);
+  h+=row('Pgto. financiamentos bancários',D.pgtoFinanc);
+  h+=row('= Caixa de Financiamento',D.caixaFin,'dfc-sub');
+  h+=row('= Resultado do mês',D.resultado,'dfc-tot');
+  h+=row('Saldo final (bancário)',D.caixaFinal,'dfc-ini');
+  h+='</tbody>';
+  document.getElementById('dfc-tabela').innerHTML=h;
+}
+
+function dfcSetView(v, el) {
+  document.getElementById('dfc-mensal').style.display=v==='mensal'?'':'none';
+  document.getElementById('dfc-acumulado').style.display=v==='acumulado'?'':'none';
+  document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  if(v==='acumulado') {
+    setTimeout(function(){
+      destroyChart('dfc-evolucao');
+      new Chart(document.getElementById('dfc-evolucao'),{type:'line',data:{labels:DD.meses,datasets:[{label:'Saldo bancário',data:DD.caixaFinal,borderColor:'#00D4DA',backgroundColor:'rgba(0,212,218,0.1)',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#00D4DA',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return 'Saldo: '+fmtDFC(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtDFC(v);}}}}}});
+      destroyChart('dfc-composicao');
+      new Chart(document.getElementById('dfc-composicao'),{type:'bar',data:{labels:DD.meses,datasets:[{label:'Operacional',data:DD.caixaOp,backgroundColor:'#00D4DA',borderRadius:3,stack:'a'},{label:'Investimento',data:DD.caixaInv,backgroundColor:'#5B8DB8',borderRadius:3,stack:'a'},{label:'Financiamento',data:DD.caixaFin,backgroundColor:'#2C6BE0',borderRadius:3,stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6B8BAA',font:{size:11}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA'}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtDFC(v);}}}}}});
+    },100);
+  }
 }
 </script>
 </body>
