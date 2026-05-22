@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/clientes", "destination": "/clientes.html" },
     { "source": "/wolves", "destination": "/wolves.html" },
-    { "source": "/hawks", "destination": "/hawks.html" }
+    { "source": "/hawks", "destination": "/hawks.html" },
+    { "source": "/fnyx", "destination": "/fnyx.html" }
   ]
 }
