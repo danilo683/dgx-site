@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DGX · DFC Realizado</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0F1923;color:#E2EAF4;padding:1.5rem;max-width:1400px;margin:0 auto}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.brand{font-size:12px;font-weight:700;color:#00D4DA;letter-spacing:.1em;text-transform:uppercase}
+.nav{display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px}
+.nav-btn{padding:7px 22px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#6B8BAA;border-radius:6px;transition:all .15s}
+.nav-btn.active{background:#0F1923;color:#E2EAF4;border:0.5px solid #1F3044}
+.filters{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
+.filters label{font-size:11px;color:#6B8BAA;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.filters select{font-size:13px;padding:6px 12px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;cursor:pointer}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.card{background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:1rem 1.25rem;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:#00D4DA}
+.card.neg-card::before{background:#C8B89A}
+.card-label{font-size:10px;color:#6B8BAA;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.card-value{font-size:22px;font-weight:500;color:#00D4DA}
+.card-value.beige{color:#C8B89A}
+.card-sub{font-size:10px;color:#4A6580;margin-top:4px}
+.section-label{font-size:10px;font-weight:700;color:#6B8BAA;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:0.5px;background:#1F3044}
+.chart-card{background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1.1rem}
+.chart-title{font-size:13px;font-weight:500;color:#E2EAF4;margin-bottom:3px}
+.chart-sub{font-size:10px;color:#6B8BAA;margin-bottom:14px}
+.chart-box{position:relative;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#6B8BAA}
+.legend-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.legend-line{width:16px;height:2px;flex-shrink:0}
+.dfc-wrap{background:#162230;border:0.5px solid #1F3044;border-radius:10px;overflow:auto;margin-bottom:.5rem;max-height:440px}
+.dfc-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.dfc-table thead{position:sticky;top:0;z-index:2}
+.dfc-table th{font-size:10px;font-weight:500;color:#6B8BAA;text-align:right;padding:8px 10px;background:#0F1923;border-bottom:0.5px solid #1F3044;white-space:nowrap}
+.dfc-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:#0F1923}
+.dfc-table td{padding:5px 10px;border-bottom:0.5px solid #1F3044;text-align:right;white-space:nowrap;color:#E2EAF4}
+.dfc-table td:first-child{text-align:left;color:#6B8BAA;position:sticky;left:0;background:#162230;z-index:1}
+.dfc-table tr.grp td{font-size:10px;font-weight:700;color:#007B80;background:#0F1923;text-transform:uppercase;letter-spacing:.05em;padding:10px 10px 4px}
+.dfc-table tr.grp td:first-child{background:#0F1923}
+.dfc-table tr.sub td{font-weight:600;background:#0F1923;border-top:0.5px solid #1F3044;color:#E2EAF4}
+.dfc-table tr.sub td:first-child{background:#0F1923;color:#E2EAF4}
+.dfc-table tr.tot td{font-weight:600;font-size:12px;background:#00D4DA;color:#0F1923}
+.dfc-table tr.tot td:first-child{background:#00D4DA;color:#0F1923}
+.pos-v{color:#00D4DA!important}
+.neg-v{color:#C8B89A!important}
+</style>
+</head>
+<body>
+
+<div class="nav-wrap">
+  <span class="brand">DGX · DFC Realizado</span>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showView('anual')">Anual</button>
+    <button class="nav-btn" onclick="showView('mensal')">Mensal</button>
+  </div>
+</div>
+
+<!-- ANUAL -->
+<div id="view-anual">
+  <div class="filters">
+    <label>Ano</label>
+    <select id="sel-ano" onchange="renderAnual()"><option>2024</option><option selected>2025</option></select>
+  </div>
+  <div class="cards" id="cards-anual"></div>
+
+  <div class="section-label">Bridge — Composição do saldo</div>
+  <div class="chart-card">
+    <div class="chart-title">Waterfall do fluxo de caixa</div>
+    <div class="chart-sub">Saldo inicial + entradas − saídas por categoria até o saldo final</div>
+    <div class="chart-box" style="height:220px"><canvas id="chart-bridge-anual" role="img" aria-label="Waterfall anual do DFC"></canvas></div>
+  </div>
+
+  <div class="section-label">Saldo por mês</div>
+  <div class="chart-card">
+    <div class="chart-title">Saldo líquido mensal</div>
+    <div class="chart-sub">Variação de caixa em cada mês — positivo em ciano, negativo em creme</div>
+    <div class="chart-box" style="height:150px"><canvas id="chart-saldo-anual" role="img" aria-label="Saldo líquido mensal"></canvas></div>
+  </div>
+
+  <div class="section-label">Fluxo mensal</div>
+  <div class="chart-card">
+    <div class="chart-title">Entradas e saídas mensais</div>
+    <div class="chart-sub">Barras espelhadas por mês com linha de saldo acumulado</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-sq" style="background:#00D4DA"></span>Entradas</span>
+      <span class="legend-item"><span class="legend-sq" style="background:#C8B89A"></span>Saídas</span>
+      <span class="legend-item"><span class="legend-line" style="background:#2C6BE0"></span>Saldo bancário</span>
+    </div>
+    <div class="chart-box" style="height:230px"><canvas id="chart-anual" role="img" aria-label="Entradas e saídas mensais"></canvas></div>
+  </div>
+
+  <div class="section-label">DFC detalhado</div>
+  <div class="dfc-wrap"><table class="dfc-table" id="dfc-anual"></table></div>
+</div>
+
+<!-- MENSAL -->
+<div id="view-mensal" style="display:none">
+  <div class="filters">
+    <label>Mês</label>
+    <select id="sel-mes" onchange="renderMensal()">
+      <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
+      <option value="3">Abril</option><option value="4" selected>Maio</option><option value="5">Junho</option>
+      <option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
+      <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+    </select>
+  </div>
+  <div class="cards" id="cards-mensal"></div>
+
+  <div class="section-label">Bridge — Composição do saldo do mês</div>
+  <div class="chart-card">
+    <div class="chart-title">Waterfall do mês selecionado</div>
+    <div class="chart-sub">Saldo inicial + entradas − saídas por categoria até o saldo final do mês</div>
+    <div class="chart-box" style="height:210px"><canvas id="chart-bridge-mensal" role="img" aria-label="Waterfall mensal do DFC"></canvas></div>
+  </div>
+
+  <div class="section-label">Saldo por dia</div>
+  <div class="chart-card">
+    <div class="chart-title">Saldo líquido diário</div>
+    <div class="chart-sub">Variação de caixa em cada dia útil — positivo em ciano, negativo em creme</div>
+    <div class="chart-box" style="height:150px"><canvas id="chart-saldo-mensal" role="img" aria-label="Saldo líquido diário"></canvas></div>
+  </div>
+
+  <div class="section-label">Fluxo diário</div>
+  <div class="chart-card">
+    <div class="chart-title">Entradas e saídas por dia</div>
+    <div class="chart-sub">Barras espelhadas diárias com linha de saldo acumulado no mês</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-sq" style="background:#00D4DA"></span>Entradas</span>
+      <span class="legend-item"><span class="legend-sq" style="background:#C8B89A"></span>Saídas</span>
+      <span class="legend-item"><span class="legend-line" style="background:#2C6BE0"></span>Saldo bancário</span>
+    </div>
+    <div class="chart-box" style="height:220px"><canvas id="chart-mensal" role="img" aria-label="Entradas e saídas por dia"></canvas></div>
+  </div>
+
+  <div class="section-label">DFC detalhado — por dia</div>
+  <div class="dfc-wrap"><table class="dfc-table" id="dfc-mensal"></table></div>
+</div>
+
+<script>
+const CYAN='#00D4DA',BEIGE='#C8B89A',SALDO='#2C6BE0',CYAN_TOT='#007B80',INI='#2C6BE0';
+const GC='rgba(255,255,255,0.05)',TC='#6B8BAA';
+const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const mesesF=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const SALDO_INI=50000;
+const seed=[0.72,0.65,0.81,0.68,0.77,0.60,0.74,0.83,0.69,0.78,0.64,0.80];
+
+function fmt(v){const a=Math.abs(v);return(v<0?'-':'')+'R$ '+a.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function fmtK(v){const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(1)+'M';if(a>=1e3)return(v<0?'-':'')+'R$ '+(a/1e3).toFixed(0)+'K';return fmt(v);}
+
+const dadosAnuais=meses.map((_,i)=>{
+  const base=180000+Math.sin(i*0.7)*40000,r=seed[i];
+  return{ent:{recClientes:Math.round(base*(0.62+r*0.06)),recOutros:Math.round(base*(0.08+r*0.04))},
+    sai:{pgtoFornec:Math.round(base*(0.28+r*0.06)),pgtoSalarios:Math.round(base*(0.20+r*0.02)),
+      pgtoImpostos:Math.round(base*(0.07+r*0.02)),pgtoOutros:Math.round(base*(0.05+r*0.02)),
+      capex:i%3===0?Math.round(base*0.11):0,amortizacao:Math.round(base*0.04)}};
+});
+
+function calcMes(d){
+  const entTotal=d.ent.recClientes+d.ent.recOutros;
+  const saiOp=d.sai.pgtoFornec+d.sai.pgtoSalarios+d.sai.pgtoImpostos+d.sai.pgtoOutros;
+  const saiTotal=saiOp+d.sai.capex+d.sai.amortizacao;
+  return{entTotal,saiTotal,saiOp,fcOp:entTotal-saiOp,fcInv:-d.sai.capex,fcFin:-d.sai.amortizacao,liquido:entTotal-saiTotal};
+}
+
+function gerarDias(mi){
+  const nd=new Date(2025,mi+1,0).getDate();
+  return Array.from({length:nd},(_,i)=>{
+    const util=![0,6].includes(new Date(2025,mi,i+1).getDay());
+    if(!util) return{dia:i+1,util:false,ent:0,sai:0,recClientes:0,recOutros:0,pgtoFornec:0,pgtoSalarios:0,pgtoImpostos:0,pgtoOutros:0,capex:0,amortizacao:0};
+    const base=8000+seed[(i*2)%12]*12000;
+    const rec=Math.round(base*(0.60+seed[(i*3)%12]*0.08));
+    const recO=Math.round(base*(0.06+seed[(i*4)%12]*0.04));
+    const fornec=i%5===0?Math.round(base*0.35):0;
+    const sal=i===4||i===19?Math.round(base*1.2):0;
+    const imp=i===9?Math.round(base*0.8):0;
+    const outros=Math.round(base*(0.04+seed[(i*7)%12]*0.03));
+    const amort=i===14?Math.round(base*0.5):0;
+    return{dia:i+1,util:true,recClientes:rec,recOutros:recO,pgtoFornec:fornec,pgtoSalarios:sal,
+      pgtoImpostos:imp,pgtoOutros:outros,capex:0,amortizacao:amort,ent:rec+recO,sai:fornec+sal+imp+outros+amort};
+  });
+}
+
+function destroyChart(id){const c=Chart.getChart(id);if(c)c.destroy();}
+
+function buildWaterfall(id,bData){
+  const starts=[],bars=[],colors=[];let run=0;
+  bData.forEach(v=>{
+    if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}
+    else if(v.type==='pos'){starts.push(run);bars.push(v.value);}
+    else{starts.push(run+v.value);bars.push(-v.value);}
+    if(v.type!=='tot') run+=v.value;
+    colors.push(v.type==='ini'?INI:v.type==='tot'?CYAN_TOT:v.type==='pos'?CYAN:BEIGE);
+  });
+  destroyChart(id);
+  new Chart(document.getElementById(id),{type:'bar',
+    data:{labels:bData.map(v=>v.label),datasets:[
+      {data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},
+      {data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:c=>{if(c.datasetIndex===0)return null;return`${bData[c.dataIndex].label}: ${fmtK(bData[c.dataIndex].value)}`;},
+        filter:i=>i.datasetIndex===1}}},
+      scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},stacked:true},
+        y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:v=>fmtK(v)},stacked:true}}}
+  });
+}
+
+function buildSaldoBar(id,labels,valores){
+  destroyChart(id);
+  new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets:[{label:'Saldo',data:valores,
+      backgroundColor:valores.map(v=>v>=0?CYAN:BEIGE),borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Saldo: ${fmtK(c.raw)}`}}},
+      scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},border:{display:false}},
+        y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:v=>fmtK(v)},border:{display:false}}}}
+  });
+}
+
+let cAnual=null,cMensal=null;
+
+function renderAnual(){
+  const calcs=dadosAnuais.map(calcMes);
+  const totalEnt=calcs.reduce((a,c)=>a+c.entTotal,0);
+  const totalSai=calcs.reduce((a,c)=>a+c.saiTotal,0);
+  let sf=SALDO_INI;calcs.forEach(c=>sf+=c.liquido);
+
+  document.getElementById('cards-anual').innerHTML=`
+    <div class="card"><div class="card-label">Total entradas</div><div class="card-value">${fmt(totalEnt)}</div><div class="card-sub">Acumulado no ano</div></div>
+    <div class="card neg-card"><div class="card-label">Total saídas</div><div class="card-value beige">${fmt(totalSai)}</div><div class="card-sub">Acumulado no ano</div></div>
+    <div class="card"><div class="card-label">Saldo atual de caixa</div><div class="card-value">${fmt(sf)}</div><div class="card-sub">Posição acumulada</div></div>`;
+
+  buildWaterfall('chart-bridge-anual',[
+    {label:'Saldo inicial',value:SALDO_INI,type:'ini'},
+    {label:'Rec. clientes',value:dadosAnuais.reduce((a,d)=>a+d.ent.recClientes,0),type:'pos'},
+    {label:'Outros rec.',value:dadosAnuais.reduce((a,d)=>a+d.ent.recOutros,0),type:'pos'},
+    {label:'Pgto. fornec.',value:-dadosAnuais.reduce((a,d)=>a+d.sai.pgtoFornec,0),type:'neg'},
+    {label:'Salários',value:-dadosAnuais.reduce((a,d)=>a+d.sai.pgtoSalarios,0),type:'neg'},
+    {label:'Impostos',value:-dadosAnuais.reduce((a,d)=>a+d.sai.pgtoImpostos,0),type:'neg'},
+    {label:'Outras saídas',value:-dadosAnuais.reduce((a,d)=>a+d.sai.pgtoOutros,0),type:'neg'},
+    {label:'Capex',value:-dadosAnuais.reduce((a,d)=>a+d.sai.capex,0),type:'neg'},
+    {label:'Amortização',value:-dadosAnuais.reduce((a,d)=>a+d.sai.amortizacao,0),type:'neg'},
+    {label:'Saldo final',value:sf,type:'tot'},
+  ]);
+
+  buildSaldoBar('chart-saldo-anual',meses,calcs.map(c=>c.liquido));
+
+  let acc=SALDO_INI;
+  const saldoL=calcs.map(c=>{acc+=c.liquido;return acc;});
+  if(cAnual) cAnual.destroy();
+  cAnual=new Chart(document.getElementById('chart-anual'),{
+    type:'bar',
+    data:{labels:meses,datasets:[
+      {label:'Entradas',data:calcs.map(c=>c.entTotal),backgroundColor:CYAN,borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2},
+      {label:'Saídas',data:calcs.map(c=>-c.saiTotal),backgroundColor:BEIGE,borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:3},
+      {label:'Saldo bancário',data:saldoL,type:'line',borderColor:SALDO,borderWidth:2,pointRadius:3,pointBackgroundColor:SALDO,fill:false,order:1,yAxisID:'y2'},
+    ]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      grouped:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtK(Math.abs(c.raw))}`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:TC,font:{size:12}}},
+        y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:v=>fmtK(Math.abs(v))}},
+        y2:{position:'right',grid:{display:false},ticks:{color:SALDO,font:{size:11},callback:v=>fmtK(v)}}
+      }
+    }
+  });
+
+  const rowA=(lbl,vals,cls='')=>{
+    const tot=vals.reduce((a,b)=>a+b,0);
+    const td=v=>v===0?'—':fmtK(v);
+    const tc=v=>v===0?'':v>0?' class="pos-v"':' class="neg-v"';
+    return`<tr class="${cls}"><td>${lbl}</td>${vals.map(v=>`<td${tc(v)}>${td(v)}</td>`).join('')}<td${tc(tot)}>${td(tot)}</td></tr>`;
+  };
+  let h=`<thead><tr><th style="min-width:170px;text-align:left">Linha</th>${meses.map(m=>`<th>${m}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  h+=`<tr class="grp"><td colspan="${meses.length+2}">Atividades Operacionais</td></tr>`;
+  h+=rowA('Rec. clientes',dadosAnuais.map(d=>d.ent.recClientes));
+  h+=rowA('Outros rec. operacionais',dadosAnuais.map(d=>d.ent.recOutros));
+  h+=rowA('Pgto. fornecedores',dadosAnuais.map(d=>-d.sai.pgtoFornec));
+  h+=rowA('Salários e encargos',dadosAnuais.map(d=>-d.sai.pgtoSalarios));
+  h+=rowA('Impostos e taxas',dadosAnuais.map(d=>-d.sai.pgtoImpostos));
+  h+=rowA('Outras saídas operacionais',dadosAnuais.map(d=>-d.sai.pgtoOutros));
+  h+=rowA('FC Operacional',calcs.map(c=>c.fcOp),'sub');
+  h+=`<tr class="grp"><td colspan="${meses.length+2}">Atividades de Investimento</td></tr>`;
+  h+=rowA('Capex — Imobilizado',dadosAnuais.map(d=>-d.sai.capex));
+  h+=rowA('FC Investimento',calcs.map(c=>c.fcInv),'sub');
+  h+=`<tr class="grp"><td colspan="${meses.length+2}">Atividades de Financiamento</td></tr>`;
+  h+=rowA('Amortização de dívidas',dadosAnuais.map(d=>-d.sai.amortizacao));
+  h+=rowA('FC Financiamento',calcs.map(c=>c.fcFin),'sub');
+  h+=rowA('Variação líquida de caixa',calcs.map(c=>c.liquido),'tot');
+  h+='</tbody>';
+  document.getElementById('dfc-anual').innerHTML=h;
+}
+
+function renderMensal(){
+  const mi=parseInt(document.getElementById('sel-mes').value);
+  const d=dadosAnuais[mi],c=calcMes(d);
+  let saldoIni=SALDO_INI;
+  dadosAnuais.slice(0,mi).forEach(dd=>{saldoIni+=calcMes(dd).liquido;});
+  const saldoFim=saldoIni+c.liquido;
+
+  document.getElementById('cards-mensal').innerHTML=`
+    <div class="card"><div class="card-label">Total entradas</div><div class="card-value">${fmt(c.entTotal)}</div><div class="card-sub">${mesesF[mi]}</div></div>
+    <div class="card neg-card"><div class="card-label">Total saídas</div><div class="card-value beige">${fmt(c.saiTotal)}</div><div class="card-sub">${mesesF[mi]}</div></div>
+    <div class="card"><div class="card-label">Saldo do mês</div><div class="card-value">${fmt(saldoFim)}</div><div class="card-sub">Posição ao final do mês</div></div>`;
+
+  buildWaterfall('chart-bridge-mensal',[
+    {label:'Saldo ini.',value:saldoIni,type:'ini'},
+    {label:'Rec. clientes',value:d.ent.recClientes,type:'pos'},
+    {label:'Outros rec.',value:d.ent.recOutros,type:'pos'},
+    {label:'Pgto. fornec.',value:-d.sai.pgtoFornec,type:'neg'},
+    {label:'Salários',value:-d.sai.pgtoSalarios,type:'neg'},
+    {label:'Impostos',value:-d.sai.pgtoImpostos,type:'neg'},
+    {label:'Outras saídas',value:-d.sai.pgtoOutros,type:'neg'},
+    ...(d.sai.capex?[{label:'Capex',value:-d.sai.capex,type:'neg'}]:[]),
+    {label:'Amortização',value:-d.sai.amortizacao,type:'neg'},
+    {label:'Saldo fim',value:saldoFim,type:'tot'},
+  ]);
+
+  const dias=gerarDias(mi);
+  const uteis=dias.filter(d=>d.util);
+  buildSaldoBar('chart-saldo-mensal',uteis.map(d=>d.dia.toString().padStart(2,'0')),uteis.map(d=>d.ent-d.sai));
+
+  let acc=saldoIni;
+  const saldoAcum=dias.map(d=>{acc+=d.ent-d.sai;return acc;});
+  if(cMensal) cMensal.destroy();
+  cMensal=new Chart(document.getElementById('chart-mensal'),{
+    type:'bar',
+    data:{labels:dias.map(d=>d.dia.toString().padStart(2,'0')),datasets:[
+      {label:'Entradas',data:dias.map(d=>d.ent),backgroundColor:CYAN,borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2},
+      {label:'Saídas',data:dias.map(d=>-d.sai),backgroundColor:BEIGE,borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:3},
+      {label:'Saldo bancário',data:saldoAcum,type:'line',borderColor:SALDO,borderWidth:1.5,pointRadius:0,fill:false,order:1,yAxisID:'y2'},
+    ]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      grouped:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtK(Math.abs(c.raw))}`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:TC,font:{size:10},autoSkip:true,maxTicksLimit:16}},
+        y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:v=>fmtK(Math.abs(v))}},
+        y2:{position:'right',grid:{display:false},ticks:{color:SALDO,font:{size:11},callback:v=>fmtK(v)}}
+      }
+    }
+  });
+
+  const ncols=uteis.length;
+  const rowD=(lbl,vals,cls='')=>{
+    const tot=vals.reduce((a,b)=>a+b,0);
+    const td=v=>v===0?'—':fmtK(v);
+    const tcv=v=>v===0?'':v>0?' class="pos-v"':' class="neg-v"';
+    return`<tr class="${cls}"><td>${lbl}</td>${vals.map(v=>`<td${tcv(v)}>${td(v)}</td>`).join('')}<td${tcv(tot)}>${td(tot)}</td></tr>`;
+  };
+  let h=`<thead><tr><th style="min-width:170px;text-align:left">Linha</th>${uteis.map(d=>`<th>${d.dia.toString().padStart(2,'0')}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  h+=`<tr class="grp"><td colspan="${ncols+2}">Atividades Operacionais</td></tr>`;
+  h+=rowD('Rec. clientes',uteis.map(d=>d.recClientes));
+  h+=rowD('Outros rec. operacionais',uteis.map(d=>d.recOutros));
+  h+=rowD('Pgto. fornecedores',uteis.map(d=>-d.pgtoFornec));
+  h+=rowD('Salários e encargos',uteis.map(d=>-d.pgtoSalarios));
+  h+=rowD('Impostos e taxas',uteis.map(d=>-d.pgtoImpostos));
+  h+=rowD('Outras saídas operacionais',uteis.map(d=>-d.pgtoOutros));
+  h+=rowD('FC Operacional',uteis.map(d=>(d.recClientes+d.recOutros)-(d.pgtoFornec+d.pgtoSalarios+d.pgtoImpostos+d.pgtoOutros)),'sub');
+  h+=`<tr class="grp"><td colspan="${ncols+2}">Atividades de Investimento</td></tr>`;
+  h+=rowD('Capex — Imobilizado',uteis.map(d=>-d.capex));
+  h+=rowD('FC Investimento',uteis.map(d=>-d.capex),'sub');
+  h+=`<tr class="grp"><td colspan="${ncols+2}">Atividades de Financiamento</td></tr>`;
+  h+=rowD('Amortização de dívidas',uteis.map(d=>-d.amortizacao));
+  h+=rowD('FC Financiamento',uteis.map(d=>-d.amortizacao),'sub');
+  h+=rowD('Variação líquida de caixa',uteis.map(d=>d.ent-d.sai),'tot');
+  let accT=saldoIni;
+  const sad=uteis.map(d=>{accT+=d.ent-d.sai;return accT;});
+  h+=`<tr class="sub"><td>Saldo acumulado</td>${sad.map(v=>`<td class="pos-v">${fmtK(v)}</td>`).join('')}<td class="pos-v">${fmtK(sad[sad.length-1])}</td></tr>`;
+  h+='</tbody>';
+  document.getElementById('dfc-mensal').innerHTML=h;
+}
+
+function showView(v){
+  document.getElementById('view-anual').style.display=v==='anual'?'':'none';
+  document.getElementById('view-mensal').style.display=v==='mensal'?'':'none';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===v));
+  if(v==='anual') renderAnual(); else renderMensal();
+}
+renderAnual();
+</script>
+</body>
+</html>
