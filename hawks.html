@@ -8,8 +8,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1E2D40}
-
-/* LOGIN */
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A2B3E;position:relative;overflow:hidden}
 .login-bg{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
 .login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.35);position:relative;z-index:2}
@@ -23,12 +21,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-box button:hover{background:#0099b8}
 .login-error{font-size:12px;color:#e24b4a;margin-top:8px;min-height:16px}
 .login-footer{font-size:11px;color:#aab;margin-top:1.5rem}
-
-/* APP */
 #app{display:none;height:100vh;overflow:hidden;flex-direction:row}
 .sidebar{width:230px;min-width:230px;background:#111;display:flex;flex-direction:column;height:100vh;overflow-y:auto}
 .sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08)}
-.sidebar-logo img{width:100%;max-height:70px;object-fit:contain}
 .sidebar-section{padding:1rem 0.75rem 0.5rem;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 1rem;margin:1px 0.5rem;border-radius:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.65);transition:all .15s;user-select:none}
 .nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
@@ -50,15 +45,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .logout-btn{font-size:12px;color:#6b7a8d;cursor:pointer;border:1px solid #d0d9e4;padding:5px 12px;border-radius:20px;background:#fff}
 .logout-btn:hover{color:#1E2D40;border-color:#1E2D40}
 .content{flex:1;overflow-y:auto;padding:1.5rem}
-
-/* COMING SOON */
 .coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center}
 .coming-soon .cs-icon{font-size:48px;margin-bottom:1rem;opacity:0.3}
 .coming-soon h2{font-size:20px;font-weight:500;color:#1E2D40;margin-bottom:8px}
 .coming-soon p{font-size:14px;color:#6b7a8d;max-width:320px}
 .coming-soon .cs-badge{margin-top:1.5rem;font-size:12px;padding:6px 16px;border-radius:20px;background:#e0f7fc;color:#006d8f;display:inline-block}
-
-/* KPI / CHARTS — vendas */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
 .kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #00B4D8;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
@@ -73,8 +64,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 .leg-line{width:16px;height:3px;border-radius:2px;flex-shrink:0}
 .chart-wrap{position:relative;width:100%}
-
-/* DRE */
 .dre-table{width:100%;border-collapse:collapse;font-size:13px}
 .dre-table th{text-align:left;padding:10px 12px;background:#f0f2f5;color:#6b7a8d;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
 .dre-table th:not(:first-child){text-align:right}
@@ -89,8 +78,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dre-table tr.na td:not(:first-child){color:#aab}
 .dre-label-indent{padding-left:24px !important;color:#6b7a8d}
 .tag-ainformar{font-size:10px;padding:1px 6px;border-radius:8px;background:#f0f2f5;color:#aab;margin-left:6px}
-
-/* DFC */
 .dfc-outer{background:#162230;border:0.5px solid #1F3044;border-radius:10px;overflow:auto;margin-bottom:.5rem;max-height:480px}
 .dfc-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
 .dfc-tbl thead{position:sticky;top:0;z-index:2}
@@ -107,8 +94,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-nav{display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px;width:fit-content;margin-bottom:1rem}
 .dfc-nav-btn{padding:7px 22px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#6B8BAA;border-radius:6px;transition:all .15s}
 .dfc-nav-btn.active{background:#0F1923;color:#E2EAF4;border:0.5px solid #1F3044}
-.dfc-section-label{font-size:10px;font-weight:700;color:#6B8BAA;text-transform:uppercase;letter-spacing:.08em;margin:1rem 0 0.5rem;display:flex;align-items:center;gap:10px}
-.dfc-section-label::after{content:'';flex:1;height:0.5px;background:#1F3044}
 .dfc-chart-card{background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1.1rem}
 .dfc-chart-title{font-size:13px;font-weight:500;color:#E2EAF4;margin-bottom:3px}
 .dfc-chart-sub{font-size:10px;color:#6B8BAA;margin-bottom:14px}
@@ -121,43 +106,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-leg{display:flex;align-items:center;gap:6px;font-size:11px;color:#6B8BAA}
 .dfc-leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 .dfc-leg-line{width:16px;height:2px;flex-shrink:0}
-
 .confidential{text-align:center;font-size:11px;color:#aab;margin-top:1.5rem;padding-bottom:1rem}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen">
   <svg class="login-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="30,200  0,252  60,252"  fill="#00B4D8" opacity="1"/>
-    <polygon points="30,290  0,342  60,342"  fill="#00B4D8" opacity="1"/>
-    <polygon points="30,380  0,432  60,432"  fill="#00B4D8" opacity="1"/>
-    <polygon points="88,412  74,436  102,436"  fill="#00B4D8" opacity="0.22"/>
-    <polygon points="570,322 552,353 588,353"  fill="#00B4D8" opacity="0.18"/>
-    <polygon points="626,78  616,95  636,95"   fill="#00B4D8" opacity="0.14"/>
-    <polygon points="154,464 143,483 165,483"  fill="#00B4D8" opacity="0.13"/>
-    <polygon points="546,435 531,461 561,461"  fill="#00B4D8" opacity="0.16"/>
-    <polygon points="638,412 629,428 647,428"  fill="#00B4D8" opacity="0.11"/>
-    <polygon points="36,345  24,366  48,366"   fill="#00B4D8" opacity="0.15"/>
-    <polygon points="1100,200 1086,224 1114,224" fill="#00B4D8" opacity="0.13"/>
+    <polygon points="30,200 0,252 60,252" fill="#00B4D8" opacity="1"/>
+    <polygon points="30,290 0,342 60,342" fill="#00B4D8" opacity="1"/>
+    <polygon points="30,380 0,432 60,432" fill="#00B4D8" opacity="1"/>
+    <polygon points="88,412 74,436 102,436" fill="#00B4D8" opacity="0.22"/>
+    <polygon points="570,322 552,353 588,353" fill="#00B4D8" opacity="0.18"/>
+    <polygon points="626,78 616,95 636,95" fill="#00B4D8" opacity="0.14"/>
     <polygon points="1280,350 1264,378 1296,378" fill="#00B4D8" opacity="0.15"/>
     <polygon points="1350,500 1336,524 1364,524" fill="#00B4D8" opacity="0.12"/>
-    <polygon points="1200,650 1186,674 1214,674" fill="#00B4D8" opacity="0.10"/>
-    <polygon points="900,750  886,774  914,774"  fill="#00B4D8" opacity="0.11"/>
-    <polygon points="400,600  386,624  414,624"  fill="#00B4D8" opacity="0.12"/>
-    <polygon points="700,120  686,144  714,144"  fill="#00B4D8" opacity="0.10"/>
     <rect x="360" y="894" width="720" height="4" fill="#00B4D8"/>
   </svg>
   <div style="position:absolute;top:1.5rem;right:1.5rem;z-index:3">
-    <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-dgx" alt="DGX Consulting" style="height:52px;object-fit:contain"
-      onerror="this.outerHTML='<svg width=115 height=54 viewBox=\'0 0 115 54\' xmlns=\'http://www.w3.org/2000/svg\'><text x=0 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>D</text><text x=32 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>G</text><polygon points=\'46,15 46,33 62,24\' fill=\'#00B4D8\'/><text x=65 y=38 font-family=\'Arial Black,sans-serif\' font-weight=900 font-size=38 fill=\'#fff\'>X</text><text x=2 y=52 font-family=\'Arial,sans-serif\' font-size=10 fill=\'#fff\' letter-spacing=2>CONSULTING</text></svg>'"/>
+    <svg width="115" height="54" viewBox="0 0 115 54" xmlns="http://www.w3.org/2000/svg">
+      <text x="0" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff">D</text>
+      <text x="32" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff">G</text>
+      <polygon points="46,15 46,33 62,24" fill="#00B4D8"/>
+      <text x="65" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff">X</text>
+      <text x="2" y="52" font-family="Arial,sans-serif" font-size="10" fill="#fff" letter-spacing="2">CONSULTING</text>
+    </svg>
   </div>
   <div class="login-box">
     <div class="login-hawks-logo">
-      <img src="https://raw.githubusercontent.com/danilo683/hawks-dashboard/main/logo-hawks.png" alt="Hawks Beauty"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
-      <div class="login-hawks-fallback">Hawks<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div>
+      <div class="login-hawks-fallback" style="display:block">Hawks<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div>
     </div>
     <div class="login-title">Acesse seu dashboard</div>
     <input type="password" id="pwdInput" placeholder="Senha de acesso"/>
@@ -167,7 +144,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="sidebar">
     <div class="sidebar-logo">
@@ -178,7 +154,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="sidebar-section">Principal</div>
     <div class="nav-item active" id="nav-vendas" onclick="setPage('vendas',this)"><span class="nav-icon">📊</span>Vendas</div>
-    <div class="nav-item" id="nav-margem" onclick="setPage('margem',this)"><span class="nav-icon">💹</span>Margem<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item" id="nav-margem" onclick="setPage('margem',this)"><span class="nav-icon">💹</span>Margem</div>
     <div class="sidebar-section">Financeiro</div>
     <div class="nav-item" id="nav-dre" onclick="setPage('dre',this)"><span class="nav-icon">📋</span>DRE</div>
     <div class="nav-item" id="nav-dfc" onclick="setPage('dfc',this)"><span class="nav-icon">💰</span>DFC</div>
@@ -237,12 +213,13 @@ function doLogout() {
   document.getElementById('pwdInput').value = '';
   document.getElementById('loginError').textContent = '';
   vendasInit = false;
+  margemInit = false;
   dfcChartsInit = false;
 }
 
 // ─── NAVEGAÇÃO ───
 var currentPage = '';
-var periods = { vendas:'Jan – Mar 2026', dre:'Jan – Mar 2026', dfc:'Jan – Abr 2026', margem:'—' };
+var periods = { vendas:'Jan – Mar 2026', dre:'Jan – Mar 2026', dfc:'Jan – Abr 2026', margem:'Jan – Abr 2026' };
 
 function setPage(page, el) {
   document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
@@ -252,13 +229,14 @@ function setPage(page, el) {
 
 function renderPage(page) {
   currentPage = page;
-  var titles = { vendas:'Vendas', margem:'Margem / Rentabilidade', dre:'DRE — Demonstrativo de Resultado', dfc:'DFC — Fluxo de Caixa', endividamento:'Endividamento', clientes:'Clientes / Base Ativa', vendedores:'Vendedores / Comissões', produtos:'Produtos / Mix', estoque:'Estoque' };
+  var titles = { vendas:'Vendas', margem:'Margem / Rentabilidade', dre:'DRE — Demonstrativo de Resultado', dfc:'DFC — Fluxo de Caixa' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarPeriod').textContent = periods[page] || '2026';
   var c = document.getElementById('content');
   if (page === 'vendas') { c.innerHTML = vendasHTML(); initVendas(); }
   else if (page === 'dre') { c.innerHTML = dreHTML(); }
   else if (page === 'dfc') { c.innerHTML = dfcHTML(); initDFC(); }
+  else if (page === 'margem') { c.innerHTML = margemHTML(); initMargem(); }
   else { c.innerHTML = comingSoonHTML(titles[page]); }
 }
 
@@ -270,9 +248,9 @@ function comingSoonHTML(title) {
 var vendasInit = false;
 function vendasHTML() {
   return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div><div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div><div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div><div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div></div>'
-  + '<div class="chart-card"><div class="chart-title">Receita bruta por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartCanal" role="img" aria-label="Receita por canal"></canvas></div></div>'
-  + '<div class="chart-card"><div class="chart-title">Receita por categoria — mês a mês</div><div class="chart-sub">Linhas com valor em R$ e % de participação em cada ponto</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat" role="img" aria-label="Receita por categoria"></canvas></div></div>'
-  + '<div class="chart-card"><div class="chart-title">Volume de unidades por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol" role="img" aria-label="Volume por canal"></canvas></div></div>'
+  + '<div class="chart-card"><div class="chart-title">Receita bruta por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em R$ · valor e % de cada canal anotados internamente</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartCanal"></canvas></div></div>'
+  + '<div class="chart-card"><div class="chart-title">Receita por categoria — mês a mês</div><div class="chart-sub">Linhas com valor em R$ e % de participação em cada ponto</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div></div>'
+  + '<div class="chart-card"><div class="chart-title">Volume de unidades por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em unidades · total e % por canal anotados</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol"></canvas></div></div>'
   + '<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
 }
 
@@ -302,13 +280,14 @@ function initVendas() {
 function dreHTML() {
   var ai='<span class="tag-ainformar">a informar</span>';
   var rows=[
-    {l:'Receita Bruta de Vendas',j:'308.011',f:'289.463',m:'469.057',t:'subtotal'},
-    {l:'(-) Devoluções e Abatimentos',j:'(1.921)',f:'(1.723)',m:'(238)',t:'negative'},
-    {l:'(-) Descontos Concedidos',j:'(1.772)',f:'(11.720)',m:'(12.919)',t:'negative'},
-    {l:'= Receita Líquida',j:'304.318',f:'276.020',m:'455.900',t:'highlight'},
-    {l:'(-) CMV',j:'(8.000)',f:'(8.000)',m:'(8.000)',t:'negative'},
-    {l:'= Margem Bruta',j:'296.318',f:'268.020',m:'447.900',t:'highlight'},
-    {l:'% Margem Bruta',j:'97,4%',f:'97,1%',m:'98,2%',t:'positive'},
+    {l:'Receita Bruta de Vendas',j:'294.517',f:'306.236',m:'459.386',t:'subtotal'},
+    {l:'(-) Descontos e Abatimentos',j:'(1.567)',f:'(11.465)',m:'(12.374)',t:'negative'},
+    {l:'(-) Trocas e Devoluções',j:'—',f:'—',m:'—',t:'na'},
+    {l:'(-) Impostos sobre Vendas',j:'—',f:'—',m:'—',t:'na'},
+    {l:'= Receita Líquida',j:'292.949',f:'294.771',m:'447.012',t:'highlight'},
+    {l:'(-) CMV — Custo Mercadoria',j:'(8.000)',f:'(8.000)',m:'(8.000)',t:'negative'},
+    {l:'= Margem Bruta',j:'284.949',f:'286.771',m:'439.012',t:'highlight'},
+    {l:'% Margem Bruta',j:'97,3%',f:'97,3%',m:'98,2%',t:'positive'},
     {l:'separator',t:'separator'},
     {l:'Despesas Operacionais',j:'',f:'',m:'',t:'total'},
     {l:'(-) Despesas Comerciais',j:ai,f:ai,m:ai,t:'na dre-label-indent'},
@@ -330,14 +309,192 @@ function dreHTML() {
     {l:'% Lucro Líquido / Receita Líquida',j:'—',f:'—',m:'—',t:'na'},
   ];
   var rowsHTML=rows.map(function(r){
-    if(r.t==='separator') return '<tr class="separator"><td colspan="4"></td></tr>';
+    if(r.t==='separator') return '<tr class="separator"><td colspan="5"></td></tr>';
     var cls=r.t.split(' ').filter(function(x){return x!=='dre-label-indent';}).join(' ');
     var lc=r.t.includes('dre-label-indent')?'dre-label-indent':'';
-    return '<tr class="'+cls+'"><td class="'+lc+'">'+r.l+'</td><td>'+r.j+'</td><td>'+r.f+'</td><td>'+r.m+'</td></tr>';
+    return '<tr class="'+cls+'"><td class="'+lc+'">'+r.l+'</td><td>'+r.j+'</td><td>'+r.f+'</td><td>'+r.m+'</td><td style="color:#aab;font-style:italic">—</td></tr>';
   }).join('');
-  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">R$ 1,04M</div><div class="kpi-sub">Jan – Mar 2026</div></div><div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value">R$ 1,01M</div><div class="kpi-sub kpi-hi">Média 97,6%</div></div><div class="kpi"><div class="kpi-label">EBITDA</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando despesas</div></div><div class="kpi"><div class="kpi-label">Lucro Líquido</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando dados</div></div></div>'
-  +'<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE — Demonstrativo de Resultado do Exercício</div><div class="chart-sub">Jan – Mar 2026 · valores em R$ · linhas marcadas com <span class="tag-ainformar">a informar</span> serão preenchidas conforme dados chegam</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:260px">Descrição</th><th style="min-width:110px">Janeiro</th><th style="min-width:110px">Fevereiro</th><th style="min-width:110px">Março</th></tr></thead><tbody>'+rowsHTML+'</tbody></table></div></div>'
+  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">R$ 1,03M</div><div class="kpi-sub">Jan – Mar 2026</div></div><div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value">R$ 1,01M</div><div class="kpi-sub kpi-hi">Média 97,6%</div></div><div class="kpi"><div class="kpi-label">EBITDA</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando despesas</div></div><div class="kpi"><div class="kpi-label">Lucro Líquido</div><div class="kpi-value" style="font-size:17px;color:#aab">—</div><div class="kpi-sub">Aguardando dados</div></div></div>'
+  +'<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE — Demonstrativo de Resultado do Exercício</div><div class="chart-sub">Jan – Mar 2026 · valores em R$ · linhas marcadas com <span class="tag-ainformar">a informar</span> serão preenchidas conforme dados chegam</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:280px">Descrição</th><th style="min-width:110px">Janeiro</th><th style="min-width:110px">Fevereiro</th><th style="min-width:110px">Março</th><th style="min-width:90px">Abril</th></tr></thead><tbody>'+rowsHTML+'</tbody></table></div></div>'
   +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
+}
+
+// ─── MARGEM ───
+var margemInit = false;
+
+// Dados da planilha
+var MG = {
+  meses: ['Jan/26','Fev/26','Mar/26','Abr/26'],
+  receitaBruta:  [294517, 306236, 459386, 426205],
+  descontos:     [1567,   11465,  12374,  12388],
+  receitaLiq:    [292949, 294771, 447012, 413818],
+  cmv:           [8000,   8000,   8000,   8000],
+  margemBruta:   [284949, 286771, 439012, 405818],
+  // % CMV / Receita Líquida
+  pctCMV: function() {
+    return this.receitaLiq.map(function(rl, i) {
+      return parseFloat((MG.cmv[i] / rl * 100).toFixed(1));
+    });
+  },
+  // % Margem Bruta / Receita Líquida
+  pctMargem: function() {
+    return this.receitaLiq.map(function(rl, i) {
+      return parseFloat(((rl - MG.cmv[i]) / rl * 100).toFixed(1));
+    });
+  }
+};
+
+function margemHTML() {
+  var pctM = MG.pctMargem();
+  var avgM = (pctM.reduce(function(a,b){return a+b;},0)/pctM.length).toFixed(1);
+  var totalRL = MG.receitaLiq.reduce(function(a,b){return a+b;},0);
+  var totalMB = MG.margemBruta.reduce(function(a,b){return a+b;},0);
+  var totalCMV = MG.cmv.reduce(function(a,b){return a+b;},0);
+  var fR = function(v){return 'R$ '+(v>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};
+
+  return '<div class="kpi-grid">'
+    +'<div class="kpi"><div class="kpi-label">Receita Líquida acum.</div><div class="kpi-value">'+fR(totalRL)+'</div><div class="kpi-sub">Jan – Abr 2026</div></div>'
+    +'<div class="kpi"><div class="kpi-label">CMV acumulado</div><div class="kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="kpi-sub">Custo Mercadoria Vendida</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="kpi-sub">Receita Líq. − CMV</div></div>'
+    +'<div class="kpi"><div class="kpi-label">% Margem Bruta média</div><div class="kpi-value kpi-hi">'+avgM+'%</div><div class="kpi-sub">Média Jan – Abr</div></div>'
+    +'</div>'
+    +'<div class="chart-card">'
+    +'<div class="chart-title">Receita Líquida × CMV — mês a mês</div>'
+    +'<div class="chart-sub">Barras: Receita Líquida (escuro) e CMV (azul claro) em R$ · Linha verde: % Margem Bruta sobre Receita Líquida</div>'
+    +'<div class="legend">'
+    +'<span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita Líquida</span>'
+    +'<span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span>'
+    +'<span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span>'
+    +'</div>'
+    +'<div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div>'
+    +'</div>'
+    +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
+}
+
+function initMargem() {
+  if (margemInit) return;
+  margemInit = true;
+  setTimeout(function() {
+    var tc = '#6b7a8d';
+    var gc = 'rgba(0,0,0,0.07)';
+    var pctM = MG.pctMargem();
+    var fR = function(v) { return 'R$ ' + Math.round(v/1000) + 'K'; };
+
+    // Plugin para anotar % acima de cada barra da ReceIta Líquida
+    var annotPlugin = {
+      id: 'annotMargem',
+      afterDatasetsDraw: function(chart) {
+        var ctx = chart.ctx;
+        // Anota % da margem acima das barras de Receita Líquida (dataset 0)
+        chart.getDatasetMeta(0).data.forEach(function(bar, i) {
+          var pct = pctM[i].toFixed(1) + '%';
+          ctx.save();
+          ctx.font = '600 11px sans-serif';
+          ctx.fillStyle = '#2ECC71';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(pct, bar.x, bar.y - 4);
+          ctx.restore();
+        });
+      }
+    };
+
+    var ctx = document.getElementById('chartMargem');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+      type: 'bar',
+      plugins: [annotPlugin],
+      data: {
+        labels: MG.meses,
+        datasets: [
+          {
+            label: 'Receita Líquida',
+            data: MG.receitaLiq,
+            backgroundColor: '#1E2D40',
+            borderRadius: 4,
+            borderSkipped: false,
+            order: 2,
+            barPercentage: 0.55,
+            categoryPercentage: 0.7
+          },
+          {
+            label: 'CMV',
+            data: MG.cmv,
+            backgroundColor: '#00B4D8',
+            borderRadius: 4,
+            borderSkipped: false,
+            order: 2,
+            barPercentage: 0.55,
+            categoryPercentage: 0.7
+          },
+          {
+            label: '% Margem Bruta',
+            data: pctM,
+            type: 'line',
+            borderColor: '#2ECC71',
+            backgroundColor: 'rgba(46,204,113,0.08)',
+            borderWidth: 2.5,
+            pointRadius: 6,
+            pointBackgroundColor: '#2ECC71',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            order: 1,
+            yAxisID: 'y2'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 28, bottom: 8 } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(c) {
+                if (c.dataset.yAxisID === 'y2') {
+                  return ' % Margem Bruta: ' + c.raw + '%';
+                }
+                return ' ' + c.dataset.label + ': ' + fR(c.raw);
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: tc, font: { size: 12 } }
+          },
+          y: {
+            position: 'left',
+            grid: { color: gc },
+            ticks: {
+              color: tc,
+              font: { size: 11 },
+              callback: function(v) { return fR(v); }
+            },
+            title: { display: true, text: 'R$', color: tc, font: { size: 10 } }
+          },
+          y2: {
+            position: 'right',
+            min: 90,
+            max: 100,
+            grid: { display: false },
+            ticks: {
+              color: '#2ECC71',
+              font: { size: 11 },
+              callback: function(v) { return v + '%'; }
+            },
+            title: { display: true, text: '% Margem', color: '#2ECC71', font: { size: 10 } }
+          }
+        }
+      }
+    });
+  }, 100);
 }
 
 // ─── DFC DATA ───
@@ -433,20 +590,19 @@ function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
 function renderDFCWaterfall() {
   var D=DD;
   var CYAN='#00D4DA',BEIGE='#C8B89A',INI='#2C6BE0',TOT='#007B80';
-  var entOp=D.recVendas.reduce(function(a,b){return a+b;},0);
-  var captacoes=D.emprestimos.reduce(function(a,b){return a+b;},0);
   var saiF=[D.pgtoTruss,D.pgtoNaoTruss,D.pgtoPessoal,D.pgtoMkt,D.pgtoComissoes,D.pgtoLogistica,D.pgtoOcupacao,D.pgtoGerais,D.pgtoTerceiros,D.pgtoImpostos];
-  var saiOpTotal=saiF.reduce(function(tot,arr){return tot+arr.reduce(function(a,b){return a+Math.abs(b);},0);},0);
   var pgtoFinTotal=D.pgtoFinanc.reduce(function(a,b){return a+Math.abs(b);},0);
   var saldoIni=D.caixaInicial[0];
   var saldoFim=D.caixaFinal[3];
+  var entOp=D.recVendas.reduce(function(a,b){return a+b;},0);
+  var captacoes=D.emprestimos.reduce(function(a,b){return a+b;},0);
   var items=[
     {label:'Saldo inicial',value:saldoIni,type:'ini'},
     {label:'Rec. vendas',value:entOp,type:'pos'},
     {label:'Captações',value:captacoes,type:'pos'},
-    {label:'Pgto. fornec.',value:-saiF[0].reduce(function(a,b){return a+Math.abs(b);},0)-saiF[1].reduce(function(a,b){return a+Math.abs(b);},0),type:'neg'},
+    {label:'Pgto. fornec.',value:-(saiF[0].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[1].reduce(function(a,b){return a+Math.abs(b);},0)),type:'neg'},
     {label:'Desp. operac.',value:-(saiF[2].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[3].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[4].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[5].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[6].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[7].reduce(function(a,b){return a+Math.abs(b);},0)+saiF[8].reduce(function(a,b){return a+Math.abs(b);},0)),type:'neg'},
-    {label:'Impostos',value:-saiF[9].reduce(function(a,b){return a+Math.abs(b);},0),type:'neg'},
+    {label:'Impostos',value:-(saiF[9].reduce(function(a,b){return a+Math.abs(b);},0)),type:'neg'},
     {label:'Amortizações',value:-pgtoFinTotal,type:'neg'},
     {label:'Saldo final',value:saldoFim,type:'tot'},
   ];
@@ -467,24 +623,7 @@ function renderDFCEspelhado() {
   var ent=D.meses.map(function(_,i){return D.recVendas[i]+D.emprestimos[i];});
   var sai=D.meses.map(function(_,i){return -(Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]));});
   destroyChart('dfc-espelhado');
-  new Chart(document.getElementById('dfc-espelhado'),{
-    type:'bar',
-    data:{labels:D.meses,datasets:[
-      {label:'Entradas',data:ent,backgroundColor:'#00D4DA',borderRadius:{topLeft:3,topRight:3,bottomLeft:0,bottomRight:0},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},
-      {label:'Saídas',data:sai,backgroundColor:'#C8B89A',borderRadius:{topLeft:0,topRight:0,bottomLeft:3,bottomRight:3},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},
-      {label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',borderWidth:2,pointRadius:5,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}
-    ]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},
-      scales:{
-        x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},
-        y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},
-        y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}
-      }
-    }
-  });
+  new Chart(document.getElementById('dfc-espelhado'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Entradas',data:ent,backgroundColor:'#00D4DA',borderRadius:{topLeft:3,topRight:3},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},{label:'Saídas',data:sai,backgroundColor:'#C8B89A',borderRadius:{bottomLeft:3,bottomRight:3},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},{label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',borderWidth:2,pointRadius:5,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtDFC(c.raw);}}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}}}});
 }
 
 function renderDFCSaldoBar() {
