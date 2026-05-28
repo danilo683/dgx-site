@@ -255,6 +255,22 @@ function playerCell(nome) {
   </div>`;
 }
 
+function tryLoadPhotos() {
+  document.querySelectorAll('.player-avatar-placeholder').forEach(el => {
+    const slug = el.id.replace('av-', '');
+    const img = new Image();
+    img.onload = function() {
+      el.innerHTML = '';
+      el.style.cssText = 'width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(232,123,30,.4);background:none';
+      const imgEl = document.createElement('img');
+      imgEl.src = 'foto-' + slug + '.png';
+      imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      el.appendChild(imgEl);
+    };
+    img.src = 'foto-' + slug + '.png';
+  });
+}
+
 // ====== CALENDÁRIO ======
 // Planilha: A(vazio), B=Data, C=Local, D=Mandante, E=Gols1, F=X, G=Gols2, H=Adversário, I=Realizado, J=Cartel, N=Obs
 // CSV idx:  0=A,      1=B,    2=C,     3=D,        4=E,     5=F, 6=G,     7=H,          8=I,         9=J,      13=N
@@ -374,6 +390,7 @@ async function loadArtilharia() {
     });
     document.getElementById('loading-artilharia').style.display='none';
     document.getElementById('content-artilharia').style.display='block';
+    tryLoadPhotos();
   } catch(e){document.getElementById('loading-artilharia').innerHTML='<p style="color:var(--gray)">Erro ao carregar.</p>';}
 }
 
@@ -401,6 +418,7 @@ async function loadAssistencias() {
     });
     document.getElementById('loading-assistencias').style.display='none';
     document.getElementById('content-assistencias').style.display='block';
+    tryLoadPhotos();
   } catch(e){document.getElementById('loading-assistencias').innerHTML='<p style="color:var(--gray)">Erro ao carregar.</p>';}
 }
 
@@ -431,6 +449,7 @@ async function loadFrequencia() {
     });
     document.getElementById('loading-frequencia').style.display='none';
     document.getElementById('content-frequencia').style.display='block';
+    tryLoadPhotos();
   } catch(e){document.getElementById('loading-frequencia').innerHTML='<p style="color:var(--gray)">Erro ao carregar.</p>';}
 }
 
