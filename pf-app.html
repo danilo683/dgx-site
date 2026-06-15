@@ -426,6 +426,42 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .diag-view-a{font-size:.83rem;color:var(--white);line-height:1.6}
 
 /* ════════ INÍCIO ════════ */
+.jornada-card{
+  background:var(--navy2);border:1px solid var(--border);
+  padding:1.6rem 1.8rem;margin-bottom:1.5rem;
+}
+.jornada-titulo{
+  font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);font-weight:700;margin-bottom:1.3rem;
+}
+.jornada-wrap{display:flex;align-items:flex-start;overflow-x:auto;padding-bottom:.2rem}
+.jornada-step{
+  display:flex;flex-direction:column;align-items:center;flex-shrink:0;
+  width:108px;position:relative;cursor:default;
+}
+.jornada-step.clicavel{cursor:pointer}
+.jornada-circle{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:700;border:2px solid var(--border2);color:var(--gray2);
+  background:var(--navy3);margin-bottom:.55rem;transition:all .25s;flex-shrink:0;
+}
+.jornada-label{
+  font-size:.66rem;text-align:center;color:var(--gray2);letter-spacing:.03em;
+  line-height:1.4;padding:0 .2rem;transition:color .25s;
+}
+.jornada-line{flex:1;height:2px;background:var(--border2);margin-top:17px;min-width:14px;transition:background .25s}
+
+.jornada-step[data-status="done"] .jornada-circle{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.jornada-step[data-status="done"] .jornada-label{color:var(--white)}
+.jornada-step[data-status="done"] ~ .jornada-line{}
+.jornada-line.done{background:var(--gold)}
+
+.jornada-step[data-status="current"] .jornada-circle{border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 4px rgba(0,182,233,0.12)}
+.jornada-step[data-status="current"] .jornada-label{color:var(--gold);font-weight:600}
+
+.jornada-step.clicavel:hover .jornada-circle{border-color:var(--gold);color:var(--gold)}
+.jornada-step.clicavel:hover .jornada-label{color:var(--white)}
+
 .inicio-quote-card{
   background:linear-gradient(135deg, var(--navy2) 0%, var(--navy3) 100%);
   border:1px solid var(--border);border-left:3px solid var(--gold);
@@ -673,6 +709,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
         Diagnóstico
       </button>
+      <button class="menu-item" onclick="irPara('raiox', this)">
+        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></span>
+        Raio X
+      </button>
 
       <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">Financeiro</div>
@@ -689,10 +729,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
         Dívidas
         <span class="menu-badge-soon">em breve</span>
-      </button>
-      <button class="menu-item" onclick="irPara('raiox', this)">
-        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></span>
-        Raio X
       </button>
 
       <div class="sidebar-divider"></div>
@@ -748,6 +784,11 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <div class="tela-header">
           <h2 id="painel-saudacao">Olá!</h2>
           <p id="painel-data" style="font-size:.8rem;color:var(--gray)"></p>
+        </div>
+
+        <div class="jornada-card">
+          <div class="jornada-titulo">Sua jornada</div>
+          <div class="jornada-wrap" id="jornada-wrap"></div>
         </div>
 
         <div class="inicio-quote-card">
@@ -1505,6 +1546,12 @@ async function salvarTrocaSenha(){
   const { error } = await sb.auth.updateUser({ password: s1 });
   if(error){ errEl.textContent='Erro: '+error.message; errEl.style.display='block'; return; }
 
+  if(usuarioAtual && !usuarioAtual.senhaAlterada){
+    usuarioAtual.senhaAlterada = true;
+    sb.from('profiles').update({ senha_alterada:true }).eq('id', usuarioAtual.id).then(()=>{});
+    if(document.getElementById('jornada-wrap')) inicioRenderJornada();
+  }
+
   okEl.style.display='block';
   setTimeout(()=>fecharTrocarSenha(), 1500);
 }
@@ -1529,9 +1576,15 @@ async function mostrarPainel(user){
   document.getElementById('site-pf').style.display='none';
   document.getElementById('painel').style.display='block';
 
-  const { data: profile } = await sb.from('profiles').select('nome, is_admin, foto_url').eq('id', user.id).maybeSingle();
+  const { data: profile } = await sb.from('profiles').select('nome, is_admin, foto_url, senha_alterada').eq('id', user.id).maybeSingle();
   const nome = (profile && profile.nome) ? profile.nome : user.email.split('@')[0];
-  usuarioAtual = { id: user.id, email: user.email, nome, isAdmin: !!(profile && profile.is_admin) };
+  usuarioAtual = {
+    id: user.id, email: user.email, nome,
+    isAdmin: !!(profile && profile.is_admin),
+    senhaAlterada: !!(profile && profile.senha_alterada),
+    diagPreenchido: false,
+    raioxPreenchido: false,
+  };
 
   const h=new Date().getHours();
   const saud=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
@@ -1558,6 +1611,8 @@ async function mostrarPainel(user){
     rxCarregarDados(),
     diagCarregarSalvo()
   ]);
+
+  inicioRenderJornada();
 }
 
 async function sair(){
@@ -1580,7 +1635,7 @@ function irPara(tela, btn){
   document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tela-'+tela).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(tela==='inicio') inicioSortearFrase();
+  if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); }
 }
 
 // ══════════════════════════════════════════════
@@ -1607,6 +1662,53 @@ function inicioSortearFrase(){
   const f = frasesCache[Math.floor(Math.random()*frasesCache.length)];
   document.getElementById('inicio-quote-text').textContent = f.texto;
   document.getElementById('inicio-quote-autor').textContent = f.autor ? '— '+f.autor : '';
+}
+
+// Navega para uma tela do menu lateral (encontra e ativa o botão correspondente)
+function irParaMenu(tela){
+  const btn = document.querySelector(`.menu-item[onclick^="irPara('${tela}'"]`);
+  irPara(tela, btn);
+}
+
+// ── Jornada do cliente (linha do tempo na página Início) ──
+function inicioRenderJornada(){
+  const passos = [
+    { id:'login', label:'Primeiro login', done:true },
+    { id:'senha', label:'Alterar senha', done:!!usuarioAtual.senhaAlterada, acao:()=>abrirTrocarSenha() },
+    { id:'diagnostico', label:'Diagnóstico', done:!!usuarioAtual.diagPreenchido, acao:()=>irParaMenu('diagnostico') },
+    { id:'raiox', label:'Raio X', done:!!usuarioAtual.raioxPreenchido, acao:()=>irParaMenu('raiox') },
+    { id:'orcamento', label:'Orçamento', done:false, future:true },
+  ];
+
+  let atualDefinido = false;
+  passos.forEach(p=>{
+    if(p.future){ p.status='pending'; return; }
+    if(p.done){ p.status='done'; }
+    else if(!atualDefinido){ p.status='current'; atualDefinido=true; }
+    else { p.status='pending'; }
+  });
+
+  const wrap = document.getElementById('jornada-wrap');
+  wrap.innerHTML = passos.map((p,i)=>{
+    const clicavel = p.acao && p.status!=='done' ? 'clicavel' : (p.acao ? 'clicavel' : '');
+    const icone = p.status==='done'
+      ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+      : (i+1);
+    const linha = i < passos.length-1
+      ? `<div class="jornada-line${p.status==='done' ? ' done':''}"></div>`
+      : '';
+    return `<div class="jornada-step ${clicavel}" data-status="${p.status}" ${p.acao ? `onclick="inicioJornadaClick(${i})"`:''}>
+      <div class="jornada-circle">${icone}</div>
+      <div class="jornada-label">${p.label}</div>
+    </div>${linha}`;
+  }).join('');
+
+  window.__jornadaPassos = passos;
+}
+
+function inicioJornadaClick(i){
+  const p = window.__jornadaPassos && window.__jornadaPassos[i];
+  if(p && p.acao) p.acao();
 }
 
 async function carregarExtrato(){
@@ -1702,6 +1804,13 @@ async function rxCarregarDados(){
     dividas: (data && data.dividas) || [],
     cartao: (data && data.cartao) || []
   };
+
+  usuarioAtual.raioxPreenchido = !!(data && (
+    (data.despesas && Object.keys(data.despesas).length) ||
+    (data.receitas && data.receitas.length) ||
+    (data.dividas && data.dividas.length) ||
+    (data.cartao && data.cartao.length)
+  ));
 
   rxRenderDespesas();
   rxRenderReceitas();
@@ -2035,6 +2144,11 @@ function rxSalvar(secao){
     if(error){ alert('Erro ao salvar: '+error.message); return; }
     msg.style.display='block';
     setTimeout(()=>msg.style.display='none',2500);
+    if(!usuarioAtual.raioxPreenchido){
+      const dados = rxDados[secao];
+      const temDados = Array.isArray(dados) ? dados.length>0 : Object.keys(dados||{}).length>0;
+      if(temDados) usuarioAtual.raioxPreenchido = true;
+    }
   });
 }
 
@@ -2121,6 +2235,8 @@ async function diagSalvar(){
 
   if(error){ alert('Erro ao salvar diagnóstico: '+error.message); return; }
 
+  usuarioAtual.diagPreenchido = true;
+
   const msg = document.getElementById('diag-saved-msg');
   msg.style.display='block';
   setTimeout(()=>{ msg.style.display='none'; diagMostrarView({...dados, savedAt: agora.toLocaleString('pt-BR')}); }, 1200);
@@ -2198,6 +2314,8 @@ async function diagCarregarSalvo(){
 
   if(error){ console.error(error); return; }
   if(!data || !data.respostas || !Object.keys(data.respostas).length) return;
+
+  usuarioAtual.diagPreenchido = true;
 
   const d = data.respostas;
   // Preencher campos
