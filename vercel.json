@@ -3,6 +3,8 @@
     { "source": "/clientes", "destination": "/clientes.html" },
     { "source": "/wolves", "destination": "/wolves.html" },
     { "source": "/hawks", "destination": "/hawks.html" },
-    { "source": "/fnyx", "destination": "/fnyx.html" }
+    { "source": "/fnyx", "destination": "/fnyx.html" },
+    { "source": "/pf", "destination": "/pf.html" },
+    { "source": "/pf/app", "destination": "/pf-app.html" }
   ]
 }
