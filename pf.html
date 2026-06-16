@@ -1362,6 +1362,21 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <div class="tela" id="tela-admin-clientes">
         <div class="tela-header"><h2>Clientes</h2><p>Visão administrativa — dados de todos os clientes cadastrados</p></div>
 
+        <!-- Formulário novo cliente -->
+        <div class="admin-frase-form" id="admin-novo-cliente-form">
+          <div class="admin-frase-form-title">Novo cliente</div>
+          <div class="admin-frase-grid">
+            <div class="diag-field"><label class="diag-label">Nome completo</label><input class="diag-input" type="text" id="novo-cliente-nome" placeholder="Ex: João Silva"></div>
+            <div class="diag-field"><label class="diag-label">E-mail <em>*</em></label><input class="diag-input" type="email" id="novo-cliente-email" placeholder="cliente@email.com"></div>
+            <div class="diag-field"><label class="diag-label">Senha temporária <em>*</em></label><input class="diag-input" type="text" id="novo-cliente-senha" placeholder="Mínimo 6 caracteres"></div>
+          </div>
+          <div class="diag-save-area">
+            <button class="btn-diag-save" onclick="adminCriarCliente()">Criar cliente</button>
+            <span class="diag-saved-msg" id="novo-cliente-msg">✓ Cliente criado!</span>
+            <span class="login-error" id="novo-cliente-erro" style="display:none;position:static;margin-top:0"></span>
+          </div>
+        </div>
+
         <!-- Lista -->
         <div id="admin-lista-view">
           <div class="admin-lista">
@@ -2527,6 +2542,50 @@ async function perfilSalvar(){
 // ADMIN
 // ══════════════════════════════════════════════
 let adminClientesCache = [];
+
+async function adminCriarCliente(){
+  const nome  = document.getElementById('novo-cliente-nome').value.trim();
+  const email = document.getElementById('novo-cliente-email').value.trim().toLowerCase();
+  const senha = document.getElementById('novo-cliente-senha').value;
+  const errEl = document.getElementById('novo-cliente-erro');
+  const okEl  = document.getElementById('novo-cliente-msg');
+  errEl.style.display='none'; okEl.style.display='none';
+
+  if(!email){ errEl.textContent='Informe o e-mail.'; errEl.style.display='block'; return; }
+  if(senha.length < 6){ errEl.textContent='A senha precisa ter pelo menos 6 caracteres.'; errEl.style.display='block'; return; }
+
+  const btn = document.querySelector('#admin-novo-cliente-form .btn-diag-save');
+  const original = btn.textContent;
+  btn.textContent='Criando...'; btn.disabled=true;
+
+  const { data: { session } } = await sb.auth.getSession();
+
+  const res = await fetch('https://mixsehmmwvrbpndavvhp.supabase.co/functions/v1/criar-usuario', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw'
+    },
+    body: JSON.stringify({ email, password: senha, nome: nome || null })
+  });
+
+  const json = await res.json();
+  btn.textContent=original; btn.disabled=false;
+
+  if(!json.ok){
+    errEl.textContent = 'Erro: ' + (json.erro || 'Não foi possível criar o usuário.');
+    errEl.style.display='block';
+    return;
+  }
+
+  okEl.style.display='block';
+  setTimeout(()=>okEl.style.display='none', 3000);
+  document.getElementById('novo-cliente-nome').value='';
+  document.getElementById('novo-cliente-email').value='';
+  document.getElementById('novo-cliente-senha').value='';
+  adminCarregarClientes();
+}
 
 async function adminCarregarClientes(){
   const rows = document.getElementById('admin-lista-rows');
