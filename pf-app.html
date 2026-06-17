@@ -501,30 +501,18 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
 /* Gráfico */
 .sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.5rem 1.5rem 1.2rem}
-.sim-chart-wrap-inner{display:flex;gap:0;align-items:stretch}
-.sim-eixo-y{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:2.4rem;min-width:68px;flex-shrink:0}
-.sim-eixo-y.right{margin-left:.6rem;margin-right:0}
-.sim-eixo-y.right .sim-eixo-y-val{text-align:left}
-.sim-eixo-y-val{font-size:.6rem;color:var(--gray2);text-align:right;line-height:1}
-.sim-chart-area{flex:1;min-width:0;margin:0 .6rem;overflow:visible}
-.sim-chart{display:flex;align-items:flex-end;height:300px;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem 0 0;position:relative;overflow:hidden}
-.sim-chart-gridlines{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 0 0}
-.sim-gridline{width:100%;border-top:1px dashed rgba(255,255,255,0.05)}
-.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;height:100%;position:relative;flex-shrink:0;overflow:visible}
-.sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;position:relative;cursor:pointer;overflow:visible}
-.sim-bar-stack:hover .sim-bar-tooltip{visibility:visible;opacity:1}
-.sim-bar-principal{background:rgba(0,182,233,0.28);width:100%}
-.sim-bar-juros{background:var(--gold);width:100%;border-radius:1px 1px 0 0}
-.sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.4rem;text-align:center;white-space:nowrap;overflow:hidden}
-.sim-bar-tooltip{
-  visibility:hidden;opacity:0;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  background:var(--navy3);border:1px solid var(--border);padding:.5rem .8rem;
-  white-space:nowrap;z-index:100;font-size:.68rem;color:var(--white);line-height:1.7;
-  pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity .15s;
+.sim-svg-wrap{width:100%;overflow:visible}
+.sim-svg-wrap svg{width:100%;display:block;overflow:visible}
+/* Tooltip global */
+#sim-tooltip{
+  display:none;position:fixed;
+  background:#162844;border:1px solid rgba(0,182,233,0.35);padding:.55rem .9rem;
+  white-space:nowrap;z-index:9999;font-size:.68rem;color:#fff;line-height:1.75;
+  pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.55);font-family:'Inter',sans-serif;
+  border-radius:1px;
 }
-.sim-bar-val{font-size:.52rem;color:var(--gold);text-align:center;margin-top:.1rem;white-space:nowrap;font-weight:600}
-.sim-legenda{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;padding-top:.8rem;border-top:1px solid var(--border2)}
-.sim-leg-item{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--gray)}
+.sim-legenda{display:flex;gap:1.5rem;margin-top:1.2rem;flex-wrap:wrap;padding-top:.9rem;border-top:1px solid rgba(0,182,233,0.1)}
+.sim-leg-item{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:#9aa0a8}
 .sim-leg-cor{width:12px;height:12px;border-radius:2px;flex-shrink:0}
 
 .sim-btn{
@@ -1393,11 +1381,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             </div>
 
             <div class="sim-chart-wrap">
-              <div class="sim-chart-wrap-inner" id="sim-chart-wrap-inner">
-                <div class="sim-eixo-y" id="sim-eixo-y-left"></div>
-                <div class="sim-chart-area" id="sim-chart-area"></div>
-                <div class="sim-eixo-y right" id="sim-eixo-y-right"></div>
-              </div>
+              <div class="sim-svg-wrap" id="sim-svg-wrap"></div>
               <div class="sim-legenda">
                 <div class="sim-leg-item"><div class="sim-leg-cor" style="background:rgba(0,182,233,0.28)"></div>Principal investido</div>
                 <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--gold)"></div>Juros acumulados</div>
@@ -3239,102 +3223,126 @@ function simFmtAbrev(v){
   if(v>=1e9) return 'R$'+(v/1e9).toFixed(1)+'B';
   if(v>=1e6) return 'R$'+(v/1e6).toFixed(1)+'M';
   if(v>=1e3) return 'R$'+(v/1e3).toFixed(0)+'k';
-  return 'R$'+v.toFixed(0);
+  return 'R$'+Math.round(v);
+}
+
+// Tooltip global
+(function(){
+  const tt = document.createElement('div');
+  tt.id='sim-tooltip';
+  document.body.appendChild(tt);
+})();
+
+function simShowTooltip(e, html){
+  const tt=document.getElementById('sim-tooltip');
+  tt.innerHTML=html; tt.style.display='block';
+  simMoveTooltip(e);
+}
+function simMoveTooltip(e){
+  const tt=document.getElementById('sim-tooltip');
+  const tw=tt.offsetWidth, th=tt.offsetHeight;
+  tt.style.left=Math.max(8,Math.min(e.clientX-tw/2, window.innerWidth-tw-8))+'px';
+  tt.style.top=(e.clientY-th-12)+'px';
+}
+function simHideTooltip(){
+  document.getElementById('sim-tooltip').style.display='none';
 }
 
 function simRenderGrafico(){
-  if(!simDados || !simDados.length) return;
+  if(!simDados||!simDados.length) return;
 
-  // Montar pontos conforme modo
   let pontos;
-  if(simModo === 'mes'){
-    const total = simDados.length;
-    const maxP = 60;
-    if(total <= maxP){
-      pontos = simDados.map(d=>({label:d.mes+'m', principal:d.principal, juros:d.juros, total:d.total}));
+  if(simModo==='mes'){
+    const total=simDados.length, maxP=60;
+    if(total<=maxP){
+      pontos=simDados.map(d=>({label:d.mes+'m',principal:d.principal,juros:d.juros,total:d.total}));
     } else {
-      pontos = [];
-      const step = Math.ceil(total/maxP);
-      for(let i=step-1; i<total; i+=step){
-        const d=simDados[i];
-        pontos.push({label:d.mes+'m', principal:d.principal, juros:d.juros, total:d.total});
-      }
+      pontos=[];
+      const step=Math.ceil(total/maxP);
+      for(let i=step-1;i<total;i+=step){ const d=simDados[i]; pontos.push({label:d.mes+'m',principal:d.principal,juros:d.juros,total:d.total}); }
       const last=simDados[total-1];
-      if(pontos[pontos.length-1].label !== last.mes+'m')
-        pontos.push({label:last.mes+'m', principal:last.principal, juros:last.juros, total:last.total});
+      if(pontos[pontos.length-1].label!==last.mes+'m') pontos.push({label:last.mes+'m',principal:last.principal,juros:last.juros,total:last.total});
     }
   } else {
     const anos={};
-    simDados.forEach(d=>{ const a=Math.ceil(d.mes/12); anos[a]=d; });
-    pontos=Object.entries(anos).map(([a,d])=>({label:a+'a', principal:d.principal, juros:d.juros, total:d.total}));
+    simDados.forEach(d=>{const a=Math.ceil(d.mes/12);anos[a]=d;});
+    pontos=Object.entries(anos).map(([a,d])=>({label:a+'a',principal:d.principal,juros:d.juros,total:d.total}));
   }
 
-  document.getElementById('sim-resultados').style.display = 'block';
+  document.getElementById('sim-resultados').style.display='block';
 
-  window.__simPontos = pontos;
-  // Aguarda o browser renderizar o contêiner para medir a largura corretamente
-  requestAnimationFrame(()=>requestAnimationFrame(()=>simDesenharBarras(pontos)));
-}
+  const n=pontos.length;
+  const maxVal=Math.max(...pontos.map(p=>p.total));
+  const N=5; // gridlines
 
-function simDesenharBarras(pontos){
-  if(!pontos || !pontos.length) return;
+  // Dimensões SVG (viewBox — não dependem da tela)
+  const W=1000, H=340;
+  const PAD={top:16,right:72,bottom:36,left:72};
+  const cW=W-PAD.left-PAD.right; // largura da área de barras
+  const cH=H-PAD.top-PAD.bottom; // altura da área de barras
+  const gap=n>40?1:n>20?2:3;
+  const barW=Math.max(2,(cW-(n-1)*gap)/n);
+  const mostrarVal=barW>=22&&n<=24;
 
-  const maxVal = Math.max(...pontos.map(p=>p.total));
-  const CHART_H = 300;
-  const N_LINHAS = 5;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+    style="font-family:Inter,sans-serif" onmouseleave="simHideTooltip()">`;
 
-  // Eixo Y
-  const eixoVals = [];
-  for(let i=N_LINHAS; i>=0; i--) eixoVals.push(maxVal*(i/N_LINHAS));
-  const eixoHTML = eixoVals.map(v=>`<div class="sim-eixo-y-val">${simFmtAbrev(v)}</div>`).join('');
-  document.getElementById('sim-eixo-y-left').innerHTML = eixoHTML;
-  document.getElementById('sim-eixo-y-right').innerHTML = eixoHTML;
+  // Gridlines e eixos Y
+  for(let i=0;i<=N;i++){
+    const y=PAD.top+cH*(1-i/N);
+    const val=maxVal*(i/N);
+    const label=simFmtAbrev(val);
+    // linha
+    svg+=`<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}"
+      stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="${i===0?'none':'4,4'}"/>`;
+    // label esquerda
+    svg+=`<text x="${PAD.left-6}" y="${y+4}" text-anchor="end"
+      fill="#6b7280" font-size="10">${label}</text>`;
+    // label direita
+    svg+=`<text x="${W-PAD.right+6}" y="${y+4}" text-anchor="start"
+      fill="#6b7280" font-size="10">${label}</text>`;
+  }
 
-  // Medir largura disponível — usa clientWidth que é mais confiável
-  const wrap = document.getElementById('sim-chart-wrap-inner');
-  const eixoL = document.getElementById('sim-eixo-y-left');
-  const eixoR = document.getElementById('sim-eixo-y-right');
-  const wrapW = wrap.clientWidth || wrap.getBoundingClientRect().width;
-  const eixoLW = eixoL.offsetWidth || eixoL.getBoundingClientRect().width;
-  const eixoRW = eixoR.offsetWidth || eixoR.getBoundingClientRect().width;
-  // 24 = margens (.sim-chart-area margin 0 .6rem x2 = ~19px) + 5px segurança
-  const areaW = Math.max(100, wrapW - eixoLW - eixoRW - 24);
+  // Bordas da área
+  svg+=`<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+cH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  svg+=`<line x1="${W-PAD.right}" y1="${PAD.top}" x2="${W-PAD.right}" y2="${PAD.top+cH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  svg+=`<line x1="${PAD.left}" y1="${PAD.top+cH}" x2="${W-PAD.right}" y2="${PAD.top+cH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
 
-  const n = pontos.length;
-  const gap = Math.max(1, Math.min(3, Math.floor(areaW / n / 8)));
-  // -2 extra de segurança para nunca ultrapassar
-  const barW = Math.max(3, Math.floor((areaW - gap*(n-1) - 2) / n));
-  const mostrarVal = barW >= 30 && n <= 24;
+  // Barras
+  pontos.forEach((p,i)=>{
+    const x=PAD.left+i*(barW+gap);
+    const hP=Math.round((p.principal/maxVal)*cH);
+    const hJ=Math.max(0,Math.round((p.juros/maxVal)*cH));
+    const yP=PAD.top+cH-hP;
+    const yJ=yP-hJ;
 
-  const barras = pontos.map(p=>{
-    const hPrincipal = Math.round((p.principal/maxVal)*CHART_H);
-    const hJuros = Math.max(0, Math.round((p.juros/maxVal)*CHART_H));
-    const valStr = mostrarVal ? `<div class="sim-bar-val">${simFmtAbrev(p.total)}</div>` : '';
-    return `<div class="sim-bar-wrap" style="width:${barW}px;flex:none">
-      <div class="sim-bar-stack" style="height:${CHART_H}px">
-        <div style="flex:1"></div>
-        <div class="sim-bar-tooltip">
-          <strong>${p.label}</strong><br>
-          Total: ${simFmt(p.total)}<br>
-          Principal: ${simFmt(p.principal)}<br>
-          Juros: ${simFmt(p.juros)}
-        </div>
-        <div class="sim-bar-juros" style="height:${hJuros}px"></div>
-        <div class="sim-bar-principal" style="height:${hPrincipal}px"></div>
-      </div>
-      ${valStr}
-      <div class="sim-bar-label" style="width:${barW}px">${p.label}</div>
-    </div>`;
-  }).join('');
+    const ttHtml=`<strong>${p.label}</strong><br>Total: ${simFmt(p.total)}<br>Principal: ${simFmt(p.principal)}<br>Juros: ${simFmt(p.juros)}`;
+    const ttEsc=ttHtml.replace(/"/g,'&quot;');
 
-  const gridHTML = Array(N_LINHAS+1).fill('<div class="sim-gridline"></div>').join('');
-  const totalW = n*barW + (n-1)*gap;
+    // barra principal
+    svg+=`<rect x="${x.toFixed(1)}" y="${yP}" width="${barW.toFixed(1)}" height="${hP}"
+      fill="rgba(0,182,233,0.28)"
+      onmouseenter="simShowTooltip(event,&quot;${ttEsc}&quot;)"
+      onmousemove="simMoveTooltip(event)" onmouseleave="simHideTooltip()" style="cursor:pointer"/>`;
+    // barra juros
+    if(hJ>0){
+      svg+=`<rect x="${x.toFixed(1)}" y="${yJ}" width="${barW.toFixed(1)}" height="${hJ}"
+        fill="#00B6E9"
+        onmouseenter="simShowTooltip(event,&quot;${ttEsc}&quot;)"
+        onmousemove="simMoveTooltip(event)" onmouseleave="simHideTooltip()" style="cursor:pointer"/>`;
+    }
+    // valor no topo
+    if(mostrarVal){
+      svg+=`<text x="${(x+barW/2).toFixed(1)}" y="${(yJ-3)}" text-anchor="middle"
+        fill="#00B6E9" font-size="9" font-weight="600">${simFmtAbrev(p.total)}</text>`;
+    }
+    // label eixo X
+    svg+=`<text x="${(x+barW/2).toFixed(1)}" y="${PAD.top+cH+14}" text-anchor="middle"
+      fill="#6b7280" font-size="9">${p.label}</text>`;
+  });
 
-  document.getElementById('sim-chart-area').innerHTML = `
-    <div class="sim-chart" style="gap:${gap}px;width:${totalW}px;min-width:unset;overflow:visible">
-      <div class="sim-chart-gridlines">${gridHTML}</div>
-      ${barras}
-    </div>`;
+  svg+='</svg>';
+  document.getElementById('sim-svg-wrap').innerHTML=svg;
 }
 
 </script>
