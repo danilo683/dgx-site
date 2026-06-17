@@ -17,8 +17,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh}
-
-/* ════════════════════════ TELA DE ENTRADA ════════════════════════ */
 #site-pf{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 #site-pf::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%, rgba(0,182,233,0.07) 0%, transparent 70%);pointer-events:none;}
 .entrada-wrap{text-align:center;position:relative}
@@ -471,57 +469,73 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 }
 
 /* ════════ SIMULADOR ════════ */
-.sim-wrap{max-width:900px}
-.sim-campos{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:1.5rem}
-@media(max-width:700px){.sim-campos{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.sim-campos{grid-template-columns:1fr}}
-.sim-field{background:var(--navy2);border:1px solid var(--border);padding:1.1rem 1.3rem;position:relative;transition:border-color .2s}
+.sim-wrap{width:100%}
+.sim-campos{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:900px){.sim-campos{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.sim-campos{grid-template-columns:1fr 1fr}}
+.sim-field{background:var(--navy2);border:1px solid var(--border);padding:1.3rem 1.5rem;position:relative;transition:border-color .2s}
 .sim-field.calculado{border-color:var(--gold);background:rgba(0,182,233,0.04)}
-.sim-field-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);font-weight:600;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between}
+.sim-field-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);font-weight:600;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between}
 .sim-field-badge{font-size:.58rem;background:rgba(0,182,233,0.12);color:var(--gold);padding:.15rem .5rem;border-radius:10px;letter-spacing:.08em}
 .sim-field input{
   width:100%;background:none;border:none;outline:none;
-  font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:600;color:var(--white);
-  padding:0;
+  font-family:'Inter',sans-serif;font-size:1.25rem;font-weight:700;color:var(--white);padding:0;
 }
 .sim-field input.resultado{color:var(--gold)}
-.sim-field input::placeholder{color:var(--gray2);font-weight:400;font-size:.95rem}
-.sim-field-hint{font-size:.65rem;color:var(--gray2);margin-top:.4rem}
+.sim-field input::placeholder{color:var(--gray2);font-weight:400;font-size:1rem}
+.sim-field-hint{font-size:.65rem;color:var(--gray2);margin-top:.5rem;line-height:1.5}
 
 .sim-toggle-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.8rem}
-.sim-toggle-hint{font-size:.72rem;color:var(--gray2)}
+.sim-toggle-hint{font-size:.8rem;color:var(--gray);font-weight:500}
 .sim-toggle{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:2px;overflow:hidden}
-.sim-toggle button{background:none;border:none;padding:.45rem 1.1rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.sim-toggle button{background:none;border:none;padding:.5rem 1.3rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
 .sim-toggle button.active{background:var(--gold);color:var(--navy)}
 
 .sim-resultado-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
 @media(max-width:700px){.sim-resultado-cards{grid-template-columns:1fr 1fr}}
-.sim-res-card{background:var(--navy2);border:1px solid var(--border);padding:1rem 1.2rem}
-.sim-res-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem}
-.sim-res-val{font-size:1.05rem;font-weight:700;color:var(--white)}
+.sim-res-card{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.5rem}
+.sim-res-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem}
+.sim-res-val{font-size:1.15rem;font-weight:700;color:var(--white)}
 .sim-res-val.gold{color:var(--gold)}
 .sim-res-val.green{color:var(--green)}
 
-.sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.4rem;overflow-x:auto}
-.sim-chart{display:flex;align-items:flex-end;gap:3px;min-height:200px;height:220px;padding-bottom:.5rem;min-width:0}
-.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;min-width:18px;height:100%}
-.sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;flex:1;width:100%;position:relative}
-.sim-bar-principal{background:rgba(0,182,233,0.25);width:100%;transition:height .3s}
-.sim-bar-juros{background:var(--gold);width:100%;transition:height .3s}
-.sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.3rem;text-align:center;white-space:nowrap}
+/* Gráfico */
+.sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.5rem 1.5rem 1rem;overflow-x:auto}
+.sim-chart-inner{display:flex;gap:0}
+.sim-eixo-y{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:2rem;min-width:70px;margin-right:.8rem;flex-shrink:0}
+.sim-eixo-y-val{font-size:.6rem;color:var(--gray2);text-align:right;line-height:1}
+.sim-chart-area{display:flex;flex-direction:column;flex:1;min-width:0}
+.sim-chart{display:flex;align-items:flex-end;gap:4px;height:320px;border-left:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem .5rem 0;position:relative}
+.sim-chart-gridlines{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 0 0}
+.sim-gridline{width:100%;border-top:1px dashed rgba(255,255,255,0.04)}
+.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;min-width:20px;height:100%;position:relative}
+.sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;position:relative;cursor:pointer}
+.sim-bar-stack:hover .sim-bar-tooltip{display:block}
+.sim-bar-principal{background:rgba(0,182,233,0.28);width:100%;transition:height .4s}
+.sim-bar-juros{background:var(--gold);width:100%;transition:height .4s;border-radius:1px 1px 0 0}
+.sim-bar-label{font-size:.52rem;color:var(--gray2);margin-top:.4rem;text-align:center;white-space:nowrap}
+.sim-bar-tooltip{
+  display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--navy4);border:1px solid var(--border);padding:.5rem .8rem;
+  white-space:nowrap;z-index:10;font-size:.68rem;color:var(--white);line-height:1.7;
+  pointer-events:none;
+}
+.sim-bar-val{font-size:.55rem;color:var(--gold);text-align:center;margin-top:.15rem;white-space:nowrap;font-weight:600}
+.sim-eixo-x{display:flex;gap:4px;margin-left:0;padding:0 .5rem}
+
 .sim-legenda{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap}
-.sim-leg-item{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--gray)}
+.sim-leg-item{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--gray)}
 .sim-leg-cor{width:12px;height:12px;border-radius:2px;flex-shrink:0}
 
 .sim-btn{
   display:inline-flex;align-items:center;gap:.6rem;
   background:var(--gold);color:var(--navy);border:none;
-  padding:.7rem 1.8rem;font-family:'Inter',sans-serif;font-size:.78rem;
+  padding:.8rem 2rem;font-family:'Inter',sans-serif;font-size:.8rem;
   font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
   border-radius:2px;transition:opacity .2s;margin-bottom:1.5rem;
 }
 .sim-btn:hover{opacity:.85}
-.sim-erro{font-size:.78rem;color:var(--red);margin-bottom:1rem;display:none}
+.sim-erro{font-size:.78rem;color:var(--red);margin-bottom:1rem;display:none;background:rgba(224,82,82,0.08);padding:.7rem 1rem;border-left:3px solid var(--red)}
 
 /* ════════ PERFIL ════════ */
 .perfil-wrap{max-width:680px}
@@ -643,14 +657,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 <body>
 
 <!-- ══════════ SITE PÚBLICO ══════════ -->
-<!-- ══════════ TELA DE ENTRADA ══════════ -->
-<div id="site-pf">
-  <div class="entrada-wrap">
-    <div class="entrada-logo">DGX</div>
-    <div class="entrada-tag">Consultoria · Pessoa Física</div>
-    <button class="btn-login" style="margin-top:2rem" onclick="abrirLogin()">Entrar</button>
-  </div>
-</div>
+<div id="site-pf"><div class="entrada-wrap"><div class="entrada-logo">DGX</div><div class="entrada-tag">Consultoria · Pessoa Física</div><button class="btn-login" style="margin-top:2rem" onclick="abrirLogin()">Entrar</button></div></div>
 
 
 <!-- ══════════ MODAL LOGIN ══════════ -->
@@ -1380,10 +1387,14 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             </div>
 
             <div class="sim-chart-wrap">
-              <div class="sim-chart" id="sim-chart"></div>
+              <div class="sim-chart-inner">
+                <div class="sim-eixo-y" id="sim-eixo-y"></div>
+                <div class="sim-chart-area" id="sim-chart-area"></div>
+              </div>
               <div class="sim-legenda">
-                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:rgba(0,182,233,0.25)"></div>Principal investido</div>
+                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:rgba(0,182,233,0.28)"></div>Principal investido</div>
                 <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--gold)"></div>Juros acumulados</div>
+                <div class="sim-leg-item" style="color:var(--gray2);font-size:.68rem">Passe o mouse sobre as barras para ver os valores detalhados</div>
               </div>
             </div>
           </div>
@@ -3204,55 +3215,84 @@ function simToggle(modo){
   simRenderGrafico();
 }
 
+function simFmtAbrev(v){
+  if(v>=1e9) return 'R$'+(v/1e9).toFixed(1)+'B';
+  if(v>=1e6) return 'R$'+(v/1e6).toFixed(1)+'M';
+  if(v>=1e3) return 'R$'+(v/1e3).toFixed(0)+'k';
+  return 'R$'+v.toFixed(0);
+}
+
 function simRenderGrafico(){
   if(!simDados || !simDados.length) return;
 
+  // Montar pontos
   let pontos;
   if(simModo === 'mes'){
-    // Limita a 60 pontos por legibilidade — agrupa se necessário
     const total = simDados.length;
-    if(total <= 60){
-      pontos = simDados.map(d=>({label: d.mes+'m', principal: d.principal, juros: d.juros, total: d.total}));
+    const maxPontos = 48;
+    if(total <= maxPontos){
+      pontos = simDados.map(d=>({label:d.mes+'m', principal:d.principal, juros:d.juros, total:d.total}));
     } else {
-      // Amostra ~40 pontos
       pontos = [];
-      const step = Math.ceil(total/40);
-      for(let i = step-1; i < total; i += step){
-        const d = simDados[i];
-        pontos.push({label: d.mes+'m', principal: d.principal, juros: d.juros, total: d.total});
+      const step = Math.ceil(total/maxPontos);
+      for(let i=step-1; i<total; i+=step){
+        const d=simDados[i];
+        pontos.push({label:d.mes+'m', principal:d.principal, juros:d.juros, total:d.total});
       }
-      if(simDados[total-1] !== simDados[pontos[pontos.length-1]?.mes-1]){
-        const d = simDados[total-1];
-        pontos.push({label: d.mes+'m', principal: d.principal, juros: d.juros, total: d.total});
-      }
+      const last=simDados[total-1];
+      if(pontos[pontos.length-1].label !== last.mes+'m')
+        pontos.push({label:last.mes+'m', principal:last.principal, juros:last.juros, total:last.total});
     }
   } else {
-    // Agrupa por ano (pega o último mês de cada ano)
-    const anos = {};
-    simDados.forEach(d=>{
-      const ano = Math.ceil(d.mes/12);
-      anos[ano] = d;
-    });
-    pontos = Object.entries(anos).map(([ano, d])=>({
-      label: ano+'a', principal: d.principal, juros: d.juros, total: d.total
-    }));
+    const anos={};
+    simDados.forEach(d=>{ const a=Math.ceil(d.mes/12); anos[a]=d; });
+    pontos=Object.entries(anos).map(([a,d])=>({label:a+'a', principal:d.principal, juros:d.juros, total:d.total}));
   }
 
   const maxVal = Math.max(...pontos.map(p=>p.total));
-  const chart = document.getElementById('sim-chart');
-  chart.innerHTML = pontos.map(p=>{
-    const hTotal = 200;
-    const hPrincipal = Math.round((p.principal / maxVal) * hTotal);
-    const hJuros = Math.round((p.juros / maxVal) * hTotal);
+  const CHART_H = 300;
+  const N_LINHAS = 5;
+
+  // Eixo Y
+  const eixoVals = [];
+  for(let i=N_LINHAS; i>=0; i--) eixoVals.push(maxVal*(i/N_LINHAS));
+  const eixoHTML = eixoVals.map(v=>`<div class="sim-eixo-y-val">${simFmtAbrev(v)}</div>`).join('');
+
+  // Mostrar valor total nas barras só se não tiver muitos pontos
+  const mostrarVal = pontos.length <= 24;
+
+  // Barras
+  const barras = pontos.map(p=>{
+    const hPrincipal = Math.round((p.principal/maxVal)*CHART_H);
+    const hJuros = Math.round((p.juros/maxVal)*CHART_H);
+    const valStr = mostrarVal ? `<div class="sim-bar-val">${simFmtAbrev(p.total)}</div>` : '';
     return `<div class="sim-bar-wrap">
-      <div class="sim-bar-stack">
+      <div class="sim-bar-stack" style="height:${CHART_H}px">
         <div style="flex:1"></div>
-        <div class="sim-bar-juros" style="height:${hJuros}px" title="Juros: ${simFmt(p.juros)}"></div>
-        <div class="sim-bar-principal" style="height:${hPrincipal}px" title="Principal: ${simFmt(p.principal)}"></div>
+        <div class="sim-bar-tooltip">
+          <strong>${p.label}</strong><br>
+          Total: ${simFmt(p.total)}<br>
+          Principal: ${simFmt(p.principal)}<br>
+          Juros: ${simFmt(p.juros)}
+        </div>
+        <div class="sim-bar-juros" style="height:${hJuros}px"></div>
+        <div class="sim-bar-principal" style="height:${hPrincipal}px"></div>
       </div>
+      ${valStr}
       <div class="sim-bar-label">${p.label}</div>
     </div>`;
   }).join('');
+
+  // Gridlines
+  const gridHTML = Array(N_LINHAS+1).fill('<div class="sim-gridline"></div>').join('');
+
+  document.getElementById('sim-chart-area').innerHTML = `
+    <div class="sim-chart">
+      <div class="sim-chart-gridlines">${gridHTML}</div>
+      ${barras}
+    </div>`;
+
+  document.getElementById('sim-eixo-y').innerHTML = eixoHTML;
 }
 
 </script>
