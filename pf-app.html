@@ -506,21 +506,21 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .sim-eixo-y.right{margin-left:.6rem;margin-right:0}
 .sim-eixo-y.right .sim-eixo-y-val{text-align:left}
 .sim-eixo-y-val{font-size:.6rem;color:var(--gray2);text-align:right;line-height:1}
-.sim-chart-area{flex:1;min-width:0;margin:0 .6rem;overflow:hidden}
-.sim-chart{display:flex;align-items:flex-end;height:300px;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem 0 0;position:relative}
+.sim-chart-area{flex:1;min-width:0;margin:0 .6rem;overflow:visible}
+.sim-chart{display:flex;align-items:flex-end;height:300px;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem 0 0;position:relative;overflow:hidden}
 .sim-chart-gridlines{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 0 0}
 .sim-gridline{width:100%;border-top:1px dashed rgba(255,255,255,0.05)}
-.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;height:100%;position:relative;flex-shrink:0}
-.sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;position:relative;cursor:pointer}
-.sim-bar-stack:hover .sim-bar-tooltip{display:block}
+.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;height:100%;position:relative;flex-shrink:0;overflow:visible}
+.sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;position:relative;cursor:pointer;overflow:visible}
+.sim-bar-stack:hover .sim-bar-tooltip{visibility:visible;opacity:1}
 .sim-bar-principal{background:rgba(0,182,233,0.28);width:100%}
 .sim-bar-juros{background:var(--gold);width:100%;border-radius:1px 1px 0 0}
 .sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.4rem;text-align:center;white-space:nowrap;overflow:hidden}
 .sim-bar-tooltip{
-  display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  visibility:hidden;opacity:0;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
   background:var(--navy3);border:1px solid var(--border);padding:.5rem .8rem;
-  white-space:nowrap;z-index:20;font-size:.68rem;color:var(--white);line-height:1.7;
-  pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  white-space:nowrap;z-index:100;font-size:.68rem;color:var(--white);line-height:1.7;
+  pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity .15s;
 }
 .sim-bar-val{font-size:.52rem;color:var(--gold);text-align:center;margin-top:.1rem;white-space:nowrap;font-weight:600}
 .sim-legenda{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;padding-top:.8rem;border-top:1px solid var(--border2)}
@@ -3290,18 +3290,20 @@ function simDesenharBarras(pontos){
   document.getElementById('sim-eixo-y-left').innerHTML = eixoHTML;
   document.getElementById('sim-eixo-y-right').innerHTML = eixoHTML;
 
-  // Medir largura disponível DEPOIS de pintar o eixo Y
+  // Medir largura disponível — usa clientWidth que é mais confiável
   const wrap = document.getElementById('sim-chart-wrap-inner');
   const eixoL = document.getElementById('sim-eixo-y-left');
   const eixoR = document.getElementById('sim-eixo-y-right');
-  const wrapW = wrap.getBoundingClientRect().width;
-  const eixoLW = eixoL.getBoundingClientRect().width;
-  const eixoRW = eixoR.getBoundingClientRect().width;
-  const areaW = Math.max(100, wrapW - eixoLW - eixoRW - 16); // 16 = margens
+  const wrapW = wrap.clientWidth || wrap.getBoundingClientRect().width;
+  const eixoLW = eixoL.offsetWidth || eixoL.getBoundingClientRect().width;
+  const eixoRW = eixoR.offsetWidth || eixoR.getBoundingClientRect().width;
+  // 24 = margens (.sim-chart-area margin 0 .6rem x2 = ~19px) + 5px segurança
+  const areaW = Math.max(100, wrapW - eixoLW - eixoRW - 24);
 
   const n = pontos.length;
   const gap = Math.max(1, Math.min(3, Math.floor(areaW / n / 8)));
-  const barW = Math.max(3, Math.floor((areaW - gap*(n-1)) / n));
+  // -2 extra de segurança para nunca ultrapassar
+  const barW = Math.max(3, Math.floor((areaW - gap*(n-1) - 2) / n));
   const mostrarVal = barW >= 30 && n <= 24;
 
   const barras = pontos.map(p=>{
