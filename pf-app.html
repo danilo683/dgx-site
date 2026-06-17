@@ -470,6 +470,59 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ SIMULADOR ════════ */
+.sim-wrap{max-width:900px}
+.sim-campos{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:1.5rem}
+@media(max-width:700px){.sim-campos{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.sim-campos{grid-template-columns:1fr}}
+.sim-field{background:var(--navy2);border:1px solid var(--border);padding:1.1rem 1.3rem;position:relative;transition:border-color .2s}
+.sim-field.calculado{border-color:var(--gold);background:rgba(0,182,233,0.04)}
+.sim-field-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);font-weight:600;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between}
+.sim-field-badge{font-size:.58rem;background:rgba(0,182,233,0.12);color:var(--gold);padding:.15rem .5rem;border-radius:10px;letter-spacing:.08em}
+.sim-field input{
+  width:100%;background:none;border:none;outline:none;
+  font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:600;color:var(--white);
+  padding:0;
+}
+.sim-field input.resultado{color:var(--gold)}
+.sim-field input::placeholder{color:var(--gray2);font-weight:400;font-size:.95rem}
+.sim-field-hint{font-size:.65rem;color:var(--gray2);margin-top:.4rem}
+
+.sim-toggle-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.8rem}
+.sim-toggle-hint{font-size:.72rem;color:var(--gray2)}
+.sim-toggle{display:flex;background:var(--navy2);border:1px solid var(--border);border-radius:2px;overflow:hidden}
+.sim-toggle button{background:none;border:none;padding:.45rem 1.1rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.sim-toggle button.active{background:var(--gold);color:var(--navy)}
+
+.sim-resultado-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:700px){.sim-resultado-cards{grid-template-columns:1fr 1fr}}
+.sim-res-card{background:var(--navy2);border:1px solid var(--border);padding:1rem 1.2rem}
+.sim-res-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem}
+.sim-res-val{font-size:1.05rem;font-weight:700;color:var(--white)}
+.sim-res-val.gold{color:var(--gold)}
+.sim-res-val.green{color:var(--green)}
+
+.sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.4rem;overflow-x:auto}
+.sim-chart{display:flex;align-items:flex-end;gap:3px;min-height:200px;height:220px;padding-bottom:.5rem;min-width:0}
+.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;min-width:18px;height:100%}
+.sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;flex:1;width:100%;position:relative}
+.sim-bar-principal{background:rgba(0,182,233,0.25);width:100%;transition:height .3s}
+.sim-bar-juros{background:var(--gold);width:100%;transition:height .3s}
+.sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.3rem;text-align:center;white-space:nowrap}
+.sim-legenda{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap}
+.sim-leg-item{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--gray)}
+.sim-leg-cor{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+
+.sim-btn{
+  display:inline-flex;align-items:center;gap:.6rem;
+  background:var(--gold);color:var(--navy);border:none;
+  padding:.7rem 1.8rem;font-family:'Inter',sans-serif;font-size:.78rem;
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  border-radius:2px;transition:opacity .2s;margin-bottom:1.5rem;
+}
+.sim-btn:hover{opacity:.85}
+.sim-erro{font-size:.78rem;color:var(--red);margin-bottom:1rem;display:none}
+
 /* ════════ PERFIL ════════ */
 .perfil-wrap{max-width:680px}
 .perfil-card{display:flex;gap:2.5rem;flex-wrap:wrap;margin-bottom:2rem}
@@ -712,6 +765,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
         Orçamento
         <span class="menu-badge-soon">em breve</span>
+      </button>
+      <button class="menu-item" onclick="irPara('simulador', this); simInit()">
+        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
+        Simulador
       </button>
       <button class="menu-item" onclick="irPara('dividas', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
@@ -1264,6 +1321,72 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <h3>Lista de desejos</h3>
           <p>Registre os itens e experiências que deseja conquistar, estime o valor, e transforme desejos em metas concretas com apoio do seu planejamento.</p>
           <span class="em-breve-tag">Em construção</span>
+        </div>
+      </div>
+
+      <!-- ── SIMULADOR ── -->
+      <div class="tela" id="tela-simulador">
+        <div class="tela-header"><h2>Simulador de Juros Compostos</h2><p>Preencha qualquer 4 variáveis — a que ficar em branco será calculada</p></div>
+
+        <div class="sim-wrap">
+          <div class="sim-campos">
+            <div class="sim-field" id="simf-inicial">
+              <div class="sim-field-label">Montante inicial <span class="sim-field-badge" id="badge-inicial" style="display:none">Calculado</span></div>
+              <input type="number" id="sim-inicial" placeholder="R$ 0,00" min="0" oninput="simLimparBadge('inicial')">
+              <div class="sim-field-hint">Valor que você já tem hoje</div>
+            </div>
+            <div class="sim-field" id="simf-aporte">
+              <div class="sim-field-label">Aporte mensal <span class="sim-field-badge" id="badge-aporte" style="display:none">Calculado</span></div>
+              <input type="number" id="sim-aporte" placeholder="R$ 0,00" min="0" oninput="simLimparBadge('aporte')">
+              <div class="sim-field-hint">Contribuição mensal (pode ser 0)</div>
+            </div>
+            <div class="sim-field" id="simf-taxa">
+              <div class="sim-field-label">Taxa de juros <span class="sim-field-badge" id="badge-taxa" style="display:none">Calculado</span></div>
+              <input type="number" id="sim-taxa" placeholder="% ao mês" step="0.01" min="0" oninput="simLimparBadge('taxa')">
+              <div class="sim-field-hint">Ex: 1 = 1% ao mês</div>
+            </div>
+            <div class="sim-field" id="simf-periodo">
+              <div class="sim-field-label">Período <span class="sim-field-badge" id="badge-periodo" style="display:none">Calculado</span></div>
+              <input type="number" id="sim-periodo" placeholder="meses" min="1" step="1" oninput="simLimparBadge('periodo')">
+              <div class="sim-field-hint">Duração em meses</div>
+            </div>
+            <div class="sim-field" id="simf-final">
+              <div class="sim-field-label">Valor final <span class="sim-field-badge" id="badge-final" style="display:none">Calculado</span></div>
+              <input type="number" id="sim-final" placeholder="R$ 0,00" min="0" oninput="simLimparBadge('final')">
+              <div class="sim-field-hint">Patrimônio ao final do período</div>
+            </div>
+          </div>
+
+          <div class="sim-erro" id="sim-erro">Preencha exatamente 4 campos — deixe apenas 1 em branco para calcular.</div>
+          <button class="sim-btn" onclick="simCalcular()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Calcular
+          </button>
+
+          <div id="sim-resultados" style="display:none">
+            <div class="sim-resultado-cards">
+              <div class="sim-res-card"><div class="sim-res-label">Valor investido</div><div class="sim-res-val" id="simr-investido">—</div></div>
+              <div class="sim-res-card"><div class="sim-res-label">Juros acumulados</div><div class="sim-res-val green" id="simr-juros">—</div></div>
+              <div class="sim-res-card"><div class="sim-res-label">Valor final</div><div class="sim-res-val gold" id="simr-final">—</div></div>
+              <div class="sim-res-card"><div class="sim-res-label">Taxa efetiva anual</div><div class="sim-res-val" id="simr-anual">—</div></div>
+            </div>
+
+            <div class="sim-toggle-wrap">
+              <div class="sim-toggle-hint">Evolução do patrimônio</div>
+              <div class="sim-toggle">
+                <button id="sim-toggle-mes" class="active" onclick="simToggle('mes')">Meses</button>
+                <button id="sim-toggle-ano" onclick="simToggle('ano')">Anos</button>
+              </div>
+            </div>
+
+            <div class="sim-chart-wrap">
+              <div class="sim-chart" id="sim-chart"></div>
+              <div class="sim-legenda">
+                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:rgba(0,182,233,0.25)"></div>Principal investido</div>
+                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--gold)"></div>Juros acumulados</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2899,6 +3022,239 @@ async function adminFrasesImportar(){
   document.getElementById('frase-import-texto').value = '';
   adminCarregarFrases();
 }
+
+// ══════════════════════════════════════════════
+// SIMULADOR DE JUROS COMPOSTOS
+// ══════════════════════════════════════════════
+let simDados = null; // {periodos: [{mes, principal, juros, total}]}
+let simModo = 'mes';
+
+const SIM_CAMPOS = ['inicial','aporte','taxa','periodo','final'];
+
+function simInit(){
+  // Nada a fazer — campos já estão no HTML
+}
+
+function simLimparBadge(campo){
+  document.getElementById('badge-'+campo).style.display='none';
+  document.getElementById('simf-'+campo).classList.remove('calculado');
+  const inp = document.getElementById('sim-'+campo);
+  inp.classList.remove('resultado');
+  inp.readOnly = false;
+}
+
+function simFmt(v){
+  return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function simGetVals(){
+  const v = {};
+  SIM_CAMPOS.forEach(c=>{
+    const s = document.getElementById('sim-'+c).value.trim();
+    v[c] = s === '' ? null : Number(s);
+  });
+  return v;
+}
+
+function simContarVazios(v){
+  return SIM_CAMPOS.filter(c=>v[c]===null).length;
+}
+
+// Calcula valor final dado os outros
+function simCalcFinal(inicial, aporte, taxa, periodo){
+  const r = taxa/100;
+  if(r === 0) return inicial + aporte * periodo;
+  return inicial * Math.pow(1+r, periodo) + aporte * ((Math.pow(1+r, periodo)-1)/r);
+}
+
+// Calcula aporte dado os outros
+function simCalcAporte(inicial, taxa, periodo, final){
+  const r = taxa/100;
+  if(r === 0) return (final - inicial) / periodo;
+  const fv_inicial = inicial * Math.pow(1+r, periodo);
+  return (final - fv_inicial) / ((Math.pow(1+r, periodo)-1)/r);
+}
+
+// Calcula montante inicial dado os outros
+function simCalcInicial(aporte, taxa, periodo, final){
+  const r = taxa/100;
+  if(r === 0) return final - aporte * periodo;
+  const fv_aporte = aporte * ((Math.pow(1+r, periodo)-1)/r);
+  return (final - fv_aporte) / Math.pow(1+r, periodo);
+}
+
+// Calcula taxa via bissecção
+function simCalcTaxa(inicial, aporte, periodo, final){
+  if(final <= inicial + aporte * periodo && aporte >= 0) return 0;
+  let lo = 0, hi = 100, taxa = 1;
+  for(let i=0; i<200; i++){
+    taxa = (lo+hi)/2;
+    const calc = simCalcFinal(inicial, aporte, taxa, periodo);
+    if(Math.abs(calc - final) < 0.01) break;
+    if(calc < final) lo = taxa; else hi = taxa;
+  }
+  return taxa;
+}
+
+// Calcula período via bissecção
+function simCalcPeriodo(inicial, aporte, taxa, final){
+  const r = taxa/100;
+  if(r === 0){
+    if(aporte === 0) return 0;
+    return Math.ceil((final - inicial) / aporte);
+  }
+  let lo = 1, hi = 1200, n = 12;
+  for(let i=0; i<200; i++){
+    n = Math.floor((lo+hi)/2);
+    const calc = simCalcFinal(inicial, aporte, taxa, n);
+    if(Math.abs(calc - final) < 1) break;
+    if(calc < final) lo = n; else hi = n;
+  }
+  return Math.ceil(n);
+}
+
+function simCalcular(){
+  const errEl = document.getElementById('sim-erro');
+  errEl.style.display = 'none';
+  document.getElementById('sim-resultados').style.display = 'none';
+
+  const v = simGetVals();
+  const vazios = SIM_CAMPOS.filter(c=>v[c]===null);
+
+  if(vazios.length !== 1){
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const campo = vazios[0];
+  let resultado;
+
+  try {
+    if(campo === 'final'){
+      resultado = simCalcFinal(v.inicial, v.aporte, v.taxa, v.periodo);
+    } else if(campo === 'aporte'){
+      resultado = simCalcAporte(v.inicial, v.taxa, v.periodo, v.final);
+    } else if(campo === 'inicial'){
+      resultado = simCalcInicial(v.aporte, v.taxa, v.periodo, v.final);
+    } else if(campo === 'taxa'){
+      resultado = simCalcTaxa(v.inicial, v.aporte, v.periodo, v.final);
+    } else if(campo === 'periodo'){
+      resultado = simCalcPeriodo(v.inicial, v.aporte, v.taxa, v.final);
+    }
+
+    if(!isFinite(resultado) || isNaN(resultado) || resultado < 0){
+      errEl.textContent = 'Não foi possível calcular com esses valores. Verifique se fazem sentido matemático.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Arredonda período para inteiro
+    if(campo === 'periodo') resultado = Math.ceil(resultado);
+    if(campo === 'taxa' || campo === 'periodo') resultado = Math.round(resultado * 10000) / 10000;
+
+    // Preenche campo calculado
+    const inp = document.getElementById('sim-'+campo);
+    inp.value = campo === 'taxa' ? resultado.toFixed(4) : (campo === 'periodo' ? resultado : resultado.toFixed(2));
+    inp.classList.add('resultado');
+    inp.readOnly = true;
+    document.getElementById('badge-'+campo).style.display = 'inline-block';
+    document.getElementById('simf-'+campo).classList.add('calculado');
+
+    // Valores finais
+    v[campo] = resultado;
+  } catch(e){
+    errEl.textContent = 'Erro ao calcular: ' + e.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Gera série mensal
+  simDados = [];
+  let saldo = v.inicial;
+  let totalInvestido = v.inicial;
+  for(let m = 1; m <= v.periodo; m++){
+    saldo = saldo * (1 + v.taxa/100) + v.aporte;
+    totalInvestido += v.aporte;
+    simDados.push({
+      mes: m,
+      principal: totalInvestido,
+      juros: saldo - totalInvestido,
+      total: saldo
+    });
+  }
+
+  // Cards de resultado
+  const totalJuros = simDados[simDados.length-1].juros;
+  const totalFinal = simDados[simDados.length-1].total;
+  const txAnual = (Math.pow(1 + v.taxa/100, 12) - 1) * 100;
+
+  document.getElementById('simr-investido').textContent = simFmt(totalInvestido);
+  document.getElementById('simr-juros').textContent = simFmt(totalJuros);
+  document.getElementById('simr-final').textContent = simFmt(totalFinal);
+  document.getElementById('simr-anual').textContent = txAnual.toFixed(2).replace('.',',') + '% a.a.';
+  document.getElementById('sim-resultados').style.display = 'block';
+
+  simToggle(simModo);
+}
+
+function simToggle(modo){
+  simModo = modo;
+  document.getElementById('sim-toggle-mes').classList.toggle('active', modo==='mes');
+  document.getElementById('sim-toggle-ano').classList.toggle('active', modo==='ano');
+  simRenderGrafico();
+}
+
+function simRenderGrafico(){
+  if(!simDados || !simDados.length) return;
+
+  let pontos;
+  if(simModo === 'mes'){
+    // Limita a 60 pontos por legibilidade — agrupa se necessário
+    const total = simDados.length;
+    if(total <= 60){
+      pontos = simDados.map(d=>({label: d.mes+'m', principal: d.principal, juros: d.juros, total: d.total}));
+    } else {
+      // Amostra ~40 pontos
+      pontos = [];
+      const step = Math.ceil(total/40);
+      for(let i = step-1; i < total; i += step){
+        const d = simDados[i];
+        pontos.push({label: d.mes+'m', principal: d.principal, juros: d.juros, total: d.total});
+      }
+      if(simDados[total-1] !== simDados[pontos[pontos.length-1]?.mes-1]){
+        const d = simDados[total-1];
+        pontos.push({label: d.mes+'m', principal: d.principal, juros: d.juros, total: d.total});
+      }
+    }
+  } else {
+    // Agrupa por ano (pega o último mês de cada ano)
+    const anos = {};
+    simDados.forEach(d=>{
+      const ano = Math.ceil(d.mes/12);
+      anos[ano] = d;
+    });
+    pontos = Object.entries(anos).map(([ano, d])=>({
+      label: ano+'a', principal: d.principal, juros: d.juros, total: d.total
+    }));
+  }
+
+  const maxVal = Math.max(...pontos.map(p=>p.total));
+  const chart = document.getElementById('sim-chart');
+  chart.innerHTML = pontos.map(p=>{
+    const hTotal = 200;
+    const hPrincipal = Math.round((p.principal / maxVal) * hTotal);
+    const hJuros = Math.round((p.juros / maxVal) * hTotal);
+    return `<div class="sim-bar-wrap">
+      <div class="sim-bar-stack">
+        <div style="flex:1"></div>
+        <div class="sim-bar-juros" style="height:${hJuros}px" title="Juros: ${simFmt(p.juros)}"></div>
+        <div class="sim-bar-principal" style="height:${hPrincipal}px" title="Principal: ${simFmt(p.principal)}"></div>
+      </div>
+      <div class="sim-bar-label">${p.label}</div>
+    </div>`;
+  }).join('');
+}
+
 </script>
 </body>
 </html>
