@@ -1365,10 +1365,16 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           </div>
 
           <div class="sim-erro" id="sim-erro">Preencha exatamente 4 campos — deixe apenas 1 em branco para calcular.</div>
-          <button class="sim-btn" onclick="simCalcular()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Calcular
-          </button>
+          <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem">
+            <button class="sim-btn" style="margin-bottom:0" onclick="simCalcular()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Calcular
+            </button>
+            <button class="sim-btn" style="margin-bottom:0;background:transparent;color:var(--gray);border:1px solid var(--border)" onclick="simLimpar()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
+              Limpar
+            </button>
+          </div>
 
           <div id="sim-resultados" style="display:none">
             <div class="sim-resultado-cards">
@@ -3042,6 +3048,20 @@ let simDados = null; // {periodos: [{mes, principal, juros, total}]}
 let simModo = 'mes';
 
 const SIM_CAMPOS = ['inicial','aporte','taxa','periodo','final'];
+
+function simLimpar(){
+  SIM_CAMPOS.forEach(c=>{
+    const inp = document.getElementById('sim-'+c);
+    inp.value = '';
+    inp.readOnly = false;
+    inp.classList.remove('resultado');
+    document.getElementById('badge-'+c).style.display='none';
+    document.getElementById('simf-'+c).classList.remove('calculado');
+  });
+  document.getElementById('sim-erro').style.display='none';
+  document.getElementById('sim-resultados').style.display='none';
+  simDados = null;
+}
 
 function simInit(){
   // Nada a fazer — campos já estão no HTML
