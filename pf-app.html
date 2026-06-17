@@ -3224,16 +3224,15 @@ function simCalcular(){
   document.getElementById('simr-juros').textContent = simFmt(totalJuros);
   document.getElementById('simr-final').textContent = simFmt(totalFinal);
   document.getElementById('simr-anual').textContent = txAnual.toFixed(2).replace('.',',') + '% a.a.';
-  document.getElementById('sim-resultados').style.display = 'block';
 
-  simToggle(simModo);
+  simRenderGrafico();
 }
 
 function simToggle(modo){
   simModo = modo;
   document.getElementById('sim-toggle-mes').classList.toggle('active', modo==='mes');
   document.getElementById('sim-toggle-ano').classList.toggle('active', modo==='ano');
-  if(window.__simPontos) requestAnimationFrame(()=>requestAnimationFrame(()=>simRenderGrafico()));
+  simRenderGrafico();
 }
 
 function simFmtAbrev(v){
@@ -3270,8 +3269,10 @@ function simRenderGrafico(){
     pontos=Object.entries(anos).map(([a,d])=>({label:a+'a', principal:d.principal, juros:d.juros, total:d.total}));
   }
 
+  document.getElementById('sim-resultados').style.display = 'block';
+
   window.__simPontos = pontos;
-  // Dois frames garantem que o DOM está pintado e mensurável
+  // Aguarda o browser renderizar o contêiner para medir a largura corretamente
   requestAnimationFrame(()=>requestAnimationFrame(()=>simDesenharBarras(pontos)));
 }
 
