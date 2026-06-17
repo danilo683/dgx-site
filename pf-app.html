@@ -500,29 +500,30 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .sim-res-val.green{color:var(--green)}
 
 /* Gráfico */
-.sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.5rem 1.5rem 1.5rem;overflow:hidden}
-.sim-chart-inner{display:flex;gap:0;overflow-x:auto;padding-bottom:.5rem}
-.sim-eixo-y{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:2.2rem;min-width:75px;margin-right:.8rem;flex-shrink:0}
+.sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.5rem 1.5rem 1.2rem}
+.sim-chart-inner{display:flex;gap:0;align-items:stretch}
+.sim-eixo-y{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:2.2rem;min-width:72px;flex-shrink:0}
+.sim-eixo-y.right{margin-left:.8rem;margin-right:0;text-align:left}
+.sim-eixo-y.right .sim-eixo-y-val{text-align:left}
 .sim-eixo-y-val{font-size:.6rem;color:var(--gray2);text-align:right;line-height:1}
-.sim-chart-area{display:flex;flex-direction:column;flex:1;min-width:0}
-.sim-chart{display:flex;align-items:flex-end;gap:4px;height:340px;border-left:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem .5rem 0;position:relative;min-width:0}
+.sim-chart-area{display:flex;flex-direction:column;flex:1;min-width:0;margin:0 .8rem}
+.sim-chart{display:flex;align-items:flex-end;gap:2px;height:320px;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem 4px 0;position:relative;overflow:hidden}
 .sim-chart-gridlines{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 0 0}
-.sim-gridline{width:100%;border-top:1px dashed rgba(255,255,255,0.04)}
-.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;min-width:22px;max-width:60px;height:100%;position:relative}
+.sim-gridline{width:100%;border-top:1px dashed rgba(255,255,255,0.05)}
+.sim-bar-wrap{display:flex;flex-direction:column;align-items:center;height:100%;position:relative;flex-shrink:0}
 .sim-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;position:relative;cursor:pointer}
 .sim-bar-stack:hover .sim-bar-tooltip{display:block}
-.sim-bar-principal{background:rgba(0,182,233,0.28);width:100%;transition:height .4s}
-.sim-bar-juros{background:var(--gold);width:100%;transition:height .4s;border-radius:1px 1px 0 0}
-.sim-bar-label{font-size:.52rem;color:var(--gray2);margin-top:.5rem;text-align:center;white-space:nowrap}
+.sim-bar-principal{background:rgba(0,182,233,0.28);width:100%}
+.sim-bar-juros{background:var(--gold);width:100%;border-radius:1px 1px 0 0}
+.sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.4rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sim-bar-tooltip{
   display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  background:var(--navy4);border:1px solid var(--border);padding:.5rem .8rem;
-  white-space:nowrap;z-index:10;font-size:.68rem;color:var(--white);line-height:1.7;
-  pointer-events:none;
+  background:var(--navy3);border:1px solid var(--border);padding:.5rem .8rem;
+  white-space:nowrap;z-index:20;font-size:.68rem;color:var(--white);line-height:1.7;
+  pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);
 }
-.sim-bar-val{font-size:.55rem;color:var(--gold);text-align:center;margin-top:.2rem;white-space:nowrap;font-weight:600}
-
-.sim-legenda{display:flex;gap:1.5rem;margin-top:1.2rem;flex-wrap:wrap;padding-top:.8rem;border-top:1px solid var(--border2)}
+.sim-bar-val{font-size:.52rem;color:var(--gold);text-align:center;margin-top:.1rem;white-space:nowrap;font-weight:600}
+.sim-legenda{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;padding-top:.8rem;border-top:1px solid var(--border2)}
 .sim-leg-item{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--gray)}
 .sim-leg-cor{width:12px;height:12px;border-radius:2px;flex-shrink:0}
 
@@ -1387,8 +1388,9 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
             <div class="sim-chart-wrap">
               <div class="sim-chart-inner">
-                <div class="sim-eixo-y" id="sim-eixo-y"></div>
+                <div class="sim-eixo-y" id="sim-eixo-y-left"></div>
                 <div class="sim-chart-area" id="sim-chart-area"></div>
+                <div class="sim-eixo-y right" id="sim-eixo-y-right"></div>
               </div>
               <div class="sim-legenda">
                 <div class="sim-leg-item"><div class="sim-leg-cor" style="background:rgba(0,182,233,0.28)"></div>Principal investido</div>
@@ -3224,16 +3226,16 @@ function simFmtAbrev(v){
 function simRenderGrafico(){
   if(!simDados || !simDados.length) return;
 
-  // Montar pontos
+  // Montar pontos conforme modo
   let pontos;
   if(simModo === 'mes'){
     const total = simDados.length;
-    const maxPontos = 48;
-    if(total <= maxPontos){
+    const maxP = 60;
+    if(total <= maxP){
       pontos = simDados.map(d=>({label:d.mes+'m', principal:d.principal, juros:d.juros, total:d.total}));
     } else {
       pontos = [];
-      const step = Math.ceil(total/maxPontos);
+      const step = Math.ceil(total/maxP);
       for(let i=step-1; i<total; i+=step){
         const d=simDados[i];
         pontos.push({label:d.mes+'m', principal:d.principal, juros:d.juros, total:d.total});
@@ -3252,20 +3254,28 @@ function simRenderGrafico(){
   const CHART_H = 320;
   const N_LINHAS = 5;
 
-  // Eixo Y — padding-bottom = altura da label + margin (≈ 2.2rem)
+  // Eixo Y — mesmo HTML para esquerda e direita
   const eixoVals = [];
   for(let i=N_LINHAS; i>=0; i--) eixoVals.push(maxVal*(i/N_LINHAS));
   const eixoHTML = eixoVals.map(v=>`<div class="sim-eixo-y-val">${simFmtAbrev(v)}</div>`).join('');
+  document.getElementById('sim-eixo-y-left').innerHTML = eixoHTML;
+  document.getElementById('sim-eixo-y-right').innerHTML = eixoHTML;
 
-  // Mostrar valor total nas barras só se não tiver muitos pontos
-  const mostrarVal = pontos.length <= 24;
+  // Calcular largura de cada barra para caber exatamente no contêiner
+  const areaEl = document.getElementById('sim-chart-area');
+  const areaW = areaEl.getBoundingClientRect().width || 800;
+  const gap = 2;
+  const n = pontos.length;
+  // barW = (areaW - padding(8px) - gaps) / n
+  const barW = Math.max(4, Math.floor((areaW - 8 - gap*(n-1)) / n));
+  const mostrarVal = barW >= 28 && n <= 24;
 
   // Barras
   const barras = pontos.map(p=>{
     const hPrincipal = Math.round((p.principal/maxVal)*CHART_H);
-    const hJuros = Math.round((p.juros/maxVal)*CHART_H);
+    const hJuros = Math.max(0, Math.round((p.juros/maxVal)*CHART_H));
     const valStr = mostrarVal ? `<div class="sim-bar-val">${simFmtAbrev(p.total)}</div>` : '';
-    return `<div class="sim-bar-wrap">
+    return `<div class="sim-bar-wrap" style="width:${barW}px">
       <div class="sim-bar-stack" style="height:${CHART_H}px">
         <div style="flex:1"></div>
         <div class="sim-bar-tooltip">
@@ -3278,20 +3288,17 @@ function simRenderGrafico(){
         <div class="sim-bar-principal" style="height:${hPrincipal}px"></div>
       </div>
       ${valStr}
-      <div class="sim-bar-label">${p.label}</div>
+      <div class="sim-bar-label" style="width:${barW}px">${p.label}</div>
     </div>`;
   }).join('');
 
-  // Gridlines
   const gridHTML = Array(N_LINHAS+1).fill('<div class="sim-gridline"></div>').join('');
 
   document.getElementById('sim-chart-area').innerHTML = `
-    <div class="sim-chart">
+    <div class="sim-chart" style="gap:${gap}px">
       <div class="sim-chart-gridlines">${gridHTML}</div>
       ${barras}
     </div>`;
-
-  document.getElementById('sim-eixo-y').innerHTML = eixoHTML;
 }
 
 </script>
