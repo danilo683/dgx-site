@@ -501,13 +501,13 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
 /* Gráfico */
 .sim-chart-wrap{background:var(--navy2);border:1px solid var(--border);padding:1.5rem 1.5rem 1.2rem}
-.sim-chart-inner{display:flex;gap:0;align-items:stretch}
-.sim-eixo-y{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:2.2rem;min-width:72px;flex-shrink:0}
-.sim-eixo-y.right{margin-left:.8rem;margin-right:0;text-align:left}
+.sim-chart-wrap-inner{display:flex;gap:0;align-items:stretch}
+.sim-eixo-y{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:2.4rem;min-width:68px;flex-shrink:0}
+.sim-eixo-y.right{margin-left:.6rem;margin-right:0}
 .sim-eixo-y.right .sim-eixo-y-val{text-align:left}
 .sim-eixo-y-val{font-size:.6rem;color:var(--gray2);text-align:right;line-height:1}
-.sim-chart-area{display:flex;flex-direction:column;flex:1;min-width:0;margin:0 .8rem}
-.sim-chart{display:flex;align-items:flex-end;gap:2px;height:320px;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem 4px 0;position:relative;overflow:hidden}
+.sim-chart-area{flex:1;min-width:0;margin:0 .6rem;overflow:hidden}
+.sim-chart{display:flex;align-items:flex-end;height:300px;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:1rem 0 0;position:relative}
 .sim-chart-gridlines{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 0 0}
 .sim-gridline{width:100%;border-top:1px dashed rgba(255,255,255,0.05)}
 .sim-bar-wrap{display:flex;flex-direction:column;align-items:center;height:100%;position:relative;flex-shrink:0}
@@ -515,7 +515,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .sim-bar-stack:hover .sim-bar-tooltip{display:block}
 .sim-bar-principal{background:rgba(0,182,233,0.28);width:100%}
 .sim-bar-juros{background:var(--gold);width:100%;border-radius:1px 1px 0 0}
-.sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.4rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sim-bar-label{font-size:.5rem;color:var(--gray2);margin-top:.4rem;text-align:center;white-space:nowrap;overflow:hidden}
 .sim-bar-tooltip{
   display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
   background:var(--navy3);border:1px solid var(--border);padding:.5rem .8rem;
@@ -1393,7 +1393,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             </div>
 
             <div class="sim-chart-wrap">
-              <div class="sim-chart-inner">
+              <div class="sim-chart-wrap-inner" id="sim-chart-wrap-inner">
                 <div class="sim-eixo-y" id="sim-eixo-y-left"></div>
                 <div class="sim-chart-area" id="sim-chart-area"></div>
                 <div class="sim-eixo-y right" id="sim-eixo-y-right"></div>
@@ -3233,7 +3233,7 @@ function simToggle(modo){
   simModo = modo;
   document.getElementById('sim-toggle-mes').classList.toggle('active', modo==='mes');
   document.getElementById('sim-toggle-ano').classList.toggle('active', modo==='ano');
-  simRenderGrafico();
+  if(window.__simPontos) requestAnimationFrame(()=>requestAnimationFrame(()=>simRenderGrafico()));
 }
 
 function simFmtAbrev(v){
@@ -3270,32 +3270,44 @@ function simRenderGrafico(){
     pontos=Object.entries(anos).map(([a,d])=>({label:a+'a', principal:d.principal, juros:d.juros, total:d.total}));
   }
 
+  window.__simPontos = pontos;
+  // Dois frames garantem que o DOM está pintado e mensurável
+  requestAnimationFrame(()=>requestAnimationFrame(()=>simDesenharBarras(pontos)));
+}
+
+function simDesenharBarras(pontos){
+  if(!pontos || !pontos.length) return;
+
   const maxVal = Math.max(...pontos.map(p=>p.total));
-  const CHART_H = 320;
+  const CHART_H = 300;
   const N_LINHAS = 5;
 
-  // Eixo Y — mesmo HTML para esquerda e direita
+  // Eixo Y
   const eixoVals = [];
   for(let i=N_LINHAS; i>=0; i--) eixoVals.push(maxVal*(i/N_LINHAS));
   const eixoHTML = eixoVals.map(v=>`<div class="sim-eixo-y-val">${simFmtAbrev(v)}</div>`).join('');
   document.getElementById('sim-eixo-y-left').innerHTML = eixoHTML;
   document.getElementById('sim-eixo-y-right').innerHTML = eixoHTML;
 
-  // Calcular largura de cada barra para caber exatamente no contêiner
-  const areaEl = document.getElementById('sim-chart-area');
-  const areaW = areaEl.getBoundingClientRect().width || 800;
-  const gap = 2;
-  const n = pontos.length;
-  // barW = (areaW - padding(8px) - gaps) / n
-  const barW = Math.max(4, Math.floor((areaW - 8 - gap*(n-1)) / n));
-  const mostrarVal = barW >= 28 && n <= 24;
+  // Medir largura disponível DEPOIS de pintar o eixo Y
+  const wrap = document.getElementById('sim-chart-wrap-inner');
+  const eixoL = document.getElementById('sim-eixo-y-left');
+  const eixoR = document.getElementById('sim-eixo-y-right');
+  const wrapW = wrap.getBoundingClientRect().width;
+  const eixoLW = eixoL.getBoundingClientRect().width;
+  const eixoRW = eixoR.getBoundingClientRect().width;
+  const areaW = Math.max(100, wrapW - eixoLW - eixoRW - 16); // 16 = margens
 
-  // Barras
+  const n = pontos.length;
+  const gap = Math.max(1, Math.min(3, Math.floor(areaW / n / 8)));
+  const barW = Math.max(3, Math.floor((areaW - gap*(n-1)) / n));
+  const mostrarVal = barW >= 30 && n <= 24;
+
   const barras = pontos.map(p=>{
     const hPrincipal = Math.round((p.principal/maxVal)*CHART_H);
     const hJuros = Math.max(0, Math.round((p.juros/maxVal)*CHART_H));
     const valStr = mostrarVal ? `<div class="sim-bar-val">${simFmtAbrev(p.total)}</div>` : '';
-    return `<div class="sim-bar-wrap" style="width:${barW}px">
+    return `<div class="sim-bar-wrap" style="width:${barW}px;flex:none">
       <div class="sim-bar-stack" style="height:${CHART_H}px">
         <div style="flex:1"></div>
         <div class="sim-bar-tooltip">
@@ -3313,9 +3325,10 @@ function simRenderGrafico(){
   }).join('');
 
   const gridHTML = Array(N_LINHAS+1).fill('<div class="sim-gridline"></div>').join('');
+  const totalW = n*barW + (n-1)*gap;
 
   document.getElementById('sim-chart-area').innerHTML = `
-    <div class="sim-chart" style="gap:${gap}px">
+    <div class="sim-chart" style="gap:${gap}px;width:${totalW}px;min-width:unset;overflow:visible">
       <div class="sim-chart-gridlines">${gridHTML}</div>
       ${barras}
     </div>`;
