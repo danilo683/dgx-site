@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Hawks Beauty | Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1E2D40}
@@ -14,11 +15,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-hawks-logo{background:#000;border-radius:10px;padding:14px 20px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:center;min-height:90px}
 .login-hawks-fallback{color:#fff;font-size:24px;font-style:italic;font-weight:700;line-height:1.2}
 .login-title{font-size:14px;color:#6b7a8d;margin-bottom:1.5rem}
-.login-box input{width:100%;padding:11px 14px;border:1px solid #d0d9e4;border-radius:8px;font-size:15px;outline:none;margin-bottom:12px;color:#1E2D40;transition:border .2s}
-.login-box input:focus{border-color:#00B4D8}
-.login-box button{width:100%;padding:11px;background:#00B4D8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s}
-.login-box button:hover{background:#0099b8}
-.login-error{font-size:12px;color:#e24b4a;margin-top:8px;min-height:16px}
 .login-footer{font-size:11px;color:#aab;margin-top:1.5rem}
 #app{display:none;height:100vh;overflow:hidden;flex-direction:row}
 .sidebar{width:230px;min-width:230px;background:#111;display:flex;flex-direction:column;height:100vh;overflow-y:auto}
@@ -49,7 +45,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .coming-soon h2{font-size:20px;font-weight:500;color:#1E2D40;margin-bottom:8px}
 .coming-soon p{font-size:14px;color:#6b7a8d;max-width:320px}
 .coming-soon .cs-badge{margin-top:1.5rem;font-size:12px;padding:6px 16px;border-radius:20px;background:#e0f7fc;color:#006d8f;display:inline-block}
-/* VENDAS */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
 .kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #00B4D8;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
@@ -64,7 +59,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 .leg-line{width:16px;height:3px;border-radius:2px;flex-shrink:0}
 .chart-wrap{position:relative;width:100%}
-/* DRE */
 .dre-table{width:100%;border-collapse:collapse;font-size:13px}
 .dre-table th{text-align:left;padding:10px 12px;background:#f0f2f5;color:#6b7a8d;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
 .dre-table th:not(:first-child){text-align:right}
@@ -79,13 +73,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dre-table tr.na td:not(:first-child){color:#aab}
 .dre-label-indent{padding-left:24px !important;color:#6b7a8d}
 .tag-ainformar{font-size:10px;padding:1px 6px;border-radius:8px;background:#f0f2f5;color:#aab;margin-left:6px}
-/* MARGEM */
 .mg-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
 .mg-kpi{background:#fff;border-radius:8px;padding:14px 16px;border-left:3px solid #1E2D40;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .mg-kpi-label{font-size:11px;color:#6b7a8d;margin-bottom:6px}
 .mg-kpi-value{font-size:20px;font-weight:600;color:#1E2D40}
 .mg-kpi-sub{font-size:11px;color:#6b7a8d;margin-top:3px}
-/* DFC */
 .dfc-nav{display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px;width:fit-content;margin-bottom:1.25rem}
 .dfc-nav-btn{padding:7px 22px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#6B8BAA;border-radius:6px;transition:all .15s}
 .dfc-nav-btn.active{background:#0F1923;color:#E2EAF4;border:0.5px solid #1F3044}
@@ -125,7 +117,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-pos{color:#00D4DA!important}
 .dfc-neg{color:#C8B89A!important}
 .dfc-tbl tr.dfc-tot td.dfc-pos,.dfc-tbl tr.dfc-tot td.dfc-neg{color:#0A1520!important}
-/* VENDAS TABLES */
 .v-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px}
 .v-table thead th{padding:7px 10px;background:#f0f2f5;color:#6b7a8d;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;text-align:right;white-space:nowrap;border-bottom:1px solid #e5e9ef}
 .v-table thead th:first-child{text-align:left;position:sticky;left:0;background:#f0f2f5;z-index:1}
@@ -142,38 +133,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-filtro-btn:hover{color:#E2EAF4;background:#1F3044}
 .dfc-filtro-btn.active{background:#0F1923;color:#E2EAF4;border-color:#00D4DA}
 .confidential{text-align:center;font-size:11px;color:#4A6580;margin-top:1.5rem;padding-bottom:1rem}
+/* Loading screen */
+#loadingScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A2B3E}
+.spinner{width:40px;height:40px;border:3px solid rgba(0,180,216,0.2);border-top-color:#00B4D8;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
+<div id="loadingScreen">
+  <div class="spinner"></div>
+</div>
+
+<div id="loginScreen" style="display:none">
   <svg class="login-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <polygon points="30,200 0,252 60,252" fill="#00B4D8" opacity="1"/>
     <polygon points="30,290 0,342 60,342" fill="#00B4D8" opacity="1"/>
     <polygon points="30,380 0,432 60,432" fill="#00B4D8" opacity="1"/>
-    <polygon points="88,412 74,436 102,436" fill="#00B4D8" opacity="0.22"/>
-    <polygon points="570,322 552,353 588,353" fill="#00B4D8" opacity="0.18"/>
-    <polygon points="1280,350 1264,378 1296,378" fill="#00B4D8" opacity="0.15"/>
-    <polygon points="1350,500 1336,524 1364,524" fill="#00B4D8" opacity="0.12"/>
     <rect x="360" y="894" width="720" height="4" fill="#00B4D8"/>
   </svg>
-  <div style="position:absolute;top:1.5rem;right:1.5rem;z-index:3">
-    <svg width="115" height="54" viewBox="0 0 115 54" xmlns="http://www.w3.org/2000/svg">
-      <text x="0" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff">D</text>
-      <text x="32" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff">G</text>
-      <polygon points="46,15 46,33 62,24" fill="#00B4D8"/>
-      <text x="65" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff">X</text>
-      <text x="2" y="52" font-family="Arial,sans-serif" font-size="10" fill="#fff" letter-spacing="2">CONSULTING</text>
-    </svg>
-  </div>
   <div class="login-box">
     <div class="login-hawks-logo">
       <div class="login-hawks-fallback">Hawks<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div>
     </div>
-    <div class="login-title">Acesse seu dashboard</div>
-    <input type="password" id="pwdInput" placeholder="Senha de acesso"/>
-    <button id="btnLogin">Entrar</button>
-    <div class="login-error" id="loginError"></div>
+    <div class="login-title">Redirecionando para o login...</div>
     <div class="login-footer">Powered by DGX Consulting · Dados confidenciais</div>
   </div>
 </div>
@@ -218,25 +201,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-// ─── LOGIN ───
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('btnLogin').addEventListener('click', doLogin);
-  document.getElementById('pwdInput').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+// ─── SUPABASE AUTH ───
+var sb = supabase.createClient(
+  'https://mixsehmmwvrbpndavvhp.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw'
+);
+
+document.addEventListener('DOMContentLoaded', async function() {
+  var loading = document.getElementById('loadingScreen');
+  var app = document.getElementById('app');
+
+  try {
+    var { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      var { data: profile } = await sb.from('profiles')
+        .select('is_admin, tipo, dashboard')
+        .eq('id', session.user.id)
+        .single();
+      var temAcesso = profile && (
+        profile.is_admin === true ||
+        profile.tipo === 'admin' ||
+        profile.dashboard === 'hawks'
+      );
+      if (temAcesso) {
+        loading.style.display = 'none';
+        app.style.display = 'flex';
+        renderPage('vendas');
+        return;
+      }
+    }
+  } catch(e) {
+    console.error('Auth error:', e);
+  }
+  // Sem sessão ou sem acesso
+  window.location.href = '/clientes';
 });
-function doLogin(){
-  var inp=document.getElementById('pwdInput'), err=document.getElementById('loginError');
-  err.textContent='';
-  if(inp.value==='DGX123456'){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('app').style.display='flex';
-    renderPage('vendas');
-  } else { err.textContent='Senha incorreta. Tente novamente.'; inp.value=''; inp.focus(); }
-}
+
 function doLogout(){
-  document.getElementById('app').style.display='none';
-  document.getElementById('loginScreen').style.display='flex';
-  document.getElementById('pwdInput').value='';
-  document.getElementById('loginError').textContent='';
+  sb.auth.signOut().then(function(){
+    window.location.href = '/clientes';
+  });
   vendasInit=false; margemInit=false;
 }
 
@@ -261,23 +265,19 @@ function renderPage(page){
 
 // ─── VENDAS ───
 var vendasInit=false;
-// ─── VENDAS DATA ───
 var V = {
   meses: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
-  // Receita por canal — null = sem dados ainda
   canal: {
     salao:  [193000,178000,295000,null,null,null,null,null,null,null,null,null],
     loja:   [88000, 72000, 122000,null,null,null,null,null,null,null,null,null],
     func:   [27011, 39463, 52057, null,null,null,null,null,null,null,null,null]
   },
-  // Receita por categoria
   cat: {
     hc: [145000,128000,210000,null,null,null,null,null,null,null,null,null],
     pr: [112000,108000,178000,null,null,null,null,null,null,null,null,null],
     co: [38000, 42000, 62000, null,null,null,null,null,null,null,null,null],
     qu: [13011, 11463, 19057, null,null,null,null,null,null,null,null,null]
   },
-  // Volume por canal
   vol: {
     salao: [2750,2980,4620,null,null,null,null,null,null,null,null,null],
     loja:  [1100,980, 1780,null,null,null,null,null,null,null,null,null],
@@ -285,135 +285,67 @@ var V = {
   }
 };
 
-function buildVendasTable(rowDefs, totais, fmt, pctBase) {
-  // rowDefs: [{label, color, data}]  totais: array[12]  fmt: function  pctBase: 'col' (% do mês)
+function buildVendasTable(rowDefs, totais, fmt) {
   var meses = V.meses;
   var hasData = meses.map(function(_,i){ return totais[i] !== null && totais[i] > 0; });
-
-  var html = '<div style="overflow-x:auto;margin-top:14px">'
-    + '<table class="v-table"><thead><tr>'
-    + '<th>Linha</th>'
-    + meses.map(function(m,i){
-        return '<th'+(hasData[i]?'':' class="v-empty"')+'>'+m+'</th><th'+(hasData[i]?'':' class="v-empty"')+'  style="color:#aab">%</th>';
-      }).join('')
-    + '<th>Total</th><th style="color:#aab">%</th>'
-    + '</tr></thead><tbody>';
-
+  var html = '<div style="overflow-x:auto;margin-top:14px"><table class="v-table"><thead><tr><th>Linha</th>'
+    + meses.map(function(m,i){ return '<th'+(hasData[i]?'':' class="v-empty"')+'>'+m+'</th><th'+(hasData[i]?'':' class="v-empty"')+' style="color:#aab">%</th>'; }).join('')
+    + '<th>Total</th><th style="color:#aab">%</th></tr></thead><tbody>';
   rowDefs.forEach(function(r){
     var tot = r.data.reduce(function(a,b){return a+(b||0);},0);
     var grandTotal = totais.reduce(function(a,b){return a+(b||0);},0);
-    html += '<tr>'
-      + '<td><span class="v-dot" style="background:'+r.color+'"></span>'+r.label+'</td>'
+    html += '<tr><td><span class="v-dot" style="background:'+r.color+'"></span>'+r.label+'</td>'
       + meses.map(function(_,i){
-          var v = r.data[i];
-          var t = totais[i];
+          var v = r.data[i]; var t = totais[i];
           var pct = (v !== null && t) ? (v/t*100).toFixed(1)+'%' : '—';
           return '<td'+(hasData[i]?'':' class="v-empty"')+'>'+(v !== null ? fmt(v) : '—')+'</td>'
-               + '<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">' + pct + '</td>';
+               + '<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">'+pct+'</td>';
         }).join('')
       + '<td class="v-total">'+fmt(tot)+'</td>'
-      + '<td class="v-pct">'+(grandTotal>0?(tot/grandTotal*100).toFixed(1)+'%':'—')+'</td>'
-      + '</tr>';
+      + '<td class="v-pct">'+(grandTotal>0?(tot/grandTotal*100).toFixed(1)+'%':'—')+'</td></tr>';
   });
-
-  // Linha de total
-  html += '<tr class="v-tot-row">'
-    + '<td>Total</td>'
+  html += '<tr class="v-tot-row"><td>Total</td>'
     + meses.map(function(_,i){
         var t = totais[i];
         return '<td'+(hasData[i]?'':' class="v-empty"')+'>'+(t !== null ? fmt(t) : '—')+'</td>'
              + '<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">100%</td>';
       }).join('')
     + '<td class="v-total">'+fmt(totais.reduce(function(a,b){return a+(b||0);},0))+'</td>'
-    + '<td class="v-pct">100%</td>'
-    + '</tr>';
-
+    + '<td class="v-pct">100%</td></tr>';
   html += '</tbody></table></div>';
   return html;
 }
 
 function vendasHTML(){
-  var fR = function(v){ return 'R$ '+Math.round(v/1000)+'K'; };
+  var fR = function(v){ return 'R$ '+Math.round(v/1000)+'K'; };
   var fN = function(v){ return v.toLocaleString('pt-BR'); };
-
-  // Totais por mês
-  var totCanal = V.meses.map(function(_,i){
-    var s=V.canal.salao[i], l=V.canal.loja[i], f=V.canal.func[i];
-    return (s===null&&l===null&&f===null) ? null : (s||0)+(l||0)+(f||0);
-  });
-  var totCat = V.meses.map(function(_,i){
-    var h=V.cat.hc[i], p=V.cat.pr[i], c=V.cat.co[i], q=V.cat.qu[i];
-    return (h===null&&p===null&&c===null&&q===null) ? null : (h||0)+(p||0)+(c||0)+(q||0);
-  });
-  var totVol = V.meses.map(function(_,i){
-    var s=V.vol.salao[i], l=V.vol.loja[i], f=V.vol.func[i];
-    return (s===null&&l===null&&f===null) ? null : (s||0)+(l||0)+(f||0);
-  });
-
-  var tabelaCanal = buildVendasTable([
-    {label:'Salão',      color:'#00B4D8', data:V.canal.salao},
-    {label:'Loja',       color:'#1E2D40', data:V.canal.loja},
-    {label:'Funcionário',color:'#5B8DB8', data:V.canal.func}
-  ], totCanal, fR);
-
-  var tabelaCat = buildVendasTable([
-    {label:'Home Care',   color:'#00B4D8', data:V.cat.hc},
-    {label:'Profissional',color:'#1E2D40', data:V.cat.pr},
-    {label:'Coloração',   color:'#5B8DB8', data:V.cat.co},
-    {label:'Química',     color:'#A8C8E0', data:V.cat.qu}
-  ], totCat, fR);
-
-  var tabelaVol = buildVendasTable([
-    {label:'Salão',      color:'#00B4D8', data:V.vol.salao},
-    {label:'Loja',       color:'#1E2D40', data:V.vol.loja},
-    {label:'Funcionário',color:'#5B8DB8', data:V.vol.func}
-  ], totVol, fN);
-
-  return '<div class="kpi-grid">'
-    +'<div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div>'
-    +'</div>'
-    +'<div class="chart-card">'
-    +'<div class="chart-title">Receita bruta por canal — mês a mês</div>'
-    +'<div class="chart-sub">Barras empilhadas em R$</div>'
-    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div>'
-    +'<div class="chart-wrap" style="height:250px"><canvas id="chartCanal"></canvas></div>'
-    +tabelaCanal
-    +'</div>'
-    +'<div class="chart-card">'
-    +'<div class="chart-title">Receita por categoria — mês a mês</div>'
-    +'<div class="chart-sub">Linhas com valor em R$</div>'
-    +'<div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span></div>'
-    +'<div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div>'
-    +tabelaCat
-    +'</div>'
-    +'<div class="chart-card">'
-    +'<div class="chart-title">Volume de unidades por canal — mês a mês</div>'
-    +'<div class="chart-sub">Barras empilhadas em unidades</div>'
-    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div>'
-    +'<div class="chart-wrap" style="height:250px"><canvas id="chartVol"></canvas></div>'
-    +tabelaVol
-    +'</div>'
+  var totCanal = V.meses.map(function(_,i){ var s=V.canal.salao[i],l=V.canal.loja[i],f=V.canal.func[i]; return (s===null&&l===null&&f===null)?null:(s||0)+(l||0)+(f||0); });
+  var totCat = V.meses.map(function(_,i){ var h=V.cat.hc[i],p=V.cat.pr[i],c=V.cat.co[i],q=V.cat.qu[i]; return (h===null&&p===null&&c===null&&q===null)?null:(h||0)+(p||0)+(c||0)+(q||0); });
+  var totVol = V.meses.map(function(_,i){ var s=V.vol.salao[i],l=V.vol.loja[i],f=V.vol.func[i]; return (s===null&&l===null&&f===null)?null:(s||0)+(l||0)+(f||0); });
+  var tabelaCanal = buildVendasTable([{label:'Salão',color:'#00B4D8',data:V.canal.salao},{label:'Loja',color:'#1E2D40',data:V.canal.loja},{label:'Funcionário',color:'#5B8DB8',data:V.canal.func}], totCanal, fR);
+  var tabelaCat = buildVendasTable([{label:'Home Care',color:'#00B4D8',data:V.cat.hc},{label:'Profissional',color:'#1E2D40',data:V.cat.pr},{label:'Coloração',color:'#5B8DB8',data:V.cat.co},{label:'Química',color:'#A8C8E0',data:V.cat.qu}], totCat, fR);
+  var tabelaVol = buildVendasTable([{label:'Salão',color:'#00B4D8',data:V.vol.salao},{label:'Loja',color:'#1E2D40',data:V.vol.loja},{label:'Funcionário',color:'#5B8DB8',data:V.vol.func}], totVol, fN);
+  return '<div class="kpi-grid"><div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">R$ 1,07M</div><div class="kpi-sub">Jan + Fev + Mar</div></div><div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">16.641</div><div class="kpi-sub">unidades pedidas</div></div><div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~62% da receita</div></div><div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">Março</div><div class="kpi-sub kpi-hi">R$ 469K · +62% vs fev</div></div></div>'
+    +'<div class="chart-card"><div class="chart-title">Receita bruta por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em R$</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartCanal"></canvas></div>'+tabelaCanal+'</div>'
+    +'<div class="chart-card"><div class="chart-title">Receita por categoria — mês a mês</div><div class="chart-sub">Linhas com valor em R$</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Química</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div>'+tabelaCat+'</div>'
+    +'<div class="chart-card"><div class="chart-title">Volume de unidades por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em unidades</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcionário</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol"></canvas></div>'+tabelaVol+'</div>'
     +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
 }
+
 function initVendas(){
   if(vendasInit)return; vendasInit=true;
   setTimeout(function(){
     var gc='rgba(0,0,0,0.07)',tc='#6b7a8d',months=['Janeiro','Fevereiro','Março'];
-    // Slice first 3 months with data from V arrays
     var cD={s:V.canal.salao.slice(0,3),l:V.canal.loja.slice(0,3),f:V.canal.func.slice(0,3)};
     var catD={hc:V.cat.hc.slice(0,3),p:V.cat.pr.slice(0,3),c:V.cat.co.slice(0,3),q:V.cat.qu.slice(0,3)};
     var vD={s:V.vol.salao.slice(0,3),l:V.vol.loja.slice(0,3),f:V.vol.func.slice(0,3)};
-    var rT=months.map(function(_,i){return cD.s[i]+cD.l[i]+cD.f[i];});
-    var vT=months.map(function(_,i){return vD.s[i]+vD.l[i]+vD.f[i];});
     var fR=function(v){return 'R$ '+Math.round(v/1000)+'K';};
     var fN=function(v){return v.toLocaleString('pt-BR');};
     var pct=function(v,t){return (v/t*100).toFixed(0)+'%';};
     function sTot(data){return data.datasets[0].data.map(function(_,i){return data.datasets.reduce(function(s,ds){return s+(ds.data[i]||0);},0);});}
     function barPlugin(fIn,fTop){return{id:'bp'+Math.random(),afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data,tots=sTot(data);data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(bar,i){var val=ds.data[i];if(!val)return;var h=Math.abs(bar.base-bar.y);if(h<16)return;var cx=bar.x,cy=(bar.y+bar.base)/2,p=pct(val,tots[i]);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(p,cx,cy+7);}else{ctx.font='500 10px sans-serif';ctx.fillText(p,cx,cy);}ctx.restore();});});},afterDraw:function(chart){var ctx=chart.ctx,data=chart.data,sc=chart.scales,tots=sTot(data);ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';tots.forEach(function(t,i){ctx.fillText(fTop(t),sc.x.getPixelForValue(i),sc.y.getPixelForValue(t)-8);});ctx.restore();}};}
     var CC=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
+    var rT=months.map(function(_,i){return cD.s[i]+cD.l[i]+cD.f[i];});
     var pp={id:'pp',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i],p=pct(val,rT[i]),above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);ctx.restore();});});}};
     new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Salão',data:cD.s,backgroundColor:'#00B4D8',stack:'a'},{label:'Loja',data:cD.l,backgroundColor:'#1E2D40',stack:'a'},{label:'Funcionário',data:cD.f,backgroundColor:'#5B8DB8',stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
     new Chart(document.getElementById('chartCat'),{type:'line',plugins:[pp],data:{labels:months,datasets:[{label:'Home Care',data:catD.hc,borderColor:'#00B4D8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Profissional',data:catD.p,borderColor:'#1E2D40',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Coloração',data:catD.c,borderColor:'#5B8DB8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Química',data:catD.q,borderColor:'#A8C8E0',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
@@ -472,17 +404,9 @@ function margemHTML(){
   var totalMB=MG.margemBruta.reduce(function(a,b){return a+b;},0);
   var totalCMV=MG.cmv.reduce(function(a,b){return a+b;},0);
   var fR=function(v){return 'R$ '+(v>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};
-  return '<div class="mg-kpi-grid">'
-    +'<div class="mg-kpi"><div class="mg-kpi-label">Receita Líquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">Jan – Abr 2026</div></div>'
-    +'<div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div>'
-    +'<div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita Líq. − CMV</div></div>'
-    +'<div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta média</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">Média Jan – Abr</div></div>'
-    +'</div>'
-    +'<div class="chart-card"><div class="chart-title">Receita Líquida × CMV — mês a mês</div>'
-    +'<div class="chart-sub">Barras: Receita Líquida (escuro) e CMV (azul) · Linha verde: % Margem Bruta s/ Receita Líquida</div>'
-    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita Líquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div>'
-    +'<div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'
-    +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
+  return '<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita Líquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">Jan – Abr 2026</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita Líq. − CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta média</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">Média Jan – Abr</div></div></div>'
+  +'<div class="chart-card"><div class="chart-title">Receita Líquida × CMV — mês a mês</div><div class="chart-sub">Barras: Receita Líquida (escuro) e CMV (azul) · Linha verde: % Margem Bruta s/ Receita Líquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita Líquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'
+  +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
 }
 function initMargem(){
   if(margemInit)return; margemInit=true;
@@ -490,571 +414,41 @@ function initMargem(){
     var tc='#6b7a8d',gc='rgba(0,0,0,0.07)';
     var pctM=MG.receitaLiq.map(function(rl,i){return parseFloat(((rl-MG.cmv[i])/rl*100).toFixed(1));});
     var fR=function(v){return 'R$ '+Math.round(v/1000)+'K';};
-    var annotPlugin={id:'annotMargem',afterDatasetsDraw:function(chart){
-      var ctx=chart.ctx;
-      chart.getDatasetMeta(0).data.forEach(function(bar,i){
-        ctx.save();ctx.font='600 11px sans-serif';ctx.fillStyle='#2ECC71';ctx.textAlign='center';ctx.textBaseline='bottom';
-        ctx.fillText(pctM[i].toFixed(1)+'%',bar.x,bar.y-4);ctx.restore();
-      });
-    }};
-    new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],
-      data:{labels:MG.meses,datasets:[
-        {label:'Receita Líquida',data:MG.receitaLiq,backgroundColor:'#1E2D40',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},
-        {label:'CMV',data:MG.cmv,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},
-        {label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false}},
-        scales:{x:{grid:{display:false},ticks:{color:tc}},
-          y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fR(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},
-          y2:{position:'right',min:90,max:100,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}
-    });
+    var annotPlugin={id:'annotMargem',afterDatasetsDraw:function(chart){var ctx=chart.ctx;chart.getDatasetMeta(0).data.forEach(function(bar,i){ctx.save();ctx.font='600 11px sans-serif';ctx.fillStyle='#2ECC71';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(pctM[i].toFixed(1)+'%',bar.x,bar.y-4);ctx.restore();});}};
+    new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:MG.meses,datasets:[{label:'Receita Líquida',data:MG.receitaLiq,backgroundColor:'#1E2D40',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV',data:MG.cmv,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fR(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:90,max:100,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
   },100);
 }
 
-// ─── DFC DATA ───
-// 12 meses — só Jan(0) Fev(1) Mar(2) Abr(3) têm dados; restante fica null/zero
+// ─── DFC ───
 var MESES_LABELS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var MESES_FULL=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-// Índices com dados reais
 var MESES_COM_DADOS=[0,1,2,3];
-
 var DFC_DADOS=[
-  // Jan
   {caixaInicial:120243,recVendas:40998,jurosMultas:0,outrasEnt:0,pgtoTruss:0,pgtoNaoTruss:-12697,pgtoPessoal:-4536,pgtoMkt:-20893,pgtoComissoes:0,pgtoLogistica:-936,pgtoOcupacao:-631,pgtoGerais:-15751,pgtoTerceiros:0,pgtoImpostos:-6152,entInvest:0,saiInvest:0,emprestimos:0,pgtoFinanc:-96},
-  // Fev
   {caixaInicial:99797,recVendas:85479,jurosMultas:0,outrasEnt:0,pgtoTruss:-9302,pgtoNaoTruss:-10162,pgtoPessoal:-4948,pgtoMkt:-58488,pgtoComissoes:0,pgtoLogistica:-2491,pgtoOcupacao:-7421,pgtoGerais:-3000,pgtoTerceiros:-4148,pgtoImpostos:-7506,entInvest:0,saiInvest:0,emprestimos:0,pgtoFinanc:-707},
-  // Mar
   {caixaInicial:78168,recVendas:267400,jurosMultas:0,outrasEnt:0,pgtoTruss:-227344,pgtoNaoTruss:-20273,pgtoPessoal:-5172,pgtoMkt:-12825,pgtoComissoes:-43409,pgtoLogistica:-2991,pgtoOcupacao:-7775,pgtoGerais:-15035,pgtoTerceiros:-9387,pgtoImpostos:-9680,entInvest:0,saiInvest:0,emprestimos:200000,pgtoFinanc:-1882},
-  // Abr
   {caixaInicial:178986,recVendas:461715,jurosMultas:0,outrasEnt:0,pgtoTruss:-380230,pgtoNaoTruss:-13179,pgtoPessoal:-2488,pgtoMkt:-21387,pgtoComissoes:-50564,pgtoLogistica:-2920,pgtoOcupacao:-7986,pgtoGerais:-3842,pgtoTerceiros:0,pgtoImpostos:-34539,entInvest:0,saiInvest:0,emprestimos:183000,pgtoFinanc:-2879},
-  // Mai–Dez: sem dados
   null,null,null,null,null,null,null,null
 ];
-
-function calcDFC(d){
-  if(!d) return null;
-  var entOp=d.recVendas+d.jurosMultas+d.outrasEnt;
-  var saiOp=d.pgtoTruss+d.pgtoNaoTruss+d.pgtoPessoal+d.pgtoMkt+d.pgtoComissoes+d.pgtoLogistica+d.pgtoOcupacao+d.pgtoGerais+d.pgtoTerceiros+d.pgtoImpostos;
-  var fcOp=entOp+saiOp;
-  var fcInv=d.entInvest+d.saiInvest;
-  var fcFin=d.emprestimos+d.pgtoFinanc;
-  var liquido=fcOp+fcInv+fcFin;
-  var caixaFinal=d.caixaInicial+liquido;
-  return{entOp:entOp,saiOp:Math.abs(saiOp),saiTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc),
-    fcOp:fcOp,fcInv:fcInv,fcFin:fcFin,liquido:liquido,caixaFinal:caixaFinal,
-    entTotal:entOp+d.emprestimos,saiGrandTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc)};
-}
-
+function calcDFC(d){if(!d)return null;var entOp=d.recVendas+d.jurosMultas+d.outrasEnt;var saiOp=d.pgtoTruss+d.pgtoNaoTruss+d.pgtoPessoal+d.pgtoMkt+d.pgtoComissoes+d.pgtoLogistica+d.pgtoOcupacao+d.pgtoGerais+d.pgtoTerceiros+d.pgtoImpostos;var fcOp=entOp+saiOp;var fcInv=d.entInvest+d.saiInvest;var fcFin=d.emprestimos+d.pgtoFinanc;var liquido=fcOp+fcInv+fcFin;var caixaFinal=d.caixaInicial+liquido;return{entOp:entOp,saiOp:Math.abs(saiOp),saiTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc),fcOp:fcOp,fcInv:fcInv,fcFin:fcFin,liquido:liquido,caixaFinal:caixaFinal,entTotal:entOp+d.emprestimos,saiGrandTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc)};}
 var CYAN='#00D4DA',BEIGE='#C8B89A',SALDO_C='#2C6BE0',CYAN_TOT='#007B80',INI_C='#2C6BE0';
 var GC='rgba(255,255,255,0.05)',TC='#6B8BAA';
-
 function fmtD(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';return(v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');}
 function fv(v){return(!v&&v!==0)||v===0?'—':fmtD(v);}
 function tcClass(v){return(!v&&v!==0)||v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}
-
 function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
-
-// ─── DFC HTML ───
-function dfcHTML(){
-  return '<div class="dfc-nav">'
-    +'<button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button>'
-    +'<button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button>'
-    +'</div>'
-    +'<div id="dfc-view-anual"></div>'
-    +'<div id="dfc-view-mensal" style="display:none"></div>'
-    +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';
-}
-
-function dfcShowView(v){
-  document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('dfc-btn-'+v).classList.add('active');
-  document.getElementById('dfc-view-anual').style.display=v==='anual'?'':'none';
-  document.getElementById('dfc-view-mensal').style.display=v==='mensal'?'':'none';
-  if(v==='anual') renderDFCAnual();
-  else renderDFCMensal();
-}
-
-// ─── DFC ANUAL ───
-function renderDFCAnual(){
-  var el=document.getElementById('dfc-view-anual');
-
-  // Calcular totais dos meses com dados
-  var calcs=DFC_DADOS.map(function(d){return d?calcDFC(d):null;});
-  var totalEnt=calcs.reduce(function(a,c){return c?a+c.entTotal:a;},0);
-  var totalSai=calcs.reduce(function(a,c){return c?a+c.saiGrandTotal:a;},0);
-  // Saldo final = último mês com dados
-  var ultimoCalc=null;
-  for(var i=MESES_COM_DADOS.length-1;i>=0;i--){var idx=MESES_COM_DADOS[i];if(calcs[idx]){ultimoCalc=calcs[idx];break;}}
-  var saldoFim=ultimoCalc?ultimoCalc.caixaFinal:0;
-
-  el.innerHTML='<div class="dfc-cards">'
-    +'<div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+fmtD(totalEnt)+'</div><div class="dfc-card-sub">Jan – Abr 2026 (acumulado)</div></div>'
-    +'<div class="dfc-card neg"><div class="dfc-card-label">Total saídas</div><div class="dfc-card-value beige">'+fmtD(totalSai)+'</div><div class="dfc-card-sub">Jan – Abr 2026 (acumulado)</div></div>'
-    +'<div class="dfc-card"><div class="dfc-card-label">Saldo atual de caixa</div><div class="dfc-card-value">'+fmtD(saldoFim)+'</div><div class="dfc-card-sub">Posição ao final de Abr/26</div></div>'
-    +'</div>'
-    +'<div class="dfc-section-label">Bridge — Composição do saldo</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do fluxo de caixa</div><div class="dfc-chart-sub">Saldo inicial + entradas − saídas por categoria até o saldo final (acumulado Jan–Abr)</div><div style="height:220px;position:relative"><canvas id="dfc-waterfall-anual"></canvas></div></div>'
-    +'<div class="dfc-section-label">Saldo por mês</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Saldo líquido mensal</div><div class="dfc-chart-sub">Variação de caixa em cada mês — positivo em ciano, negativo em creme · meses sem dados aparecem em branco</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-anual"></canvas></div></div>'
-    +'<div class="dfc-section-label">Fluxo mensal</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e saídas mensais</div><div class="dfc-chart-sub">Barras espelhadas por mês com linha de saldo bancário acumulado</div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Saí. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Saí. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#3A8FE0"></span>Ent. Inv.</span><span class="dfc-leg"><span class="dfc-leg-line" style="background:#00D4DA"></span>Saldo</span></div>'
-    +'<div class="dfc-filtro-wrap"><button id="dfc-filtro-anual-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoAnual(\'todos\')">Todos</button><button id="dfc-filtro-anual-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'operacional\')">Operacional</button><button id="dfc-filtro-anual-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'financiamento\')">Financiamento</button><button id="dfc-filtro-anual-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'investimento\')">Investimento</button></div></div>'
-    +'<div style="height:230px;position:relative"><canvas id="dfc-espelhado-anual"></canvas></div></div>'
-    +'<div class="dfc-section-label">DFC detalhado</div>'
-    +'<div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-anual"></table></div>';
-
-  setTimeout(function(){
-    buildWaterfallAnual(calcs);
-    buildSaldoAnual(calcs);
-    buildEspelhadoAnual(calcs);
-    buildTabelaAnual(calcs);
-  },80);
-}
-
-function buildWaterfallAnual(calcs){
-  var saldoIni=DFC_DADOS[0]?DFC_DADOS[0].caixaInicial:0;
-  var totalRecVendas=DFC_DADOS.reduce(function(a,d){return d?a+d.recVendas:a;},0);
-  var totalEmprestimos=DFC_DADOS.reduce(function(a,d){return d?a+d.emprestimos:a;},0);
-  var totalPgtoFornec=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoTruss)+Math.abs(d.pgtoNaoTruss):a;},0);
-  var totalDespOp=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoPessoal)+Math.abs(d.pgtoMkt)+Math.abs(d.pgtoComissoes)+Math.abs(d.pgtoLogistica)+Math.abs(d.pgtoOcupacao)+Math.abs(d.pgtoGerais)+Math.abs(d.pgtoTerceiros):a;},0);
-  var totalImpostos=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoImpostos):a;},0);
-  var totalAmort=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoFinanc):a;},0);
-  var ultimoCalc=null;
-  for(var i=MESES_COM_DADOS.length-1;i>=0;i--){var idx=MESES_COM_DADOS[i];if(calcs[idx]){ultimoCalc=calcs[idx];break;}}
-  var saldoFim=ultimoCalc?ultimoCalc.caixaFinal:0;
-
-  var bData=[
-    {label:'Saldo ini.',value:saldoIni,type:'ini'},
-    {label:'Rec. vendas',value:totalRecVendas,type:'pos'},
-    {label:'Captações',value:totalEmprestimos,type:'pos'},
-    {label:'Pgto. fornec.',value:-totalPgtoFornec,type:'neg'},
-    {label:'Desp. operac.',value:-totalDespOp,type:'neg'},
-    {label:'Impostos',value:-totalImpostos,type:'neg'},
-    {label:'Amortizações',value:-totalAmort,type:'neg'},
-    {label:'Saldo final',value:saldoFim,type:'tot'},
-  ];
-  var starts=[],bars=[],colors=[],run=0;
-  bData.forEach(function(v){
-    if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}
-    else if(v.type==='pos'){starts.push(run);bars.push(v.value);}
-    else{starts.push(run+v.value);bars.push(-v.value);}
-    if(v.type!=='tot') run+=v.value;
-    colors.push(v.type==='ini'?INI_C:v.type==='tot'?CYAN_TOT:v.type==='pos'?CYAN:BEIGE);
-  });
-  destroyChart('dfc-waterfall-anual');
-  new Chart(document.getElementById('dfc-waterfall-anual'),{type:'bar',
-    data:{labels:bData.map(function(v){return v.label;}),datasets:[
-      {data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},
-      {data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return bData[c.dataIndex].label+': '+fmtD(bData[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},
-      scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},stacked:true},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},stacked:true}}}
-  });
-}
-
-function buildSaldoAnual(calcs){
-  var liquidoArr=MESES_LABELS.map(function(_,i){return calcs[i]?calcs[i].liquido:null;});
-  destroyChart('dfc-saldo-anual');
-  new Chart(document.getElementById('dfc-saldo-anual'),{type:'bar',
-    data:{labels:MESES_LABELS,datasets:[{label:'Saldo',data:liquidoArr,
-      backgroundColor:liquidoArr.map(function(v){return v===null?'rgba(255,255,255,0.05)':v>=0?CYAN:BEIGE;}),
-      borderRadius:4,borderSkipped:false}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw===null?'Sem dados':'Saldo: '+fmtD(c.raw);}}}},
-      scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},border:{display:false}},
-        y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},border:{display:false}}}}
-  });
-}
-
+function dfcHTML(){return '<div class="dfc-nav"><button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button><button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button></div><div id="dfc-view-anual"></div><div id="dfc-view-mensal" style="display:none"></div><div class="confidential">© 2026 DGX Consulting · Uso exclusivo Hawks Beauty MT · Não compartilhar</div>';}
+function dfcShowView(v){document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});document.getElementById('dfc-btn-'+v).classList.add('active');document.getElementById('dfc-view-anual').style.display=v==='anual'?'':'none';document.getElementById('dfc-view-mensal').style.display=v==='mensal'?'':'none';if(v==='anual')renderDFCAnual();else renderDFCMensal();}
+function renderDFCAnual(){var el=document.getElementById('dfc-view-anual');var calcs=DFC_DADOS.map(function(d){return d?calcDFC(d):null;});var totalEnt=calcs.reduce(function(a,c){return c?a+c.entTotal:a;},0);var totalSai=calcs.reduce(function(a,c){return c?a+c.saiGrandTotal:a;},0);var ultimoCalc=null;for(var i=MESES_COM_DADOS.length-1;i>=0;i--){var idx=MESES_COM_DADOS[i];if(calcs[idx]){ultimoCalc=calcs[idx];break;}}var saldoFim=ultimoCalc?ultimoCalc.caixaFinal:0;el.innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+fmtD(totalEnt)+'</div><div class="dfc-card-sub">Jan – Abr 2026 (acumulado)</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total saídas</div><div class="dfc-card-value beige">'+fmtD(totalSai)+'</div><div class="dfc-card-sub">Jan – Abr 2026 (acumulado)</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo atual de caixa</div><div class="dfc-card-value">'+fmtD(saldoFim)+'</div><div class="dfc-card-sub">Posição ao final de Abr/26</div></div></div><div class="dfc-section-label">Bridge — Composição do saldo</div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do fluxo de caixa</div><div class="dfc-chart-sub">Saldo inicial + entradas − saídas por categoria até o saldo final (acumulado Jan–Abr)</div><div style="height:220px;position:relative"><canvas id="dfc-waterfall-anual"></canvas></div></div><div class="dfc-section-label">Saldo por mês</div><div class="dfc-chart-card"><div class="dfc-chart-title">Saldo líquido mensal</div><div class="dfc-chart-sub">Variação de caixa em cada mês</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-anual"></canvas></div></div><div class="dfc-section-label">Fluxo mensal</div><div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e saídas mensais</div><div class="dfc-chart-sub">Barras espelhadas por mês com linha de saldo bancário acumulado</div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Saí. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Saí. Fin.</span></div><div class="dfc-filtro-wrap"><button id="dfc-filtro-anual-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoAnual(\'todos\')">Todos</button><button id="dfc-filtro-anual-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'operacional\')">Operacional</button><button id="dfc-filtro-anual-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'financiamento\')">Financiamento</button><button id="dfc-filtro-anual-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'investimento\')">Investimento</button></div></div><div style="height:230px;position:relative"><canvas id="dfc-espelhado-anual"></canvas></div></div><div class="dfc-section-label">DFC detalhado</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-anual"></table></div>';setTimeout(function(){buildWaterfallAnual(calcs);buildSaldoAnual(calcs);buildEspelhadoAnual(calcs);buildTabelaAnual(calcs);},80);}
+function buildWaterfallAnual(calcs){var saldoIni=DFC_DADOS[0]?DFC_DADOS[0].caixaInicial:0;var totalRecVendas=DFC_DADOS.reduce(function(a,d){return d?a+d.recVendas:a;},0);var totalEmprestimos=DFC_DADOS.reduce(function(a,d){return d?a+d.emprestimos:a;},0);var totalPgtoFornec=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoTruss)+Math.abs(d.pgtoNaoTruss):a;},0);var totalDespOp=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoPessoal)+Math.abs(d.pgtoMkt)+Math.abs(d.pgtoComissoes)+Math.abs(d.pgtoLogistica)+Math.abs(d.pgtoOcupacao)+Math.abs(d.pgtoGerais)+Math.abs(d.pgtoTerceiros):a;},0);var totalImpostos=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoImpostos):a;},0);var totalAmort=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoFinanc):a;},0);var ultimoCalc=null;for(var i=MESES_COM_DADOS.length-1;i>=0;i--){var idx=MESES_COM_DADOS[i];if(calcs[idx]){ultimoCalc=calcs[idx];break;}}var saldoFim=ultimoCalc?ultimoCalc.caixaFinal:0;var bData=[{label:'Saldo ini.',value:saldoIni,type:'ini'},{label:'Rec. vendas',value:totalRecVendas,type:'pos'},{label:'Captações',value:totalEmprestimos,type:'pos'},{label:'Pgto. fornec.',value:-totalPgtoFornec,type:'neg'},{label:'Desp. operac.',value:-totalDespOp,type:'neg'},{label:'Impostos',value:-totalImpostos,type:'neg'},{label:'Amortizações',value:-totalAmort,type:'neg'},{label:'Saldo final',value:saldoFim,type:'tot'}];var starts=[],bars=[],colors=[],run=0;bData.forEach(function(v){if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}else if(v.type==='pos'){starts.push(run);bars.push(v.value);}else{starts.push(run+v.value);bars.push(-v.value);}if(v.type!=='tot')run+=v.value;colors.push(v.type==='ini'?INI_C:v.type==='tot'?CYAN_TOT:v.type==='pos'?CYAN:BEIGE);});destroyChart('dfc-waterfall-anual');new Chart(document.getElementById('dfc-waterfall-anual'),{type:'bar',data:{labels:bData.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return bData[c.dataIndex].label+': '+fmtD(bData[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},stacked:true},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},stacked:true}}}});}
+function buildSaldoAnual(calcs){var liquidoArr=MESES_LABELS.map(function(_,i){return calcs[i]?calcs[i].liquido:null;});destroyChart('dfc-saldo-anual');new Chart(document.getElementById('dfc-saldo-anual'),{type:'bar',data:{labels:MESES_LABELS,datasets:[{label:'Saldo',data:liquidoArr,backgroundColor:liquidoArr.map(function(v){return v===null?'rgba(255,255,255,0.05)':v>=0?CYAN:BEIGE;}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},border:{display:false}},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},border:{display:false}}}}});}
 var _anualCalcs=null;
-
-function buildEspelhadoAnual(calcs){
-  _anualCalcs=calcs;
-  filtroEspelhadoAnual('todos');
-}
-
-function filtroEspelhadoAnual(filtro){
-  var calcs=_anualCalcs; if(!calcs) return;
-  var saldoIni=DFC_DADOS[0]?DFC_DADOS[0].caixaInicial:0;
-  var entOpArr=MESES_LABELS.map(function(_,i){return calcs[i]?calcs[i].entOp:null;});
-  var entFinArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?d.emprestimos:null;});
-  var entInvArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?d.entInvest:null;});
-  var saiOpArr=MESES_LABELS.map(function(_,i){return calcs[i]?-calcs[i].saiOp:null;});
-  var saiFinArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?-Math.abs(d.pgtoFinanc):null;});
-  var saiInvArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?-Math.abs(d.saiInvest):null;});
-
-  // Saldo filtrado: saldo inicial + fluxo apenas das atividades selecionadas
-  var acc=saldoIni;
-  var saldoAcum=MESES_LABELS.map(function(_,i){
-    if(!calcs[i]) return null;
-    var d=DFC_DADOS[i];
-    var fluxo=0;
-    if(filtro==='todos'||filtro==='operacional') fluxo+=calcs[i].fcOp;
-    if(filtro==='todos'||filtro==='financiamento') fluxo+=calcs[i].fcFin;
-    if(filtro==='todos'||filtro==='investimento') fluxo+=calcs[i].fcInv;
-    acc+=fluxo;
-    return acc;
-  });
-
-  var showOp=(filtro==='todos'||filtro==='operacional');
-  var showFin=(filtro==='todos'||filtro==='financiamento');
-  var showInv=(filtro==='todos'||filtro==='investimento');
-  var datasets=[];
-  if(showOp){
-    datasets.push({label:'Ent. Operacional',data:entOpArr,backgroundColor:CYAN,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});
-    datasets.push({label:'Saí. Operacional',data:saiOpArr,backgroundColor:BEIGE,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});
-  }
-  if(showFin){
-    datasets.push({label:'Ent. Financiamento',data:entFinArr,backgroundColor:'#2C6BE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});
-    datasets.push({label:'Saí. Financiamento',data:saiFinArr,backgroundColor:'#1A3A6B',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});
-  }
-  if(showInv){
-    datasets.push({label:'Ent. Investimento',data:entInvArr,backgroundColor:'#3A8FE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});
-    datasets.push({label:'Saí. Investimento',data:saiInvArr,backgroundColor:'#0D2545',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});
-  }
-  var saldoLabel=filtro==='todos'?'Saldo bancário':filtro==='operacional'?'Saldo se só op.':filtro==='financiamento'?'Saldo se só fin.':'Saldo se só inv.';
-  datasets.push({label:saldoLabel,data:saldoAcum,type:'line',borderColor:'rgba(255,255,255,0.85)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(255,255,255,0.85)',fill:false,order:1,spanGaps:false});
-  ['todos','operacional','financiamento','investimento'].forEach(function(f){
-    var btn=document.getElementById('dfc-filtro-anual-'+f);
-    if(btn) btn.classList.toggle('active',f===filtro);
-  });
-  destroyChart('dfc-espelhado-anual');
-  new Chart(document.getElementById('dfc-espelhado-anual'),{type:'bar',data:{labels:MESES_LABELS,datasets:datasets},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return (c.raw===null||c.raw===0)?null:c.dataset.label+': '+fmtD(Math.abs(c.raw));}}}},
-      scales:{x:{stacked:true,grid:{display:false},ticks:{color:TC,font:{size:12}}},
-        y:{stacked:true,grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(Math.abs(v));}},title:{display:true,text:'← Saídas    Entradas →',color:TC,font:{size:10}}}}}
-  });
-}
-
-function buildTabelaAnual(calcs){
-  var n=12;
-  function row(lbl,vals,cls){
-    cls=cls||'';
-    var tot=vals.reduce(function(a,b){return a+(b||0);},0);
-    return '<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return '<td'+(v===null?'':tcClass(v))+'>'+(v===null?'—':fv(v))+'</td>';}).join('')+'<td'+tcClass(tot)+'>'+fv(tot)+'</td></tr>';
-  }
-  var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th>'+MESES_LABELS.map(function(m){return '<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';
-  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';
-  h+=row('Recebimentos de vendas (ST)',DFC_DADOS.map(function(d){return d?d.recVendas:null;}));
-  h+=row('Juros e multas',DFC_DADOS.map(function(d){return d?d.jurosMultas:null;}));
-  h+=row('Outras entradas operacionais',DFC_DADOS.map(function(d){return d?d.outrasEnt:null;}));
-  h+=row('Pgto. compras Truss (SI)',DFC_DADOS.map(function(d){return d?d.pgtoTruss:null;}));
-  h+=row('Pgto. fornecedores não Truss',DFC_DADOS.map(function(d){return d?d.pgtoNaoTruss:null;}));
-  h+=row('Pgto. despesas com pessoal',DFC_DADOS.map(function(d){return d?d.pgtoPessoal:null;}));
-  h+=row('Pgto. despesas comerciais (Mkt)',DFC_DADOS.map(function(d){return d?d.pgtoMkt:null;}));
-  h+=row('Pgto. comissões',DFC_DADOS.map(function(d){return d?d.pgtoComissoes:null;}));
-  h+=row('Pgto. despesas logísticas',DFC_DADOS.map(function(d){return d?d.pgtoLogistica:null;}));
-  h+=row('Pgto. taxa de ocupação',DFC_DADOS.map(function(d){return d?d.pgtoOcupacao:null;}));
-  h+=row('Pgto. despesas gerais',DFC_DADOS.map(function(d){return d?d.pgtoGerais:null;}));
-  h+=row('Serviços de terceiros',DFC_DADOS.map(function(d){return d?d.pgtoTerceiros:null;}));
-  h+=row('Pgto. impostos',DFC_DADOS.map(function(d){return d?d.pgtoImpostos:null;}));
-  h+=row('= FC Operacional',calcs.map(function(c){return c?c.fcOp:null;}),'dfc-sub');
-  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';
-  h+=row('Entradas de investimento',DFC_DADOS.map(function(d){return d?d.entInvest:null;}));
-  h+=row('Saídas de investimento (CAPEX)',DFC_DADOS.map(function(d){return d?d.saiInvest:null;}));
-  h+=row('= FC Investimento',calcs.map(function(c){return c?c.fcInv:null;}),'dfc-sub');
-  h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';
-  h+=row('Empréstimos tomados',DFC_DADOS.map(function(d){return d?d.emprestimos:null;}));
-  h+=row('Pgto. financiamentos bancários',DFC_DADOS.map(function(d){return d?d.pgtoFinanc:null;}));
-  h+=row('= FC Financiamento',calcs.map(function(c){return c?c.fcFin:null;}),'dfc-sub');
-  h+=row('= Variação líquida de caixa',calcs.map(function(c){return c?c.liquido:null;}),'dfc-tot');
-  h+='</tbody>';
-  document.getElementById('dfc-tabela-anual').innerHTML=h;
-}
-
-// ─── DFC MENSAL ───
-// Dados diários por mês — cada entrada tem data (dia do mês) + valores
-// Por ora todos lançados no dia 01; quando a base for corrigida, virão distribuídos
-var DFC_DIARIO = {
-  0: [ // Janeiro
-    {dia:1, ent: 40997.75+0.10, sai: Math.abs(-12697.06)+Math.abs(-4536.37)+Math.abs(-20892.64)+Math.abs(-936.37)+Math.abs(-631.46)+Math.abs(-15751.11)+Math.abs(-0.10)+Math.abs(-0.10)+Math.abs(-6152.10)+Math.abs(-0.10)+Math.abs(-96.32)}
-  ],
-  1: [ // Fevereiro
-    {dia:1, ent: 85478.67+0.10, sai: Math.abs(-9302.02)+Math.abs(-10162.22)+Math.abs(-4947.90)+Math.abs(-58488.08)+Math.abs(-2490.52)+Math.abs(-7420.94)+Math.abs(-3000.00)+Math.abs(-0.10)+Math.abs(-4148.42)+Math.abs(-7505.94)+Math.abs(-0.10)+Math.abs(-707.35)}
-  ],
-  2: [ // Março
-    {dia:1, ent: 267400.29+0.10+200000, sai: Math.abs(-227343.57)+Math.abs(-20273.43)+Math.abs(-5172.17)+Math.abs(-12824.98)+Math.abs(-43409.34)+Math.abs(-2990.80)+Math.abs(-7775.23)+Math.abs(-15034.51)+Math.abs(-0.10)+Math.abs(-9387.08)+Math.abs(-9680.48)+Math.abs(-0.10)+Math.abs(-1881.74)}
-  ],
-  3: [ // Abril
-    {dia:1, ent: 461715.41+0.10+183000, sai: Math.abs(-380229.94)+Math.abs(-13178.64)+Math.abs(-2488.27)+Math.abs(-21386.61)+Math.abs(-50563.51)+Math.abs(-2920.32)+Math.abs(-7986.35)+Math.abs(-3842.49)+Math.abs(-0.10)+Math.abs(-0.10)+Math.abs(-34539.04)+Math.abs(-2879.31)}
-  ]
-};
-
-function gerarDiasMes(mi) {
-  // Retorna array de todos os dias do mês com ent/sai (0 para dias sem dados)
-  var ano = 2026;
-  var nd = new Date(ano, mi+1, 0).getDate();
-  var dadosDia = {};
-  if (DFC_DIARIO[mi]) {
-    DFC_DIARIO[mi].forEach(function(r){ dadosDia[r.dia] = r; });
-  }
-  return Array.from({length: nd}, function(_, i) {
-    var dia = i + 1;
-    var d = dadosDia[dia];
-    return { dia: dia, ent: d ? d.ent : 0, sai: d ? d.sai : 0 };
-  });
-}
-
-function renderDFCMensal(){
-  var el=document.getElementById('dfc-view-mensal');
-  el.innerHTML='<div class="dfc-filters"><label>Mês</label>'
-    +'<select id="dfc-sel-mes" onchange="renderDFCMensalAtualiza()">'
-    +MESES_FULL.map(function(m,i){return '<option value="'+i+'"'+(i===3?' selected':'')+'>'+m+'</option>';}).join('')
-    +'</select></div>'
-    +'<div id="dfc-mensal-conteudo"></div>';
-  renderDFCMensalAtualiza();
-}
-
-function renderDFCMensalAtualiza(){
-  var mi=parseInt(document.getElementById('dfc-sel-mes').value);
-  var d=DFC_DADOS[mi];
-  var c=d?calcDFC(d):null;
-  var temDados=!!d;
-  var mesLabel=MESES_FULL[mi];
-  var saldoFim=c?c.caixaFinal:null;
-  var dias=gerarDiasMes(mi);
-
-  var html='<div class="dfc-cards">'
-    +'<div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+(temDados?fmtD(c.entTotal):'—')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div>'
-    +'<div class="dfc-card neg"><div class="dfc-card-label">Total saídas</div><div class="dfc-card-value beige">'+(temDados?fmtD(c.saiGrandTotal):'—')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div>'
-    +'<div class="dfc-card"><div class="dfc-card-label">Saldo ao final do mês</div><div class="dfc-card-value">'+(temDados?fmtD(saldoFim):'—')+'</div><div class="dfc-card-sub">'+(temDados?'Posição bancária':'Sem dados para este mês')+'</div></div>'
-    +'</div>'
-    +'<div class="dfc-section-label">Bridge — Composição do saldo do mês</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do mês selecionado</div><div class="dfc-chart-sub">Saldo inicial + entradas − saídas por categoria até o saldo final do mês</div><div style="height:210px;position:relative"><canvas id="dfc-waterfall-mensal"></canvas></div></div>'
-    +'<div class="dfc-section-label">Saldo por dia</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Resultado líquido diário</div><div class="dfc-chart-sub">Variação de caixa em cada dia — dias sem dados aparecem em branco</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-mensal"></canvas></div></div>'
-    +'<div class="dfc-section-label">Fluxo diário</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e saídas por dia — '+mesLabel+'</div><div class="dfc-chart-sub">Barras espelhadas diárias com linha de saldo acumulado no mês</div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Saí. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Saí. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#3A8FE0"></span>Ent. Inv.</span><span class="dfc-leg"><span class="dfc-leg-line" style="background:#00D4DA"></span>Saldo</span></div>'
-    +'<div class="dfc-filtro-wrap"><button id="dfc-filtro-mensal-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoMensal(\'todos\')">Todos</button><button id="dfc-filtro-mensal-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoMensal(\'operacional\')">Operacional</button><button id="dfc-filtro-mensal-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoMensal(\'financiamento\')">Financiamento</button><button id="dfc-filtro-mensal-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoMensal(\'investimento\')">Investimento</button></div></div>'
-    +'<div style="height:220px;position:relative"><canvas id="dfc-espelhado-mensal"></canvas></div></div>'
-    +'<div class="dfc-section-label">DFC detalhado — '+mesLabel+'</div>'
-    +'<div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-mensal"></table></div>';
-
-  document.getElementById('dfc-mensal-conteudo').innerHTML=html;
-
-  setTimeout(function(){
-    buildWaterfallMensal(mi,d,c,temDados);
-    buildSaldoDiario(dias,d,temDados);
-    buildEspelhadoDiario(dias,d,c,temDados);
-    buildTabelaMensal(d,c,temDados,mesLabel);
-  },80);
-}
-
-function buildWaterfallMensal(mi,d,c,temDados){
-  var saldoIni=d?d.caixaInicial:0;
-  var saldoFim=c?c.caixaFinal:0;
-  var bData=temDados?[
-    {label:'Saldo ini.',value:saldoIni,type:'ini'},
-    {label:'Rec. vendas',value:d.recVendas,type:'pos'},
-    ...(d.emprestimos?[{label:'Captações',value:d.emprestimos,type:'pos'}]:[]),
-    ...(d.pgtoTruss?[{label:'Pgto. Truss',value:d.pgtoTruss,type:'neg'}]:[]),
-    ...(d.pgtoNaoTruss?[{label:'Pgto. fornec.',value:d.pgtoNaoTruss,type:'neg'}]:[]),
-    ...(d.pgtoPessoal?[{label:'Pessoal',value:d.pgtoPessoal,type:'neg'}]:[]),
-    ...(d.pgtoMkt?[{label:'Mkt',value:d.pgtoMkt,type:'neg'}]:[]),
-    ...(d.pgtoComissoes?[{label:'Comissões',value:d.pgtoComissoes,type:'neg'}]:[]),
-    ...(d.pgtoLogistica?[{label:'Logística',value:d.pgtoLogistica,type:'neg'}]:[]),
-    ...(d.pgtoOcupacao?[{label:'Ocupação',value:d.pgtoOcupacao,type:'neg'}]:[]),
-    ...(d.pgtoGerais?[{label:'Gerais',value:d.pgtoGerais,type:'neg'}]:[]),
-    ...(d.pgtoTerceiros?[{label:'Terceiros',value:d.pgtoTerceiros,type:'neg'}]:[]),
-    ...(d.pgtoImpostos?[{label:'Impostos',value:d.pgtoImpostos,type:'neg'}]:[]),
-    ...(d.pgtoFinanc?[{label:'Amortiz.',value:d.pgtoFinanc,type:'neg'}]:[]),
-    {label:'Saldo fim',value:saldoFim,type:'tot'},
-  ]:[{label:'Sem dados',value:0,type:'ini'}];
-
-  var starts=[],bars=[],colors=[],run=0;
-  bData.forEach(function(v){
-    if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}
-    else if(v.type==='pos'){starts.push(run);bars.push(v.value);}
-    else{starts.push(run+v.value);bars.push(-v.value);}
-    if(v.type!=='tot') run+=v.value;
-    colors.push(v.type==='ini'?INI_C:v.type==='tot'?CYAN_TOT:v.type==='pos'?CYAN:BEIGE);
-  });
-  destroyChart('dfc-waterfall-mensal');
-  new Chart(document.getElementById('dfc-waterfall-mensal'),{type:'bar',
-    data:{labels:bData.map(function(v){return v.label;}),datasets:[
-      {data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},
-      {data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){if(cc.datasetIndex===0)return null;return bData[cc.dataIndex].label+': '+fmtD(bData[cc.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},
-      scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:10}},stacked:true},y:{grid:{color:GC},ticks:{color:TC,font:{size:10},callback:function(v){return fmtD(v);}},stacked:true}}}
-  });
-}
-
-function buildSaldoDiario(dias,d,temDados){
-  var labels=dias.map(function(r){return String(r.dia).padStart(2,'0');});
-  var valores=dias.map(function(r){return (r.ent-r.sai)||null;});
-  // dias com ent e sai = 0 ficam null (sem dados)
-  valores=dias.map(function(r){return (r.ent===0&&r.sai===0)?null:(r.ent-r.sai);});
-  destroyChart('dfc-saldo-mensal');
-  new Chart(document.getElementById('dfc-saldo-mensal'),{type:'bar',
-    data:{labels:labels,datasets:[{label:'Saldo',data:valores,
-      backgroundColor:valores.map(function(v){return v===null?'rgba(255,255,255,0.04)':v>=0?CYAN:BEIGE;}),
-      borderRadius:3,borderSkipped:false}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return cc.raw===null?'Sem dados':'Saldo: '+fmtD(cc.raw);}}}},
-      scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:10},autoSkip:true,maxTicksLimit:16},border:{display:false}},
-        y:{grid:{color:GC},ticks:{color:TC,font:{size:10},callback:function(v){return fmtD(v);}},border:{display:false}}}}
-  });
-}
-
-var _mensalDados={dias:null,d:null,c:null};
-
-function buildEspelhadoDiario(dias,d,c,temDados){
-  _mensalDados={dias:dias,d:d,c:c};
-  filtroEspelhadoMensal('todos');
-}
-
-function filtroEspelhadoMensal(filtro){
-  var dias=_mensalDados.dias, d=_mensalDados.d, c=_mensalDados.c;
-  if(!dias) return;
-  var labels=dias.map(function(r){return String(r.dia).padStart(2,'0');});
-  var entOpTotal=d?d.entOp:0, entFinTotal=d?d.emprestimos:0, entInvTotal=d?d.entInvest:0;
-  var saiOpTotal=d?d.saiOp:0, saiFinTotal=d?Math.abs(d.pgtoFinanc):0, saiInvTotal=d?Math.abs(d.saiInvest):0;
-  var totEnt=entOpTotal+entFinTotal+entInvTotal;
-  var totSai=saiOpTotal+saiFinTotal+saiInvTotal;
-  function hasData(r){return !(r.ent===0&&r.sai===0);}
-  function pE(r,part){return hasData(r)?(totEnt>0?r.ent*(part/totEnt):0):null;}
-  function pS(r,part){return hasData(r)?(totSai>0?-(r.sai*(part/totSai)):0):null;}
-
-  // Saldo filtrado: saldo inicial + fluxo apenas das atividades selecionadas por dia
-  var saldoIni=d?d.caixaInicial:0;
-  var acc=saldoIni;
-  var saldoAcum=dias.map(function(r){
-    if(!hasData(r)) return null;
-    var entF=0, saiF=0;
-    if(filtro==='todos'||filtro==='operacional'){entF+=totEnt>0?r.ent*(entOpTotal/totEnt):r.ent;saiF+=totSai>0?r.sai*(saiOpTotal/totSai):r.sai;}
-    if(filtro==='todos'||filtro==='financiamento'){entF+=totEnt>0?r.ent*(entFinTotal/totEnt):0;saiF+=totSai>0?r.sai*(saiFinTotal/totSai):0;}
-    if(filtro==='todos'||filtro==='investimento'){entF+=totEnt>0?r.ent*(entInvTotal/totEnt):0;saiF+=totSai>0?r.sai*(saiInvTotal/totSai):0;}
-    acc+=(entF-saiF);
-    return acc;
-  });
-
-  var showOp=(filtro==='todos'||filtro==='operacional');
-  var showFin=(filtro==='todos'||filtro==='financiamento');
-  var showInv=(filtro==='todos'||filtro==='investimento');
-  var datasets=[];
-  if(showOp){
-    datasets.push({label:'Ent. Operacional',data:dias.map(function(r){return pE(r,entOpTotal);}),backgroundColor:CYAN,stack:'s',borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2});
-    datasets.push({label:'Saí. Operacional',data:dias.map(function(r){return pS(r,saiOpTotal);}),backgroundColor:BEIGE,stack:'s',borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2});
-  }
-  if(showFin){
-    datasets.push({label:'Ent. Financiamento',data:dias.map(function(r){return pE(r,entFinTotal);}),backgroundColor:'#2C6BE0',stack:'s',borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2});
-    datasets.push({label:'Saí. Financiamento',data:dias.map(function(r){return pS(r,saiFinTotal);}),backgroundColor:'#1A3A6B',stack:'s',borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2});
-  }
-  if(showInv){
-    datasets.push({label:'Ent. Investimento',data:dias.map(function(r){return pE(r,entInvTotal);}),backgroundColor:'#3A8FE0',stack:'s',borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2});
-    datasets.push({label:'Saí. Investimento',data:dias.map(function(r){return pS(r,saiInvTotal);}),backgroundColor:'#0D2545',stack:'s',borderSkipped:false,barPercentage:0.8,categoryPercentage:0.8,order:2});
-  }
-  var saldoLabel=filtro==='todos'?'Saldo bancário':filtro==='operacional'?'Saldo se só op.':filtro==='financiamento'?'Saldo se só fin.':'Saldo se só inv.';
-  datasets.push({label:saldoLabel,data:saldoAcum,type:'line',borderColor:'rgba(255,255,255,0.85)',borderWidth:1.5,pointRadius:0,fill:false,order:1,spanGaps:false});
-
-  ['todos','operacional','financiamento','investimento'].forEach(function(f){
-    var btn=document.getElementById('dfc-filtro-mensal-'+f);
-    if(btn) btn.classList.toggle('active',f===filtro);
-  });
-  destroyChart('dfc-espelhado-mensal');
-  new Chart(document.getElementById('dfc-espelhado-mensal'),{type:'bar',data:{labels:labels,datasets:datasets},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(cc){return(cc.raw===null||cc.raw===0)?null:cc.dataset.label+': '+fmtD(Math.abs(cc.raw));}}}},
-      scales:{x:{stacked:true,grid:{display:false},ticks:{color:TC,font:{size:10},autoSkip:true,maxTicksLimit:16}},
-        y:{stacked:true,grid:{color:GC},ticks:{color:TC,font:{size:10},callback:function(v){return fmtD(Math.abs(v));}},title:{display:true,text:'← Saídas    Entradas →',color:TC,font:{size:10}}}}}
-  });
-}
-
-
-function buildTabelaMensal(d,c,temDados,mesLabel){
-  // Gerar dias do mês para a tabela diária
-  var mi=MESES_FULL.indexOf(mesLabel);
-  var dias=gerarDiasMes(mi<0?0:mi);
-  var uteis=dias; // mostramos todos os dias (dias sem dados ficam com —)
-  var ncols=uteis.length;
-
-  function rowD(lbl,valDia,cls){
-    // valDia: função que recebe objeto dia e retorna valor
-    cls=cls||'';
-    var vals=uteis.map(function(r){return (r.ent===0&&r.sai===0)?null:valDia(r);});
-    var tot=vals.reduce(function(a,b){return a+(b||0);},0);
-    return '<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return '<td'+(v===null?'':tcClass(v))+'>'+(v===null?'—':fv(v))+'</td>';}).join('')+'<td'+tcClass(tot)+'>'+fv(tot)+'</td></tr>';
-  }
-
-  // Para a tabela, os valores agregados ficam no dia 1 (base atual)
-  // Quando houver dados diários reais cada linha virá distribuída
-  var entOpTotal  = d ? d.entOp  : 0;
-  var entFinTotal = d ? (d.emprestimos+d.entInvest) : 0;
-  var saiOpTotal  = d ? d.saiOp  : 0;
-  var saiFinTotal = d ? (Math.abs(d.pgtoFinanc)+Math.abs(d.saiInvest)) : 0;
-  var totEnt = entOpTotal+entFinTotal;
-  var totSai = saiOpTotal+saiFinTotal;
-
-  function prorataEnt(r, part){ return totEnt>0 ? r.ent*(part/totEnt) : 0; }
-  function prorataSai(r, part){ return totSai>0 ? -(r.sai*(part/totSai)) : 0; }
-
-  var h='<thead><tr>'
-    +'<th style="min-width:220px;text-align:left">Linha</th>'
-    +uteis.map(function(r){return '<th>'+String(r.dia).padStart(2,'0')+'</th>';}).join('')
-    +'<th>Total</th>'
-    +'</tr></thead><tbody>';
-
-  h+='<tr class="dfc-grp"><td colspan="'+(ncols+2)+'">Atividade Operacional</td></tr>';
-  h+=rowD('Recebimentos de vendas (ST)',function(r){return (r.ent===0&&r.sai===0)?null:prorataEnt(r,d?d.recVendas:0);});
-  h+=rowD('Juros e multas',function(r){return (r.ent===0&&r.sai===0)?null:prorataEnt(r,d?d.jurosMultas:0);});
-  h+=rowD('Outras entradas operacionais',function(r){return (r.ent===0&&r.sai===0)?null:prorataEnt(r,d?d.outrasEnt:0);});
-  h+=rowD('Pgto. compras Truss (SI)',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoTruss:0));});
-  h+=rowD('Pgto. fornecedores não Truss',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoNaoTruss:0));});
-  h+=rowD('Pgto. despesas com pessoal',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoPessoal:0));});
-  h+=rowD('Pgto. despesas comerciais (Mkt)',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoMkt:0));});
-  h+=rowD('Pgto. comissões',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoComissoes:0));});
-  h+=rowD('Pgto. despesas logísticas',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoLogistica:0));});
-  h+=rowD('Pgto. taxa de ocupação',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoOcupacao:0));});
-  h+=rowD('Pgto. despesas gerais',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoGerais:0));});
-  h+=rowD('Serviços de terceiros',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoTerceiros:0));});
-  h+=rowD('Pgto. impostos',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoImpostos:0));});
-  // FC Op por dia: ent - sai operacional proporcional
-  h+=rowD('= FC Operacional',function(r){
-    if(r.ent===0&&r.sai===0) return null;
-    var eOp=totEnt>0?r.ent*(entOpTotal/totEnt):r.ent;
-    var sOp=totSai>0?r.sai*(saiOpTotal/totSai):r.sai;
-    return eOp-sOp;
-  },'dfc-sub');
-
-  h+='<tr class="dfc-grp"><td colspan="'+(ncols+2)+'">Atividade de Investimento</td></tr>';
-  h+=rowD('Entradas de investimento',function(r){return (r.ent===0&&r.sai===0)?null:prorataEnt(r,d?d.entInvest:0);});
-  h+=rowD('Saídas de investimento (CAPEX)',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.saiInvest:0));});
-  h+=rowD('= FC Investimento',function(r){
-    if(r.ent===0&&r.sai===0) return null;
-    return prorataEnt(r,d?d.entInvest:0)+prorataSai(r,Math.abs(d?d.saiInvest:0));
-  },'dfc-sub');
-
-  h+='<tr class="dfc-grp"><td colspan="'+(ncols+2)+'">Atividade de Financiamento</td></tr>';
-  h+=rowD('Empréstimos tomados',function(r){return (r.ent===0&&r.sai===0)?null:prorataEnt(r,d?d.emprestimos:0);});
-  h+=rowD('Pgto. financiamentos bancários',function(r){return (r.ent===0&&r.sai===0)?null:prorataSai(r,Math.abs(d?d.pgtoFinanc:0));});
-  h+=rowD('= FC Financiamento',function(r){
-    if(r.ent===0&&r.sai===0) return null;
-    return prorataEnt(r,d?d.emprestimos:0)+prorataSai(r,Math.abs(d?d.pgtoFinanc:0));
-  },'dfc-sub');
-
-  h+=rowD('= Variação líquida de caixa',function(r){
-    return (r.ent===0&&r.sai===0)?null:(r.ent-r.sai);
-  },'dfc-tot');
-
-  // Saldo acumulado por dia
-  var saldoIni=d?d.caixaInicial:0;
-  var acc=saldoIni;
-  var saldoVals=uteis.map(function(r){
-    acc+=r.ent-r.sai;
-    return (r.ent===0&&r.sai===0)?null:acc;
-  });
-  var saldoTot=saldoVals.filter(function(v){return v!==null;});
-  var saldoFim=saldoTot.length?saldoTot[saldoTot.length-1]:0;
-  h+='<tr class="dfc-sub"><td>Saldo acumulado</td>'+saldoVals.map(function(v){return '<td'+(v===null?'':' class="dfc-pos"')+'>'+(v===null?'—':fmtD(v))+'</td>';}).join('')+'<td class="dfc-pos">'+fmtD(saldoFim)+'</td></tr>';
-
-  h+='</tbody>';
-  document.getElementById('dfc-tabela-mensal').innerHTML=h;
-}
+function buildEspelhadoAnual(calcs){_anualCalcs=calcs;filtroEspelhadoAnual('todos');}
+function filtroEspelhadoAnual(filtro){var calcs=_anualCalcs;if(!calcs)return;var saldoIni=DFC_DADOS[0]?DFC_DADOS[0].caixaInicial:0;var entOpArr=MESES_LABELS.map(function(_,i){return calcs[i]?calcs[i].entOp:null;});var entFinArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?d.emprestimos:null;});var entInvArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?d.entInvest:null;});var saiOpArr=MESES_LABELS.map(function(_,i){return calcs[i]?-calcs[i].saiOp:null;});var saiFinArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?-Math.abs(d.pgtoFinanc):null;});var saiInvArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?-Math.abs(d.saiInvest):null;});var acc=saldoIni;var saldoAcum=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var fluxo=0;if(filtro==='todos'||filtro==='operacional')fluxo+=calcs[i].fcOp;if(filtro==='todos'||filtro==='financiamento')fluxo+=calcs[i].fcFin;if(filtro==='todos'||filtro==='investimento')fluxo+=calcs[i].fcInv;acc+=fluxo;return acc;});var showOp=(filtro==='todos'||filtro==='operacional');var showFin=(filtro==='todos'||filtro==='financiamento');var showInv=(filtro==='todos'||filtro==='investimento');var datasets=[];if(showOp){datasets.push({label:'Ent. Operacional',data:entOpArr,backgroundColor:CYAN,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Saí. Operacional',data:saiOpArr,backgroundColor:BEIGE,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}if(showFin){datasets.push({label:'Ent. Financiamento',data:entFinArr,backgroundColor:'#2C6BE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Saí. Financiamento',data:saiFinArr,backgroundColor:'#1A3A6B',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}if(showInv){datasets.push({label:'Ent. Investimento',data:entInvArr,backgroundColor:'#3A8FE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Saí. Investimento',data:saiInvArr,backgroundColor:'#0D2545',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}datasets.push({label:'Saldo',data:saldoAcum,type:'line',borderColor:'rgba(255,255,255,0.85)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(255,255,255,0.85)',fill:false,order:1,spanGaps:false});['todos','operacional','financiamento','investimento'].forEach(function(f){var btn=document.getElementById('dfc-filtro-anual-'+f);if(btn)btn.classList.toggle('active',f===filtro);});destroyChart('dfc-espelhado-anual');new Chart(document.getElementById('dfc-espelhado-anual'),{type:'bar',data:{labels:MESES_LABELS,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:TC,font:{size:12}}},y:{stacked:true,grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(Math.abs(v));}}}}}});}
+function buildTabelaAnual(calcs){var n=12;function row(lbl,vals,cls){cls=cls||'';var tot=vals.reduce(function(a,b){return a+(b||0);},0);return '<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return '<td'+(v===null?'':tcClass(v))+'>'+(v===null?'—':fv(v))+'</td>';}).join('')+'<td'+tcClass(tot)+'>'+fv(tot)+'</td></tr>';}var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th>'+MESES_LABELS.map(function(m){return '<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';h+=row('Recebimentos de vendas',DFC_DADOS.map(function(d){return d?d.recVendas:null;}));h+=row('Pgto. compras Truss',DFC_DADOS.map(function(d){return d?d.pgtoTruss:null;}));h+=row('Pgto. fornecedores não Truss',DFC_DADOS.map(function(d){return d?d.pgtoNaoTruss:null;}));h+=row('Pgto. pessoal',DFC_DADOS.map(function(d){return d?d.pgtoPessoal:null;}));h+=row('Pgto. marketing',DFC_DADOS.map(function(d){return d?d.pgtoMkt:null;}));h+=row('Pgto. comissões',DFC_DADOS.map(function(d){return d?d.pgtoComissoes:null;}));h+=row('Pgto. logística',DFC_DADOS.map(function(d){return d?d.pgtoLogistica:null;}));h+=row('Pgto. ocupação',DFC_DADOS.map(function(d){return d?d.pgtoOcupacao:null;}));h+=row('Pgto. gerais',DFC_DADOS.map(function(d){return d?d.pgtoGerais:null;}));h+=row('Serviços de terceiros',DFC_DADOS.map(function(d){return d?d.pgtoTerceiros:null;}));h+=row('Pgto. impostos',DFC_DADOS.map(function(d){return d?d.pgtoImpostos:null;}));h+=row('= FC Operacional',calcs.map(function(c){return c?c.fcOp:null;}),'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';h+=row('Entradas de investimento',DFC_DADOS.map(function(d){return d?d.entInvest:null;}));h+=row('Saídas de investimento',DFC_DADOS.map(function(d){return d?d.saiInvest:null;}));h+=row('= FC Investimento',calcs.map(function(c){return c?c.fcInv:null;}),'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';h+=row('Empréstimos tomados',DFC_DADOS.map(function(d){return d?d.emprestimos:null;}));h+=row('Pgto. financiamentos',DFC_DADOS.map(function(d){return d?d.pgtoFinanc:null;}));h+=row('= FC Financiamento',calcs.map(function(c){return c?c.fcFin:null;}),'dfc-sub');h+=row('= Variação líquida de caixa',calcs.map(function(c){return c?c.liquido:null;}),'dfc-tot');h+='</tbody>';document.getElementById('dfc-tabela-anual').innerHTML=h;}
+function renderDFCMensal(){var el=document.getElementById('dfc-view-mensal');el.innerHTML='<div class="dfc-filters"><label>Mês</label><select id="dfc-sel-mes" onchange="renderDFCMensalAtualiza()">'+MESES_FULL.map(function(m,i){return '<option value="'+i+'"'+(i===3?' selected':'')+'>'+m+'</option>';}).join('')+'</select></div><div id="dfc-mensal-conteudo"></div>';renderDFCMensalAtualiza();}
+function renderDFCMensalAtualiza(){var mi=parseInt(document.getElementById('dfc-sel-mes').value);var d=DFC_DADOS[mi];var c=d?calcDFC(d):null;var temDados=!!d;var mesLabel=MESES_FULL[mi];var saldoFim=c?c.caixaFinal:null;document.getElementById('dfc-mensal-conteudo').innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+(temDados?fmtD(c.entTotal):'—')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total saídas</div><div class="dfc-card-value beige">'+(temDados?fmtD(c.saiGrandTotal):'—')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo ao final do mês</div><div class="dfc-card-value">'+(temDados?fmtD(saldoFim):'—')+'</div><div class="dfc-card-sub">'+(temDados?'Posição bancária':'Sem dados para este mês')+'</div></div></div><div class="dfc-section-label">DFC detalhado — '+mesLabel+'</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-mensal"></table></div>';setTimeout(function(){buildTabelaMensal(d,c,temDados,mesLabel);},80);}
+function buildTabelaMensal(d,c,temDados,mesLabel){function rowM(lbl,val,cls){cls=cls||'';return '<tr class="'+cls+'"><td>'+lbl+'</td><td'+tcClass(val)+'>'+(val===null||val===undefined?'—':fv(val))+'</td></tr>';}var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th><th>'+mesLabel+'</th></tr></thead><tbody>';if(!temDados){h+='<tr><td colspan="2" style="text-align:center;color:#4A6580;padding:2rem">Sem dados para este mês</td></tr>';h+='</tbody>';document.getElementById('dfc-tabela-mensal').innerHTML=h;return;}h+='<tr class="dfc-grp"><td colspan="2">Atividade Operacional</td></tr>';h+=rowM('Recebimentos de vendas',d.recVendas);h+=rowM('Pgto. compras Truss',d.pgtoTruss);h+=rowM('Pgto. fornecedores não Truss',d.pgtoNaoTruss);h+=rowM('Pgto. pessoal',d.pgtoPessoal);h+=rowM('Pgto. marketing',d.pgtoMkt);h+=rowM('Pgto. comissões',d.pgtoComissoes);h+=rowM('Pgto. logística',d.pgtoLogistica);h+=rowM('Pgto. ocupação',d.pgtoOcupacao);h+=rowM('Pgto. gerais',d.pgtoGerais);h+=rowM('Serviços de terceiros',d.pgtoTerceiros);h+=rowM('Pgto. impostos',d.pgtoImpostos);h+=rowM('= FC Operacional',c.fcOp,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="2">Atividade de Investimento</td></tr>';h+=rowM('Entradas de investimento',d.entInvest);h+=rowM('Saídas de investimento',d.saiInvest);h+=rowM('= FC Investimento',c.fcInv,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="2">Atividade de Financiamento</td></tr>';h+=rowM('Empréstimos tomados',d.emprestimos);h+=rowM('Pgto. financiamentos',d.pgtoFinanc);h+=rowM('= FC Financiamento',c.fcFin,'dfc-sub');h+=rowM('= Variação líquida de caixa',c.liquido,'dfc-tot');h+=rowM('Saldo inicial',d.caixaInicial,'dfc-sub');h+=rowM('Saldo final',c.caixaFinal,'dfc-sub');h+='</tbody>';document.getElementById('dfc-tabela-mensal').innerHTML=h;}
 </script>
 </body>
 </html>
