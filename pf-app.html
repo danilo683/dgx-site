@@ -468,6 +468,72 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ ORÇAMENTO ════════ */
+.orc-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem}
+.orc-nav{display:flex;align-items:center;gap:.8rem}
+.orc-nav-btn{background:none;border:1px solid var(--border);color:var(--gray);width:30px;height:30px;border-radius:2px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:'Inter',sans-serif}
+.orc-nav-btn:hover{border-color:var(--gold);color:var(--gold)}
+.orc-ano{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:600;color:var(--white);min-width:60px;text-align:center}
+.orc-acoes{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.orc-btn-import{
+  display:inline-flex;align-items:center;gap:.5rem;background:none;
+  border:1px solid var(--border);color:var(--gray);padding:.5rem 1rem;
+  font-family:'Inter',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;border-radius:2px;transition:all .2s;font-weight:600;
+}
+.orc-btn-import:hover{border-color:var(--gold);color:var(--gold)}
+.orc-btn-save{
+  display:none;align-items:center;gap:.5rem;background:var(--gold);
+  border:none;color:var(--navy);padding:.5rem 1rem;
+  font-family:'Inter',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;border-radius:2px;transition:opacity .2s;font-weight:700;
+}
+.orc-btn-save:hover{opacity:.85}
+
+.orc-table-wrap{overflow-x:auto;border:1px solid var(--border)}
+.orc-loading{padding:3rem;text-align:center;color:var(--gray);font-size:.85rem}
+.orc-table{width:100%;border-collapse:collapse;min-width:900px}
+.orc-table th{
+  font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);
+  padding:.7rem 1rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);
+  white-space:nowrap;text-align:right;font-weight:600;position:sticky;top:0;
+}
+.orc-table th:first-child{text-align:left;left:0;z-index:2;background:var(--navy2)}
+.orc-table th.mes-header{min-width:80px}
+.orc-table td{
+  padding:.5rem .8rem;border-bottom:1px solid var(--border2);
+  font-size:.8rem;vertical-align:middle;
+}
+.orc-table td:first-child{
+  color:var(--gray);font-size:.75rem;white-space:nowrap;
+  position:sticky;left:0;background:var(--navy2);z-index:1;
+  border-right:1px solid var(--border);padding-left:1rem;
+}
+.orc-grupo-row td{
+  font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);font-weight:700;padding:.6rem 1rem .4rem;
+  background:rgba(0,182,233,0.04);border-bottom:none;
+}
+.orc-grupo-row td:first-child{background:rgba(0,182,233,0.04)}
+.orc-total-row td{
+  font-weight:700;color:var(--white);font-size:.82rem;
+  background:rgba(10,21,37,0.4);border-top:1px solid var(--border);
+}
+.orc-total-row td:first-child{background:rgba(10,21,37,0.5);color:var(--white)}
+
+.orc-input{
+  background:none;border:none;outline:none;width:100%;text-align:right;
+  font-family:'Inter',sans-serif;font-size:.8rem;color:var(--white);
+  padding:.2rem .3rem;border-radius:2px;transition:background .15s;
+}
+.orc-input:focus{background:rgba(0,182,233,0.08);color:var(--white)}
+.orc-input::placeholder{color:var(--gray2)}
+.orc-input.tem-valor{color:var(--white)}
+.orc-input.sem-valor{color:var(--gray2)}
+
+.orc-total-mes{text-align:right;color:var(--gold);font-weight:700}
+.orc-total-cat{text-align:right;color:var(--gray);font-size:.72rem}
+
 /* ════════ SIMULADOR ════════ */
 .sim-wrap{width:100%}
 .sim-campos{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem}
@@ -759,7 +825,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('orcamento', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
         Orçamento
-        <span class="menu-badge-soon">em breve</span>
       </button>
       <button class="menu-item" onclick="irPara('simulador', this); simInit()">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
@@ -887,12 +952,53 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
       <!-- ── ORÇAMENTO ── -->
       <div class="tela" id="tela-orcamento">
-        <div class="tela-header"><h2>Orçamento</h2><p>Planejamento mensal de receitas e despesas</p></div>
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-          <h3>Orçamento mensal</h3>
-          <p>Aqui você poderá definir limites por categoria, acompanhar o planejado versus realizado e visualizar onde seu dinheiro está indo.</p>
-          <span class="em-breve-tag">Em construção</span>
+        <div class="tela-header">
+          <h2>Orçamento</h2>
+          <p>Planejamento financeiro mensal</p>
+        </div>
+
+        <!-- Controles do cabeçalho -->
+        <div class="orc-header">
+          <div class="orc-nav">
+            <button class="orc-nav-btn" onclick="orcMudarAno(-1)">‹</button>
+            <span class="orc-ano" id="orc-ano-label">2025</span>
+            <button class="orc-nav-btn" onclick="orcMudarAno(1)">›</button>
+          </div>
+          <div class="orc-acoes">
+            <button class="orc-btn-import" onclick="orcConfirmarImport()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Importar médias do Raio X
+            </button>
+            <button class="orc-btn-save" id="orc-save-btn" onclick="orcSalvar()" style="display:none">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Salvar alterações
+            </button>
+            <span class="diag-saved-msg" id="orc-saved-msg">✓ Salvo!</span>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="orc-table-wrap">
+          <div class="orc-loading" id="orc-loading">Carregando orçamento...</div>
+          <div id="orc-table-container" style="display:none">
+            <table class="orc-table" id="orc-table">
+              <thead id="orc-thead"></thead>
+              <tbody id="orc-tbody"></tbody>
+              <tfoot id="orc-tfoot"></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Modal dupla confirmação importação -->
+        <div class="overlay" id="overlay-orc-import">
+          <div class="modal" style="max-width:420px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-orc-import')">×</button>
+            <div class="modal-logo">⚠️ Atenção</div>
+            <div class="modal-title" id="orc-import-title">Importar médias do Raio X?</div>
+            <div class="modal-sub" id="orc-import-sub">Esta ação vai preencher todos os meses do ano com as médias calculadas do Raio X. Valores já existentes serão sobrescritos.</div>
+            <button class="btn-enter" id="orc-import-confirm-btn" onclick="orcImportStep2()">Sim, quero importar</button>
+            <button class="modal-link" onclick="fecharOverlay('overlay-orc-import')">Cancelar</button>
+          </div>
         </div>
       </div>
 
@@ -1764,6 +1870,7 @@ function irPara(tela, btn){
   document.getElementById('tela-'+tela).classList.add('active');
   if(btn) btn.classList.add('active');
   if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); }
+  if(tela==='orcamento'){ orcAno=orcAno||new Date().getFullYear(); document.getElementById('orc-ano-label').textContent=orcAno; orcCarregarDados(); }
 }
 
 // ══════════════════════════════════════════════
@@ -2493,6 +2600,233 @@ async function adicionarLancamento(){
   document.getElementById('add-cat').value='';
   document.getElementById('add-val').value='';
   renderExtrato();calcularResumo();
+}
+
+// ══════════════════════════════════════════════
+// ORÇAMENTO
+// ══════════════════════════════════════════════
+const MESES_NOMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+let orcAno = new Date().getFullYear();
+let orcDados = {}; // { 'categoria|mes': valor }
+let orcAlterado = false;
+let orcImportStep = 0;
+
+function orcMudarAno(delta){
+  orcAno += delta;
+  document.getElementById('orc-ano-label').textContent = orcAno;
+  orcCarregarDados();
+}
+
+async function orcCarregarDados(){
+  document.getElementById('orc-loading').style.display='block';
+  document.getElementById('orc-table-container').style.display='none';
+
+  const { data, error } = await sb.from('orcamento')
+    .select('*')
+    .eq('user_id', usuarioAtual.id)
+    .eq('ano', orcAno);
+
+  if(error){ console.error(error); }
+
+  orcDados = {};
+  (data||[]).forEach(r=>{
+    orcDados[`${r.categoria}|${r.mes}`] = Number(r.previsto);
+  });
+
+  orcRenderTabela();
+  document.getElementById('orc-loading').style.display='none';
+  document.getElementById('orc-table-container').style.display='block';
+  orcAlterado = false;
+  document.getElementById('orc-save-btn').style.display='none';
+}
+
+function orcRenderTabela(){
+  const thead = document.getElementById('orc-thead');
+  const tbody = document.getElementById('orc-tbody');
+  const tfoot = document.getElementById('orc-tfoot');
+
+  // Cabeçalho
+  let thHtml = '<tr><th style="text-align:left">Categoria</th>';
+  MESES_NOMES.forEach((m,i)=>{ thHtml+=`<th class="mes-header">${m}</th>`; });
+  thHtml += '<th style="text-align:right">Total</th></tr>';
+  thead.innerHTML = thHtml;
+
+  // Categorias baseadas nos grupos do Raio X
+  const grupos = RX_DESPESAS_GRUPOS;
+  let bodyHtml = '';
+
+  grupos.forEach(g=>{
+    // Linha de grupo
+    bodyHtml += `<tr class="orc-grupo-row"><td colspan="${14}">${g.label}</td></tr>`;
+
+    // Linhas de subcategorias
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    const extras = gDados.extras || [];
+    const itens = [...g.itens, ...extras];
+
+    itens.forEach(item=>{
+      const totalCat = MESES_NOMES.reduce((acc,_,mi)=>{
+        return acc + (orcDados[`${item}|${mi+1}`]||0);
+      },0);
+      bodyHtml += `<tr>
+        <td>${item}</td>`;
+      MESES_NOMES.forEach((_,mi)=>{
+        const key = `${item}|${mi+1}`;
+        const val = orcDados[key]||'';
+        const cls = val ? 'tem-valor' : 'sem-valor';
+        bodyHtml += `<td><input class="orc-input ${cls}" type="number" min="0" step="0.01"
+          placeholder="—"
+          value="${val||''}"
+          data-cat="${escapeHtml(item)}" data-mes="${mi+1}"
+          oninput="orcOnInput(this)"
+          onblur="orcOnBlur(this)"></td>`;
+      });
+      bodyHtml += `<td class="orc-total-cat" id="orc-tot-cat-${encodeURIComponent(item)}">${orcFmt(totalCat)}</td></tr>`;
+    });
+  });
+
+  tbody.innerHTML = bodyHtml;
+
+  // Rodapé — totais por mês
+  let tfHtml = '<tr class="orc-total-row"><td>Total mensal</td>';
+  let totalGeral = 0;
+  MESES_NOMES.forEach((_,mi)=>{
+    const tot = orcTotalMes(mi+1);
+    totalGeral += tot;
+    tfHtml += `<td class="orc-total-mes" id="orc-tot-mes-${mi+1}">${orcFmt(tot)}</td>`;
+  });
+  tfHtml += `<td class="orc-total-mes" id="orc-tot-geral">${orcFmt(totalGeral)}</td></tr>`;
+  tfoot.innerHTML = tfHtml;
+}
+
+function orcFmt(v){
+  if(!v) return '—';
+  return 'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+function orcTotalMes(mes){
+  return Object.entries(orcDados)
+    .filter(([k])=>k.endsWith(`|${mes}`))
+    .reduce((a,[,v])=>a+v,0);
+}
+
+function orcTotalCat(cat){
+  return MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${cat}|${mi+1}`]||0),0);
+}
+
+function orcOnInput(el){
+  const cat = el.dataset.cat;
+  const mes = Number(el.dataset.mes);
+  const val = parseFloat(el.value)||0;
+  const key = `${cat}|${mes}`;
+  if(val) orcDados[key]=val; else delete orcDados[key];
+  el.className = 'orc-input '+(val?'tem-valor':'sem-valor');
+
+  // Atualizar totais inline
+  const totMesEl = document.getElementById(`orc-tot-mes-${mes}`);
+  if(totMesEl) totMesEl.textContent = orcFmt(orcTotalMes(mes));
+
+  const catEnc = encodeURIComponent(cat);
+  const totCatEl = document.getElementById(`orc-tot-cat-${catEnc}`);
+  if(totCatEl) totCatEl.textContent = orcFmt(orcTotalCat(cat));
+
+  const totalGeral = MESES_NOMES.reduce((a,_,mi)=>a+orcTotalMes(mi+1),0);
+  const totGeralEl = document.getElementById('orc-tot-geral');
+  if(totGeralEl) totGeralEl.textContent = orcFmt(totalGeral);
+
+  if(!orcAlterado){
+    orcAlterado = true;
+    document.getElementById('orc-save-btn').style.display='inline-flex';
+  }
+}
+
+function orcOnBlur(el){
+  // Formatar ao sair do campo
+  const val = parseFloat(el.value)||0;
+  el.value = val ? val.toFixed(2) : '';
+}
+
+async function orcSalvar(){
+  const btn = document.getElementById('orc-save-btn');
+  const original = btn.innerHTML;
+  btn.innerHTML='Salvando...'; btn.disabled=true;
+
+  // Montar upserts
+  const rows = Object.entries(orcDados).map(([key, val])=>{
+    const [cat, mes] = key.split('|');
+    // Encontrar grupo da categoria
+    let grupo = '';
+    RX_DESPESAS_GRUPOS.forEach(g=>{
+      const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+      const itens = [...g.itens, ...(gDados.extras||[])];
+      if(itens.includes(cat)) grupo = g.label;
+    });
+    return { user_id: usuarioAtual.id, ano: orcAno, mes: Number(mes), categoria: cat, grupo, previsto: val };
+  });
+
+  // Deletar tudo do ano e reinserir (mais simples que upsert por categoria+mes)
+  await sb.from('orcamento').delete().eq('user_id', usuarioAtual.id).eq('ano', orcAno);
+
+  let error = null;
+  if(rows.length){
+    ({ error } = await sb.from('orcamento').insert(rows));
+  }
+
+  btn.innerHTML = original; btn.disabled=false;
+
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+
+  orcAlterado = false;
+  btn.style.display='none';
+  const msg = document.getElementById('orc-saved-msg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',2000);
+}
+
+// ── Importação do Raio X ──
+function orcConfirmarImport(){
+  orcImportStep = 1;
+  document.getElementById('orc-import-title').textContent = 'Tem certeza que quer importar?';
+  document.getElementById('orc-import-sub').textContent = 'Esta ação vai preencher todos os meses do ano '+orcAno+' com as médias dos últimos 3 meses do Raio X. Valores já existentes serão sobrescritos.';
+  document.getElementById('orc-import-confirm-btn').textContent = 'Sim, pode importar';
+  document.getElementById('orc-import-confirm-btn').onclick = orcImportStep2;
+  abrirOverlay('overlay-orc-import');
+}
+
+function orcImportStep2(){
+  fecharOverlay('overlay-orc-import');
+  // Segunda confirmação com modal mais direto
+  orcImportStep = 2;
+  document.getElementById('orc-import-title').textContent = '⚠️ Última chance — tem CERTEZA mesmo?';
+  document.getElementById('orc-import-sub').textContent = 'Todos os valores já lançados no orçamento de '+orcAno+' serão apagados e substituídos pelas médias do Raio X. Não há como desfazer.';
+  document.getElementById('orc-import-confirm-btn').textContent = 'Sim, tenho certeza. Importar agora.';
+  document.getElementById('orc-import-confirm-btn').onclick = orcExecutarImport;
+  setTimeout(()=>abrirOverlay('overlay-orc-import'), 200);
+}
+
+function orcExecutarImport(){
+  fecharOverlay('overlay-orc-import');
+  if(!rxDados || !rxDados.despesas){ alert('Carregue o Raio X antes de importar.'); return; }
+
+  const novosDados = {};
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados = rxDados.despesas[g.id] || {};
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    itens.forEach(item=>{
+      const v = gDados[item] || {};
+      const media = ((Number(v.m1)||0)+(Number(v.m2)||0)+(Number(v.m3)||0))/3;
+      if(media > 0){
+        MESES_NOMES.forEach((_,mi)=>{
+          novosDados[`${item}|${mi+1}`] = Math.round(media*100)/100;
+        });
+      }
+    });
+  });
+
+  orcDados = novosDados;
+  orcRenderTabela();
+  orcAlterado = true;
+  document.getElementById('orc-save-btn').style.display='inline-flex';
 }
 
 // ══════════════════════════════════════════════
