@@ -501,8 +501,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-table{width:100%;border-collapse:collapse;min-width:900px}
 .orc-table th{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);padding:.85rem .8rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);white-space:nowrap;text-align:right;font-weight:600;position:sticky;top:0;z-index:1}
 .orc-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--navy2);min-width:180px;padding-left:1.2rem}
-.orc-table th.mes-header{min-width:90px}
-.orc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--border2);font-size:.8rem;vertical-align:middle;text-align:right}
+.orc-table th.mes-header{min-width:110px;text-align:center}
+.orc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--border2);font-size:.8rem;vertical-align:middle;text-align:center}
 .orc-table td:first-child{color:var(--gray);font-size:.78rem;white-space:nowrap;position:sticky;left:0;background:var(--navy2);z-index:1;border-right:1px solid var(--border);padding-left:1.2rem;text-align:left;line-height:1.4}
 .orc-grupo-row td{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.75rem .8rem;background:rgba(0,182,233,0.05);border-bottom:none;cursor:pointer;user-select:none}
 .orc-grupo-row td:first-child{color:var(--gold);background:rgba(0,182,233,0.05);display:flex;align-items:center;gap:.5rem}
@@ -511,8 +511,9 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-grupo-total-inline{color:var(--white);font-size:.72rem;font-weight:700;margin-left:auto;display:none}
 .orc-grupo-row.fechado .orc-grupo-total-inline{display:inline}
 .orc-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px}
-.orc-input{background:none;border:none;outline:none;width:72px;text-align:right;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--white);padding:.2rem .35rem;border-radius:2px;transition:background .15s}
+.orc-input{background:none;border:none;outline:none;width:88px;text-align:right;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--white);padding:.2rem .35rem;border-radius:2px;transition:background .15s;-moz-appearance:textfield}
 .orc-input:focus{background:rgba(0,182,233,0.08)}
+.orc-input::-webkit-outer-spin-button,.orc-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .orc-input.sem-valor{color:var(--gray2)}
 .orc-replicar{background:none;border:none;color:var(--gray2);cursor:pointer;padding:0 1px;opacity:0;transition:opacity .15s;line-height:1;display:flex;align-items:center;font-size:.75rem}
 .orc-cell:hover .orc-replicar,.orc-replicar.visivel{opacity:1}
@@ -2690,7 +2691,7 @@ function orcRenderTabela(){
     const par = (mi+1)%2===0 ? ' mes-par' : '';
     thHtml += `<th class="mes-header${par}">${m}</th>`;
   });
-  thHtml += '<th style="text-align:right;min-width:80px">Total ano</th></tr>';
+  thHtml += '<th style="text-align:right;min-width:100px">Total ano</th></tr>';
   thead.innerHTML = thHtml;
 
   let bodyHtml = '';
@@ -2700,41 +2701,28 @@ function orcRenderTabela(){
     const extras = gDados.extras || [];
     const itens = [...g.itens, ...extras];
 
-    // Total anual do grupo
-    const totalGrupo = itens.reduce((acc,item)=>{
-      return acc + MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${item}|${mi+1}`]||0),0);
-    },0);
+    // Subtotais mensais e anuais do grupo
+    const totMesGrupo = mes => itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
+    const totalGrupo = itens.reduce((acc,item)=>acc+orcTotalCat(item),0);
 
-    // Linha de cabeçalho do grupo (com colunas alternadas quando fechado)
-    if(gAberto){
-      bodyHtml += `<tr class="orc-grupo-row" onclick="orcToggleGrupo('${g.id}')">
-        <td colspan="14">
-          <i class="orc-grupo-chevron">▾</i>
-          ${g.label}
-          <span class="orc-grupo-total-inline">${orcFmt(totalGrupo)}</span>
-        </td>
-      </tr>`;
-    } else {
-      // Fechado: mostrar linha com totais mensais do grupo
-      bodyHtml += `<tr class="orc-grupo-row fechado" onclick="orcToggleGrupo('${g.id}')">
-        <td>
-          <i class="orc-grupo-chevron">▾</i>
-          ${g.label}
-        </td>`;
-      MESES_NOMES.forEach((_,mi)=>{
-        const mes = mi+1;
-        const par = mes%2===0 ? ' mes-par' : '';
-        const totMesGrupo = itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
-        bodyHtml += `<td class="${par}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.78rem">${orcFmt(totMesGrupo)}</td>`;
-      });
-      bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--gold);font-size:.78rem">${orcFmt(totalGrupo)}</td></tr>`;
-    }
+    // Linha de cabeçalho do grupo — sempre mostra subtotais por mês
+    const chevron = gAberto ? '▾' : '▸';
+    bodyHtml += `<tr class="orc-grupo-row${gAberto?'':' fechado'}" onclick="orcToggleGrupo('${g.id}')">
+      <td><i class="orc-grupo-chevron">${chevron}</i> ${g.label}</td>`;
+    MESES_NOMES.forEach((_,mi)=>{
+      const mes = mi+1;
+      const par = mes%2===0 ? ' mes-par' : '';
+      const tot = totMesGrupo(mes);
+      bodyHtml += `<td class="${par}" id="orc-stm-${g.id}-${mes}" style="text-align:center;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(tot)}</td>`;
+    });
+    bodyHtml += `<td id="orc-sta-${g.id}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalGrupo)}</td></tr>`;
 
+    // Subcategorias (só se aberto)
     if(gAberto){
       itens.forEach(item=>{
-        const totalCat = MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${item}|${mi+1}`]||0),0);
+        const totalCat = orcTotalCat(item);
         const catId = encodeURIComponent(item);
-        bodyHtml += `<tr data-grupo="${g.id}" data-cat="${escapeHtml(item)}"><td>${item}</td>`;
+        bodyHtml += `<tr data-grupo="${g.id}" data-cat="${escapeHtml(item)}"><td style="padding-left:1.8rem">${item}</td>`;
         MESES_NOMES.forEach((_,mi)=>{
           const mes = mi+1;
           const par = mes%2===0 ? ' mes-par' : '';
@@ -2749,19 +2737,8 @@ function orcRenderTabela(){
               onclick="orcReplicar(this,'${escapeHtml(item)}',${mes})">→</button>
           </div></td>`;
         });
-        bodyHtml += `<td class="orc-total-cat" id="orc-tc-${catId}">${orcFmt(totalCat)}</td></tr>`;
+        bodyHtml += `<td class="orc-total-cat" id="orc-tc-${catId}" style="text-align:right">${orcFmt(totalCat)}</td></tr>`;
       });
-
-      // Linha de subtotal do grupo
-      bodyHtml += `<tr class="orc-subtotal-row" id="orc-st-${g.id}">
-        <td>Subtotal ${g.label}</td>`;
-      MESES_NOMES.forEach((_,mi)=>{
-        const mes = mi+1;
-        const par = mes%2===0 ? ' mes-par' : '';
-        const totMesGrupo = itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
-        bodyHtml += `<td class="${par}" id="orc-stm-${g.id}-${mes}">${orcFmt(totMesGrupo)}</td>`;
-      });
-      bodyHtml += `<td id="orc-sta-${g.id}">${orcFmt(totalGrupo)}</td></tr>`;
     }
   });
   tbody.innerHTML = bodyHtml;
@@ -2774,12 +2751,11 @@ function orcRenderTabela(){
     const par = mes%2===0 ? ' mes-par' : '';
     const tot = orcTotalMes(mes);
     totalGeral += tot;
-    tfHtml += `<td class="orc-total-mes${par}" id="orc-tm-${mes}">${orcFmt(tot)}</td>`;
+    tfHtml += `<td class="orc-total-mes${par}" id="orc-tm-${mes}" style="text-align:center">${orcFmt(tot)}</td>`;
   });
-  tfHtml += `<td class="orc-total-mes" id="orc-tg">${orcFmt(totalGeral)}</td></tr>`;
+  tfHtml += `<td class="orc-total-mes" id="orc-tg" style="text-align:right">${orcFmt(totalGeral)}</td></tr>`;
   tfoot.innerHTML = tfHtml;
 }
-
 function orcToggleGrupo(gid){
   if(orcGruposFechados.has(gid)) orcGruposFechados.delete(gid);
   else orcGruposFechados.add(gid);
