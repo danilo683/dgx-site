@@ -522,6 +522,18 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-total-row td:first-child{background:rgba(10,21,37,0.6);color:var(--white);padding-left:1.2rem}
 .orc-total-mes{color:var(--gold)}
 .orc-total-cat{color:var(--gray);font-size:.7rem}
+/* Receitas — verde */
+.orc-grupo-row.receita td{background:rgba(78,201,138,0.05);color:var(--green)}
+.orc-grupo-row.receita td.mes-par{background:rgba(78,201,138,0.08)}
+.orc-grupo-row.receita td[id^="orc-stm"],[id^="orc-sta-receitas"]{color:var(--green)}
+.orc-receita-input-label{background:none;border:none;outline:none;font-family:'Inter',sans-serif;font-size:.78rem;color:var(--gray);padding:.15rem .35rem;border-radius:2px;transition:background .15s;width:100%;cursor:text}
+.orc-receita-input-label:focus{background:rgba(78,201,138,0.08);color:var(--white)}
+/* Rodapé saldo */
+.orc-saldo-row td{font-weight:700;font-size:.85rem;padding:.7rem .6rem;border-top:2px solid rgba(0,182,233,0.2)}
+.orc-saldo-row td:first-child{padding-left:1.2rem;position:sticky;left:0;background:var(--navy)}
+.orc-saldo-positivo{color:var(--green)}
+.orc-saldo-negativo{color:var(--red)}
+.orc-total-receita{color:var(--green)}
 /* Colunas alternadas */
 .orc-table th.mes-par,.orc-table td.mes-par{background-color:rgba(255,255,255,0.025)}
 .orc-grupo-row td.mes-par{background-color:rgba(0,182,233,0.07)}
@@ -2671,7 +2683,10 @@ async function orcCarregarDados(){
 
   if(error) console.error(error);
   orcDados = {};
-  (data||[]).forEach(r=>{ orcDados[`${r.categoria}|${r.mes}`] = Number(r.previsto); });
+  (data||[]).forEach(r=>{
+    const key = r.grupo==='__receitas' ? orcRecKey(r.categoria, r.mes) : `${r.categoria}|${r.mes}`;
+    orcDados[key] = Number(r.previsto);
+  });
 
   orcRenderTabela();
   document.getElementById('orc-loading').style.display='none';
@@ -2685,7 +2700,7 @@ function orcRenderTabela(){
   const tbody = document.getElementById('orc-tbody');
   const tfoot = document.getElementById('orc-tfoot');
 
-  // Cabeçalho com classes alternadas
+  // Cabeçalho
   let thHtml = '<tr><th>Categoria</th>';
   MESES_NOMES.forEach((m,mi)=>{
     const par = (mi+1)%2===0 ? ' mes-par' : '';
@@ -2695,39 +2710,74 @@ function orcRenderTabela(){
   thead.innerHTML = thHtml;
 
   let bodyHtml = '';
+
+  // ── RECEITAS ──
+  const recAberta = !orcGruposFechados.has('__receitas');
+  const recLabels = orcGetRecLabels();
+  const totMesRec = mes => recLabels.reduce((a,lb)=>a+(orcDados[orcRecKey(lb,mes)]||0),0);
+  const totalRecAnual = recLabels.reduce((a,lb)=>a+orcTotalRecCat(lb),0);
+  const chevronRec = recAberta ? '▾' : '▸';
+
+  bodyHtml += `<tr class="orc-grupo-row receita" onclick="orcToggleGrupo('__receitas')">
+    <td><i class="orc-grupo-chevron">${chevronRec}</i> Receitas</td>`;
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    bodyHtml += `<td class="${par}" id="orc-stm-__receitas-${mes}" style="text-align:center;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totMesRec(mes))}</td>`;
+  });
+  bodyHtml += `<td id="orc-sta-__receitas" style="text-align:right;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totalRecAnual)}</td></tr>`;
+
+  if(recAberta){
+    recLabels.forEach((lb,idx)=>{
+      const totCat = orcTotalRecCat(lb);
+      const lbEnc = encodeURIComponent('__rec:'+lb);
+      bodyHtml += `<tr data-grupo="__receitas" data-recidx="${idx}">
+        <td style="padding-left:1.8rem">
+          <input class="orc-receita-input-label" value="${escapeHtml(lb)}"
+            placeholder="Nome da receita"
+            onchange="orcRenomearReceita(${idx},this.value)"
+            onclick="event.stopPropagation()">
+        </td>`;
+      MESES_NOMES.forEach((_,mi)=>{
+        const mes=mi+1, par=mes%2===0?' mes-par':'';
+        const key=orcRecKey(lb,mes), val=orcDados[key]||'';
+        bodyHtml += `<td class="${par}"><div class="orc-cell">
+          <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
+            placeholder="—" value="${val}"
+            data-cat="__rec:${escapeHtml(lb)}" data-mes="${mes}"
+            oninput="orcOnInputRec(this,'${escapeHtml(lb)}')" onblur="orcOnBlur(this)">
+          <button class="orc-replicar${val?' visivel':''}" title="Replicar até dezembro"
+            onclick="orcReplicarRec(this,'${escapeHtml(lb)}',${mes})">→</button>
+        </div></td>`;
+      });
+      bodyHtml += `<td class="orc-total-cat" id="orc-tcr-${lbEnc}" style="text-align:right;color:var(--green)">${orcFmt(totCat)}</td></tr>`;
+    });
+  }
+
+  // ── DESPESAS ──
   RX_DESPESAS_GRUPOS.forEach(g=>{
     const gAberto = !orcGruposFechados.has(g.id);
     const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
-    const extras = gDados.extras || [];
-    const itens = [...g.itens, ...extras];
-
-    // Subtotais mensais e anuais do grupo
-    const totMesGrupo = mes => itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
-    const totalGrupo = itens.reduce((acc,item)=>acc+orcTotalCat(item),0);
-
-    // Linha de cabeçalho do grupo — sempre mostra subtotais por mês
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    const totMesG = mes => itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
+    const totalG = itens.reduce((acc,item)=>acc+orcTotalCat(item),0);
     const chevron = gAberto ? '▾' : '▸';
+
     bodyHtml += `<tr class="orc-grupo-row${gAberto?'':' fechado'}" onclick="orcToggleGrupo('${g.id}')">
       <td><i class="orc-grupo-chevron">${chevron}</i> ${g.label}</td>`;
     MESES_NOMES.forEach((_,mi)=>{
-      const mes = mi+1;
-      const par = mes%2===0 ? ' mes-par' : '';
-      const tot = totMesGrupo(mes);
-      bodyHtml += `<td class="${par}" id="orc-stm-${g.id}-${mes}" style="text-align:center;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(tot)}</td>`;
+      const mes=mi+1, par=mes%2===0?' mes-par':'';
+      bodyHtml += `<td class="${par}" id="orc-stm-${g.id}-${mes}" style="text-align:center;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totMesG(mes))}</td>`;
     });
-    bodyHtml += `<td id="orc-sta-${g.id}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalGrupo)}</td></tr>`;
+    bodyHtml += `<td id="orc-sta-${g.id}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalG)}</td></tr>`;
 
-    // Subcategorias (só se aberto)
     if(gAberto){
       itens.forEach(item=>{
         const totalCat = orcTotalCat(item);
         const catId = encodeURIComponent(item);
         bodyHtml += `<tr data-grupo="${g.id}" data-cat="${escapeHtml(item)}"><td style="padding-left:1.8rem">${item}</td>`;
         MESES_NOMES.forEach((_,mi)=>{
-          const mes = mi+1;
-          const par = mes%2===0 ? ' mes-par' : '';
-          const key = `${item}|${mes}`;
-          const val = orcDados[key]||'';
+          const mes=mi+1, par=mes%2===0?' mes-par':'';
+          const key=`${item}|${mes}`, val=orcDados[key]||'';
           bodyHtml += `<td class="${par}"><div class="orc-cell">
             <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
               placeholder="—" value="${val}"
@@ -2743,17 +2793,41 @@ function orcRenderTabela(){
   });
   tbody.innerHTML = bodyHtml;
 
-  // Rodapé — totais mensais gerais
-  let tfHtml = '<tr class="orc-total-row"><td>Total mensal</td>';
-  let totalGeral = 0;
+  // Rodapé: total receitas / total despesas / saldo
+  let tfHtml = '';
+
+  // Linha receitas
+  let totRecAnual = 0;
+  tfHtml += '<tr class="orc-total-row" style="border-top:2px solid rgba(78,201,138,0.25)"><td style="color:var(--green)">Total Receitas</td>';
   MESES_NOMES.forEach((_,mi)=>{
-    const mes = mi+1;
-    const par = mes%2===0 ? ' mes-par' : '';
-    const tot = orcTotalMes(mes);
-    totalGeral += tot;
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    const tot=orcTotalMesRec(mes); totRecAnual+=tot;
+    tfHtml += `<td class="${par}" id="orc-tr-${mes}" style="text-align:center;color:var(--green)">${orcFmt(tot)}</td>`;
+  });
+  tfHtml += `<td id="orc-tr-anual" style="text-align:right;color:var(--green)">${orcFmt(totRecAnual)}</td></tr>`;
+
+  // Linha despesas
+  let totDespAnual = 0;
+  tfHtml += '<tr class="orc-total-row"><td>Total Despesas</td>';
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    const tot=orcTotalMesDesp(mes); totDespAnual+=tot;
     tfHtml += `<td class="orc-total-mes${par}" id="orc-tm-${mes}" style="text-align:center">${orcFmt(tot)}</td>`;
   });
-  tfHtml += `<td class="orc-total-mes" id="orc-tg" style="text-align:right">${orcFmt(totalGeral)}</td></tr>`;
+  tfHtml += `<td class="orc-total-mes" id="orc-tg" style="text-align:right">${orcFmt(totDespAnual)}</td></tr>`;
+
+  // Linha saldo
+  tfHtml += '<tr class="orc-saldo-row"><td>Saldo mensal</td>';
+  let saldoAnual = 0;
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    const saldo=orcTotalMesRec(mes)-orcTotalMesDesp(mes); saldoAnual+=saldo;
+    const cls=saldo>=0?'orc-saldo-positivo':'orc-saldo-negativo';
+    tfHtml += `<td class="${par}" id="orc-sal-${mes}" style="text-align:center"><span class="${cls}">${orcFmt(Math.abs(saldo))}${saldo<0?' ▼':saldo>0?' ▲':''}</span></td>`;
+  });
+  const clsAnual=saldoAnual>=0?'orc-saldo-positivo':'orc-saldo-negativo';
+  tfHtml += `<td style="text-align:right"><span class="${clsAnual}" id="orc-sal-anual">${orcFmt(Math.abs(saldoAnual))}${saldoAnual<0?' ▼':saldoAnual>0?' ▲':''}</span></td></tr>`;
+
   tfoot.innerHTML = tfHtml;
 }
 function orcToggleGrupo(gid){
@@ -2762,22 +2836,108 @@ function orcToggleGrupo(gid){
   orcRenderTabela();
 }
 
+// Labels das receitas — usa rxDados se disponível, senão padrão
+function orcGetRecLabels(){
+  if(rxDados && rxDados.receitas && rxDados.receitas.length)
+    return rxDados.receitas.map(r=>r.label);
+  // Fallback: ler do orcDados as chaves __rec: existentes
+  const labels = [...new Set(
+    Object.keys(orcDados).filter(k=>k.startsWith('__rec:')).map(k=>k.split('|')[0].replace('__rec:',''))
+  )];
+  return labels.length ? labels : RX_RECEITAS_FIXAS;
+}
+
+function orcOnInputRec(el, label){
+  const mes = Number(el.dataset.mes);
+  const val = parseFloat(el.value)||0;
+  const key = orcRecKey(label, mes);
+  if(val) orcDados[key]=val; else delete orcDados[key];
+  el.className = 'orc-input'+(val?'':' sem-valor');
+  const btnRep = el.parentElement.querySelector('.orc-replicar');
+  if(btnRep) btnRep.classList.toggle('visivel', !!val);
+  orcAtualizarTotaisRec(label, mes);
+  if(!orcAlterado){ orcAlterado=true; document.getElementById('orc-save-btn').style.display='inline-flex'; }
+}
+
+function orcReplicarRec(btn, label, mesInicio){
+  const input = btn.parentElement.querySelector('.orc-input');
+  const val = parseFloat(input.value)||0;
+  if(!val) return;
+  for(let m=mesInicio+1; m<=12; m++){
+    orcDados[orcRecKey(label,m)] = val;
+    const inputs = document.querySelectorAll(`.orc-input[data-cat="__rec:${CSS.escape(label)}"][data-mes="${m}"]`);
+    inputs.forEach(inp=>{ inp.value=val.toFixed(2); inp.className='orc-input'; const r=inp.parentElement.querySelector('.orc-replicar'); if(r)r.classList.add('visivel'); });
+    orcAtualizarTotaisRec(label, m);
+  }
+  if(!orcAlterado){ orcAlterado=true; document.getElementById('orc-save-btn').style.display='inline-flex'; }
+}
+
+function orcRenomearReceita(idx, novoNome){
+  if(!novoNome.trim()) return;
+  const labels = orcGetRecLabels();
+  const labelAntigo = labels[idx];
+  if(labelAntigo === novoNome.trim()) return;
+  // Renomear as chaves no orcDados
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1;
+    const keyAntiga=orcRecKey(labelAntigo,mes), keyNova=orcRecKey(novoNome.trim(),mes);
+    if(orcDados[keyAntiga]!==undefined){ orcDados[keyNova]=orcDados[keyAntiga]; delete orcDados[keyAntiga]; }
+  });
+  // Atualizar rxDados se disponível
+  if(rxDados && rxDados.receitas && rxDados.receitas[idx]) rxDados.receitas[idx].label = novoNome.trim();
+  orcRenderTabela();
+  if(!orcAlterado){ orcAlterado=true; document.getElementById('orc-save-btn').style.display='inline-flex'; }
+}
+
+function orcAtualizarTotaisRec(label, mes){
+  // Total mensal do grupo receitas
+  const totMesR = orcTotalMesRec(mes);
+  const stmEl = document.getElementById(`orc-stm-__receitas-${mes}`);
+  if(stmEl) stmEl.textContent = orcFmt(totMesR);
+  const staEl = document.getElementById('orc-sta-__receitas');
+  if(staEl){ const tot=orcGetRecLabels().reduce((a,lb)=>a+orcTotalRecCat(lb),0); staEl.textContent=orcFmt(tot); }
+  // Total anual da receita
+  const lbEnc = encodeURIComponent('__rec:'+label);
+  const tcEl = document.getElementById(`orc-tcr-${lbEnc}`);
+  if(tcEl) tcEl.textContent = orcFmt(orcTotalRecCat(label));
+  // Atualizar rodapé
+  const trEl = document.getElementById(`orc-tr-${mes}`);
+  if(trEl) trEl.textContent = orcFmt(totMesR);
+  const trAnualEl = document.getElementById('orc-tr-anual');
+  if(trAnualEl){ const tot=MESES_NOMES.reduce((a,_,mi)=>a+orcTotalMesRec(mi+1),0); trAnualEl.textContent=orcFmt(tot); }
+  orcAtualizarSaldo(mes);
+}
+
+function orcAtualizarSaldo(mes){
+  const saldo = orcTotalMesRec(mes)-orcTotalMesDesp(mes);
+  const cls = saldo>=0?'orc-saldo-positivo':'orc-saldo-negativo';
+  const salEl = document.getElementById(`orc-sal-${mes}`);
+  if(salEl) salEl.innerHTML = `<span class="${cls}">${orcFmt(Math.abs(saldo))}${saldo<0?' ▼':saldo>0?' ▲':''}</span>`;
+  const saldoAnual = MESES_NOMES.reduce((a,_,mi)=>a+(orcTotalMesRec(mi+1)-orcTotalMesDesp(mi+1)),0);
+  const clsA = saldoAnual>=0?'orc-saldo-positivo':'orc-saldo-negativo';
+  const salAnEl = document.getElementById('orc-sal-anual');
+  if(salAnEl) salAnEl.innerHTML = `${orcFmt(Math.abs(saldoAnual))}${saldoAnual<0?' ▼':saldoAnual>0?' ▲':''}`;
+  if(salAnEl) salAnEl.className = clsA;
+}
+
 function orcFmt(v){
   if(!v) return '—';
   return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
 }
 
-function orcTotalMes(mes){
-  return Object.entries(orcDados).filter(([k])=>k.endsWith(`|${mes}`)).reduce((a,[,v])=>a+v,0);
-}
-function orcTotalCat(cat){
-  return MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${cat}|${mi+1}`]||0),0);
-}
+function orcTotalMes(mes){ return Object.entries(orcDados).filter(([k])=>k.endsWith(`|${mes}`)).reduce((a,[,v])=>a+v,0); }
+function orcTotalMesDesp(mes){ return Object.entries(orcDados).filter(([k])=>k.endsWith(`|${mes}`)&&!k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0); }
+function orcTotalMesRec(mes){ return Object.entries(orcDados).filter(([k])=>k.endsWith(`|${mes}`)&&k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0); }
+function orcTotalCat(cat){ return MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${cat}|${mi+1}`]||0),0); }
 function orcTotalGrupo(gid){
   const gDados = (rxDados && rxDados.despesas && rxDados.despesas[gid]) || {};
   const itens = [...(RX_DESPESAS_GRUPOS.find(g=>g.id===gid)?.itens||[]), ...(gDados.extras||[])];
   return itens.reduce((acc,item)=>acc+orcTotalCat(item),0);
 }
+// Chave especial para receitas: '__rec:NomeReceita|mes'
+function orcRecKey(label, mes){ return `__rec:${label}|${mes}`; }
+function orcTotalRecCat(label){ return MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[orcRecKey(label,mi+1)]||0),0); }
+function orcTotalRecMes(mes){ return orcTotalMesRec(mes); }
 
 function orcOnInput(el){
   const cat = el.dataset.cat, mes = Number(el.dataset.mes);
@@ -2839,7 +2999,10 @@ function orcAtualizarTotais(cat, mes){
   // Total geral
   const totalGeral = MESES_NOMES.reduce((a,_,mi)=>a+orcTotalMes(mi+1),0);
   const totGeralEl = document.getElementById('orc-tg');
-  if(totGeralEl) totGeralEl.textContent = orcFmt(totalGeral);
+  if(totGeralEl) totGeralEl.textContent = orcFmt(orcTotalMesDesp(mes)*12||totalGeral);
+
+  // Saldo
+  orcAtualizarSaldo(mes);
 }
 
 function orcReplicar(btn, cat, mesInicio){
@@ -2872,14 +3035,17 @@ async function orcSalvar(){
   btn.innerHTML='Salvando...'; btn.disabled=true;
 
   const rows = Object.entries(orcDados).map(([key, val])=>{
-    const [cat, mes] = key.split('|');
-    let grupo = '';
-    RX_DESPESAS_GRUPOS.forEach(g=>{
+    const isRec = key.startsWith('__rec:');
+    const partes = key.split('|');
+    const mes = Number(partes[1]);
+    const cat = isRec ? partes[0].replace('__rec:','') : partes[0];
+    let grupo = isRec ? '__receitas' : '';
+    if(!isRec) RX_DESPESAS_GRUPOS.forEach(g=>{
       const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
       const itens = [...g.itens, ...(gDados.extras||[])];
       if(itens.includes(cat)) grupo = g.label;
     });
-    return { user_id:usuarioAtual.id, ano:orcAno, mes:Number(mes), categoria:cat, grupo, previsto:val };
+    return { user_id:usuarioAtual.id, ano:orcAno, mes, categoria:cat, grupo, previsto:val };
   });
 
   await sb.from('orcamento').delete().eq('user_id', usuarioAtual.id).eq('ano', orcAno);
@@ -2925,18 +3091,25 @@ function orcExecutarImport(mesInicio){
   fecharOverlay('overlay-orc-import');
   if(!rxDados || !rxDados.despesas){ alert('Carregue o Raio X antes de importar.'); return; }
 
+  // Importar despesas
   RX_DESPESAS_GRUPOS.forEach(g=>{
     const gDados = rxDados.despesas[g.id] || {};
     const itens = [...g.itens, ...(gDados.extras||[])];
     itens.forEach(item=>{
       const v = gDados[item] || {};
       const media = Math.round(((Number(v.m1)||0)+(Number(v.m2)||0)+(Number(v.m3)||0))/3*100)/100;
-      if(media > 0){
-        for(let m = mesInicio; m <= 12; m++){
-          orcDados[`${item}|${m}`] = media;
-        }
-      }
+      if(media > 0) for(let m=mesInicio; m<=12; m++) orcDados[`${item}|${m}`] = media;
     });
+  });
+
+  // Importar receitas
+  const recLabels = orcGetRecLabels();
+  const recItens = rxDados.receitas && rxDados.receitas.length
+    ? rxDados.receitas
+    : RX_RECEITAS_FIXAS.map(r=>({label:r,m1:'',m2:'',m3:''}));
+  recItens.forEach(rec=>{
+    const media = Math.round(((Number(rec.m1)||0)+(Number(rec.m2)||0)+(Number(rec.m3)||0))/3*100)/100;
+    if(media > 0) for(let m=mesInicio; m<=12; m++) orcDados[orcRecKey(rec.label,m)] = media;
   });
 
   orcRenderTabela();
