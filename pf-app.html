@@ -499,28 +499,44 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-table-wrap{overflow-x:auto;border:1px solid var(--border)}
 .orc-loading{padding:3rem;text-align:center;color:var(--gray);font-size:.85rem}
 .orc-table{width:100%;border-collapse:collapse;min-width:900px}
-.orc-table th{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);padding:.7rem .6rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);white-space:nowrap;text-align:right;font-weight:600;position:sticky;top:0;z-index:1}
-.orc-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--navy2);min-width:160px;padding-left:1rem}
-.orc-table th.mes-header{min-width:76px}
-.orc-table td{padding:.4rem .4rem;border-bottom:1px solid var(--border2);font-size:.8rem;vertical-align:middle;text-align:right}
-.orc-table td:first-child{color:var(--gray);font-size:.75rem;white-space:nowrap;position:sticky;left:0;background:var(--navy2);z-index:1;border-right:1px solid var(--border);padding-left:1rem;text-align:left}
-.orc-grupo-row td{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.55rem .6rem;background:rgba(0,182,233,0.05);border-bottom:none;cursor:pointer;user-select:none}
+.orc-table th{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);padding:.85rem .8rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);white-space:nowrap;text-align:right;font-weight:600;position:sticky;top:0;z-index:1}
+.orc-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--navy2);min-width:180px;padding-left:1.2rem}
+.orc-table th.mes-header{min-width:90px}
+.orc-table td{padding:.55rem .6rem;border-bottom:1px solid var(--border2);font-size:.8rem;vertical-align:middle;text-align:right}
+.orc-table td:first-child{color:var(--gray);font-size:.78rem;white-space:nowrap;position:sticky;left:0;background:var(--navy2);z-index:1;border-right:1px solid var(--border);padding-left:1.2rem;text-align:left;line-height:1.4}
+.orc-grupo-row td{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.75rem .8rem;background:rgba(0,182,233,0.05);border-bottom:none;cursor:pointer;user-select:none}
 .orc-grupo-row td:first-child{color:var(--gold);background:rgba(0,182,233,0.05);display:flex;align-items:center;gap:.5rem}
 .orc-grupo-chevron{display:inline-block;transition:transform .2s;font-style:normal;font-size:.8rem}
 .orc-grupo-row.fechado .orc-grupo-chevron{transform:rotate(-90deg)}
 .orc-grupo-total-inline{color:var(--white);font-size:.72rem;font-weight:700;margin-left:auto;display:none}
 .orc-grupo-row.fechado .orc-grupo-total-inline{display:inline}
 .orc-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px}
-.orc-input{background:none;border:none;outline:none;width:62px;text-align:right;font-family:'Inter',sans-serif;font-size:.78rem;color:var(--white);padding:.15rem .25rem;border-radius:2px;transition:background .15s}
+.orc-input{background:none;border:none;outline:none;width:72px;text-align:right;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--white);padding:.2rem .35rem;border-radius:2px;transition:background .15s}
 .orc-input:focus{background:rgba(0,182,233,0.08)}
 .orc-input.sem-valor{color:var(--gray2)}
 .orc-replicar{background:none;border:none;color:var(--gray2);cursor:pointer;padding:0 1px;opacity:0;transition:opacity .15s;line-height:1;display:flex;align-items:center;font-size:.75rem}
 .orc-cell:hover .orc-replicar,.orc-replicar.visivel{opacity:1}
 .orc-replicar:hover{color:var(--gold)}
-.orc-total-row td{font-weight:700;color:var(--white);font-size:.82rem;background:rgba(10,21,37,0.5);border-top:1px solid var(--border);padding:.6rem .4rem}
-.orc-total-row td:first-child{background:rgba(10,21,37,0.6);color:var(--white);padding-left:1rem}
+.orc-total-row td{font-weight:700;color:var(--white);font-size:.82rem;background:rgba(10,21,37,0.5);border-top:1px solid var(--border);padding:.75rem .6rem}
+.orc-total-row td:first-child{background:rgba(10,21,37,0.6);color:var(--white);padding-left:1.2rem}
 .orc-total-mes{color:var(--gold)}
 .orc-total-cat{color:var(--gray);font-size:.7rem}
+/* Colunas alternadas */
+.orc-table th.mes-par,.orc-table td.mes-par{background-color:rgba(255,255,255,0.025)}
+.orc-grupo-row td.mes-par{background-color:rgba(0,182,233,0.07)}
+.orc-subtotal-row td.mes-par{background-color:rgba(0,182,233,0.07)}
+/* Linha de subtotal do grupo */
+.orc-subtotal-row td{
+  font-size:.72rem;font-weight:700;color:var(--gold);
+  padding:.45rem .6rem;border-bottom:2px solid rgba(0,182,233,0.2);
+  border-top:1px solid rgba(0,182,233,0.12);background:rgba(0,182,233,0.03);
+  text-align:right;
+}
+.orc-subtotal-row td:first-child{
+  color:var(--gold);padding-left:1.2rem;text-align:left;
+  font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(0,182,233,0.03);position:sticky;left:0;z-index:1;
+}
 
 /* ════════ SIMULADOR ════════ */
 .sim-wrap{width:100%}
@@ -2668,10 +2684,13 @@ function orcRenderTabela(){
   const tbody = document.getElementById('orc-tbody');
   const tfoot = document.getElementById('orc-tfoot');
 
-  // Cabeçalho
+  // Cabeçalho com classes alternadas
   let thHtml = '<tr><th>Categoria</th>';
-  MESES_NOMES.forEach(m=>{ thHtml+=`<th class="mes-header">${m}</th>`; });
-  thHtml += '<th style="text-align:right;min-width:80px">Total</th></tr>';
+  MESES_NOMES.forEach((m,mi)=>{
+    const par = (mi+1)%2===0 ? ' mes-par' : '';
+    thHtml += `<th class="mes-header${par}">${m}</th>`;
+  });
+  thHtml += '<th style="text-align:right;min-width:80px">Total ano</th></tr>';
   thead.innerHTML = thHtml;
 
   let bodyHtml = '';
@@ -2681,30 +2700,47 @@ function orcRenderTabela(){
     const extras = gDados.extras || [];
     const itens = [...g.itens, ...extras];
 
-    // Total do grupo
+    // Total anual do grupo
     const totalGrupo = itens.reduce((acc,item)=>{
       return acc + MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${item}|${mi+1}`]||0),0);
     },0);
 
-    bodyHtml += `<tr class="orc-grupo-row${gAberto?'':' fechado'}" onclick="orcToggleGrupo('${g.id}')">
-      <td colspan="14">
-        <i class="orc-grupo-chevron">▾</i>
-        ${g.label}
-        <span class="orc-grupo-total-inline">${orcFmt(totalGrupo)}</span>
-      </td>
-    </tr>`;
+    // Linha de cabeçalho do grupo (com colunas alternadas quando fechado)
+    if(gAberto){
+      bodyHtml += `<tr class="orc-grupo-row" onclick="orcToggleGrupo('${g.id}')">
+        <td colspan="14">
+          <i class="orc-grupo-chevron">▾</i>
+          ${g.label}
+          <span class="orc-grupo-total-inline">${orcFmt(totalGrupo)}</span>
+        </td>
+      </tr>`;
+    } else {
+      // Fechado: mostrar linha com totais mensais do grupo
+      bodyHtml += `<tr class="orc-grupo-row fechado" onclick="orcToggleGrupo('${g.id}')">
+        <td>
+          <i class="orc-grupo-chevron">▾</i>
+          ${g.label}
+        </td>`;
+      MESES_NOMES.forEach((_,mi)=>{
+        const mes = mi+1;
+        const par = mes%2===0 ? ' mes-par' : '';
+        const totMesGrupo = itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
+        bodyHtml += `<td class="${par}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.78rem">${orcFmt(totMesGrupo)}</td>`;
+      });
+      bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--gold);font-size:.78rem">${orcFmt(totalGrupo)}</td></tr>`;
+    }
 
     if(gAberto){
       itens.forEach(item=>{
         const totalCat = MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[`${item}|${mi+1}`]||0),0);
         const catId = encodeURIComponent(item);
-        bodyHtml += `<tr data-grupo="${g.id}" data-cat="${escapeHtml(item)}">
-          <td>${item}</td>`;
+        bodyHtml += `<tr data-grupo="${g.id}" data-cat="${escapeHtml(item)}"><td>${item}</td>`;
         MESES_NOMES.forEach((_,mi)=>{
           const mes = mi+1;
+          const par = mes%2===0 ? ' mes-par' : '';
           const key = `${item}|${mes}`;
           const val = orcDados[key]||'';
-          bodyHtml += `<td><div class="orc-cell">
+          bodyHtml += `<td class="${par}"><div class="orc-cell">
             <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
               placeholder="—" value="${val}"
               data-cat="${escapeHtml(item)}" data-mes="${mes}"
@@ -2715,17 +2751,30 @@ function orcRenderTabela(){
         });
         bodyHtml += `<td class="orc-total-cat" id="orc-tc-${catId}">${orcFmt(totalCat)}</td></tr>`;
       });
+
+      // Linha de subtotal do grupo
+      bodyHtml += `<tr class="orc-subtotal-row" id="orc-st-${g.id}">
+        <td>Subtotal ${g.label}</td>`;
+      MESES_NOMES.forEach((_,mi)=>{
+        const mes = mi+1;
+        const par = mes%2===0 ? ' mes-par' : '';
+        const totMesGrupo = itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
+        bodyHtml += `<td class="${par}" id="orc-stm-${g.id}-${mes}">${orcFmt(totMesGrupo)}</td>`;
+      });
+      bodyHtml += `<td id="orc-sta-${g.id}">${orcFmt(totalGrupo)}</td></tr>`;
     }
   });
   tbody.innerHTML = bodyHtml;
 
-  // Rodapé
+  // Rodapé — totais mensais gerais
   let tfHtml = '<tr class="orc-total-row"><td>Total mensal</td>';
   let totalGeral = 0;
   MESES_NOMES.forEach((_,mi)=>{
-    const tot = orcTotalMes(mi+1);
+    const mes = mi+1;
+    const par = mes%2===0 ? ' mes-par' : '';
+    const tot = orcTotalMes(mes);
     totalGeral += tot;
-    tfHtml += `<td class="orc-total-mes" id="orc-tm-${mi+1}">${orcFmt(tot)}</td>`;
+    tfHtml += `<td class="orc-total-mes${par}" id="orc-tm-${mes}">${orcFmt(tot)}</td>`;
   });
   tfHtml += `<td class="orc-total-mes" id="orc-tg">${orcFmt(totalGeral)}</td></tr>`;
   tfoot.innerHTML = tfHtml;
@@ -2779,13 +2828,39 @@ function orcOnBlur(el){
 }
 
 function orcAtualizarTotais(cat, mes){
+  // Total mensal geral
   const totMesEl = document.getElementById(`orc-tm-${mes}`);
   if(totMesEl) totMesEl.textContent = orcFmt(orcTotalMes(mes));
 
+  // Total anual da categoria
   const catId = encodeURIComponent(cat);
   const totCatEl = document.getElementById(`orc-tc-${catId}`);
   if(totCatEl) totCatEl.textContent = orcFmt(orcTotalCat(cat));
 
+  // Subtotal do grupo desse mês e anual
+  const grupo = RX_DESPESAS_GRUPOS.find(g=>{
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    return itens.includes(cat);
+  });
+  if(grupo){
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[grupo.id]) || {};
+    const itens = [...grupo.itens, ...(gDados.extras||[])];
+    // Subtotal desse mês
+    const stMesEl = document.getElementById(`orc-stm-${grupo.id}-${mes}`);
+    if(stMesEl){
+      const tot = itens.reduce((a,item)=>a+(orcDados[`${item}|${mes}`]||0),0);
+      stMesEl.textContent = orcFmt(tot);
+    }
+    // Subtotal anual do grupo
+    const staEl = document.getElementById(`orc-sta-${grupo.id}`);
+    if(staEl){
+      const tot = itens.reduce((acc,item)=>acc+orcTotalCat(item),0);
+      staEl.textContent = orcFmt(tot);
+    }
+  }
+
+  // Total geral
   const totalGeral = MESES_NOMES.reduce((a,_,mi)=>a+orcTotalMes(mi+1),0);
   const totGeralEl = document.getElementById('orc-tg');
   if(totGeralEl) totGeralEl.textContent = orcFmt(totalGeral);
