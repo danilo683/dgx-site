@@ -546,6 +546,38 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .crono-evento-hora{font-size:.68rem;color:var(--gray);margin-top:.1rem}
 .crono-evento-desc{font-size:.72rem;color:var(--gray);margin-top:.2rem;line-height:1.4}
 
+/* ════════ LANÇAMENTOS (orçado x realizado) ════════ */
+.lanc-mes-tabs{display:flex;gap:.3rem;flex-wrap:wrap}
+.lanc-mes-tab{
+  background:none;border:1px solid var(--border);color:var(--gray);
+  padding:.4rem .75rem;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;
+  cursor:pointer;border-radius:2px;transition:all .2s;letter-spacing:.04em;
+}
+.lanc-mes-tab:hover{border-color:var(--gold);color:var(--white)}
+.lanc-mes-tab.active{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+
+.lanc-split{display:flex;gap:1.5rem;align-items:flex-start;margin-top:1.2rem}
+.lanc-col-orc{flex:0 0 46%;max-width:46%}
+.lanc-col-lista{flex:1;min-width:0}
+@media(max-width:980px){
+  .lanc-split{flex-direction:column}
+  .lanc-col-orc{flex:1 1 auto;max-width:100%;width:100%}
+  .lanc-col-lista{width:100%}
+}
+.lanc-col-titulo{font-size:.85rem;font-weight:600;color:var(--white);margin-bottom:.8rem}
+
+.lanc-grupo-row td{
+  font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  padding:.55rem .6rem;background:rgba(0,182,233,0.05);color:var(--gold);
+}
+.lanc-grupo-row.receita td{background:rgba(78,201,138,0.05);color:var(--green)}
+.lanc-cat-nome{padding-left:1.2rem;color:var(--gray);font-size:.74rem}
+.lanc-diff-pos{color:var(--green);font-weight:600}
+.lanc-diff-neg{color:var(--red);font-weight:600}
+.lanc-diff-zero{color:var(--gray2)}
+.lanc-row-del{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:1rem;padding:0 .3rem;transition:color .2s}
+.lanc-row-del:hover{color:var(--red)}
+
 /* ════════ ORÇAMENTO ════════ */
 .orc-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
 .orc-nav{display:flex;align-items:center;gap:.8rem}
@@ -954,7 +986,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <div class="sidebar-section-label">Financeiro</div>
       <button class="menu-item" onclick="irPara('extrato', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-        Extrato
+        Lançamentos
       </button>
       <button class="menu-item" onclick="irPara('orcamento', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
@@ -1091,39 +1123,65 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <!-- ── EXTRATO ── -->
       <div class="tela" id="tela-extrato">
         <div class="tela-header">
-          <h2>Extrato</h2>
-          <p>Seus lançamentos financeiros</p>
+          <h2>Lançamentos</h2>
+          <p>Orçado x realizado, mês a mês</p>
+        </div>
+
+        <div class="orc-header">
+          <div class="orc-nav">
+            <button class="orc-nav-btn" onclick="lancMudarAno(-1)">‹</button>
+            <span class="orc-ano" id="lanc-ano-label">2025</span>
+            <button class="orc-nav-btn" onclick="lancMudarAno(1)">›</button>
+          </div>
+          <div class="lanc-mes-tabs" id="lanc-mes-tabs"></div>
         </div>
 
         <div class="summary-cards" id="summary-cards">
-          <div class="summ-card"><div class="summ-label">Entradas do mês</div><div class="summ-value positive" id="card-entradas">R$ 0,00</div><div class="summ-tag">receitas registradas</div></div>
-          <div class="summ-card"><div class="summ-label">Saídas do mês</div><div class="summ-value negative" id="card-saidas">R$ 0,00</div><div class="summ-tag">despesas registradas</div></div>
-          <div class="summ-card"><div class="summ-label">Saldo do mês</div><div class="summ-value gold" id="card-saldo">R$ 0,00</div><div class="summ-tag">resultado líquido</div></div>
+          <div class="summ-card"><div class="summ-label">Receitas (realizado)</div><div class="summ-value positive" id="card-entradas">R$ 0,00</div><div class="summ-tag" id="card-entradas-orc">orçado: R$ 0,00</div></div>
+          <div class="summ-card"><div class="summ-label">Despesas (realizado)</div><div class="summ-value negative" id="card-saidas">R$ 0,00</div><div class="summ-tag" id="card-saidas-orc">orçado: R$ 0,00</div></div>
+          <div class="summ-card"><div class="summ-label">Saldo do mês</div><div class="summ-value gold" id="card-saldo">R$ 0,00</div><div class="summ-tag">realizado</div></div>
           <div class="summ-card"><div class="summ-label">Investimentos</div><div class="summ-value gold" id="card-invest">R$ 0,00</div><div class="summ-tag">aportados este mês</div></div>
         </div>
-        <div class="extrato-section">
-          <div class="extrato-header">
-            <div class="extrato-title">Lançamentos</div>
-            <div class="extrato-filters">
+
+        <div class="lanc-split">
+          <!-- ESQUERDA: orçado x realizado por categoria -->
+          <div class="lanc-col-orc">
+            <div class="lanc-col-titulo">Orçado × Realizado</div>
+            <div class="orc-loading" id="lanc-orc-loading">Carregando...</div>
+            <div class="orc-table-wrap" id="lanc-orc-wrap" style="display:none;max-height:none">
+              <table class="orc-table" id="lanc-orc-table">
+                <thead><tr><th>Categoria</th><th style="text-align:right">Orçado</th><th style="text-align:right">Realizado</th><th style="text-align:right">Diferença</th></tr></thead>
+                <tbody id="lanc-orc-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DIREITA: lançamentos do mês -->
+          <div class="lanc-col-lista">
+            <div class="lanc-col-titulo">Lançamentos do mês</div>
+
+            <div class="add-lancamento" style="margin-top:0">
+              <div class="add-lancamento-title">Registrar lançamento</div>
+              <div class="add-form">
+                <div class="f"><label>Data</label><input type="date" id="add-data"></div>
+                <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
+                <div class="f"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
+                <div class="f"><label>Categoria</label><select id="add-cat"></select></div>
+                <div class="f"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
+                <button class="btn-add" onclick="adicionarLancamento()">+ Adicionar</button>
+              </div>
+            </div>
+
+            <div class="extrato-filters" style="margin:1.2rem 0 .8rem">
               <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
               <button class="filter-btn" onclick="filtrar(this,'receita')">Receitas</button>
               <button class="filter-btn" onclick="filtrar(this,'despesa')">Despesas</button>
               <button class="filter-btn" onclick="filtrar(this,'investimento')">Investimentos</button>
               <button class="filter-btn" onclick="filtrar(this,'transferencia')">Transferências</button>
             </div>
-          </div>
-          <table class="extrato-table" id="extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead><tbody id="extrato-tbody"></tbody></table>
-          <div class="extrato-empty" id="extrato-empty" style="display:none">Nenhum lançamento encontrado.</div>
-          <div class="add-lancamento">
-            <div class="add-lancamento-title">Registrar lançamento</div>
-            <div class="add-form">
-              <div class="f"><label>Data</label><input type="date" id="add-data"></div>
-              <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
-              <div class="f"><label>Tipo</label><select id="add-tipo"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
-              <div class="f"><label>Categoria</label><input type="text" id="add-cat" placeholder="Ex: Moradia..."></div>
-              <div class="f"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
-              <button class="btn-add" onclick="adicionarLancamento()">+ Adicionar</button>
-            </div>
+
+            <table class="extrato-table" id="extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody id="extrato-tbody"></tbody></table>
+            <div class="extrato-empty" id="extrato-empty" style="display:none">Nenhum lançamento neste mês.</div>
           </div>
         </div>
       </div>
@@ -2053,6 +2111,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let usuarioAtual=null, filtroAtivo='todos';
 let extratoAtual=[];
+let lancAno = new Date().getFullYear();
+let lancMes = new Date().getMonth()+1;
+let lancOrcadoCache = {}; // {categoria: valorOrcado} do mês/ano selecionado
 
 // ── Overlays ──
 function abrirOverlay(id){ document.getElementById(id).classList.add('open'); }
@@ -2227,9 +2288,10 @@ async function mostrarPainel(user){
   inicioCarregarFrases();
   atualizarAvatarTopbar(profile && profile.foto_url);
 
+  await rxCarregarDados();
+
   await Promise.all([
     carregarExtrato(),
-    rxCarregarDados(),
     diagCarregarSalvo(),
     planoCarregar(),
     cronoCarregar()
@@ -2259,6 +2321,11 @@ async function irPara(tela, btn){
   document.getElementById('tela-'+tela).classList.add('active');
   if(btn) btn.classList.add('active');
   if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); planoCarregar(); cronoCarregar(); }
+  if(tela==='extrato'){
+    if(typeof rxDadosCarregados==='undefined' || !rxDadosCarregados) await rxCarregarDados();
+    lancAtualizarCategorias();
+    lancRenderOrcadoRealizado();
+  }
   if(tela==='orcamento'){
     orcAno=orcAno||new Date().getFullYear();
     document.getElementById('orc-ano-label').textContent=orcAno;
@@ -2520,14 +2587,142 @@ async function carregarExtrato(){
       id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor)
     }));
   }
+
+  lancRenderMesTabs();
+  lancAtualizarCategorias();
   renderExtrato();
+  await lancCarregarOrcado();
   calcularResumo();
+}
+
+// Lista de lançamentos filtrados pelo mês/ano selecionado em Lançamentos
+function lancItemsDoMes(){
+  return extratoAtual.filter(l=>{
+    const d = new Date(l.data+'T00:00:00');
+    return d.getFullYear()===lancAno && (d.getMonth()+1)===lancMes;
+  });
+}
+
+function lancMudarAno(delta){
+  lancAno += delta;
+  document.getElementById('lanc-ano-label').textContent = lancAno;
+  lancRenderMesTabs();
+  renderExtrato();
+  lancCarregarOrcado();
+  calcularResumo();
+}
+
+function lancRenderMesTabs(){
+  document.getElementById('lanc-ano-label').textContent = lancAno;
+  const wrap = document.getElementById('lanc-mes-tabs');
+  wrap.innerHTML = MESES_NOMES.map((m,i)=>{
+    const mes = i+1;
+    return `<button class="lanc-mes-tab${mes===lancMes?' active':''}" onclick="lancSelecionarMes(${mes})">${m}</button>`;
+  }).join('');
+}
+
+function lancSelecionarMes(mes){
+  lancMes = mes;
+  lancRenderMesTabs();
+  renderExtrato();
+  lancCarregarOrcado();
+  calcularResumo();
+}
+
+function lancAtualizarCategorias(){
+  const tipo = document.getElementById('add-tipo').value;
+  const sel = document.getElementById('add-cat');
+  let opcoes = [];
+
+  if(tipo === 'receita'){
+    opcoes = (rxDados && rxDados.receitas && rxDados.receitas.length)
+      ? rxDados.receitas.map(r=>r.label)
+      : RX_RECEITAS_FIXAS;
+  } else if(tipo === 'despesa'){
+    RX_DESPESAS_GRUPOS.forEach(g=>{
+      const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+      opcoes.push(...g.itens, ...(gDados.extras||[]));
+    });
+  } else {
+    opcoes = ['Geral'];
+  }
+
+  sel.innerHTML = opcoes.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
+}
+
+// Carrega o orçado do mês/ano selecionado e monta a tabela Orçado x Realizado
+async function lancCarregarOrcado(){
+  document.getElementById('lanc-orc-loading').style.display='block';
+  document.getElementById('lanc-orc-wrap').style.display='none';
+
+  const { data, error } = await sb.from('orcamento')
+    .select('*').eq('user_id', usuarioAtual.id).eq('ano', lancAno).eq('mes', lancMes);
+
+  lancOrcadoCache = {};
+  (data||[]).forEach(r=>{ lancOrcadoCache[r.categoria] = Number(r.previsto); });
+
+  document.getElementById('lanc-orc-loading').style.display='none';
+  document.getElementById('lanc-orc-wrap').style.display='block';
+
+  lancRenderOrcadoRealizado();
+}
+
+function lancRealizadoCategoria(categoria, tipo){
+  return lancItemsDoMes()
+    .filter(l=>l.cat===categoria && l.tipo===tipo)
+    .reduce((a,l)=>a+l.val,0);
+}
+
+function lancRenderOrcadoRealizado(){
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  let html = '';
+
+  // ── Receitas ──
+  const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
+    ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+
+  let temReceita = recLabels.some(lb => (lancOrcadoCache[lb]||0) > 0 || lancRealizadoCategoria(lb,'receita') > 0);
+  if(temReceita){
+    html += `<tr class="lanc-grupo-row receita"><td colspan="4">Receitas</td></tr>`;
+    recLabels.forEach(lb=>{
+      const orc = lancOrcadoCache[lb] || 0;
+      const real = lancRealizadoCategoria(lb, 'receita');
+      if(orc===0 && real===0) return;
+      const diff = real - orc;
+      const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
+      html += `<tr><td class="lanc-cat-nome">${escapeHtml(lb)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--green)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
+    });
+  }
+
+  // ── Despesas ──
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    const temAlgo = itens.some(item => (lancOrcadoCache[item]||0) > 0 || lancRealizadoCategoria(item,'despesa') > 0);
+    if(!temAlgo) return;
+
+    html += `<tr class="lanc-grupo-row"><td colspan="4">${g.label}</td></tr>`;
+    itens.forEach(item=>{
+      const orc = lancOrcadoCache[item] || 0;
+      const real = lancRealizadoCategoria(item, 'despesa');
+      if(orc===0 && real===0) return;
+      const diff = orc - real; // despesa: sobrou (positivo) ou estourou (negativo)
+      const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
+      html += `<tr><td class="lanc-cat-nome">${escapeHtml(item)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--gold)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
+    });
+  });
+
+  if(!html){
+    html = `<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem">Nenhum valor orçado ou lançado neste mês.</td></tr>`;
+  }
+
+  document.getElementById('lanc-orc-tbody').innerHTML = html;
 }
 
 function renderExtrato(){
   const tbody=document.getElementById('extrato-tbody');
   const empty=document.getElementById('extrato-empty');
-  let items=[...extratoAtual];
+  let items=lancItemsDoMes();
   if(filtroAtivo!=='todos')items=items.filter(l=>l.tipo===filtroAtivo);
   items.sort((a,b)=>b.data.localeCompare(a.data));
   if(items.length===0){tbody.innerHTML='';document.getElementById('extrato-table').style.display='none';empty.style.display='block';return}
@@ -2539,19 +2734,41 @@ function renderExtrato(){
     const sinal=isPos?'+':isNeg?'-':'';
     const cls=isPos?'val-positivo':isNeg?'val-negativo':'';
     const val=l.val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    return `<tr><td>${data}</td><td>${l.desc}</td><td><span class="badge-type badge-${l.tipo}">${nomes[l.tipo]}</span></td><td style="color:var(--gray)">${l.cat}</td><td style="text-align:right" class="${cls}">${sinal} R$ ${val}</td></tr>`;
+    return `<tr><td>${data}</td><td>${escapeHtml(l.desc)}</td><td><span class="badge-type badge-${l.tipo}">${nomes[l.tipo]}</span></td><td style="color:var(--gray)">${escapeHtml(l.cat)}</td><td style="text-align:right" class="${cls}">${sinal} R$ ${val}</td><td style="text-align:right"><button class="lanc-row-del" onclick="lancExcluirLancamento(${l.id})">×</button></td></tr>`;
   }).join('');
 }
 
+async function lancExcluirLancamento(id){
+  if(!confirm('Excluir este lançamento?')) return;
+  const { error } = await sb.from('extrato').delete().eq('id', id);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  extratoAtual = extratoAtual.filter(l=>l.id!==id);
+  renderExtrato();
+  lancRenderOrcadoRealizado();
+  calcularResumo();
+}
+
 function calcularResumo(){
-  const l=extratoAtual;
+  const l=lancItemsDoMes();
   const e=l.filter(x=>x.tipo==='receita').reduce((a,x)=>a+x.val,0);
   const s=l.filter(x=>x.tipo==='despesa').reduce((a,x)=>a+x.val,0);
   const i=l.filter(x=>x.tipo==='investimento').reduce((a,x)=>a+x.val,0);
   const saldo=e-s;
   const fmt=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const orcReceitaTotal = Object.entries(lancOrcadoCache).reduce((acc,[cat,val])=>{
+    const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length) ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+    return acc + (recLabels.includes(cat) ? val : 0);
+  },0);
+  const orcDespesaTotal = Object.entries(lancOrcadoCache).reduce((acc,[cat,val])=>{
+    const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length) ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+    return acc + (!recLabels.includes(cat) ? val : 0);
+  },0);
+
   document.getElementById('card-entradas').textContent=fmt(e);
+  document.getElementById('card-entradas-orc').textContent='orçado: '+fmt(orcReceitaTotal);
   document.getElementById('card-saidas').textContent=fmt(s);
+  document.getElementById('card-saidas-orc').textContent='orçado: '+fmt(orcDespesaTotal);
   document.getElementById('card-invest').textContent=fmt(i);
   const cs=document.getElementById('card-saldo');
   cs.textContent=fmt(Math.abs(saldo));
@@ -3158,9 +3375,15 @@ async function adicionarLancamento(){
 
   extratoAtual.push({id:row.id, data:row.data, desc:row.descricao, tipo:row.tipo, cat:row.categoria, val:Number(row.valor)});
   document.getElementById('add-desc').value='';
-  document.getElementById('add-cat').value='';
   document.getElementById('add-val').value='';
-  renderExtrato();calcularResumo();
+
+  // Se o lançamento foi para o mês/ano atualmente visualizado, atualiza tudo
+  const dLanc = new Date(data+'T00:00:00');
+  if(dLanc.getFullYear()===lancAno && (dLanc.getMonth()+1)===lancMes){
+    renderExtrato();
+    lancRenderOrcadoRealizado();
+    calcularResumo();
+  }
 }
 
 // ══════════════════════════════════════════════
