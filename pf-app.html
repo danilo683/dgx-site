@@ -2674,47 +2674,36 @@ function lancRealizadoCategoria(categoria, tipo){
 }
 
 function lancRenderOrcadoRealizado(){
-  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
   let html = '';
 
-  // ── Receitas ──
+  // ── Receitas ── (sempre mostra todas, mesmo sem valores)
   const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
     ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
 
-  let temReceita = recLabels.some(lb => (lancOrcadoCache[lb]||0) > 0 || lancRealizadoCategoria(lb,'receita') > 0);
-  if(temReceita){
-    html += `<tr class="lanc-grupo-row receita"><td colspan="4">Receitas</td></tr>`;
-    recLabels.forEach(lb=>{
-      const orc = lancOrcadoCache[lb] || 0;
-      const real = lancRealizadoCategoria(lb, 'receita');
-      if(orc===0 && real===0) return;
-      const diff = real - orc;
-      const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
-      html += `<tr><td class="lanc-cat-nome">${escapeHtml(lb)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--green)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
-    });
-  }
+  html += `<tr class="lanc-grupo-row receita"><td colspan="4">Receitas</td></tr>`;
+  recLabels.forEach(lb=>{
+    const orc = lancOrcadoCache[lb] || 0;
+    const real = lancRealizadoCategoria(lb, 'receita');
+    const diff = real - orc;
+    const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
+    html += `<tr><td class="lanc-cat-nome">${escapeHtml(lb)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--green)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
+  });
 
-  // ── Despesas ──
+  // ── Despesas ── (sempre mostra todas as categorias do Raio X)
   RX_DESPESAS_GRUPOS.forEach(g=>{
     const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
     const itens = [...g.itens, ...(gDados.extras||[])];
-    const temAlgo = itens.some(item => (lancOrcadoCache[item]||0) > 0 || lancRealizadoCategoria(item,'despesa') > 0);
-    if(!temAlgo) return;
 
     html += `<tr class="lanc-grupo-row"><td colspan="4">${g.label}</td></tr>`;
     itens.forEach(item=>{
       const orc = lancOrcadoCache[item] || 0;
       const real = lancRealizadoCategoria(item, 'despesa');
-      if(orc===0 && real===0) return;
       const diff = orc - real; // despesa: sobrou (positivo) ou estourou (negativo)
       const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
       html += `<tr><td class="lanc-cat-nome">${escapeHtml(item)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--gold)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
     });
   });
-
-  if(!html){
-    html = `<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem">Nenhum valor orçado ou lançado neste mês.</td></tr>`;
-  }
 
   document.getElementById('lanc-orc-tbody').innerHTML = html;
 }
@@ -5254,3 +5243,4 @@ function simRenderGrafico(){
 </script>
 </body>
 </html>
+  
