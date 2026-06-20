@@ -172,6 +172,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 }
 .menu-item:hover{color:var(--white);background:rgba(0,182,233,0.04)}
 .menu-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(0,182,233,0.06)}
+.menu-item-sub{padding-left:2.4rem;font-size:.76rem}
+.menu-item-sub .menu-icon{width:13px}
 .menu-icon{width:16px;text-align:center;flex-shrink:0;opacity:.7}
 .menu-item.active .menu-icon{opacity:1}
 .menu-badge-soon{
@@ -496,6 +498,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-config-label{font-size:.82rem;font-weight:600;color:var(--white);margin-bottom:.3rem}
 .orc-config-desc{font-size:.75rem;color:var(--gray);margin-bottom:1rem;line-height:1.6}
 .orc-config-row{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+.orc-config-divider{height:1px;background:var(--border);margin:1.3rem 0}
 .orc-table-wrap{overflow-x:auto;border:1px solid var(--border)}
 .orc-loading{padding:3rem;text-align:center;color:var(--gray);font-size:.85rem}
 .orc-table{width:100%;border-collapse:collapse;min-width:900px}
@@ -534,6 +537,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-saldo-positivo{color:var(--green)}
 .orc-saldo-negativo{color:var(--red)}
 .orc-total-receita{color:var(--green)}
+.orcdash-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+@media(max-width:700px){.orcdash-cards{grid-template-columns:1fr 1fr}}
 /* Colunas alternadas */
 .orc-table th.mes-par,.orc-table td.mes-par{background-color:rgba(255,255,255,0.025)}
 .orc-grupo-row td.mes-par{background-color:rgba(0,182,233,0.07)}
@@ -843,6 +848,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
         Orçamento
       </button>
+      <button class="menu-item menu-item-sub" onclick="irPara('orcdash', this)">
+        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+        Dash Orçamento
+      </button>
       <button class="menu-item" onclick="irPara('simulador', this); simInit()">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
         Simulador
@@ -1016,6 +1025,55 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <button class="orc-btn-import" onclick="orcConfirmarImport()">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   Importar médias
+                </button>
+              </div>
+            </div>
+
+            <div class="orc-config-divider"></div>
+
+            <div class="orc-config-item">
+              <div class="orc-config-label">Copiar de um mês/ano para outro</div>
+              <div class="orc-config-desc">Copia os valores previstos de um mês específico (de qualquer ano) para um intervalo de meses de destino. Útil para replicar o orçamento do ano anterior ou repetir um mês já planejado.</div>
+              <div class="orc-config-row" style="align-items:flex-end">
+                <div class="diag-field" style="margin:0">
+                  <label class="diag-label">Copiar de</label>
+                  <div style="display:flex;gap:.5rem">
+                    <select class="diag-input" id="orc-copy-mes-origem" style="padding:.4rem .5rem;cursor:pointer;width:auto">
+                      <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                      <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                      <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                      <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+                    </select>
+                    <select class="diag-input" id="orc-copy-ano-origem" style="padding:.4rem .5rem;cursor:pointer;width:auto"></select>
+                  </div>
+                </div>
+                <div class="diag-field" style="margin:0">
+                  <label class="diag-label">Para (de)</label>
+                  <div style="display:flex;gap:.5rem">
+                    <select class="diag-input" id="orc-copy-mes-destino-ini" style="padding:.4rem .5rem;cursor:pointer;width:auto">
+                      <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                      <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                      <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                      <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+                    </select>
+                    <select class="diag-input" id="orc-copy-ano-destino-ini" style="padding:.4rem .5rem;cursor:pointer;width:auto"></select>
+                  </div>
+                </div>
+                <div class="diag-field" style="margin:0">
+                  <label class="diag-label">Até (de)</label>
+                  <div style="display:flex;gap:.5rem">
+                    <select class="diag-input" id="orc-copy-mes-destino-fim" style="padding:.4rem .5rem;cursor:pointer;width:auto">
+                      <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                      <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                      <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                      <option value="10">Out</option><option value="11">Nov</option><option value="12" selected>Dez</option>
+                    </select>
+                    <select class="diag-input" id="orc-copy-ano-destino-fim" style="padding:.4rem .5rem;cursor:pointer;width:auto"></select>
+                  </div>
+                </div>
+                <button class="orc-btn-import" onclick="orcConfirmarCopia()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copiar
                 </button>
               </div>
             </div>
@@ -1470,6 +1528,40 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
 
+      <!-- ── DASH ORÇAMENTO ── -->
+      <div class="tela" id="tela-orcdash">
+        <div class="tela-header">
+          <h2>Dash Orçamento</h2>
+          <p>Visão geral de entradas, saídas e saldo</p>
+        </div>
+
+        <div class="orc-header">
+          <div class="orc-nav">
+            <button class="orc-nav-btn" onclick="orcdashMudarAno(-1)">‹</button>
+            <span class="orc-ano" id="orcdash-ano-label">2025</span>
+            <button class="orc-nav-btn" onclick="orcdashMudarAno(1)">›</button>
+          </div>
+        </div>
+
+        <div class="orcdash-cards">
+          <div class="sim-res-card"><div class="sim-res-label">Total Receitas (ano)</div><div class="sim-res-val green" id="orcdash-total-rec">—</div></div>
+          <div class="sim-res-card"><div class="sim-res-label">Total Despesas (ano)</div><div class="sim-res-val gold" id="orcdash-total-desp">—</div></div>
+          <div class="sim-res-card"><div class="sim-res-label">Saldo do ano</div><div class="sim-res-val" id="orcdash-saldo-ano">—</div></div>
+          <div class="sim-res-card"><div class="sim-res-label">Média mensal de saldo</div><div class="sim-res-val" id="orcdash-saldo-medio">—</div></div>
+        </div>
+
+        <div class="sim-chart-wrap" style="margin-top:1.2rem">
+          <div class="orc-loading" id="orcdash-loading">Carregando dados...</div>
+          <div id="orcdash-svg-wrap" style="display:none"></div>
+          <div class="sim-legenda" id="orcdash-legenda" style="display:none">
+            <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--green)"></div>Receitas</div>
+            <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--gold)"></div>Despesas</div>
+            <div class="sim-leg-item"><div class="sim-leg-cor" style="background:#7c9cff;border-radius:50%"></div>Saldo (linha)</div>
+            <div class="sim-leg-item" style="color:var(--gray2);font-size:.68rem">Passe o mouse para ver os valores</div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── SIMULADOR ── -->
       <div class="tela" id="tela-simulador">
         <div class="tela-header"><h2>Simulador de Juros Compostos</h2><p>Preencha qualquer 4 variáveis — a que ficar em branco será calculada</p></div>
@@ -1909,13 +2001,23 @@ async function sair(){
   window.scrollTo(0,0);
 }
 
-function irPara(tela, btn){
+async function irPara(tela, btn){
   document.querySelectorAll('.tela').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tela-'+tela).classList.add('active');
   if(btn) btn.classList.add('active');
   if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); }
-  if(tela==='orcamento'){ orcAno=orcAno||new Date().getFullYear(); document.getElementById('orc-ano-label').textContent=orcAno; orcCarregarDados(); }
+  if(tela==='orcamento'){
+    orcAno=orcAno||new Date().getFullYear();
+    document.getElementById('orc-ano-label').textContent=orcAno;
+    if(typeof rxDadosCarregados==='undefined' || !rxDadosCarregados) await rxCarregarDados();
+    orcCarregarDados();
+  }
+  if(tela==='orcdash'){
+    orcdashAno = orcdashAno || orcAno || new Date().getFullYear();
+    document.getElementById('orcdash-ano-label').textContent = orcdashAno;
+    orcdashCarregar();
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -2068,6 +2170,7 @@ const RX_DESPESAS_GRUPOS = [
 const RX_RECEITAS_FIXAS = ['Renda 1','Renda 2','Hora Extra','Renda Extra','Média 13º - 1ª parcela','Média 13º - 2ª parcela','Ticket Alimentação','Vale Combustível','Outros'];
 
 let rxDados = { despesas:{}, receitas:[], dividas:[], cartao:[] };
+let rxDadosCarregados = false;
 
 async function rxCarregarDados(){
   const { data, error } = await sb
@@ -2084,6 +2187,7 @@ async function rxCarregarDados(){
     dividas: (data && data.dividas) || [],
     cartao: (data && data.cartao) || []
   };
+  rxDadosCarregados = true;
 
   usuarioAtual.raioxPreenchido = !!(data && (
     (data.despesas && Object.keys(data.despesas).length) ||
@@ -2663,6 +2767,26 @@ function orcToggleConfig(){
   const open = el.style.display === 'block';
   el.style.display = open ? 'none' : 'block';
   btn.classList.toggle('active', !open);
+  if(!open) orcPopularSelectsAno();
+}
+
+function orcPopularSelectsAno(){
+  const anoAtual = new Date().getFullYear();
+  const anos = [];
+  for(let a = anoAtual-3; a <= anoAtual+3; a++) anos.push(a);
+  const ids = ['orc-copy-ano-origem','orc-copy-ano-destino-ini','orc-copy-ano-destino-fim'];
+  ids.forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel || sel.options.length) return; // já populado
+    sel.innerHTML = anos.map(a=>`<option value="${a}"${a===orcAno?' selected':''}>${a}</option>`).join('');
+  });
+  // Origem padrão: ano anterior. Destino padrão: ano atual da tela
+  const selOrigem = document.getElementById('orc-copy-ano-origem');
+  if(selOrigem) selOrigem.value = orcAno - 1;
+  const selDestIni = document.getElementById('orc-copy-ano-destino-ini');
+  if(selDestIni) selDestIni.value = orcAno;
+  const selDestFim = document.getElementById('orc-copy-ano-destino-fim');
+  if(selDestFim) selDestFim.value = orcAno;
 }
 
 function orcMudarAno(delta){
@@ -2872,19 +2996,23 @@ function orcReplicarRec(btn, label, mesInicio){
   if(!orcAlterado){ orcAlterado=true; document.getElementById('orc-save-btn').style.display='inline-flex'; }
 }
 
-function orcRenomearReceita(idx, novoNome){
+async function orcRenomearReceita(idx, novoNome){
   if(!novoNome.trim()) return;
   const labels = orcGetRecLabels();
   const labelAntigo = labels[idx];
   if(labelAntigo === novoNome.trim()) return;
-  // Renomear as chaves no orcDados
+  // Renomear as chaves no orcDados (todos os anos em memória — só o ano atual carregado)
   MESES_NOMES.forEach((_,mi)=>{
     const mes=mi+1;
     const keyAntiga=orcRecKey(labelAntigo,mes), keyNova=orcRecKey(novoNome.trim(),mes);
     if(orcDados[keyAntiga]!==undefined){ orcDados[keyNova]=orcDados[keyAntiga]; delete orcDados[keyAntiga]; }
   });
-  // Atualizar rxDados se disponível
-  if(rxDados && rxDados.receitas && rxDados.receitas[idx]) rxDados.receitas[idx].label = novoNome.trim();
+  // Atualizar rxDados em memória e persistir no Raio X
+  if(rxDados && rxDados.receitas && rxDados.receitas[idx]){
+    rxDados.receitas[idx].label = novoNome.trim();
+    await rxSalvarSecao('receitas');
+    if(typeof rxRenderReceitas === 'function') rxRenderReceitas();
+  }
   orcRenderTabela();
   if(!orcAlterado){ orcAlterado=true; document.getElementById('orc-save-btn').style.display='inline-flex'; }
 }
@@ -3117,9 +3245,104 @@ function orcExecutarImport(mesInicio){
   document.getElementById('orc-save-btn').style.display='inline-flex';
 }
 
-// ══════════════════════════════════════════════
-// PERFIL
-// ══════════════════════════════════════════════
+// ── Copiar de um mês/ano para outro intervalo ──
+function orcConfirmarCopia(){
+  const mesOrig = Number(document.getElementById('orc-copy-mes-origem').value);
+  const anoOrig = Number(document.getElementById('orc-copy-ano-origem').value);
+  const mesDestIni = Number(document.getElementById('orc-copy-mes-destino-ini').value);
+  const anoDestIni = Number(document.getElementById('orc-copy-ano-destino-ini').value);
+  const mesDestFim = Number(document.getElementById('orc-copy-mes-destino-fim').value);
+  const anoDestFim = Number(document.getElementById('orc-copy-ano-destino-fim').value);
+
+  if(anoDestFim*100+mesDestFim < anoDestIni*100+mesDestIni){
+    alert('O mês final do destino precisa ser depois (ou igual) ao mês inicial.');
+    return;
+  }
+
+  const origemNome = `${MESES_FULL[mesOrig-1]}/${anoOrig}`;
+  const destIniNome = `${MESES_FULL[mesDestIni-1]}/${anoDestIni}`;
+  const destFimNome = `${MESES_FULL[mesDestFim-1]}/${anoDestFim}`;
+
+  document.getElementById('orc-import-title').textContent = 'Copiar orçamento?';
+  document.getElementById('orc-import-sub').textContent =
+    `Isso vai copiar os valores de ${origemNome} para todos os meses de ${destIniNome} até ${destFimNome}. Valores já existentes nesse intervalo serão sobrescritos.`;
+  document.getElementById('orc-import-confirm-btn').textContent = 'Sim, quero copiar';
+  document.getElementById('orc-import-confirm-btn').onclick = ()=>orcCopiaStep2(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim);
+  abrirOverlay('overlay-orc-import');
+}
+
+function orcCopiaStep2(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim){
+  fecharOverlay('overlay-orc-import');
+  const origemNome = `${MESES_FULL[mesOrig-1]}/${anoOrig}`;
+  const destIniNome = `${MESES_FULL[mesDestIni-1]}/${anoDestIni}`;
+  const destFimNome = `${MESES_FULL[mesDestFim-1]}/${anoDestFim}`;
+  setTimeout(()=>{
+    document.getElementById('orc-import-title').textContent = '⚠️ Última chance — tem certeza mesmo?';
+    document.getElementById('orc-import-sub').textContent =
+      `Os valores de ${destIniNome} até ${destFimNome} serão substituídos pelos valores de ${origemNome}. Esta ação não pode ser desfeita.`;
+    document.getElementById('orc-import-confirm-btn').textContent = 'Confirmar cópia';
+    document.getElementById('orc-import-confirm-btn').onclick = ()=>orcExecutarCopia(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim);
+    abrirOverlay('overlay-orc-import');
+  }, 200);
+}
+
+async function orcExecutarCopia(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim){
+  fecharOverlay('overlay-orc-import');
+
+  const btn = document.querySelector('#orc-config-panel .orc-btn-import');
+  const original = btn ? btn.innerHTML : null;
+  if(btn){ btn.innerHTML='Copiando...'; btn.disabled=true; }
+
+  // 1) Buscar dados do mês/ano de origem direto do banco (pode não ser o ano carregado em tela)
+  const { data, error } = await sb.from('orcamento')
+    .select('*').eq('user_id', usuarioAtual.id).eq('ano', anoOrig).eq('mes', mesOrig);
+
+  if(error){ alert('Erro ao buscar dados de origem: '+error.message); if(btn){btn.innerHTML=original;btn.disabled=false;} return; }
+
+  if(!data || !data.length){
+    alert(`Não há valores lançados em ${MESES_FULL[mesOrig-1]}/${anoOrig} para copiar.`);
+    if(btn){ btn.innerHTML=original; btn.disabled=false; }
+    return;
+  }
+
+  // 2) Montar lista de meses/anos de destino (pode atravessar anos)
+  const destinos = [];
+  let a = anoDestIni, m = mesDestIni;
+  while(a*100+m <= anoDestFim*100+mesDestFim){
+    destinos.push({ano:a, mes:m});
+    m++; if(m>12){ m=1; a++; }
+  }
+
+  // 3) Para cada destino, deletar o que já existe e inserir os novos valores
+  for(const dest of destinos){
+    await sb.from('orcamento').delete()
+      .eq('user_id', usuarioAtual.id).eq('ano', dest.ano).eq('mes', dest.mes);
+
+    const rows = data.map(r=>({
+      user_id: usuarioAtual.id, ano: dest.ano, mes: dest.mes,
+      categoria: r.categoria, grupo: r.grupo, previsto: r.previsto
+    }));
+    if(rows.length){
+      const { error: errIns } = await sb.from('orcamento').insert(rows);
+      if(errIns) console.error('Erro ao copiar para', dest, errIns);
+    }
+  }
+
+  if(btn){ btn.innerHTML=original; btn.disabled=false; }
+
+  // 4) Se o ano atualmente exibido está no intervalo de destino, recarregar
+  const anoNoIntervalo = destinos.some(d=>d.ano===orcAno);
+  if(anoNoIntervalo){
+    await orcCarregarDados();
+  }
+
+  const msg = document.getElementById('orc-saved-msg');
+  msg.textContent = '✓ Copiado com sucesso!';
+  msg.style.display='block';
+  setTimeout(()=>{ msg.style.display='none'; msg.textContent='✓ Salvo!'; }, 2500);
+}
+
+
 function atualizarAvatarTopbar(url){
   const el = document.getElementById('user-avatar');
   if(url){
@@ -3648,8 +3871,138 @@ async function adminFrasesImportar(){
 }
 
 // ══════════════════════════════════════════════
-// SIMULADOR DE JUROS COMPOSTOS
+// DASH ORÇAMENTO
 // ══════════════════════════════════════════════
+let orcdashAno = null;
+
+function orcdashMudarAno(delta){
+  orcdashAno += delta;
+  document.getElementById('orcdash-ano-label').textContent = orcdashAno;
+  orcdashCarregar();
+}
+
+async function orcdashCarregar(){
+  document.getElementById('orcdash-loading').style.display='block';
+  document.getElementById('orcdash-svg-wrap').style.display='none';
+  document.getElementById('orcdash-legenda').style.display='none';
+
+  const { data, error } = await sb.from('orcamento')
+    .select('*').eq('user_id', usuarioAtual.id).eq('ano', orcdashAno);
+
+  if(error){ console.error(error); }
+
+  // Agregar por mês: receitas (grupo='__receitas') x despesas (resto)
+  const porMes = {};
+  for(let m=1;m<=12;m++) porMes[m] = { receita:0, despesa:0 };
+  (data||[]).forEach(r=>{
+    const mes = r.mes;
+    if(!porMes[mes]) porMes[mes] = { receita:0, despesa:0 };
+    if(r.grupo === '__receitas') porMes[mes].receita += Number(r.previsto);
+    else porMes[mes].despesa += Number(r.previsto);
+  });
+
+  // Cards resumo
+  let totRec=0, totDesp=0;
+  for(let m=1;m<=12;m++){ totRec+=porMes[m].receita; totDesp+=porMes[m].despesa; }
+  const saldoAno = totRec - totDesp;
+  const mediaMensal = saldoAno/12;
+
+  document.getElementById('orcdash-total-rec').textContent = orcFmt(totRec);
+  document.getElementById('orcdash-total-desp').textContent = orcFmt(totDesp);
+  const saldoEl = document.getElementById('orcdash-saldo-ano');
+  saldoEl.textContent = (saldoAno<0?'-':'')+orcFmt(Math.abs(saldoAno));
+  saldoEl.className = 'sim-res-val '+(saldoAno>=0?'green':'');
+  if(saldoAno<0) saldoEl.style.color='var(--red)'; else saldoEl.style.color='';
+  const mediaEl = document.getElementById('orcdash-saldo-medio');
+  mediaEl.textContent = (mediaMensal<0?'-':'')+orcFmt(Math.abs(mediaMensal));
+  mediaEl.style.color = mediaMensal>=0 ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('orcdash-loading').style.display='none';
+  document.getElementById('orcdash-svg-wrap').style.display='block';
+  document.getElementById('orcdash-legenda').style.display='flex';
+
+  orcdashDesenhar(porMes);
+}
+
+function orcdashDesenhar(porMes){
+  const pontos = MESES_NOMES.map((label,mi)=>{
+    const mes = mi+1;
+    const d = porMes[mes] || {receita:0,despesa:0};
+    return { label, receita:d.receita, despesa:d.despesa, saldo:d.receita-d.despesa };
+  });
+
+  const maxBarVal = Math.max(1, ...pontos.map(p=>Math.max(p.receita,p.despesa)));
+  const minSaldo = Math.min(0, ...pontos.map(p=>p.saldo));
+  const maxSaldo = Math.max(0, ...pontos.map(p=>p.saldo));
+  // Escala da linha de saldo usa seu próprio range, mapeado no mesmo espaço vertical
+  const saldoRange = Math.max(1, maxSaldo - minSaldo);
+
+  const W=1000, H=380;
+  const PAD={top:20,right:60,bottom:40,left:60};
+  const cW=W-PAD.left-PAD.right;
+  const cH=H-PAD.top-PAD.bottom;
+  const n=pontos.length;
+  const gap=8;
+  const grupoW=(cW-(n-1)*gap)/n;
+  const barW=grupoW*0.38;
+
+  const N=5;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,sans-serif" onmouseleave="simHideTooltip()">`;
+
+  // Gridlines + eixo Y (valores das barras)
+  for(let i=0;i<=N;i++){
+    const y=PAD.top+cH*(1-i/N);
+    const val=maxBarVal*(i/N);
+    svg+=`<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="${i===0?'none':'4,4'}"/>`;
+    svg+=`<text x="${PAD.left-6}" y="${y+4}" text-anchor="end" fill="#6b7280" font-size="9">${simFmtAbrev(val)}</text>`;
+  }
+  svg+=`<line x1="${PAD.left}" y1="${PAD.top+cH}" x2="${W-PAD.right}" y2="${PAD.top+cH}" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>`;
+
+  // Linha zero do saldo (pode não coincidir com base das barras se houver saldo negativo)
+  const saldoY = v => PAD.top + cH - ((v-minSaldo)/saldoRange)*cH;
+
+  // Barras
+  pontos.forEach((p,i)=>{
+    const xGrupo = PAD.left + i*(grupoW+gap);
+    const hRec = Math.round((p.receita/maxBarVal)*cH);
+    const hDesp = Math.round((p.despesa/maxBarVal)*cH);
+    const xRec = xGrupo;
+    const xDesp = xGrupo + barW + 3;
+    const yRec = PAD.top+cH-hRec;
+    const yDesp = PAD.top+cH-hDesp;
+
+    const ttHtml = `<strong>${p.label}</strong><br>Receitas: ${orcFmt(p.receita)}<br>Despesas: ${orcFmt(p.despesa)}<br>Saldo: ${p.saldo<0?'-':''}${orcFmt(Math.abs(p.saldo))}`;
+    const ttEsc = ttHtml.replace(/"/g,'&quot;');
+
+    svg+=`<rect x="${xRec.toFixed(1)}" y="${yRec}" width="${barW.toFixed(1)}" height="${hRec}" fill="var(--green,#4ec98a)" rx="1"
+      onmouseenter="simShowTooltip(event,&quot;${ttEsc}&quot;)" onmousemove="simMoveTooltip(event)" onmouseleave="simHideTooltip()" style="cursor:pointer"/>`;
+    svg+=`<rect x="${xDesp.toFixed(1)}" y="${yDesp}" width="${barW.toFixed(1)}" height="${hDesp}" fill="#00B6E9" rx="1"
+      onmouseenter="simShowTooltip(event,&quot;${ttEsc}&quot;)" onmousemove="simMoveTooltip(event)" onmouseleave="simHideTooltip()" style="cursor:pointer"/>`;
+
+    // label mês
+    svg+=`<text x="${(xGrupo+grupoW/2).toFixed(1)}" y="${PAD.top+cH+16}" text-anchor="middle" fill="#6b7280" font-size="9">${p.label}</text>`;
+  });
+
+  // Linha de saldo (path)
+  const linePoints = pontos.map((p,i)=>{
+    const xGrupo = PAD.left + i*(grupoW+gap);
+    const x = xGrupo + grupoW/2;
+    const y = saldoY(p.saldo);
+    return {x,y,saldo:p.saldo,label:p.label};
+  });
+  const pathD = linePoints.map((pt,i)=> (i===0?'M':'L')+pt.x.toFixed(1)+','+pt.y.toFixed(1)).join(' ');
+  svg+=`<path d="${pathD}" fill="none" stroke="#7c9cff" stroke-width="2.2"/>`;
+  linePoints.forEach(pt=>{
+    const ttHtml = `<strong>${pt.label}</strong><br>Saldo: ${pt.saldo<0?'-':''}${orcFmt(Math.abs(pt.saldo))}`;
+    const ttEsc = ttHtml.replace(/"/g,'&quot;');
+    svg+=`<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.5" fill="#7c9cff" stroke="#0A1525" stroke-width="1.5"
+      onmouseenter="simShowTooltip(event,&quot;${ttEsc}&quot;)" onmousemove="simMoveTooltip(event)" onmouseleave="simHideTooltip()" style="cursor:pointer"/>`;
+  });
+
+  svg+='</svg>';
+  document.getElementById('orcdash-svg-wrap').innerHTML = svg;
+}
+
 let simDados = null; // {periodos: [{mes, principal, juros, total}]}
 let simModo = 'mes';
 
