@@ -557,7 +557,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .lanc-mes-tab.active{background:var(--gold);border-color:var(--gold);color:var(--navy)}
 
 .lanc-split{display:flex;gap:1.5rem;align-items:flex-start;margin-top:1.2rem}
-.lanc-col-orc{flex:0 0 46%;max-width:46%}
+.lanc-col-orc{flex:0 0 58%;max-width:58%}
 .lanc-col-lista{flex:1;min-width:0}
 @media(max-width:980px){
   .lanc-split{flex-direction:column}
@@ -567,15 +567,33 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .lanc-col-titulo{font-size:.85rem;font-weight:600;color:var(--white);margin-bottom:.8rem}
 
 .lanc-grupo-row td{
-  font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
-  padding:.55rem .6rem;background:rgba(0,182,233,0.05);color:var(--gold);
+  font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  padding:.7rem .8rem;background:rgba(0,182,233,0.05);color:var(--gold);text-align:left;
 }
 .lanc-grupo-row.receita td{background:rgba(78,201,138,0.05);color:var(--green)}
-.lanc-cat-nome{padding-left:1.2rem;color:var(--gray);font-size:.74rem}
+.lanc-cat-nome{padding-left:1.8rem !important;color:var(--gray);font-size:.78rem}
 .lanc-diff-pos{color:var(--green);font-weight:600}
 .lanc-diff-neg{color:var(--red);font-weight:600}
 .lanc-diff-zero{color:var(--gray2)}
 .lanc-row-del{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:1rem;padding:0 .3rem;transition:color .2s}
+
+/* Tabela Orçado x Realizado x Diferença — proporções próprias (3 colunas de valor, não 12 meses) */
+.lanc-orc-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.lanc-orc-table th{
+  font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);
+  padding:.85rem .8rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);
+  white-space:nowrap;text-align:right;font-weight:600;position:sticky;top:0;z-index:1;
+}
+.lanc-orc-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--navy2);width:38%;padding-left:1.2rem}
+.lanc-orc-table td{
+  padding:.55rem .8rem;border-bottom:1px solid var(--border2);
+  font-size:.8rem;vertical-align:middle;text-align:right;
+}
+.lanc-orc-table td:first-child{
+  color:var(--gray);font-size:.78rem;white-space:nowrap;
+  position:sticky;left:0;background:var(--navy2);z-index:1;
+  border-right:1px solid var(--border);padding-left:1.2rem;text-align:left;
+}
 .lanc-row-del:hover{color:var(--red)}
 
 /* ════════ ORÇAMENTO ════════ */
@@ -1149,7 +1167,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="lanc-col-titulo">Orçado × Realizado</div>
             <div class="orc-loading" id="lanc-orc-loading">Carregando...</div>
             <div class="orc-table-wrap" id="lanc-orc-wrap" style="display:none;max-height:none">
-              <table class="orc-table" id="lanc-orc-table">
+              <table class="lanc-orc-table" id="lanc-orc-table">
                 <thead><tr><th>Categoria</th><th style="text-align:right">Orçado</th><th style="text-align:right">Realizado</th><th style="text-align:right">Diferença</th></tr></thead>
                 <tbody id="lanc-orc-tbody"></tbody>
               </table>
@@ -5243,4 +5261,3 @@ function simRenderGrafico(){
 </script>
 </body>
 </html>
-  
