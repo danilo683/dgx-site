@@ -471,7 +471,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 }
 
 /* ════════ PLANO DE AÇÃO ════════ */
-.plano-card{background:var(--navy2);border:1px solid var(--border);padding:1.6rem 1.8rem;margin-bottom:1.5rem}
+.plano-card{background:var(--navy2);border:1px solid var(--border);padding:1.6rem 1.8rem}
 .plano-titulo{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .plano-progresso-resumo{font-size:.7rem;font-weight:400;color:var(--gray);letter-spacing:.04em;font-family:'Inter',sans-serif}
 .plano-vazio{font-size:.8rem;color:var(--gray);padding:1rem 0;text-align:center}
@@ -500,10 +500,12 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
 /* ════════ CRONOGRAMA ════════ */
 .crono-card{background:var(--navy2);border:1px solid var(--border);padding:1.6rem 1.8rem}
+
+.inicio-split{display:flex;gap:1.5rem;align-items:flex-start;margin-bottom:1.5rem}
+.inicio-split .plano-card{flex:1;min-width:0}
+.inicio-split .crono-card{flex:1;min-width:0}
+@media(max-width:920px){.inicio-split{flex-direction:column}}
 .crono-titulo{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:1.2rem}
-.crono-split{display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap}
-.crono-cal-col{flex:0 0 300px}
-.crono-lista-col{flex:1;min-width:260px;display:flex;flex-direction:column;gap:1.4rem}
 .crono-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
 .crono-cal-mes{font-size:.85rem;font-weight:700;color:var(--white);text-transform:capitalize}
 .crono-cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.6rem;color:var(--gray2);margin-bottom:.4rem;letter-spacing:.05em}
@@ -1030,47 +1032,43 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <p class="inicio-quote-autor" id="inicio-quote-autor"></p>
         </div>
 
-        <!-- Plano de Ação -->
-        <div class="plano-card">
-          <div class="plano-titulo">
-            Plano de Ação
-            <span class="plano-progresso-resumo" id="plano-progresso-resumo"></span>
-          </div>
-          <div class="orc-loading" id="plano-loading">Carregando...</div>
-          <div id="plano-lista"></div>
-          <div class="plano-vazio" id="plano-vazio" style="display:none">Nenhum item no plano de ação ainda.</div>
-        </div>
-
-        <!-- Cronograma: calendário + próximos eventos -->
-        <div class="crono-card">
-          <div class="crono-titulo">Cronograma</div>
-          <div class="crono-split">
-            <div class="crono-cal-col">
-              <div class="crono-cal-header">
-                <button class="orc-nav-btn" onclick="cronoMudarMes(-1)">‹</button>
-                <span class="crono-cal-mes" id="crono-cal-mes-label"></span>
-                <button class="orc-nav-btn" onclick="cronoMudarMes(1)">›</button>
-              </div>
-              <div class="crono-cal-dow">
-                <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
-              </div>
-              <div class="crono-cal-grid" id="crono-cal-grid"></div>
-              <div class="crono-cal-legenda">
-                <span><i class="crono-dot encontro"></i> Encontro</span>
-                <span><i class="crono-dot entrega"></i> Entrega</span>
-              </div>
+        <!-- Plano de Ação + Cronograma lado a lado -->
+        <div class="inicio-split">
+          <div class="plano-card">
+            <div class="plano-titulo">
+              Plano de Ação
+              <span class="plano-progresso-resumo" id="plano-progresso-resumo"></span>
             </div>
-            <div class="crono-lista-col">
-              <div class="crono-secao">
-                <div class="crono-secao-titulo encontro">📅 Próximos encontros</div>
-                <div id="crono-lista-encontros"></div>
-                <div class="plano-vazio" id="crono-vazio-encontros" style="display:none">Nenhum encontro agendado.</div>
-              </div>
-              <div class="crono-secao">
-                <div class="crono-secao-titulo entrega">📦 Próximas entregas</div>
-                <div id="crono-lista-entregas"></div>
-                <div class="plano-vazio" id="crono-vazio-entregas" style="display:none">Nenhuma entrega agendada.</div>
-              </div>
+            <div class="orc-loading" id="plano-loading">Carregando...</div>
+            <div id="plano-lista"></div>
+            <div class="plano-vazio" id="plano-vazio" style="display:none">Nenhum item no plano de ação ainda.</div>
+          </div>
+
+          <div class="crono-card">
+            <div class="crono-titulo">Cronograma</div>
+            <div class="crono-cal-header">
+              <button class="orc-nav-btn" onclick="cronoMudarMes(-1)">‹</button>
+              <span class="crono-cal-mes" id="crono-cal-mes-label"></span>
+              <button class="orc-nav-btn" onclick="cronoMudarMes(1)">›</button>
+            </div>
+            <div class="crono-cal-dow">
+              <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+            </div>
+            <div class="crono-cal-grid" id="crono-cal-grid"></div>
+            <div class="crono-cal-legenda">
+              <span><i class="crono-dot encontro"></i> Encontro</span>
+              <span><i class="crono-dot entrega"></i> Entrega</span>
+            </div>
+
+            <div class="crono-secao" style="margin-top:1.2rem">
+              <div class="crono-secao-titulo encontro">📅 Próximos encontros</div>
+              <div id="crono-lista-encontros"></div>
+              <div class="plano-vazio" id="crono-vazio-encontros" style="display:none">Nenhum encontro agendado.</div>
+            </div>
+            <div class="crono-secao">
+              <div class="crono-secao-titulo entrega">📦 Próximas entregas</div>
+              <div id="crono-lista-entregas"></div>
+              <div class="plano-vazio" id="crono-vazio-entregas" style="display:none">Nenhuma entrega agendada.</div>
             </div>
           </div>
         </div>
