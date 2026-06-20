@@ -539,6 +539,30 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-total-receita{color:var(--green)}
 .orcdash-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 @media(max-width:700px){.orcdash-cards{grid-template-columns:1fr 1fr}}
+
+/* Pizza */
+.orcpizza-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.orcpizza-title{font-size:.85rem;font-weight:600;color:var(--white)}
+.orcpizza-filtro-wrap{position:relative}
+.orcpizza-filtro-panel{
+  position:absolute;top:calc(100% + .5rem);right:0;z-index:30;
+  background:var(--navy3);border:1px solid var(--border);
+  padding:1rem;min-width:220px;max-height:320px;overflow-y:auto;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.orcpizza-filtro-item{display:flex;align-items:center;gap:.6rem;font-size:.78rem;color:var(--gray);padding:.3rem 0;cursor:pointer}
+.orcpizza-filtro-item input{accent-color:var(--gold);cursor:pointer}
+.orcpizza-filtro-todos{font-weight:700;color:var(--white)}
+.orcpizza-filtro-divider{height:1px;background:var(--border2);margin:.5rem 0}
+.orcpizza-filtro-meses{display:grid;grid-template-columns:1fr 1fr;gap:.1rem}
+.orcpizza-legenda-item{
+  display:flex;align-items:center;gap:.6rem;padding:.4rem 0;
+  font-size:.78rem;color:var(--gray);border-bottom:1px solid var(--border2);
+}
+.orcpizza-legenda-cor{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.orcpizza-legenda-nome{flex:1}
+.orcpizza-legenda-val{color:var(--white);font-weight:600;font-size:.76rem}
+.orcpizza-legenda-pct{color:var(--gold);font-weight:700;font-size:.76rem;min-width:42px;text-align:right}
 /* Colunas alternadas */
 .orc-table th.mes-par,.orc-table td.mes-par{background-color:rgba(255,255,255,0.025)}
 .orc-grupo-row td.mes-par{background-color:rgba(0,182,233,0.07)}
@@ -1559,6 +1583,34 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="sim-leg-item"><div class="sim-leg-cor" style="background:#7c9cff;border-radius:50%"></div>Saldo (linha)</div>
             <div class="sim-leg-item" style="color:var(--gray2);font-size:.68rem">Passe o mouse para ver os valores</div>
           </div>
+        </div>
+
+        <!-- Pizza de alocação por categoria -->
+        <div class="sim-chart-wrap" style="margin-top:1.2rem">
+          <div class="orcpizza-header">
+            <div class="orcpizza-title">Alocação por categoria de despesa</div>
+            <div class="orcpizza-filtro-wrap">
+              <button class="orc-btn-config" id="orcpizza-filtro-btn" onclick="orcpizzaToggleFiltro()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span id="orcpizza-filtro-label">Todos os meses</span>
+              </button>
+              <div class="orcpizza-filtro-panel" id="orcpizza-filtro-panel" style="display:none">
+                <label class="orcpizza-filtro-item orcpizza-filtro-todos">
+                  <input type="checkbox" id="orcpizza-check-todos" checked onchange="orcpizzaToggleTodos(this)">
+                  Todos os meses
+                </label>
+                <div class="orcpizza-filtro-divider"></div>
+                <div class="orcpizza-filtro-meses" id="orcpizza-filtro-meses"></div>
+                <button class="orc-btn-import" style="width:100%;justify-content:center;margin-top:.6rem" onclick="orcpizzaAplicarFiltro()">Aplicar</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="orcpizza-content" style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center;margin-top:1rem">
+            <div id="orcpizza-svg-wrap" style="flex:0 0 auto"></div>
+            <div id="orcpizza-legenda-lista" style="flex:1;min-width:220px"></div>
+          </div>
+          <div class="orc-loading" id="orcpizza-vazio" style="display:none">Nenhuma despesa lançada no período selecionado.</div>
         </div>
       </div>
 
@@ -4001,6 +4053,165 @@ function orcdashDesenhar(porMes){
 
   svg+='</svg>';
   document.getElementById('orcdash-svg-wrap').innerHTML = svg;
+
+  // Após desenhar o dash principal, também atualizar a pizza
+  orcpizzaCarregar();
+}
+
+// ── PIZZA: ALOCAÇÃO POR CATEGORIA ──
+let orcpizzaMesesSelecionados = null; // null = todos
+let orcpizzaDadosBrutos = []; // linhas cruas da tabela orcamento do ano
+
+const ORCPIZZA_CORES = [
+  '#00B6E9','#33C8F0','#4ec98a','#f0c93a','#e0824f',
+  '#e05252','#a78bfa','#f472b6','#60a5fa','#fb923c',
+  '#34d399','#facc15','#c084fc','#22d3ee','#fb7185'
+];
+
+function orcpizzaToggleFiltro(){
+  const panel = document.getElementById('orcpizza-filtro-panel');
+  const abrir = panel.style.display === 'none';
+  if(abrir) orcpizzaPopularMeses();
+  panel.style.display = abrir ? 'block' : 'none';
+}
+
+function orcpizzaPopularMeses(){
+  const cont = document.getElementById('orcpizza-filtro-meses');
+  const selecionados = orcpizzaMesesSelecionados;
+  cont.innerHTML = MESES_NOMES.map((m,mi)=>{
+    const mes = mi+1;
+    const checked = !selecionados || selecionados.includes(mes);
+    return `<label class="orcpizza-filtro-item">
+      <input type="checkbox" class="orcpizza-mes-check" value="${mes}" ${checked?'checked':''} onchange="orcpizzaOnMesChange()">
+      ${m}
+    </label>`;
+  }).join('');
+  document.getElementById('orcpizza-check-todos').checked = !selecionados;
+}
+
+function orcpizzaToggleTodos(el){
+  const checks = document.querySelectorAll('.orcpizza-mes-check');
+  checks.forEach(c=>c.checked = el.checked);
+}
+
+function orcpizzaOnMesChange(){
+  const checks = [...document.querySelectorAll('.orcpizza-mes-check')];
+  const todosMarcados = checks.every(c=>c.checked);
+  document.getElementById('orcpizza-check-todos').checked = todosMarcados;
+}
+
+function orcpizzaAplicarFiltro(){
+  const todos = document.getElementById('orcpizza-check-todos').checked;
+  if(todos){
+    orcpizzaMesesSelecionados = null;
+    document.getElementById('orcpizza-filtro-label').textContent = 'Todos os meses';
+  } else {
+    const checks = [...document.querySelectorAll('.orcpizza-mes-check:checked')].map(c=>Number(c.value));
+    if(!checks.length){
+      orcpizzaMesesSelecionados = null;
+      document.getElementById('orcpizza-filtro-label').textContent = 'Todos os meses';
+      document.getElementById('orcpizza-check-todos').checked = true;
+    } else {
+      orcpizzaMesesSelecionados = checks.sort((a,b)=>a-b);
+      const label = checks.length===1
+        ? MESES_NOMES[checks[0]-1]
+        : `${checks.length} meses selecionados`;
+      document.getElementById('orcpizza-filtro-label').textContent = label;
+    }
+  }
+  document.getElementById('orcpizza-filtro-panel').style.display='none';
+  orcpizzaRenderizar();
+}
+
+async function orcpizzaCarregar(){
+  const { data, error } = await sb.from('orcamento')
+    .select('*').eq('user_id', usuarioAtual.id).eq('ano', orcdashAno);
+  if(error){ console.error(error); orcpizzaDadosBrutos=[]; }
+  else orcpizzaDadosBrutos = data || [];
+  orcpizzaRenderizar();
+}
+
+function orcpizzaRenderizar(){
+  const meses = orcpizzaMesesSelecionados; // null = todos
+  const linhasFiltradas = orcpizzaDadosBrutos.filter(r=>
+    r.grupo !== '__receitas' && (!meses || meses.includes(r.mes))
+  );
+
+  // Agrupar por categoria (grupo de despesa, ex: Casa, Alimentação...)
+  const porGrupo = {};
+  linhasFiltradas.forEach(r=>{
+    const g = r.grupo || 'Outros';
+    porGrupo[g] = (porGrupo[g]||0) + Number(r.previsto);
+  });
+
+  const entradas = Object.entries(porGrupo).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const total = entradas.reduce((a,[,v])=>a+v,0);
+
+  const svgWrap = document.getElementById('orcpizza-svg-wrap');
+  const legWrap = document.getElementById('orcpizza-legenda-lista');
+  const vazioEl = document.getElementById('orcpizza-vazio');
+  const contentEl = document.getElementById('orcpizza-content');
+
+  if(!entradas.length || total<=0){
+    contentEl.style.display='none';
+    vazioEl.style.display='block';
+    return;
+  }
+  contentEl.style.display='flex';
+  vazioEl.style.display='none';
+
+  // Desenhar SVG da pizza (donut)
+  const size=240, r=100, rInner=58, cx=size/2, cy=size/2;
+  let anguloAtual = -90; // começa no topo
+  let svg=`<svg viewBox="0 0 ${size} ${size}" width="240" height="240" xmlns="http://www.w3.org/2000/svg" onmouseleave="simHideTooltip()">`;
+
+  entradas.forEach(([grupo,val],i)=>{
+    const pct = val/total;
+    const anguloFatia = pct*360;
+    const anguloFim = anguloAtual + anguloFatia;
+    const cor = ORCPIZZA_CORES[i % ORCPIZZA_CORES.length];
+
+    const x1 = cx + r*Math.cos(anguloAtual*Math.PI/180);
+    const y1 = cy + r*Math.sin(anguloAtual*Math.PI/180);
+    const x2 = cx + r*Math.cos(anguloFim*Math.PI/180);
+    const y2 = cy + r*Math.sin(anguloFim*Math.PI/180);
+    const xi1 = cx + rInner*Math.cos(anguloAtual*Math.PI/180);
+    const yi1 = cy + rInner*Math.sin(anguloAtual*Math.PI/180);
+    const xi2 = cx + rInner*Math.cos(anguloFim*Math.PI/180);
+    const yi2 = cy + rInner*Math.sin(anguloFim*Math.PI/180);
+    const largeArc = anguloFatia>180?1:0;
+
+    const d = `M ${x1.toFixed(2)} ${y1.toFixed(2)}
+      A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}
+      L ${xi2.toFixed(2)} ${yi2.toFixed(2)}
+      A ${rInner} ${rInner} 0 ${largeArc} 0 ${xi1.toFixed(2)} ${yi1.toFixed(2)} Z`;
+
+    const ttHtml = `<strong>${grupo}</strong><br>${orcFmt(val)}<br>${(pct*100).toFixed(1)}%`;
+    const ttEsc = ttHtml.replace(/"/g,'&quot;');
+
+    svg+=`<path d="${d}" fill="${cor}" stroke="#0A1525" stroke-width="1.5"
+      onmouseenter="simShowTooltip(event,&quot;${ttEsc}&quot;)" onmousemove="simMoveTooltip(event)" onmouseleave="simHideTooltip()" style="cursor:pointer"/>`;
+
+    anguloAtual = anguloFim;
+  });
+
+  // Texto central
+  svg+=`<text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#9aa0a8" font-size="9" font-family="Inter,sans-serif">Total</text>`;
+  svg+=`<text x="${cx}" y="${cy+12}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="Inter,sans-serif">${simFmtAbrev(total)}</text>`;
+  svg+='</svg>';
+  svgWrap.innerHTML = svg;
+
+  // Legenda em lista
+  legWrap.innerHTML = entradas.map(([grupo,val],i)=>{
+    const pct = (val/total*100).toFixed(1);
+    const cor = ORCPIZZA_CORES[i % ORCPIZZA_CORES.length];
+    return `<div class="orcpizza-legenda-item">
+      <div class="orcpizza-legenda-cor" style="background:${cor}"></div>
+      <div class="orcpizza-legenda-nome">${grupo}</div>
+      <div class="orcpizza-legenda-val">${orcFmt(val)}</div>
+      <div class="orcpizza-legenda-pct">${pct}%</div>
+    </div>`;
+  }).join('');
 }
 
 let simDados = null; // {periodos: [{mes, principal, juros, total}]}
