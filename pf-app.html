@@ -470,6 +470,72 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ PLANO DE AÇÃO ════════ */
+.plano-card{background:var(--navy2);border:1px solid var(--border);padding:1.6rem 1.8rem;margin-bottom:1.5rem}
+.plano-titulo{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.plano-progresso-resumo{font-size:.7rem;font-weight:400;color:var(--gray);letter-spacing:.04em;font-family:'Inter',sans-serif}
+.plano-vazio{font-size:.8rem;color:var(--gray);padding:1rem 0;text-align:center}
+.plano-item{display:flex;align-items:flex-start;gap:.9rem;padding:.9rem 0;border-bottom:1px solid var(--border2)}
+.plano-item:last-child{border-bottom:none}
+.plano-item.concluido{opacity:.5}
+.plano-check{
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--gold);
+  flex-shrink:0;margin-top:.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;background:none;
+}
+.plano-check.checked{background:var(--gold)}
+.plano-check.checked svg{display:block}
+.plano-check svg{display:none;width:11px;height:11px;stroke:var(--navy);stroke-width:3}
+.plano-item-body{flex:1;min-width:0}
+.plano-item-titulo{font-size:.88rem;font-weight:600;color:var(--white);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.plano-item.concluido .plano-item-titulo{text-decoration:line-through}
+.plano-tipo-tag{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .5rem;border-radius:10px;font-weight:700}
+.plano-tipo-tag.acao{background:rgba(0,182,233,0.12);color:var(--gold)}
+.plano-tipo-tag.meta{background:rgba(78,201,138,0.12);color:var(--green)}
+.plano-item-desc{font-size:.76rem;color:var(--gray);margin-top:.3rem;line-height:1.5}
+.plano-progresso-bar-wrap{margin-top:.6rem;display:flex;align-items:center;gap:.7rem}
+.plano-progresso-bar-bg{flex:1;height:6px;background:var(--navy3);border-radius:3px;overflow:hidden}
+.plano-progresso-bar-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s}
+.plano-progresso-bar-txt{font-size:.68rem;color:var(--gray);white-space:nowrap;font-weight:600}
+
+/* ════════ CRONOGRAMA ════════ */
+.crono-card{background:var(--navy2);border:1px solid var(--border);padding:1.6rem 1.8rem}
+.crono-titulo{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:1.2rem}
+.crono-split{display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap}
+.crono-cal-col{flex:0 0 300px}
+.crono-lista-col{flex:1;min-width:260px;display:flex;flex-direction:column;gap:1.4rem}
+.crono-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.crono-cal-mes{font-size:.85rem;font-weight:700;color:var(--white);text-transform:capitalize}
+.crono-cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.6rem;color:var(--gray2);margin-bottom:.4rem;letter-spacing:.05em}
+.crono-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.crono-cal-dia{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:.7rem;color:var(--gray);position:relative;border-radius:3px;cursor:default;
+}
+.crono-cal-dia.outro-mes{color:var(--navy3);opacity:.4}
+.crono-cal-dia.hoje{background:rgba(0,182,233,0.1);color:var(--gold);font-weight:700;border:1px solid rgba(0,182,233,0.3)}
+.crono-cal-dots{display:flex;gap:2px;margin-top:1px;position:absolute;bottom:3px}
+.crono-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+.crono-dot.encontro{background:#7c9cff}
+.crono-dot.entrega{background:var(--gold)}
+.crono-cal-legenda{display:flex;gap:1.2rem;margin-top:1rem;font-size:.65rem;color:var(--gray)}
+.crono-cal-legenda span{display:flex;align-items:center;gap:.4rem}
+.crono-secao-titulo{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:.7rem}
+.crono-secao-titulo.encontro{color:#7c9cff}
+.crono-secao-titulo.entrega{color:var(--gold)}
+.crono-evento-item{display:flex;gap:.8rem;padding:.6rem 0;border-bottom:1px solid var(--border2)}
+.crono-evento-item:last-child{border-bottom:none}
+.crono-evento-data{
+  flex-shrink:0;width:42px;text-align:center;
+  background:var(--navy3);border-radius:3px;padding:.3rem 0;
+}
+.crono-evento-dia{font-size:.95rem;font-weight:700;color:var(--white);line-height:1}
+.crono-evento-mes{font-size:.55rem;color:var(--gray2);text-transform:uppercase;letter-spacing:.05em}
+.crono-evento-body{flex:1;min-width:0}
+.crono-evento-titulo{font-size:.8rem;font-weight:600;color:var(--white)}
+.crono-evento-hora{font-size:.68rem;color:var(--gray);margin-top:.1rem}
+.crono-evento-desc{font-size:.72rem;color:var(--gray);margin-top:.2rem;line-height:1.4}
+
 /* ════════ ORÇAMENTO ════════ */
 .orc-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
 .orc-nav{display:flex;align-items:center;gap:.8rem}
@@ -700,6 +766,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .admin-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);padding:.7rem 1.4rem;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:-1px}
 .admin-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .admin-tab:hover:not(.active){color:var(--white)}
+.admin-row-del{background:none;border:none;color:var(--gray2);font-size:1.1rem;cursor:pointer;padding:0 .3rem;transition:color .2s;line-height:1}
+.admin-row-del:hover{color:var(--red)}
 .admin-panel{display:none}
 .admin-panel.active{display:block}
 
@@ -962,11 +1030,49 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <p class="inicio-quote-autor" id="inicio-quote-autor"></p>
         </div>
 
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></div>
-          <h3>Seu painel completo está chegando</h3>
-          <p>Em breve, esta página vai reunir um resumo da sua jornada financeira: indicadores, metas e destaques de todas as áreas em um só lugar.</p>
-          <span class="em-breve-tag">Em construção</span>
+        <!-- Plano de Ação -->
+        <div class="plano-card">
+          <div class="plano-titulo">
+            Plano de Ação
+            <span class="plano-progresso-resumo" id="plano-progresso-resumo"></span>
+          </div>
+          <div class="orc-loading" id="plano-loading">Carregando...</div>
+          <div id="plano-lista"></div>
+          <div class="plano-vazio" id="plano-vazio" style="display:none">Nenhum item no plano de ação ainda.</div>
+        </div>
+
+        <!-- Cronograma: calendário + próximos eventos -->
+        <div class="crono-card">
+          <div class="crono-titulo">Cronograma</div>
+          <div class="crono-split">
+            <div class="crono-cal-col">
+              <div class="crono-cal-header">
+                <button class="orc-nav-btn" onclick="cronoMudarMes(-1)">‹</button>
+                <span class="crono-cal-mes" id="crono-cal-mes-label"></span>
+                <button class="orc-nav-btn" onclick="cronoMudarMes(1)">›</button>
+              </div>
+              <div class="crono-cal-dow">
+                <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+              </div>
+              <div class="crono-cal-grid" id="crono-cal-grid"></div>
+              <div class="crono-cal-legenda">
+                <span><i class="crono-dot encontro"></i> Encontro</span>
+                <span><i class="crono-dot entrega"></i> Entrega</span>
+              </div>
+            </div>
+            <div class="crono-lista-col">
+              <div class="crono-secao">
+                <div class="crono-secao-titulo encontro">📅 Próximos encontros</div>
+                <div id="crono-lista-encontros"></div>
+                <div class="plano-vazio" id="crono-vazio-encontros" style="display:none">Nenhum encontro agendado.</div>
+              </div>
+              <div class="crono-secao">
+                <div class="crono-secao-titulo entrega">📦 Próximas entregas</div>
+                <div id="crono-lista-entregas"></div>
+                <div class="plano-vazio" id="crono-vazio-entregas" style="display:none">Nenhuma entrega agendada.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1783,6 +1889,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <button class="admin-tab" onclick="adminTab(this,'extrato')">Extrato</button>
             <button class="admin-tab" onclick="adminTab(this,'raiox')">Raio X</button>
             <button class="admin-tab" onclick="adminTab(this,'diagnostico')">Diagnóstico</button>
+            <button class="admin-tab" onclick="adminTab(this,'cronograma')">Cronograma</button>
+            <button class="admin-tab" onclick="adminTab(this,'plano')">Plano de Ação</button>
           </div>
 
           <div class="admin-panel active" id="adminp-resumo">
@@ -1802,6 +1910,70 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
           <div class="admin-panel" id="adminp-diagnostico">
             <div id="admin-diag-content"></div>
+          </div>
+
+          <div class="admin-panel" id="adminp-cronograma">
+            <div class="admin-frase-form">
+              <div class="admin-frase-form-title">Novo evento</div>
+              <div class="admin-frase-grid">
+                <div class="diag-field">
+                  <label class="diag-label">Tipo</label>
+                  <select class="diag-input" id="crono-form-tipo" style="cursor:pointer">
+                    <option value="encontro">Encontro</option>
+                    <option value="entrega">Entrega</option>
+                  </select>
+                </div>
+                <div class="diag-field"><label class="diag-label">Título</label><input class="diag-input" type="text" id="crono-form-titulo" placeholder="Ex: Reunião de revisão mensal"></div>
+                <div class="diag-field"><label class="diag-label">Data</label><input class="diag-input" type="date" id="crono-form-data"></div>
+                <div class="diag-field"><label class="diag-label">Hora (opcional)</label><input class="diag-input" type="time" id="crono-form-hora"></div>
+              </div>
+              <div class="diag-field" style="margin-top:.8rem">
+                <label class="diag-label">Descrição (opcional)</label>
+                <textarea class="diag-input" id="crono-form-desc" placeholder="Detalhes adicionais..." style="min-height:60px"></textarea>
+              </div>
+              <div class="diag-save-area">
+                <button class="btn-diag-save" onclick="adminCronoSalvar()">Adicionar evento</button>
+                <span class="diag-saved-msg" id="crono-form-msg">✓ Adicionado!</span>
+              </div>
+            </div>
+
+            <table class="admin-readonly-table" id="admin-crono-table" style="margin-top:1.5rem">
+              <thead><tr><th>Tipo</th><th>Título</th><th>Data</th><th>Hora</th><th></th></tr></thead>
+              <tbody id="admin-crono-tbody"></tbody>
+            </table>
+            <div class="admin-empty" id="admin-crono-empty" style="display:none">Nenhum evento cadastrado.</div>
+          </div>
+
+          <div class="admin-panel" id="adminp-plano">
+            <div class="admin-frase-form">
+              <div class="admin-frase-form-title">Novo item do plano</div>
+              <div class="admin-frase-grid">
+                <div class="diag-field">
+                  <label class="diag-label">Tipo</label>
+                  <select class="diag-input" id="plano-form-tipo" style="cursor:pointer" onchange="adminPlanoToggleMeta()">
+                    <option value="acao">Ação</option>
+                    <option value="meta">Meta (com progresso)</option>
+                  </select>
+                </div>
+                <div class="diag-field"><label class="diag-label">Título</label><input class="diag-input" type="text" id="plano-form-titulo" placeholder="Ex: Renegociar fatura do cartão"></div>
+                <div class="diag-field" id="plano-form-meta-wrap" style="display:none"><label class="diag-label">Valor da meta</label><input class="diag-input" type="number" step="0.01" id="plano-form-meta-valor" placeholder="Ex: 5000"></div>
+                <div class="diag-field" id="plano-form-progresso-wrap" style="display:none"><label class="diag-label">Progresso atual</label><input class="diag-input" type="number" step="0.01" id="plano-form-progresso-valor" placeholder="Ex: 1200"></div>
+              </div>
+              <div class="diag-field" style="margin-top:.8rem">
+                <label class="diag-label">Descrição (opcional)</label>
+                <textarea class="diag-input" id="plano-form-desc" placeholder="Detalhes adicionais..." style="min-height:60px"></textarea>
+              </div>
+              <div class="diag-save-area">
+                <button class="btn-diag-save" onclick="adminPlanoSalvar()">Adicionar ao plano</button>
+                <span class="diag-saved-msg" id="plano-form-msg">✓ Adicionado!</span>
+              </div>
+            </div>
+
+            <table class="admin-readonly-table" id="admin-plano-table" style="margin-top:1.5rem">
+              <thead><tr><th>Tipo</th><th>Título</th><th>Status</th><th></th></tr></thead>
+              <tbody id="admin-plano-tbody"></tbody>
+            </table>
+            <div class="admin-empty" id="admin-plano-empty" style="display:none">Nenhum item cadastrado.</div>
           </div>
         </div>
       </div>
@@ -2046,7 +2218,9 @@ async function mostrarPainel(user){
   await Promise.all([
     carregarExtrato(),
     rxCarregarDados(),
-    diagCarregarSalvo()
+    diagCarregarSalvo(),
+    planoCarregar(),
+    cronoCarregar()
   ]);
 
   inicioRenderJornada();
@@ -2072,7 +2246,7 @@ async function irPara(tela, btn){
   document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tela-'+tela).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); }
+  if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); planoCarregar(); cronoCarregar(); }
   if(tela==='orcamento'){
     orcAno=orcAno||new Date().getFullYear();
     document.getElementById('orc-ano-label').textContent=orcAno;
@@ -2157,6 +2331,166 @@ function inicioRenderJornada(){
 function inicioJornadaClick(i){
   const p = window.__jornadaPassos && window.__jornadaPassos[i];
   if(p && p.acao) p.acao();
+}
+
+// ══════════════════════════════════════════════
+// PLANO DE AÇÃO
+// ══════════════════════════════════════════════
+async function planoCarregar(){
+  document.getElementById('plano-loading').style.display='block';
+  document.getElementById('plano-lista').innerHTML='';
+  document.getElementById('plano-vazio').style.display='none';
+
+  const { data, error } = await sb.from('plano_acao')
+    .select('*').eq('user_id', usuarioAtual.id).order('ordem',{ascending:true}).order('created_at',{ascending:true});
+
+  document.getElementById('plano-loading').style.display='none';
+  if(error){ console.error(error); return; }
+
+  if(!data || !data.length){
+    document.getElementById('plano-vazio').style.display='block';
+    document.getElementById('plano-progresso-resumo').textContent='';
+    return;
+  }
+
+  const concluidos = data.filter(i=>i.concluido).length;
+  document.getElementById('plano-progresso-resumo').textContent = `${concluidos} de ${data.length} concluídos`;
+
+  document.getElementById('plano-lista').innerHTML = data.map(item=>{
+    const isMeta = item.tipo === 'meta';
+    let progressoHtml = '';
+    if(isMeta && item.meta_valor){
+      const pct = Math.min(100, Math.round((Number(item.progresso_valor)||0)/Number(item.meta_valor)*100));
+      progressoHtml = `<div class="plano-progresso-bar-wrap">
+        <div class="plano-progresso-bar-bg"><div class="plano-progresso-bar-fill" style="width:${pct}%"></div></div>
+        <div class="plano-progresso-bar-txt">${pct}%</div>
+      </div>`;
+    }
+    return `<div class="plano-item${item.concluido?' concluido':''}">
+      <button class="plano-check${item.concluido?' checked':''}" onclick="planoToggleConcluido(${item.id},${!item.concluido})">
+        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="plano-item-body">
+        <div class="plano-item-titulo">
+          ${escapeHtml(item.titulo)}
+          <span class="plano-tipo-tag ${item.tipo}">${isMeta?'Meta':'Ação'}</span>
+        </div>
+        ${item.descricao ? `<div class="plano-item-desc">${escapeHtml(item.descricao)}</div>` : ''}
+        ${progressoHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function planoToggleConcluido(id, novoStatus){
+  const { error } = await sb.from('plano_acao').update({ concluido: novoStatus }).eq('id', id);
+  if(error){ alert('Erro ao atualizar: '+error.message); return; }
+  planoCarregar();
+}
+
+// ══════════════════════════════════════════════
+// CRONOGRAMA (calendário + próximos eventos)
+// ══════════════════════════════════════════════
+const CRONO_MESES_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+let cronoCalData = new Date();
+let cronoEventos = [];
+
+async function cronoCarregar(){
+  const { data, error } = await sb.from('cronograma')
+    .select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:true});
+
+  if(error){ console.error(error); cronoEventos=[]; }
+  else cronoEventos = data || [];
+
+  cronoRenderCalendario();
+  cronoRenderListas();
+}
+
+function cronoMudarMes(delta){
+  cronoCalData.setMonth(cronoCalData.getMonth()+delta);
+  cronoCalData = new Date(cronoCalData);
+  cronoRenderCalendario();
+}
+
+function cronoRenderCalendario(){
+  const ano = cronoCalData.getFullYear();
+  const mes = cronoCalData.getMonth(); // 0-indexed
+  document.getElementById('crono-cal-mes-label').textContent = `${CRONO_MESES_FULL[mes]} ${ano}`;
+
+  const primeiroDia = new Date(ano, mes, 1);
+  const ultimoDia = new Date(ano, mes+1, 0);
+  const diaSemanaInicio = primeiroDia.getDay(); // 0=dom
+  const totalDias = ultimoDia.getDate();
+  const diasMesAnterior = new Date(ano, mes, 0).getDate();
+
+  const hoje = new Date();
+  const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+
+  // Mapa de eventos por data 'YYYY-MM-DD'
+  const porData = {};
+  cronoEventos.forEach(e=>{
+    if(!porData[e.data]) porData[e.data] = [];
+    porData[e.data].push(e);
+  });
+
+  let cells = [];
+  // Dias do mês anterior (cinza)
+  for(let i=diaSemanaInicio-1; i>=0; i--){
+    cells.push({dia:diasMesAnterior-i, outro:true});
+  }
+  // Dias do mês atual
+  for(let d=1; d<=totalDias; d++){
+    const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    cells.push({dia:d, outro:false, dataStr, eventos:porData[dataStr]||[]});
+  }
+  // Completar última linha com dias do próximo mês
+  while(cells.length % 7 !== 0){
+    cells.push({dia:cells.length, outro:true});
+  }
+
+  document.getElementById('crono-cal-grid').innerHTML = cells.map(c=>{
+    const isHoje = !c.outro && c.dataStr===hojeStr;
+    let dotsHtml = '';
+    if(c.eventos && c.eventos.length){
+      const tipos = [...new Set(c.eventos.map(e=>e.tipo))];
+      dotsHtml = `<div class="crono-cal-dots">${tipos.map(t=>`<span class="crono-dot ${t}"></span>`).join('')}</div>`;
+    }
+    return `<div class="crono-cal-dia${c.outro?' outro-mes':''}${isHoje?' hoje':''}">${c.dia}${dotsHtml}</div>`;
+  }).join('');
+}
+
+function cronoRenderListas(){
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+
+  const futuros = cronoEventos.filter(e=>{
+    const d = new Date(e.data+'T00:00:00');
+    return d >= hoje;
+  });
+
+  const encontros = futuros.filter(e=>e.tipo==='encontro').slice(0,5);
+  const entregas = futuros.filter(e=>e.tipo==='entrega').slice(0,5);
+
+  const renderLista = (lista) => lista.map(e=>{
+    const d = new Date(e.data+'T00:00:00');
+    const dia = d.getDate();
+    const mesAbr = MESES_NOMES[d.getMonth()];
+    const horaStr = e.hora ? e.hora.slice(0,5) : '';
+    return `<div class="crono-evento-item">
+      <div class="crono-evento-data"><div class="crono-evento-dia">${dia}</div><div class="crono-evento-mes">${mesAbr}</div></div>
+      <div class="crono-evento-body">
+        <div class="crono-evento-titulo">${escapeHtml(e.titulo)}</div>
+        ${horaStr ? `<div class="crono-evento-hora">${horaStr}</div>` : ''}
+        ${e.descricao ? `<div class="crono-evento-desc">${escapeHtml(e.descricao)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('crono-lista-encontros').innerHTML = renderLista(encontros);
+  document.getElementById('crono-vazio-encontros').style.display = encontros.length ? 'none' : 'block';
+
+  document.getElementById('crono-lista-entregas').innerHTML = renderLista(entregas);
+  document.getElementById('crono-vazio-entregas').style.display = entregas.length ? 'none' : 'block';
 }
 
 async function carregarExtrato(){
@@ -3522,6 +3856,7 @@ async function perfilSalvar(){
 // ADMIN
 // ══════════════════════════════════════════════
 let adminClientesCache = [];
+let adminClienteAtualId = null;
 
 async function adminCriarCliente(){
   const nome  = document.getElementById('novo-cliente-nome').value.trim();
@@ -3607,6 +3942,7 @@ function adminTab(btn, panel){
 async function adminAbrirCliente(idx){
   const c = adminClientesCache[idx];
   const nome = c.nome || c.email.split('@')[0];
+  adminClienteAtualId = c.id;
 
   document.getElementById('admin-lista-view').style.display='none';
   document.getElementById('admin-detalhe-view').style.display='block';
@@ -3633,6 +3969,142 @@ async function adminAbrirCliente(idx){
   adminRenderExtrato(extrato);
   adminRenderRaioX(raiox);
   adminRenderDiagnostico(diagRes.data);
+  adminCronoCarregar();
+  adminPlanoCarregar();
+}
+
+// ── ADMIN: CRONOGRAMA ──
+async function adminCronoCarregar(){
+  document.getElementById('admin-crono-tbody').innerHTML='';
+  document.getElementById('admin-crono-empty').style.display='none';
+
+  const { data, error } = await sb.from('cronograma')
+    .select('*').eq('user_id', adminClienteAtualId).order('data',{ascending:true});
+
+  if(error){ console.error(error); return; }
+
+  if(!data || !data.length){
+    document.getElementById('admin-crono-empty').style.display='block';
+    return;
+  }
+
+  document.getElementById('admin-crono-tbody').innerHTML = data.map(e=>{
+    const d = new Date(e.data+'T00:00:00');
+    const dataFmt = d.toLocaleDateString('pt-BR');
+    const tipoLabel = e.tipo==='encontro' ? 'Encontro' : 'Entrega';
+    const tipoCor = e.tipo==='encontro' ? '#7c9cff' : 'var(--gold)';
+    return `<tr>
+      <td><span style="color:${tipoCor};font-weight:600;font-size:.75rem">${tipoLabel}</span></td>
+      <td>${escapeHtml(e.titulo)}</td>
+      <td>${dataFmt}</td>
+      <td>${e.hora ? e.hora.slice(0,5) : '—'}</td>
+      <td style="text-align:right"><button class="admin-row-del" onclick="adminCronoExcluir(${e.id})">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function adminCronoSalvar(){
+  const tipo = document.getElementById('crono-form-tipo').value;
+  const titulo = document.getElementById('crono-form-titulo').value.trim();
+  const data = document.getElementById('crono-form-data').value;
+  const hora = document.getElementById('crono-form-hora').value || null;
+  const descricao = document.getElementById('crono-form-desc').value.trim() || null;
+
+  if(!titulo || !data){ alert('Preencha pelo menos o título e a data.'); return; }
+
+  const { error } = await sb.from('cronograma').insert({
+    user_id: adminClienteAtualId, tipo, titulo, data, hora, descricao
+  });
+
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+
+  document.getElementById('crono-form-titulo').value='';
+  document.getElementById('crono-form-data').value='';
+  document.getElementById('crono-form-hora').value='';
+  document.getElementById('crono-form-desc').value='';
+
+  const msg = document.getElementById('crono-form-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',2000);
+
+  adminCronoCarregar();
+}
+
+async function adminCronoExcluir(id){
+  if(!confirm('Excluir este evento do cronograma?')) return;
+  const { error } = await sb.from('cronograma').delete().eq('id', id);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  adminCronoCarregar();
+}
+
+// ── ADMIN: PLANO DE AÇÃO ──
+function adminPlanoToggleMeta(){
+  const isMeta = document.getElementById('plano-form-tipo').value === 'meta';
+  document.getElementById('plano-form-meta-wrap').style.display = isMeta ? 'block' : 'none';
+  document.getElementById('plano-form-progresso-wrap').style.display = isMeta ? 'block' : 'none';
+}
+
+async function adminPlanoCarregar(){
+  document.getElementById('admin-plano-tbody').innerHTML='';
+  document.getElementById('admin-plano-empty').style.display='none';
+
+  const { data, error } = await sb.from('plano_acao')
+    .select('*').eq('user_id', adminClienteAtualId).order('ordem',{ascending:true}).order('created_at',{ascending:true});
+
+  if(error){ console.error(error); return; }
+
+  if(!data || !data.length){
+    document.getElementById('admin-plano-empty').style.display='block';
+    return;
+  }
+
+  document.getElementById('admin-plano-tbody').innerHTML = data.map(item=>{
+    const tipoLabel = item.tipo==='meta' ? 'Meta' : 'Ação';
+    const tipoCor = item.tipo==='meta' ? 'var(--green)' : 'var(--gold)';
+    const statusLabel = item.concluido ? '✓ Concluído' : 'Pendente';
+    const statusCor = item.concluido ? 'var(--green)' : 'var(--gray)';
+    return `<tr>
+      <td><span style="color:${tipoCor};font-weight:600;font-size:.75rem">${tipoLabel}</span></td>
+      <td>${escapeHtml(item.titulo)}</td>
+      <td><span style="color:${statusCor};font-size:.75rem">${statusLabel}</span></td>
+      <td style="text-align:right"><button class="admin-row-del" onclick="adminPlanoExcluir(${item.id})">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function adminPlanoSalvar(){
+  const tipo = document.getElementById('plano-form-tipo').value;
+  const titulo = document.getElementById('plano-form-titulo').value.trim();
+  const descricao = document.getElementById('plano-form-desc').value.trim() || null;
+  const metaValor = document.getElementById('plano-form-meta-valor').value;
+  const progressoValor = document.getElementById('plano-form-progresso-valor').value;
+
+  if(!titulo){ alert('Preencha o título.'); return; }
+
+  const payload = {
+    user_id: adminClienteAtualId, tipo, titulo, descricao,
+    meta_valor: tipo==='meta' && metaValor ? Number(metaValor) : null,
+    progresso_valor: tipo==='meta' && progressoValor ? Number(progressoValor) : 0
+  };
+
+  const { error } = await sb.from('plano_acao').insert(payload);
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+
+  document.getElementById('plano-form-titulo').value='';
+  document.getElementById('plano-form-desc').value='';
+  document.getElementById('plano-form-meta-valor').value='';
+  document.getElementById('plano-form-progresso-valor').value='';
+
+  const msg = document.getElementById('plano-form-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',2000);
+
+  adminPlanoCarregar();
+}
+
+async function adminPlanoExcluir(id){
+  if(!confirm('Excluir este item do plano de ação?')) return;
+  const { error } = await sb.from('plano_acao').delete().eq('id', id);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  adminPlanoCarregar();
 }
 
 function adminRenderResumo(extrato, raiox){
