@@ -499,7 +499,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-config-desc{font-size:.75rem;color:var(--gray);margin-bottom:1rem;line-height:1.6}
 .orc-config-row{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
 .orc-config-divider{height:1px;background:var(--border);margin:1.3rem 0}
-.orc-table-wrap{overflow-x:auto;border:1px solid var(--border)}
+.orc-table-wrap{overflow-x:auto;overflow-y:auto;border:1px solid var(--border);max-height:75vh}
 .orc-loading{padding:3rem;text-align:center;color:var(--gray);font-size:.85rem}
 .orc-table{width:100%;border-collapse:collapse;min-width:900px}
 .orc-table th{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);padding:.85rem .8rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);white-space:nowrap;text-align:right;font-weight:600;position:sticky;top:0;z-index:1}
@@ -539,6 +539,16 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .orc-total-receita{color:var(--green)}
 .orcdash-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 @media(max-width:700px){.orcdash-cards{grid-template-columns:1fr 1fr}}
+
+/* Split 30/70 */
+.orcdash-split{display:flex;gap:1.5rem;align-items:flex-start}
+.orcdash-col-pizza{flex:0 0 30%;max-width:30%;border-right:1px solid var(--border2);padding-right:1.5rem}
+.orcdash-col-barras{flex:1;min-width:0}
+@media(max-width:900px){
+  .orcdash-split{flex-direction:column}
+  .orcdash-col-pizza{flex:1 1 auto;max-width:100%;border-right:none;border-bottom:1px solid var(--border2);padding-right:0;padding-bottom:1.5rem;width:100%}
+  .orcdash-col-barras{width:100%}
+}
 
 /* Pizza */
 .orcpizza-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
@@ -1576,41 +1586,45 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
         <div class="sim-chart-wrap" style="margin-top:1.2rem">
           <div class="orc-loading" id="orcdash-loading">Carregando dados...</div>
-          <div id="orcdash-svg-wrap" style="display:none"></div>
-          <div class="sim-legenda" id="orcdash-legenda" style="display:none">
-            <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--green)"></div>Receitas</div>
-            <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--gold)"></div>Despesas</div>
-            <div class="sim-leg-item"><div class="sim-leg-cor" style="background:#7c9cff;border-radius:50%"></div>Saldo (linha)</div>
-            <div class="sim-leg-item" style="color:var(--gray2);font-size:.68rem">Passe o mouse para ver os valores</div>
-          </div>
-        </div>
+          <div class="orcdash-split" id="orcdash-split" style="display:none">
 
-        <!-- Pizza de alocação por categoria -->
-        <div class="sim-chart-wrap" style="margin-top:1.2rem">
-          <div class="orcpizza-header">
-            <div class="orcpizza-title">Alocação por categoria de despesa</div>
-            <div class="orcpizza-filtro-wrap">
-              <button class="orc-btn-config" id="orcpizza-filtro-btn" onclick="orcpizzaToggleFiltro()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                <span id="orcpizza-filtro-label">Todos os meses</span>
-              </button>
-              <div class="orcpizza-filtro-panel" id="orcpizza-filtro-panel" style="display:none">
-                <label class="orcpizza-filtro-item orcpizza-filtro-todos">
-                  <input type="checkbox" id="orcpizza-check-todos" checked onchange="orcpizzaToggleTodos(this)">
-                  Todos os meses
-                </label>
-                <div class="orcpizza-filtro-divider"></div>
-                <div class="orcpizza-filtro-meses" id="orcpizza-filtro-meses"></div>
-                <button class="orc-btn-import" style="width:100%;justify-content:center;margin-top:.6rem" onclick="orcpizzaAplicarFiltro()">Aplicar</button>
+            <!-- Coluna esquerda 30%: Pizza -->
+            <div class="orcdash-col-pizza">
+              <div class="orcpizza-header">
+                <div class="orcpizza-title">Alocação por categoria</div>
+                <div class="orcpizza-filtro-wrap">
+                  <button class="orc-btn-config" id="orcpizza-filtro-btn" onclick="orcpizzaToggleFiltro()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    <span id="orcpizza-filtro-label">Todos</span>
+                  </button>
+                  <div class="orcpizza-filtro-panel" id="orcpizza-filtro-panel" style="display:none">
+                    <label class="orcpizza-filtro-item orcpizza-filtro-todos">
+                      <input type="checkbox" id="orcpizza-check-todos" checked onchange="orcpizzaToggleTodos(this)">
+                      Todos os meses
+                    </label>
+                    <div class="orcpizza-filtro-divider"></div>
+                    <div class="orcpizza-filtro-meses" id="orcpizza-filtro-meses"></div>
+                    <button class="orc-btn-import" style="width:100%;justify-content:center;margin-top:.6rem" onclick="orcpizzaAplicarFiltro()">Aplicar</button>
+                  </div>
+                </div>
+              </div>
+              <div id="orcpizza-svg-wrap" style="display:flex;justify-content:center;margin-top:.8rem"></div>
+              <div id="orcpizza-legenda-lista" style="margin-top:.6rem"></div>
+              <div class="orc-loading" id="orcpizza-vazio" style="display:none;padding:1.5rem 0">Nenhuma despesa no período.</div>
+            </div>
+
+            <!-- Coluna direita 70%: Barras + linha -->
+            <div class="orcdash-col-barras">
+              <div class="orcpizza-title" style="margin-bottom:.6rem">Receitas, despesas e saldo por mês</div>
+              <div id="orcdash-svg-wrap"></div>
+              <div class="sim-legenda" id="orcdash-legenda">
+                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--green)"></div>Receitas</div>
+                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:var(--gold)"></div>Despesas</div>
+                <div class="sim-leg-item"><div class="sim-leg-cor" style="background:#7c9cff;border-radius:50%"></div>Saldo (linha)</div>
               </div>
             </div>
-          </div>
 
-          <div id="orcpizza-content" style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center;margin-top:1rem">
-            <div id="orcpizza-svg-wrap" style="flex:0 0 auto"></div>
-            <div id="orcpizza-legenda-lista" style="flex:1;min-width:220px"></div>
           </div>
-          <div class="orc-loading" id="orcpizza-vazio" style="display:none">Nenhuma despesa lançada no período selecionado.</div>
         </div>
       </div>
 
@@ -3935,8 +3949,7 @@ function orcdashMudarAno(delta){
 
 async function orcdashCarregar(){
   document.getElementById('orcdash-loading').style.display='block';
-  document.getElementById('orcdash-svg-wrap').style.display='none';
-  document.getElementById('orcdash-legenda').style.display='none';
+  document.getElementById('orcdash-split').style.display='none';
 
   const { data, error } = await sb.from('orcamento')
     .select('*').eq('user_id', usuarioAtual.id).eq('ano', orcdashAno);
@@ -3970,8 +3983,7 @@ async function orcdashCarregar(){
   mediaEl.style.color = mediaMensal>=0 ? 'var(--green)' : 'var(--red)';
 
   document.getElementById('orcdash-loading').style.display='none';
-  document.getElementById('orcdash-svg-wrap').style.display='block';
-  document.getElementById('orcdash-legenda').style.display='flex';
+  document.getElementById('orcdash-split').style.display='flex';
 
   orcdashDesenhar(porMes);
 }
@@ -3989,7 +4001,7 @@ function orcdashDesenhar(porMes){
   // Escala da linha de saldo usa seu próprio range, mapeado no mesmo espaço vertical
   const saldoRange = Math.max(1, maxSaldo - minSaldo);
 
-  const W=1000, H=380;
+  const W=900, H=320;
   const PAD={top:20,right:60,bottom:40,left:60};
   const cW=W-PAD.left-PAD.right;
   const cH=H-PAD.top-PAD.bottom;
@@ -4150,20 +4162,21 @@ function orcpizzaRenderizar(){
   const svgWrap = document.getElementById('orcpizza-svg-wrap');
   const legWrap = document.getElementById('orcpizza-legenda-lista');
   const vazioEl = document.getElementById('orcpizza-vazio');
-  const contentEl = document.getElementById('orcpizza-content');
 
   if(!entradas.length || total<=0){
-    contentEl.style.display='none';
+    svgWrap.style.display='none';
+    legWrap.style.display='none';
     vazioEl.style.display='block';
     return;
   }
-  contentEl.style.display='flex';
+  svgWrap.style.display='flex';
+  legWrap.style.display='block';
   vazioEl.style.display='none';
 
-  // Desenhar SVG da pizza (donut)
-  const size=240, r=100, rInner=58, cx=size/2, cy=size/2;
+  // Desenhar SVG da pizza (donut) — tamanho reduzido para caber em 30% da largura
+  const size=180, r=76, rInner=44, cx=size/2, cy=size/2;
   let anguloAtual = -90; // começa no topo
-  let svg=`<svg viewBox="0 0 ${size} ${size}" width="240" height="240" xmlns="http://www.w3.org/2000/svg" onmouseleave="simHideTooltip()">`;
+  let svg=`<svg viewBox="0 0 ${size} ${size}" width="180" height="180" xmlns="http://www.w3.org/2000/svg" onmouseleave="simHideTooltip()">`;
 
   entradas.forEach(([grupo,val],i)=>{
     const pct = val/total;
@@ -4196,8 +4209,8 @@ function orcpizzaRenderizar(){
   });
 
   // Texto central
-  svg+=`<text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#9aa0a8" font-size="9" font-family="Inter,sans-serif">Total</text>`;
-  svg+=`<text x="${cx}" y="${cy+12}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="Inter,sans-serif">${simFmtAbrev(total)}</text>`;
+  svg+=`<text x="${cx}" y="${cy-5}" text-anchor="middle" fill="#9aa0a8" font-size="8" font-family="Inter,sans-serif">Total</text>`;
+  svg+=`<text x="${cx}" y="${cy+11}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">${simFmtAbrev(total)}</text>`;
   svg+='</svg>';
   svgWrap.innerHTML = svg;
 
