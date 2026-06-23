@@ -716,6 +716,62 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   background:rgba(0,182,233,0.03);position:sticky;left:0;z-index:1;
 }
 
+/* ════════ INVESTIMENTOS ════════ */
+.inv-tabs{display:flex;gap:.3rem;margin-bottom:1.4rem;border-bottom:1px solid var(--border);padding-bottom:0}
+.inv-tab{
+  background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);
+  padding:.6rem 1.2rem;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:all .2s;margin-bottom:-1px;
+}
+.inv-tab:hover{color:var(--white)}
+.inv-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.inv-panel{display:none}
+.inv-panel.active{display:block}
+.inv-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.8rem}
+.inv-section-titulo{font-size:.82rem;font-weight:700;color:var(--white);margin-bottom:.9rem}
+
+/* Cards dashboard */
+.inv-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.5rem}
+@media(max-width:900px){.inv-cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.inv-cards{grid-template-columns:1fr 1fr}}
+.inv-card{background:var(--navy2);border:1px solid var(--border);padding:1rem 1.2rem}
+.inv-card-label{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem}
+.inv-card-val{font-size:1rem;font-weight:700;color:var(--white)}
+.inv-card-val.gold{color:var(--gold)}
+.inv-card-val.green{color:var(--green)}
+.inv-card-val.red{color:var(--red)}
+
+/* Dashboard split */
+.inv-dash-split{display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap}
+.inv-dash-col{flex:1;min-width:280px;background:var(--navy2);border:1px solid var(--border);padding:1.4rem 1.6rem}
+
+/* Tabelas */
+.inv-table{width:100%;border-collapse:collapse;font-size:.76rem}
+.inv-table th{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);padding:.7rem .6rem;border-bottom:1px solid var(--border);background:rgba(10,21,37,0.5);white-space:nowrap;text-align:right;font-weight:600}
+.inv-table th:first-child,.inv-table th:nth-child(2){text-align:left}
+.inv-table td{padding:.5rem .6rem;border-bottom:1px solid var(--border2);vertical-align:middle;text-align:right;white-space:nowrap}
+.inv-table td:first-child,.inv-table td:nth-child(2){text-align:left;color:var(--gray)}
+.inv-table tfoot td{font-weight:700;color:var(--white);background:rgba(10,21,37,0.5);border-top:1px solid var(--border);padding:.7rem .6rem}
+.inv-table-edit{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:.8rem;padding:0 .3rem;transition:color .2s}
+.inv-table-edit:hover{color:var(--gold)}
+.inv-ret-pos{color:var(--green);font-weight:600}
+.inv-ret-neg{color:var(--red);font-weight:600}
+.inv-classe-badge{font-size:.58rem;padding:.12rem .45rem;border-radius:10px;font-weight:700;white-space:nowrap}
+.inv-classe-badge.rf{background:rgba(0,182,233,0.12);color:var(--gold)}
+.inv-classe-badge.td{background:rgba(0,182,233,0.08);color:var(--gold2)}
+.inv-classe-badge.ac{background:rgba(78,201,138,0.12);color:var(--green)}
+.inv-classe-badge.fi{background:rgba(124,156,255,0.15);color:#7c9cff}
+.inv-classe-badge.cr{background:rgba(240,201,58,0.12);color:#f0c93a}
+.inv-classe-badge.ex{background:rgba(255,255,255,0.08);color:var(--gray)}
+.inv-classe-badge.ou{background:rgba(255,255,255,0.06);color:var(--gray2)}
+
+/* Benchmarks */
+.inv-bench-table{width:100%;border-collapse:collapse;font-size:.76rem;margin-bottom:.5rem}
+.inv-bench-table th{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);padding:.5rem .5rem;border-bottom:1px solid var(--border);text-align:right;font-weight:600}
+.inv-bench-table th:first-child{text-align:left}
+.inv-bench-table td{padding:.45rem .5rem;border-bottom:1px solid var(--border2);font-size:.76rem;text-align:right}
+.inv-bench-table td:first-child{text-align:left;color:var(--gray)}
+
 /* ════════ SIMULADOR ════════ */
 .sim-wrap{width:100%}
 .sim-campos{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem}
@@ -1040,7 +1096,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('investimentos', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
         Investimentos
-        <span class="menu-badge-soon">em breve</span>
       </button>
 
       <div class="sidebar-divider"></div>
@@ -1368,12 +1423,217 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
       <!-- ── INVESTIMENTOS ── -->
       <div class="tela" id="tela-investimentos">
-        <div class="tela-header"><h2>Investimentos</h2><p>Carteira e rentabilidade dos seus aportes</p></div>
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></div>
-          <h3>Carteira de investimentos</h3>
-          <p>Registre seus aportes, acompanhe a rentabilidade por ativo, veja a distribuição da carteira e compare com benchmarks como CDI e IPCA.</p>
-          <span class="em-breve-tag">Em construção</span>
+        <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+          <div><h2>Investimentos</h2><p>Carteira, rentabilidade e proventos</p></div>
+          <button class="orc-btn-config" onclick="invAtualizarCotacoes()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Atualizar cotações
+          </button>
+        </div>
+
+        <div class="inv-tabs">
+          <button class="inv-tab active" onclick="invTab(this,'dashboard')">Dashboard</button>
+          <button class="inv-tab" onclick="invTab(this,'posicao')">Posição Atual</button>
+          <button class="inv-tab" onclick="invTab(this,'lancamentos')">Lançamentos</button>
+          <button class="inv-tab" onclick="invTab(this,'proventos')">Proventos</button>
+        </div>
+
+        <!-- ── DASHBOARD ── -->
+        <div class="inv-panel active" id="invp-dashboard">
+          <div class="orc-loading" id="inv-dash-loading">Carregando carteira...</div>
+          <div id="inv-dash-content" style="display:none">
+            <!-- Cards resumo -->
+            <div class="inv-cards">
+              <div class="inv-card"><div class="inv-card-label">Patrimônio Total</div><div class="inv-card-val gold" id="inv-c-patrimonio">—</div></div>
+              <div class="inv-card"><div class="inv-card-label">Custo Investido</div><div class="inv-card-val" id="inv-c-custo">—</div></div>
+              <div class="inv-card"><div class="inv-card-label">Retorno Capital</div><div class="inv-card-val" id="inv-c-retcap">—</div></div>
+              <div class="inv-card"><div class="inv-card-label">Proventos Acum.</div><div class="inv-card-val green" id="inv-c-proventos">—</div></div>
+              <div class="inv-card"><div class="inv-card-label">Retorno Total</div><div class="inv-card-val" id="inv-c-rettotal">—</div></div>
+            </div>
+
+            <div class="inv-dash-split">
+              <!-- Alocação por classe -->
+              <div class="inv-dash-col">
+                <div class="inv-section-titulo">Alocação por classe</div>
+                <div id="inv-pizza-wrap" style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+                  <div id="inv-pizza-svg"></div>
+                  <div id="inv-pizza-legenda" style="flex:1;min-width:180px"></div>
+                </div>
+              </div>
+
+              <!-- Benchmarks -->
+              <div class="inv-dash-col">
+                <div class="inv-section-titulo">Benchmarks</div>
+                <table class="inv-bench-table" id="inv-bench-table">
+                  <thead><tr><th>Benchmark</th><th>Acum. Período</th><th>Sua carteira</th></tr></thead>
+                  <tbody id="inv-bench-tbody"></tbody>
+                </table>
+                <div class="inv-section-titulo" style="margin-top:1.4rem">Rentabilidade por classe</div>
+                <table class="inv-bench-table">
+                  <thead><tr><th>Classe</th><th>Custo</th><th>Mercado</th><th>Ret. Total</th><th>% Carteira</th></tr></thead>
+                  <tbody id="inv-classe-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="plano-vazio" id="inv-dash-vazio" style="display:none">Nenhuma posição cadastrada ainda.</div>
+        </div>
+
+        <!-- ── POSIÇÃO ATUAL ── -->
+        <div class="inv-panel" id="invp-posicao">
+          <div class="inv-toolbar">
+            <div class="inv-section-titulo" style="margin:0">Posição atual da carteira</div>
+            <button class="orc-btn-save" style="display:inline-flex" onclick="invAbrirFormPosicao(null)">+ Nova posição</button>
+          </div>
+          <div class="orc-loading" id="inv-pos-loading">Carregando...</div>
+          <div class="orc-table-wrap" id="inv-pos-wrap" style="display:none;max-height:none">
+            <table class="inv-table" id="inv-pos-table">
+              <thead><tr>
+                <th>Classe</th><th>Ticker/Nome</th><th>Qtd.</th><th>Preço Médio</th>
+                <th>Custo Total</th><th>Cotação Atual</th><th>Valor Mercado</th>
+                <th>Proventos</th><th>Ret. Capital</th><th>Ret. Total</th><th>% Cart.</th><th></th>
+              </tr></thead>
+              <tbody id="inv-pos-tbody"></tbody>
+              <tfoot id="inv-pos-tfoot"></tfoot>
+            </table>
+          </div>
+          <div class="plano-vazio" id="inv-pos-vazio" style="display:none">Nenhuma posição cadastrada.</div>
+        </div>
+
+        <!-- ── LANÇAMENTOS ── -->
+        <div class="inv-panel" id="invp-lancamentos">
+          <div class="inv-toolbar">
+            <div class="inv-section-titulo" style="margin:0">Histórico de operações</div>
+            <button class="orc-btn-save" style="display:inline-flex" onclick="invAbrirFormLanc(null)">+ Novo lançamento</button>
+          </div>
+          <div class="orc-loading" id="inv-lanc-loading">Carregando...</div>
+          <div class="orc-table-wrap" id="inv-lanc-wrap" style="display:none;max-height:none">
+            <table class="inv-table" id="inv-lanc-table">
+              <thead><tr>
+                <th>Data</th><th>Tipo</th><th>Classe</th><th>Ticker/Nome</th>
+                <th>Qtd.</th><th>Preço Unit.</th><th>Custo Total</th>
+                <th>Corretora</th><th>Moeda</th><th>Valor BRL</th><th>Obs.</th><th></th>
+              </tr></thead>
+              <tbody id="inv-lanc-tbody"></tbody>
+            </table>
+          </div>
+          <div class="plano-vazio" id="inv-lanc-vazio" style="display:none">Nenhum lançamento registrado.</div>
+        </div>
+
+        <!-- ── PROVENTOS ── -->
+        <div class="inv-panel" id="invp-proventos">
+          <div class="inv-toolbar">
+            <div class="inv-section-titulo" style="margin:0">Histórico de proventos</div>
+            <button class="orc-btn-save" style="display:inline-flex" onclick="invAbrirFormProv(null)">+ Novo provento</button>
+          </div>
+          <div class="orc-loading" id="inv-prov-loading">Carregando...</div>
+          <div class="orc-table-wrap" id="inv-prov-wrap" style="display:none;max-height:none">
+            <table class="inv-table" id="inv-prov-table">
+              <thead><tr>
+                <th>Data Pgto</th><th>Classe</th><th>Ticker</th><th>Tipo</th>
+                <th>Qtd.</th><th>Valor/Un.</th><th>Valor Total</th>
+                <th>IR Retido</th><th>Valor Líquido</th><th>Obs.</th><th></th>
+              </tr></thead>
+              <tbody id="inv-prov-tbody"></tbody>
+              <tfoot id="inv-prov-tfoot"></tfoot>
+            </table>
+          </div>
+          <div class="plano-vazio" id="inv-prov-vazio" style="display:none">Nenhum provento registrado.</div>
+        </div>
+
+        <!-- MODAL: Posição -->
+        <div class="overlay" id="overlay-inv-posicao">
+          <div class="modal" style="max-width:580px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-inv-posicao')">×</button>
+            <div class="modal-title" id="inv-pos-modal-titulo">Nova posição</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field"><label class="diag-label">Classe</label>
+                <select class="diag-input" id="inv-pos-classe">
+                  <option>Renda Fixa</option><option>Tesouro Direto</option><option>Ações</option>
+                  <option>FIIs</option><option>Cripto</option><option>Exterior</option><option>Outros</option>
+                </select></div>
+              <div class="diag-field"><label class="diag-label">Ticker / Nome</label><input class="diag-input" type="text" id="inv-pos-ticker" placeholder="Ex: PETR4, BTC, CDB Inter"></div>
+              <div class="diag-field"><label class="diag-label">Indexador</label><input class="diag-input" type="text" id="inv-pos-indexador" placeholder="Ex: CDI, IPCA+, —"></div>
+              <div class="diag-field"><label class="diag-label">Qtd.</label><input class="diag-input" type="number" id="inv-pos-qtd" step="any"></div>
+              <div class="diag-field"><label class="diag-label">Preço Médio (R$)</label><input class="diag-input" type="number" id="inv-pos-preco" step="any"></div>
+              <div class="diag-field"><label class="diag-label">Cotação Atual (R$)</label><input class="diag-input" type="number" id="inv-pos-cotacao" step="any"></div>
+              <div class="diag-field"><label class="diag-label">Proventos Receb. (R$)</label><input class="diag-input" type="number" id="inv-pos-proventos" step="any" value="0"></div>
+              <div class="diag-field"><label class="diag-label">Corretora</label><input class="diag-input" type="text" id="inv-pos-corretora"></div>
+              <div class="diag-field"><label class="diag-label">Vencimento</label><input class="diag-input" type="date" id="inv-pos-vencimento"></div>
+              <div class="diag-field"><label class="diag-label">Moeda</label>
+                <select class="diag-input" id="inv-pos-moeda"><option>BRL</option><option>USD</option><option>EUR</option></select></div>
+            </div>
+            <div class="diag-field" style="margin-top:.8rem"><label class="diag-label">Obs.</label><textarea class="diag-input" id="inv-pos-obs" style="min-height:50px"></textarea></div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="invSalvarPosicao()">Salvar</button>
+              <button id="inv-pos-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="invExcluirPosicao()">Excluir</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Lançamento -->
+        <div class="overlay" id="overlay-inv-lanc">
+          <div class="modal" style="max-width:620px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-inv-lanc')">×</button>
+            <div class="modal-title" id="inv-lanc-modal-titulo">Novo lançamento</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field"><label class="diag-label">Data</label><input class="diag-input" type="date" id="inv-lanc-data"></div>
+              <div class="diag-field"><label class="diag-label">Tipo de operação</label>
+                <select class="diag-input" id="inv-lanc-tipo">
+                  <option>COMPRA</option><option>VENDA</option><option>DIVIDENDO</option>
+                  <option>JCP</option><option>RENDIMENTO</option><option>BONIFICACAO</option>
+                  <option>DESDOBRAMENTO</option><option>GRUPAMENTO</option>
+                </select></div>
+              <div class="diag-field"><label class="diag-label">Classe</label>
+                <select class="diag-input" id="inv-lanc-classe">
+                  <option>Renda Fixa</option><option>Tesouro Direto</option><option>Ações</option>
+                  <option>FIIs</option><option>Cripto</option><option>Exterior</option><option>Outros</option>
+                </select></div>
+              <div class="diag-field"><label class="diag-label">Ticker / Nome</label><input class="diag-input" type="text" id="inv-lanc-ticker" placeholder="Ex: PETR4"></div>
+              <div class="diag-field"><label class="diag-label">Indexador</label><input class="diag-input" type="text" id="inv-lanc-indexador" placeholder="—"></div>
+              <div class="diag-field"><label class="diag-label">Qtd.</label><input class="diag-input" type="number" id="inv-lanc-qtd" step="any" value="0"></div>
+              <div class="diag-field"><label class="diag-label">Preço Unit. (R$)</label><input class="diag-input" type="number" id="inv-lanc-preco" step="any" value="0"></div>
+              <div class="diag-field"><label class="diag-label">Taxa/Spread (%)</label><input class="diag-input" type="number" id="inv-lanc-taxa" step="any" value="0"></div>
+              <div class="diag-field"><label class="diag-label">Corretora</label><input class="diag-input" type="text" id="inv-lanc-corretora"></div>
+              <div class="diag-field"><label class="diag-label">Moeda</label>
+                <select class="diag-input" id="inv-lanc-moeda"><option>BRL</option><option>USD</option><option>EUR</option></select></div>
+              <div class="diag-field"><label class="diag-label">Cotação Moeda</label><input class="diag-input" type="number" id="inv-lanc-cotmoe" step="any" value="1"></div>
+              <div class="diag-field"><label class="diag-label">Vencimento</label><input class="diag-input" type="date" id="inv-lanc-vencimento"></div>
+            </div>
+            <div class="diag-field" style="margin-top:.8rem"><label class="diag-label">Obs.</label><textarea class="diag-input" id="inv-lanc-obs" style="min-height:50px"></textarea></div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="invSalvarLanc()">Salvar</button>
+              <button id="inv-lanc-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="invExcluirLanc()">Excluir</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Provento -->
+        <div class="overlay" id="overlay-inv-prov">
+          <div class="modal" style="max-width:520px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-inv-prov')">×</button>
+            <div class="modal-title" id="inv-prov-modal-titulo">Novo provento</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field"><label class="diag-label">Data pagamento</label><input class="diag-input" type="date" id="inv-prov-data"></div>
+              <div class="diag-field"><label class="diag-label">Classe</label>
+                <select class="diag-input" id="inv-prov-classe">
+                  <option>Ações</option><option>FIIs</option><option>Renda Fixa</option><option>Outros</option>
+                </select></div>
+              <div class="diag-field"><label class="diag-label">Ticker</label><input class="diag-input" type="text" id="inv-prov-ticker"></div>
+              <div class="diag-field"><label class="diag-label">Tipo</label>
+                <select class="diag-input" id="inv-prov-tipo">
+                  <option>Dividendo</option><option>JCP</option><option>Rendimento</option><option>Bonificação</option>
+                </select></div>
+              <div class="diag-field"><label class="diag-label">Qtd. cotas/ações</label><input class="diag-input" type="number" id="inv-prov-qtd" step="any" value="0"></div>
+              <div class="diag-field"><label class="diag-label">Valor/Unidade (R$)</label><input class="diag-input" type="number" id="inv-prov-valunit" step="any" value="0"></div>
+              <div class="diag-field"><label class="diag-label">IR Retido (R$)</label><input class="diag-input" type="number" id="inv-prov-ir" step="any" value="0"></div>
+            </div>
+            <div class="diag-field" style="margin-top:.8rem"><label class="diag-label">Obs.</label><textarea class="diag-input" id="inv-prov-obs" style="min-height:50px"></textarea></div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="invSalvarProv()">Salvar</button>
+              <button id="inv-prov-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="invExcluirProv()">Excluir</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2355,6 +2615,7 @@ async function irPara(tela, btn){
     document.getElementById('orcdash-ano-label').textContent = orcdashAno;
     orcdashCarregar();
   }
+  if(tela==='investimentos') invCarregarTudo();
 }
 
 // ══════════════════════════════════════════════
@@ -5130,6 +5391,477 @@ function simToggle(modo){
   document.getElementById('sim-toggle-mes').classList.toggle('active', modo==='mes');
   document.getElementById('sim-toggle-ano').classList.toggle('active', modo==='ano');
   simRenderGrafico();
+}
+
+// ══════════════════════════════════════════════
+// INVESTIMENTOS
+// ══════════════════════════════════════════════
+const INV_CORES = ['#00B6E9','#4ec98a','#f0c93a','#7c9cff','#e0824f','#e05252','#a78bfa'];
+const INV_CLASSES = ['Renda Fixa','Tesouro Direto','Ações','FIIs','Cripto','Exterior','Outros'];
+const INV_CLASS_BADGE = {
+  'Renda Fixa':'rf','Tesouro Direto':'td','Ações':'ac','FIIs':'fi','Cripto':'cr','Exterior':'ex','Outros':'ou'
+};
+
+let invPosicao = [], invLancamentos = [], invProventos = [], invBenchmarks = [];
+let invEditId = { posicao:null, lanc:null, prov:null };
+
+function invTab(btn, panel){
+  document.querySelectorAll('.inv-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.inv-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('invp-'+panel).classList.add('active');
+}
+
+function invFmt(v){
+  return 'R$\u00a0'+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function invPct(v){
+  const n = Number(v||0)*100;
+  return (n>=0?'+':'')+n.toFixed(2)+'%';
+}
+function invPctCls(v){ return Number(v)>=0?'inv-ret-pos':'inv-ret-neg'; }
+
+async function invCarregarTudo(){
+  document.getElementById('inv-dash-loading').style.display='block';
+  document.getElementById('inv-dash-content').style.display='none';
+
+  const [posRes, lancRes, provRes, benchRes] = await Promise.all([
+    sb.from('investimentos_posicao').select('*').eq('user_id', usuarioAtual.id).order('classe').order('ticker'),
+    sb.from('investimentos_lancamentos').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:false}),
+    sb.from('investimentos_proventos').select('*').eq('user_id', usuarioAtual.id).order('data_pagamento',{ascending:false}),
+    sb.from('investimentos_benchmarks').select('*').order('nome')
+  ]);
+
+  invPosicao   = posRes.data  || [];
+  invLancamentos = lancRes.data || [];
+  invProventos = provRes.data || [];
+  invBenchmarks = benchRes.data || [];
+
+  invRenderDashboard();
+  invRenderPosicao();
+  invRenderLancamentos();
+  invRenderProventos();
+}
+
+// ── Dashboard ──
+function invRenderDashboard(){
+  document.getElementById('inv-dash-loading').style.display='none';
+
+  if(!invPosicao.length){
+    document.getElementById('inv-dash-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('inv-dash-content').style.display='block';
+  document.getElementById('inv-dash-vazio').style.display='none';
+
+  const totalCusto    = invPosicao.reduce((a,p)=>a+Number(p.custo_total),0);
+  const totalMercado  = invPosicao.reduce((a,p)=>a+Number(p.valor_mercado),0);
+  const totalProv     = invProventos.reduce((a,p)=>a+Number(p.valor_liquido),0);
+  const retCap        = totalMercado - totalCusto;
+  const retTotal      = retCap + totalProv;
+  const retCapPct     = totalCusto ? retCap/totalCusto : 0;
+  const retTotalPct   = totalCusto ? retTotal/totalCusto : 0;
+
+  document.getElementById('inv-c-patrimonio').textContent  = invFmt(totalMercado);
+  document.getElementById('inv-c-custo').textContent       = invFmt(totalCusto);
+  document.getElementById('inv-c-proventos').textContent   = invFmt(totalProv);
+
+  const rcEl = document.getElementById('inv-c-retcap');
+  rcEl.textContent = invFmt(retCap)+' ('+invPct(retCapPct)+')';
+  rcEl.className = 'inv-card-val '+(retCap>=0?'green':'red');
+
+  const rtEl = document.getElementById('inv-c-rettotal');
+  rtEl.textContent = invFmt(retTotal)+' ('+invPct(retTotalPct)+')';
+  rtEl.className = 'inv-card-val '+(retTotal>=0?'green':'red');
+
+  // Alocação por classe (pizza SVG)
+  const porClasse = {};
+  invPosicao.forEach(p=>{
+    const c = p.classe;
+    if(!porClasse[c]) porClasse[c]={custo:0,mercado:0};
+    porClasse[c].custo   += Number(p.custo_total);
+    porClasse[c].mercado += Number(p.valor_mercado);
+  });
+  const entradas = Object.entries(porClasse).sort((a,b)=>b[1].mercado-a[1].mercado);
+  const totalPizza = entradas.reduce((a,[,v])=>a+v.mercado,0);
+
+  const size=180, r=76, ri=44, cx=90, cy=90;
+  let ang=-90, svgStr=`<svg viewBox="0 0 ${size} ${size}" width="180" height="180" xmlns="http://www.w3.org/2000/svg">`;
+  entradas.forEach(([cls,v],i)=>{
+    const pct=v.mercado/totalPizza;
+    const a2=ang+pct*360;
+    const x1=cx+r*Math.cos(ang*Math.PI/180), y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180),  y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180), yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0;
+    const cor=INV_CORES[i%INV_CORES.length];
+    svgStr+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    ang=a2;
+  });
+  svgStr+=`<text x="${cx}" y="${cy-5}" text-anchor="middle" fill="#6b7280" font-size="8" font-family="Inter,sans-serif">Carteira</text>`;
+  svgStr+=`<text x="${cx}" y="${cy+10}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">${invFmt(totalMercado)}</text>`;
+  svgStr+='</svg>';
+  document.getElementById('inv-pizza-svg').innerHTML=svgStr;
+
+  document.getElementById('inv-pizza-legenda').innerHTML=entradas.map(([cls,v],i)=>{
+    const pct=(v.mercado/totalPizza*100).toFixed(1);
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border2);font-size:.76rem">
+      <div style="width:10px;height:10px;border-radius:2px;background:${INV_CORES[i%INV_CORES.length]};flex-shrink:0"></div>
+      <span style="flex:1;color:var(--gray)">${cls}</span>
+      <span style="color:var(--white);font-weight:600">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  // Tabela por classe
+  document.getElementById('inv-classe-tbody').innerHTML=entradas.map(([cls,v])=>{
+    const ret=(v.mercado-v.custo)/v.custo;
+    const pctCart=v.mercado/totalMercado;
+    return `<tr>
+      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[cls]||'ou'}">${cls}</span></td>
+      <td>${invFmt(v.custo)}</td>
+      <td>${invFmt(v.mercado)}</td>
+      <td class="${invPctCls(ret)}">${invPct(ret)}</td>
+      <td>${(pctCart*100).toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+  // Benchmarks
+  const retCartPct = retTotalPct;
+  document.getElementById('inv-bench-tbody').innerHTML=invBenchmarks.map(b=>{
+    const diff = retCartPct - Number(b.valor);
+    return `<tr>
+      <td>${b.nome}</td>
+      <td class="${invPctCls(b.valor)}">${invPct(b.valor)}</td>
+      <td class="${invPctCls(diff)}">${invPct(diff)} vs bench.</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Posição Atual ──
+function invRenderPosicao(){
+  const load=document.getElementById('inv-pos-loading');
+  const wrap=document.getElementById('inv-pos-wrap');
+  const vazio=document.getElementById('inv-pos-vazio');
+  load.style.display='none';
+  if(!invPosicao.length){ wrap.style.display='none'; vazio.style.display='block'; return; }
+  wrap.style.display='block'; vazio.style.display='none';
+
+  const totalCusto   = invPosicao.reduce((a,p)=>a+Number(p.custo_total),0);
+  const totalMercado = invPosicao.reduce((a,p)=>a+Number(p.valor_mercado),0);
+
+  document.getElementById('inv-pos-tbody').innerHTML=invPosicao.map(p=>{
+    const retCap = Number(p.valor_mercado)-Number(p.custo_total);
+    const retCapPct = Number(p.custo_total) ? retCap/Number(p.custo_total) : 0;
+    const retTotal = retCap + Number(p.proventos_recebidos||0);
+    const retTotalPct = Number(p.custo_total) ? retTotal/Number(p.custo_total) : 0;
+    const pctCart = totalMercado ? Number(p.valor_mercado)/totalMercado : 0;
+    return `<tr>
+      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[p.classe]||'ou'}">${p.classe}</span></td>
+      <td><strong style="color:var(--white)">${escapeHtml(p.ticker)}</strong>${p.indexador&&p.indexador!=='—'?`<br><small style="color:var(--gray2)">${escapeHtml(p.indexador)}</small>`:''}</td>
+      <td>${Number(p.qtd).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+      <td>${invFmt(p.preco_medio)}</td>
+      <td>${invFmt(p.custo_total)}</td>
+      <td>${invFmt(p.cotacao_atual)}</td>
+      <td><strong style="color:var(--white)">${invFmt(p.valor_mercado)}</strong></td>
+      <td style="color:var(--green)">${invFmt(p.proventos_recebidos)}</td>
+      <td class="${invPctCls(retCapPct)}">${invPct(retCapPct)}</td>
+      <td class="${invPctCls(retTotalPct)}">${invPct(retTotalPct)}</td>
+      <td>${(pctCart*100).toFixed(1)}%</td>
+      <td><button class="inv-table-edit" onclick="invAbrirFormPosicao(${p.id})">✎</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('inv-pos-tfoot').innerHTML=`<tr>
+    <td colspan="4">TOTAL</td>
+    <td>${invFmt(totalCusto)}</td>
+    <td></td>
+    <td>${invFmt(totalMercado)}</td>
+    <td colspan="5"></td>
+  </tr>`;
+}
+
+// ── Lançamentos ──
+function invRenderLancamentos(){
+  const load=document.getElementById('inv-lanc-loading');
+  const wrap=document.getElementById('inv-lanc-wrap');
+  const vazio=document.getElementById('inv-lanc-vazio');
+  load.style.display='none';
+  if(!invLancamentos.length){ wrap.style.display='none'; vazio.style.display='block'; return; }
+  wrap.style.display='block'; vazio.style.display='none';
+
+  const tiposCor = {COMPRA:'var(--green)',VENDA:'var(--red)',DIVIDENDO:'var(--gold)',JCP:'var(--gold)',RENDIMENTO:'var(--gold)',BONIFICACAO:'#7c9cff',DESDOBRAMENTO:'#7c9cff',GRUPAMENTO:'#7c9cff'};
+
+  document.getElementById('inv-lanc-tbody').innerHTML=invLancamentos.map(l=>{
+    const dt=new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR');
+    const cor=tiposCor[l.tipo_op]||'var(--gray)';
+    return `<tr>
+      <td>${dt}</td>
+      <td><span style="color:${cor};font-weight:700;font-size:.7rem">${l.tipo_op}</span></td>
+      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[l.classe]||'ou'}">${l.classe}</span></td>
+      <td style="color:var(--white);font-weight:600">${escapeHtml(l.ticker)}</td>
+      <td>${Number(l.qtd).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+      <td>${invFmt(l.preco_unit)}</td>
+      <td>${invFmt(l.custo_total)}</td>
+      <td style="color:var(--gray)">${escapeHtml(l.corretora||'—')}</td>
+      <td style="color:var(--gray)">${l.moeda||'BRL'}</td>
+      <td>${invFmt(l.valor_brl)}</td>
+      <td style="color:var(--gray);font-size:.7rem">${escapeHtml(l.obs||'')}</td>
+      <td><button class="inv-table-edit" onclick="invAbrirFormLanc(${l.id})">✎</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Proventos ──
+function invRenderProventos(){
+  const load=document.getElementById('inv-prov-loading');
+  const wrap=document.getElementById('inv-prov-wrap');
+  const vazio=document.getElementById('inv-prov-vazio');
+  load.style.display='none';
+  if(!invProventos.length){ wrap.style.display='none'; vazio.style.display='block'; return; }
+  wrap.style.display='block'; vazio.style.display='none';
+
+  document.getElementById('inv-prov-tbody').innerHTML=invProventos.map(p=>{
+    const dt=new Date(p.data_pagamento+'T00:00:00').toLocaleDateString('pt-BR');
+    return `<tr>
+      <td>${dt}</td>
+      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[p.classe]||'ou'}">${p.classe}</span></td>
+      <td style="color:var(--white);font-weight:600">${escapeHtml(p.ticker)}</td>
+      <td style="color:var(--gold)">${p.tipo}</td>
+      <td>${Number(p.qtd).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+      <td>${invFmt(p.valor_unidade)}</td>
+      <td>${invFmt(p.valor_total)}</td>
+      <td style="color:var(--red)">${invFmt(p.ir_retido)}</td>
+      <td style="color:var(--green);font-weight:700">${invFmt(p.valor_liquido)}</td>
+      <td style="color:var(--gray);font-size:.7rem">${escapeHtml(p.obs||'')}</td>
+      <td><button class="inv-table-edit" onclick="invAbrirFormProv(${p.id})">✎</button></td>
+    </tr>`;
+  }).join('');
+
+  const totBruto=invProventos.reduce((a,p)=>a+Number(p.valor_total),0);
+  const totIR=invProventos.reduce((a,p)=>a+Number(p.ir_retido),0);
+  const totLiq=invProventos.reduce((a,p)=>a+Number(p.valor_liquido),0);
+  document.getElementById('inv-prov-tfoot').innerHTML=`<tr>
+    <td colspan="6">TOTAL</td>
+    <td>${invFmt(totBruto)}</td>
+    <td style="color:var(--red)">${invFmt(totIR)}</td>
+    <td style="color:var(--green)">${invFmt(totLiq)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+}
+
+// ── Cotações automáticas (Brapi) ──
+async function invAtualizarCotacoes(){
+  const tickers = invPosicao.filter(p=>['Ações','FIIs'].includes(p.classe)).map(p=>p.ticker.toUpperCase());
+  if(!tickers.length){ alert('Nenhuma ação/FII na carteira para atualizar.'); return; }
+
+  const btn = document.querySelector('.tela-header .orc-btn-config');
+  if(btn){ btn.textContent='Atualizando...'; btn.disabled=true; }
+
+  try {
+    const url = `https://brapi.dev/api/quote/${tickers.join(',')}?token=demo`;
+    const res = await fetch(url);
+    const json = await res.json();
+    const quotes = (json.results || []);
+
+    const updates = [];
+    for(const q of quotes){
+      const pos = invPosicao.find(p=>p.ticker.toUpperCase()===q.symbol);
+      if(!pos || !q.regularMarketPrice) continue;
+      const novaCot = q.regularMarketPrice;
+      const novoVM = Number(pos.qtd) * novaCot;
+      updates.push(sb.from('investimentos_posicao').update({
+        cotacao_atual: novaCot, valor_mercado: novoVM, updated_at: new Date().toISOString()
+      }).eq('id', pos.id));
+      pos.cotacao_atual = novaCot;
+      pos.valor_mercado = novoVM;
+    }
+    await Promise.all(updates);
+    invRenderDashboard();
+    invRenderPosicao();
+    alert(`${updates.length} cotação(ões) atualizada(s) com sucesso!`);
+  } catch(e){
+    alert('Erro ao buscar cotações: '+e.message);
+  } finally {
+    if(btn){ btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Atualizar cotações'; btn.disabled=false; }
+  }
+}
+
+// ── Modais: Posição ──
+function invAbrirFormPosicao(id){
+  invEditId.posicao = id;
+  const pos = id ? invPosicao.find(p=>p.id===id) : null;
+  document.getElementById('inv-pos-modal-titulo').textContent = pos ? 'Editar posição' : 'Nova posição';
+  document.getElementById('inv-pos-classe').value     = pos?.classe || 'Ações';
+  document.getElementById('inv-pos-ticker').value     = pos?.ticker || '';
+  document.getElementById('inv-pos-indexador').value  = pos?.indexador || '';
+  document.getElementById('inv-pos-qtd').value        = pos?.qtd || '';
+  document.getElementById('inv-pos-preco').value      = pos?.preco_medio || '';
+  document.getElementById('inv-pos-cotacao').value    = pos?.cotacao_atual || '';
+  document.getElementById('inv-pos-proventos').value  = pos?.proventos_recebidos || 0;
+  document.getElementById('inv-pos-corretora').value  = pos?.corretora || '';
+  document.getElementById('inv-pos-vencimento').value = pos?.vencimento || '';
+  document.getElementById('inv-pos-moeda').value      = pos?.moeda || 'BRL';
+  document.getElementById('inv-pos-obs').value        = pos?.obs || '';
+  document.getElementById('inv-pos-excluir-btn').style.display = pos ? 'inline' : 'none';
+  abrirOverlay('overlay-inv-posicao');
+}
+
+async function invSalvarPosicao(){
+  const qtd = parseFloat(document.getElementById('inv-pos-qtd').value)||0;
+  const preco = parseFloat(document.getElementById('inv-pos-preco').value)||0;
+  const cotacao = parseFloat(document.getElementById('inv-pos-cotacao').value)||0;
+  const ticker = document.getElementById('inv-pos-ticker').value.trim().toUpperCase();
+  if(!ticker){ alert('Informe o ticker/nome.'); return; }
+
+  const payload = {
+    user_id: usuarioAtual.id,
+    classe: document.getElementById('inv-pos-classe').value,
+    ticker,
+    indexador: document.getElementById('inv-pos-indexador').value||null,
+    qtd, preco_medio: preco, custo_total: qtd*preco,
+    cotacao_atual: cotacao, valor_mercado: qtd*cotacao,
+    proventos_recebidos: parseFloat(document.getElementById('inv-pos-proventos').value)||0,
+    corretora: document.getElementById('inv-pos-corretora').value||null,
+    vencimento: document.getElementById('inv-pos-vencimento').value||null,
+    moeda: document.getElementById('inv-pos-moeda').value,
+    obs: document.getElementById('inv-pos-obs').value||null,
+    updated_at: new Date().toISOString()
+  };
+
+  let error;
+  if(invEditId.posicao){
+    ({ error } = await sb.from('investimentos_posicao').update(payload).eq('id', invEditId.posicao));
+  } else {
+    ({ error } = await sb.from('investimentos_posicao').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-inv-posicao');
+  await invCarregarTudo();
+}
+
+async function invExcluirPosicao(){
+  if(!confirm('Excluir esta posição?')) return;
+  await sb.from('investimentos_posicao').delete().eq('id', invEditId.posicao);
+  fecharOverlay('overlay-inv-posicao');
+  await invCarregarTudo();
+}
+
+// ── Modais: Lançamento ──
+function invAbrirFormLanc(id){
+  invEditId.lanc = id;
+  const l = id ? invLancamentos.find(x=>x.id===id) : null;
+  document.getElementById('inv-lanc-modal-titulo').textContent = l ? 'Editar lançamento' : 'Novo lançamento';
+  document.getElementById('inv-lanc-data').value      = l?.data || new Date().toISOString().split('T')[0];
+  document.getElementById('inv-lanc-tipo').value      = l?.tipo_op || 'COMPRA';
+  document.getElementById('inv-lanc-classe').value    = l?.classe || 'Ações';
+  document.getElementById('inv-lanc-ticker').value    = l?.ticker || '';
+  document.getElementById('inv-lanc-indexador').value = l?.indexador || '';
+  document.getElementById('inv-lanc-qtd').value       = l?.qtd || 0;
+  document.getElementById('inv-lanc-preco').value     = l?.preco_unit || 0;
+  document.getElementById('inv-lanc-taxa').value      = l?.taxa || 0;
+  document.getElementById('inv-lanc-corretora').value = l?.corretora || '';
+  document.getElementById('inv-lanc-moeda').value     = l?.moeda || 'BRL';
+  document.getElementById('inv-lanc-cotmoe').value    = l?.cotacao_moeda || 1;
+  document.getElementById('inv-lanc-vencimento').value= l?.vencimento || '';
+  document.getElementById('inv-lanc-obs').value       = l?.obs || '';
+  document.getElementById('inv-lanc-excluir-btn').style.display = l ? 'inline' : 'none';
+  abrirOverlay('overlay-inv-lanc');
+}
+
+async function invSalvarLanc(){
+  const qtd = parseFloat(document.getElementById('inv-lanc-qtd').value)||0;
+  const preco = parseFloat(document.getElementById('inv-lanc-preco').value)||0;
+  const cotmoe = parseFloat(document.getElementById('inv-lanc-cotmoe').value)||1;
+  const ticker = document.getElementById('inv-lanc-ticker').value.trim().toUpperCase();
+  if(!ticker){ alert('Informe o ticker.'); return; }
+
+  const custoTotal = qtd*preco;
+  const payload = {
+    user_id: usuarioAtual.id,
+    data: document.getElementById('inv-lanc-data').value,
+    tipo_op: document.getElementById('inv-lanc-tipo').value,
+    classe: document.getElementById('inv-lanc-classe').value,
+    ticker, indexador: document.getElementById('inv-lanc-indexador').value||null,
+    qtd, preco_unit: preco, custo_total: custoTotal,
+    taxa: parseFloat(document.getElementById('inv-lanc-taxa').value)||0,
+    corretora: document.getElementById('inv-lanc-corretora').value||null,
+    moeda: document.getElementById('inv-lanc-moeda').value,
+    cotacao_moeda: cotmoe,
+    valor_brl: custoTotal * cotmoe,
+    vencimento: document.getElementById('inv-lanc-vencimento').value||null,
+    obs: document.getElementById('inv-lanc-obs').value||null,
+  };
+
+  let error;
+  if(invEditId.lanc){
+    ({ error } = await sb.from('investimentos_lancamentos').update(payload).eq('id', invEditId.lanc));
+  } else {
+    ({ error } = await sb.from('investimentos_lancamentos').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-inv-lanc');
+  await invCarregarTudo();
+}
+
+async function invExcluirLanc(){
+  if(!confirm('Excluir este lançamento?')) return;
+  await sb.from('investimentos_lancamentos').delete().eq('id', invEditId.lanc);
+  fecharOverlay('overlay-inv-lanc');
+  await invCarregarTudo();
+}
+
+// ── Modais: Provento ──
+function invAbrirFormProv(id){
+  invEditId.prov = id;
+  const p = id ? invProventos.find(x=>x.id===id) : null;
+  document.getElementById('inv-prov-modal-titulo').textContent = p ? 'Editar provento' : 'Novo provento';
+  document.getElementById('inv-prov-data').value    = p?.data_pagamento || new Date().toISOString().split('T')[0];
+  document.getElementById('inv-prov-classe').value  = p?.classe || 'Ações';
+  document.getElementById('inv-prov-ticker').value  = p?.ticker || '';
+  document.getElementById('inv-prov-tipo').value    = p?.tipo || 'Dividendo';
+  document.getElementById('inv-prov-qtd').value     = p?.qtd || 0;
+  document.getElementById('inv-prov-valunit').value = p?.valor_unidade || 0;
+  document.getElementById('inv-prov-ir').value      = p?.ir_retido || 0;
+  document.getElementById('inv-prov-obs').value     = p?.obs || '';
+  document.getElementById('inv-prov-excluir-btn').style.display = p ? 'inline' : 'none';
+  abrirOverlay('overlay-inv-prov');
+}
+
+async function invSalvarProv(){
+  const qtd = parseFloat(document.getElementById('inv-prov-qtd').value)||0;
+  const valUnit = parseFloat(document.getElementById('inv-prov-valunit').value)||0;
+  const ir = parseFloat(document.getElementById('inv-prov-ir').value)||0;
+  const ticker = document.getElementById('inv-prov-ticker').value.trim().toUpperCase();
+  if(!ticker){ alert('Informe o ticker.'); return; }
+
+  const valTotal = qtd*valUnit;
+  const payload = {
+    user_id: usuarioAtual.id,
+    data_pagamento: document.getElementById('inv-prov-data').value,
+    classe: document.getElementById('inv-prov-classe').value,
+    ticker, tipo: document.getElementById('inv-prov-tipo').value,
+    qtd, valor_unidade: valUnit, valor_total: valTotal,
+    ir_retido: ir, valor_liquido: valTotal-ir,
+    obs: document.getElementById('inv-prov-obs').value||null
+  };
+
+  let error;
+  if(invEditId.prov){
+    ({ error } = await sb.from('investimentos_proventos').update(payload).eq('id', invEditId.prov));
+  } else {
+    ({ error } = await sb.from('investimentos_proventos').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-inv-prov');
+  await invCarregarTudo();
+}
+
+async function invExcluirProv(){
+  if(!confirm('Excluir este provento?')) return;
+  await sb.from('investimentos_proventos').delete().eq('id', invEditId.prov);
+  fecharOverlay('overlay-inv-prov');
+  await invCarregarTudo();
 }
 
 function simFmtAbrev(v){
