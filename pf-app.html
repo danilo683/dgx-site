@@ -1482,8 +1482,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <!-- ── POSIÇÃO ATUAL ── -->
         <div class="inv-panel" id="invp-posicao">
           <div class="inv-toolbar">
-            <div class="inv-section-titulo" style="margin:0">Posição atual da carteira</div>
-            <button class="orc-btn-save" style="display:inline-flex" onclick="invAbrirFormPosicao(null)">+ Nova posição</button>
+            <div class="inv-section-titulo" style="margin:0">Posição calculada a partir dos lançamentos</div>
           </div>
           <div class="orc-loading" id="inv-pos-loading">Carregando...</div>
           <div class="orc-table-wrap" id="inv-pos-wrap" style="display:none;max-height:none">
@@ -1530,45 +1529,14 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="orc-table-wrap" id="inv-prov-wrap" style="display:none;max-height:none">
             <table class="inv-table" id="inv-prov-table">
               <thead><tr>
-                <th>Data Pgto</th><th>Classe</th><th>Ticker</th><th>Tipo</th>
-                <th>Qtd.</th><th>Valor/Un.</th><th>Valor Total</th>
-                <th>IR Retido</th><th>Valor Líquido</th><th>Obs.</th><th></th>
+                <th>Data</th><th>Classe</th><th>Ticker</th><th>Tipo</th>
+                <th>Qtd.</th><th>Valor/Un.</th><th>Total (BRL)</th><th>Obs.</th><th></th>
               </tr></thead>
               <tbody id="inv-prov-tbody"></tbody>
               <tfoot id="inv-prov-tfoot"></tfoot>
             </table>
           </div>
           <div class="plano-vazio" id="inv-prov-vazio" style="display:none">Nenhum provento registrado.</div>
-        </div>
-
-        <!-- MODAL: Posição -->
-        <div class="overlay" id="overlay-inv-posicao">
-          <div class="modal" style="max-width:580px">
-            <button class="modal-close" onclick="fecharOverlay('overlay-inv-posicao')">×</button>
-            <div class="modal-title" id="inv-pos-modal-titulo">Nova posição</div>
-            <div class="admin-frase-grid">
-              <div class="diag-field"><label class="diag-label">Classe</label>
-                <select class="diag-input" id="inv-pos-classe">
-                  <option>Renda Fixa</option><option>Tesouro Direto</option><option>Ações</option>
-                  <option>FIIs</option><option>Cripto</option><option>Exterior</option><option>Outros</option>
-                </select></div>
-              <div class="diag-field"><label class="diag-label">Ticker / Nome</label><input class="diag-input" type="text" id="inv-pos-ticker" placeholder="Ex: PETR4, BTC, CDB Inter"></div>
-              <div class="diag-field"><label class="diag-label">Indexador</label><input class="diag-input" type="text" id="inv-pos-indexador" placeholder="Ex: CDI, IPCA+, —"></div>
-              <div class="diag-field"><label class="diag-label">Qtd.</label><input class="diag-input" type="number" id="inv-pos-qtd" step="any"></div>
-              <div class="diag-field"><label class="diag-label">Preço Médio (R$)</label><input class="diag-input" type="number" id="inv-pos-preco" step="any"></div>
-              <div class="diag-field"><label class="diag-label">Cotação Atual (R$)</label><input class="diag-input" type="number" id="inv-pos-cotacao" step="any"></div>
-              <div class="diag-field"><label class="diag-label">Proventos Receb. (R$)</label><input class="diag-input" type="number" id="inv-pos-proventos" step="any" value="0"></div>
-              <div class="diag-field"><label class="diag-label">Corretora</label><input class="diag-input" type="text" id="inv-pos-corretora"></div>
-              <div class="diag-field"><label class="diag-label">Vencimento</label><input class="diag-input" type="date" id="inv-pos-vencimento"></div>
-              <div class="diag-field"><label class="diag-label">Moeda</label>
-                <select class="diag-input" id="inv-pos-moeda"><option>BRL</option><option>USD</option><option>EUR</option></select></div>
-            </div>
-            <div class="diag-field" style="margin-top:.8rem"><label class="diag-label">Obs.</label><textarea class="diag-input" id="inv-pos-obs" style="min-height:50px"></textarea></div>
-            <div class="diag-save-area">
-              <button class="btn-diag-save" onclick="invSalvarPosicao()">Salvar</button>
-              <button id="inv-pos-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="invExcluirPosicao()">Excluir</button>
-            </div>
-          </div>
         </div>
 
         <!-- MODAL: Lançamento -->
@@ -1604,34 +1572,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="diag-save-area">
               <button class="btn-diag-save" onclick="invSalvarLanc()">Salvar</button>
               <button id="inv-lanc-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="invExcluirLanc()">Excluir</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MODAL: Provento -->
-        <div class="overlay" id="overlay-inv-prov">
-          <div class="modal" style="max-width:520px">
-            <button class="modal-close" onclick="fecharOverlay('overlay-inv-prov')">×</button>
-            <div class="modal-title" id="inv-prov-modal-titulo">Novo provento</div>
-            <div class="admin-frase-grid">
-              <div class="diag-field"><label class="diag-label">Data pagamento</label><input class="diag-input" type="date" id="inv-prov-data"></div>
-              <div class="diag-field"><label class="diag-label">Classe</label>
-                <select class="diag-input" id="inv-prov-classe">
-                  <option>Ações</option><option>FIIs</option><option>Renda Fixa</option><option>Outros</option>
-                </select></div>
-              <div class="diag-field"><label class="diag-label">Ticker</label><input class="diag-input" type="text" id="inv-prov-ticker"></div>
-              <div class="diag-field"><label class="diag-label">Tipo</label>
-                <select class="diag-input" id="inv-prov-tipo">
-                  <option>Dividendo</option><option>JCP</option><option>Rendimento</option><option>Bonificação</option>
-                </select></div>
-              <div class="diag-field"><label class="diag-label">Qtd. cotas/ações</label><input class="diag-input" type="number" id="inv-prov-qtd" step="any" value="0"></div>
-              <div class="diag-field"><label class="diag-label">Valor/Unidade (R$)</label><input class="diag-input" type="number" id="inv-prov-valunit" step="any" value="0"></div>
-              <div class="diag-field"><label class="diag-label">IR Retido (R$)</label><input class="diag-input" type="number" id="inv-prov-ir" step="any" value="0"></div>
-            </div>
-            <div class="diag-field" style="margin-top:.8rem"><label class="diag-label">Obs.</label><textarea class="diag-input" id="inv-prov-obs" style="min-height:50px"></textarea></div>
-            <div class="diag-save-area">
-              <button class="btn-diag-save" onclick="invSalvarProv()">Salvar</button>
-              <button id="inv-prov-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="invExcluirProv()">Excluir</button>
             </div>
           </div>
         </div>
@@ -5401,9 +5341,14 @@ const INV_CLASSES = ['Renda Fixa','Tesouro Direto','Ações','FIIs','Cripto','Ex
 const INV_CLASS_BADGE = {
   'Renda Fixa':'rf','Tesouro Direto':'td','Ações':'ac','FIIs':'fi','Cripto':'cr','Exterior':'ex','Outros':'ou'
 };
+const INV_TIPOS_PROVENTO = ['DIVIDENDO','JCP','RENDIMENTO','BONIFICACAO'];
+const INV_TIPOS_COMPRA   = ['COMPRA','BONIFICACAO','DESDOBRAMENTO'];
+const INV_TIPOS_VENDA    = ['VENDA','GRUPAMENTO'];
 
-let invPosicao = [], invLancamentos = [], invProventos = [], invBenchmarks = [];
-let invEditId = { posicao:null, lanc:null, prov:null };
+let invLancamentos = [];
+let invBenchmarks  = [];
+let invCotacoes    = {}; // { ticker: cotacao }
+let invEditId      = { lanc: null };
 
 function invTab(btn, panel){
   document.querySelectorAll('.inv-tab').forEach(b=>b.classList.remove('active'));
@@ -5416,77 +5361,132 @@ function invFmt(v){
   return 'R$\u00a0'+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function invPct(v){
-  const n = Number(v||0)*100;
+  const n=Number(v||0)*100;
   return (n>=0?'+':'')+n.toFixed(2)+'%';
 }
 function invPctCls(v){ return Number(v)>=0?'inv-ret-pos':'inv-ret-neg'; }
 
+// ── Consolidação a partir dos lançamentos ──
+function invConsolidar(){
+  // 1) Posição: COMPRA aumenta qtd+preço médio, VENDA reduz qtd
+  const pos = {}; // { ticker: { classe, ticker, indexador, qtd, preco_medio, custo_total, corretora, moeda, vencimento } }
+
+  // Ordena por data asc para calcular corretamente
+  const sorted = [...invLancamentos].sort((a,b)=>a.data.localeCompare(b.data));
+
+  sorted.forEach(l=>{
+    const tk = l.ticker.toUpperCase();
+    if(!pos[tk]) pos[tk] = {
+      classe:l.classe, ticker:tk, indexador:l.indexador||'—',
+      qtd:0, preco_medio:0, custo_total:0,
+      corretora:l.corretora||'', moeda:l.moeda||'BRL', vencimento:l.vencimento||null
+    };
+    const p = pos[tk];
+
+    if(INV_TIPOS_COMPRA.includes(l.tipo_op)){
+      const novoTotal = p.custo_total + Number(l.custo_total||0);
+      const novaQtd   = p.qtd + Number(l.qtd||0);
+      p.preco_medio   = novaQtd ? novoTotal/novaQtd : 0;
+      p.custo_total   = novoTotal;
+      p.qtd           = novaQtd;
+    } else if(INV_TIPOS_VENDA.includes(l.tipo_op)){
+      p.qtd -= Number(l.qtd||0);
+      if(p.qtd < 0) p.qtd = 0;
+      p.custo_total = p.qtd * p.preco_medio;
+    }
+    // Proventos não alteram posição
+    if(l.classe) p.classe = l.classe;
+  });
+
+  // 2) Proventos: lançamentos de provento
+  const proventos = invLancamentos.filter(l=>INV_TIPOS_PROVENTO.includes(l.tipo_op));
+
+  // 3) Adicionar cotação atual e valor de mercado
+  const posArray = Object.values(pos).filter(p=>p.qtd>0.000001);
+  posArray.forEach(p=>{
+    p.cotacao_atual = invCotacoes[p.ticker] || 0;
+    p.valor_mercado = p.cotacao_atual ? p.qtd * p.cotacao_atual : p.custo_total;
+    // Proventos do ticker
+    p.proventos_recebidos = proventos
+      .filter(l=>l.ticker.toUpperCase()===p.ticker)
+      .reduce((a,l)=>a+Number(l.valor_brl||0),0);
+  });
+
+  return { posArray, proventos };
+}
+
+// ── Carregar tudo ──
 async function invCarregarTudo(){
   document.getElementById('inv-dash-loading').style.display='block';
   document.getElementById('inv-dash-content').style.display='none';
+  document.getElementById('inv-pos-loading').style.display='block';
+  document.getElementById('inv-pos-wrap').style.display='none';
+  document.getElementById('inv-lanc-loading').style.display='block';
+  document.getElementById('inv-lanc-wrap').style.display='none';
+  document.getElementById('inv-prov-loading').style.display='block';
+  document.getElementById('inv-prov-wrap').style.display='none';
 
-  const [posRes, lancRes, provRes, benchRes] = await Promise.all([
-    sb.from('investimentos_posicao').select('*').eq('user_id', usuarioAtual.id).order('classe').order('ticker'),
-    sb.from('investimentos_lancamentos').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:false}),
-    sb.from('investimentos_proventos').select('*').eq('user_id', usuarioAtual.id).order('data_pagamento',{ascending:false}),
-    sb.from('investimentos_benchmarks').select('*').order('nome')
+  const [lancRes, benchRes, cotRes] = await Promise.all([
+    sb.from('investimentos_lancamentos').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:true}),
+    sb.from('investimentos_benchmarks').select('*').order('nome'),
+    sb.from('investimentos_cotacoes').select('*')
   ]);
 
-  invPosicao   = posRes.data  || [];
   invLancamentos = lancRes.data || [];
-  invProventos = provRes.data || [];
-  invBenchmarks = benchRes.data || [];
+  invBenchmarks  = benchRes.data || [];
+  invCotacoes    = {};
+  (cotRes.data||[]).forEach(c=>{ invCotacoes[c.ticker]=Number(c.cotacao); });
 
-  invRenderDashboard();
-  invRenderPosicao();
+  const { posArray, proventos } = invConsolidar();
+
+  invRenderDashboard(posArray, proventos);
+  invRenderPosicao(posArray, proventos);
   invRenderLancamentos();
-  invRenderProventos();
+  invRenderProventos(proventos);
 }
 
 // ── Dashboard ──
-function invRenderDashboard(){
+function invRenderDashboard(posArray, proventos){
   document.getElementById('inv-dash-loading').style.display='none';
 
-  if(!invPosicao.length){
+  if(!posArray.length && !proventos.length){
     document.getElementById('inv-dash-vazio').style.display='block';
+    document.getElementById('inv-dash-content').style.display='none';
     return;
   }
-  document.getElementById('inv-dash-content').style.display='block';
   document.getElementById('inv-dash-vazio').style.display='none';
+  document.getElementById('inv-dash-content').style.display='block';
 
-  const totalCusto    = invPosicao.reduce((a,p)=>a+Number(p.custo_total),0);
-  const totalMercado  = invPosicao.reduce((a,p)=>a+Number(p.valor_mercado),0);
-  const totalProv     = invProventos.reduce((a,p)=>a+Number(p.valor_liquido),0);
-  const retCap        = totalMercado - totalCusto;
-  const retTotal      = retCap + totalProv;
-  const retCapPct     = totalCusto ? retCap/totalCusto : 0;
-  const retTotalPct   = totalCusto ? retTotal/totalCusto : 0;
+  const totalCusto   = posArray.reduce((a,p)=>a+p.custo_total,0);
+  const totalMercado = posArray.reduce((a,p)=>a+p.valor_mercado,0);
+  const totalProv    = proventos.reduce((a,l)=>a+Number(l.valor_brl||0),0);
+  const retCap       = totalMercado - totalCusto;
+  const retTotal     = retCap + totalProv;
+  const retCapPct    = totalCusto ? retCap/totalCusto : 0;
+  const retTotalPct  = totalCusto ? retTotal/totalCusto : 0;
 
-  document.getElementById('inv-c-patrimonio').textContent  = invFmt(totalMercado);
-  document.getElementById('inv-c-custo').textContent       = invFmt(totalCusto);
-  document.getElementById('inv-c-proventos').textContent   = invFmt(totalProv);
-
+  document.getElementById('inv-c-patrimonio').textContent = invFmt(totalMercado);
+  document.getElementById('inv-c-custo').textContent      = invFmt(totalCusto);
+  document.getElementById('inv-c-proventos').textContent  = invFmt(totalProv);
   const rcEl = document.getElementById('inv-c-retcap');
-  rcEl.textContent = invFmt(retCap)+' ('+invPct(retCapPct)+')';
-  rcEl.className = 'inv-card-val '+(retCap>=0?'green':'red');
-
+  rcEl.textContent  = invFmt(retCap)+' ('+invPct(retCapPct)+')';
+  rcEl.className    = 'inv-card-val '+(retCap>=0?'green':'red');
   const rtEl = document.getElementById('inv-c-rettotal');
-  rtEl.textContent = invFmt(retTotal)+' ('+invPct(retTotalPct)+')';
-  rtEl.className = 'inv-card-val '+(retTotal>=0?'green':'red');
+  rtEl.textContent  = invFmt(retTotal)+' ('+invPct(retTotalPct)+')';
+  rtEl.className    = 'inv-card-val '+(retTotal>=0?'green':'red');
 
-  // Alocação por classe (pizza SVG)
+  // Pizza por classe
   const porClasse = {};
-  invPosicao.forEach(p=>{
-    const c = p.classe;
-    if(!porClasse[c]) porClasse[c]={custo:0,mercado:0};
-    porClasse[c].custo   += Number(p.custo_total);
-    porClasse[c].mercado += Number(p.valor_mercado);
+  posArray.forEach(p=>{
+    if(!porClasse[p.classe]) porClasse[p.classe]={custo:0,mercado:0};
+    porClasse[p.classe].custo   += p.custo_total;
+    porClasse[p.classe].mercado += p.valor_mercado;
   });
   const entradas = Object.entries(porClasse).sort((a,b)=>b[1].mercado-a[1].mercado);
-  const totalPizza = entradas.reduce((a,[,v])=>a+v.mercado,0);
+  const totalPizza = entradas.reduce((a,[,v])=>a+v.mercado,0)||1;
 
-  const size=180, r=76, ri=44, cx=90, cy=90;
-  let ang=-90, svgStr=`<svg viewBox="0 0 ${size} ${size}" width="180" height="180" xmlns="http://www.w3.org/2000/svg">`;
+  const size=180,r=76,ri=44,cx=90,cy=90;
+  let ang=-90, svg=`<svg viewBox="0 0 ${size} ${size}" width="180" height="180" xmlns="http://www.w3.org/2000/svg">`;
   entradas.forEach(([cls,v],i)=>{
     const pct=v.mercado/totalPizza;
     const a2=ang+pct*360;
@@ -5496,13 +5496,13 @@ function invRenderDashboard(){
     const xi2=cx+ri*Math.cos(a2*Math.PI/180), yi2=cy+ri*Math.sin(a2*Math.PI/180);
     const la=pct>0.5?1:0;
     const cor=INV_CORES[i%INV_CORES.length];
-    svgStr+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    svg+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${cor}" stroke="#0A1525" stroke-width="1.5"/>`;
     ang=a2;
   });
-  svgStr+=`<text x="${cx}" y="${cy-5}" text-anchor="middle" fill="#6b7280" font-size="8" font-family="Inter,sans-serif">Carteira</text>`;
-  svgStr+=`<text x="${cx}" y="${cy+10}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">${invFmt(totalMercado)}</text>`;
-  svgStr+='</svg>';
-  document.getElementById('inv-pizza-svg').innerHTML=svgStr;
+  svg+=`<text x="${cx}" y="${cy-5}" text-anchor="middle" fill="#6b7280" font-size="8" font-family="Inter,sans-serif">Carteira</text>`;
+  svg+=`<text x="${cx}" y="${cy+10}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">${invFmt(totalMercado)}</text>`;
+  svg+='</svg>';
+  document.getElementById('inv-pizza-svg').innerHTML=svg;
 
   document.getElementById('inv-pizza-legenda').innerHTML=entradas.map(([cls,v],i)=>{
     const pct=(v.mercado/totalPizza*100).toFixed(1);
@@ -5513,23 +5513,18 @@ function invRenderDashboard(){
     </div>`;
   }).join('');
 
-  // Tabela por classe
   document.getElementById('inv-classe-tbody').innerHTML=entradas.map(([cls,v])=>{
-    const ret=(v.mercado-v.custo)/v.custo;
-    const pctCart=v.mercado/totalMercado;
+    const ret=v.custo?(v.mercado-v.custo)/v.custo:0;
     return `<tr>
       <td><span class="inv-classe-badge ${INV_CLASS_BADGE[cls]||'ou'}">${cls}</span></td>
-      <td>${invFmt(v.custo)}</td>
-      <td>${invFmt(v.mercado)}</td>
+      <td>${invFmt(v.custo)}</td><td>${invFmt(v.mercado)}</td>
       <td class="${invPctCls(ret)}">${invPct(ret)}</td>
-      <td>${(pctCart*100).toFixed(1)}%</td>
+      <td>${(v.mercado/totalPizza*100).toFixed(1)}%</td>
     </tr>`;
   }).join('');
 
-  // Benchmarks
-  const retCartPct = retTotalPct;
   document.getElementById('inv-bench-tbody').innerHTML=invBenchmarks.map(b=>{
-    const diff = retCartPct - Number(b.valor);
+    const diff=retTotalPct-Number(b.valor);
     return `<tr>
       <td>${b.nome}</td>
       <td class="${invPctCls(b.valor)}">${invPct(b.valor)}</td>
@@ -5538,69 +5533,72 @@ function invRenderDashboard(){
   }).join('');
 }
 
-// ── Posição Atual ──
-function invRenderPosicao(){
-  const load=document.getElementById('inv-pos-loading');
-  const wrap=document.getElementById('inv-pos-wrap');
-  const vazio=document.getElementById('inv-pos-vazio');
-  load.style.display='none';
-  if(!invPosicao.length){ wrap.style.display='none'; vazio.style.display='block'; return; }
-  wrap.style.display='block'; vazio.style.display='none';
+// ── Posição ──
+function invRenderPosicao(posArray, proventos){
+  document.getElementById('inv-pos-loading').style.display='none';
+  if(!posArray.length){
+    document.getElementById('inv-pos-wrap').style.display='none';
+    document.getElementById('inv-pos-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('inv-pos-wrap').style.display='block';
+  document.getElementById('inv-pos-vazio').style.display='none';
 
-  const totalCusto   = invPosicao.reduce((a,p)=>a+Number(p.custo_total),0);
-  const totalMercado = invPosicao.reduce((a,p)=>a+Number(p.valor_mercado),0);
+  const totalMercado = posArray.reduce((a,p)=>a+p.valor_mercado,0)||1;
 
-  document.getElementById('inv-pos-tbody').innerHTML=invPosicao.map(p=>{
-    const retCap = Number(p.valor_mercado)-Number(p.custo_total);
-    const retCapPct = Number(p.custo_total) ? retCap/Number(p.custo_total) : 0;
-    const retTotal = retCap + Number(p.proventos_recebidos||0);
-    const retTotalPct = Number(p.custo_total) ? retTotal/Number(p.custo_total) : 0;
-    const pctCart = totalMercado ? Number(p.valor_mercado)/totalMercado : 0;
+  document.getElementById('inv-pos-tbody').innerHTML=posArray.map(p=>{
+    const retCap    = p.valor_mercado - p.custo_total;
+    const retCapPct = p.custo_total ? retCap/p.custo_total : 0;
+    const retTotal  = retCap + p.proventos_recebidos;
+    const retTotPct = p.custo_total ? retTotal/p.custo_total : 0;
+    const pctCart   = p.valor_mercado/totalMercado;
     return `<tr>
       <td><span class="inv-classe-badge ${INV_CLASS_BADGE[p.classe]||'ou'}">${p.classe}</span></td>
       <td><strong style="color:var(--white)">${escapeHtml(p.ticker)}</strong>${p.indexador&&p.indexador!=='—'?`<br><small style="color:var(--gray2)">${escapeHtml(p.indexador)}</small>`:''}</td>
-      <td>${Number(p.qtd).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+      <td>${Number(p.qtd).toLocaleString('pt-BR',{maximumFractionDigits:6})}</td>
       <td>${invFmt(p.preco_medio)}</td>
       <td>${invFmt(p.custo_total)}</td>
-      <td>${invFmt(p.cotacao_atual)}</td>
+      <td>${p.cotacao_atual ? invFmt(p.cotacao_atual) : '<span style="color:var(--gray2)">—</span>'}</td>
       <td><strong style="color:var(--white)">${invFmt(p.valor_mercado)}</strong></td>
       <td style="color:var(--green)">${invFmt(p.proventos_recebidos)}</td>
       <td class="${invPctCls(retCapPct)}">${invPct(retCapPct)}</td>
-      <td class="${invPctCls(retTotalPct)}">${invPct(retTotalPct)}</td>
+      <td class="${invPctCls(retTotPct)}">${invPct(retTotPct)}</td>
       <td>${(pctCart*100).toFixed(1)}%</td>
-      <td><button class="inv-table-edit" onclick="invAbrirFormPosicao(${p.id})">✎</button></td>
+      <td></td>
     </tr>`;
   }).join('');
 
+  const totCusto   = posArray.reduce((a,p)=>a+p.custo_total,0);
+  const totMercado = posArray.reduce((a,p)=>a+p.valor_mercado,0);
   document.getElementById('inv-pos-tfoot').innerHTML=`<tr>
     <td colspan="4">TOTAL</td>
-    <td>${invFmt(totalCusto)}</td>
-    <td></td>
-    <td>${invFmt(totalMercado)}</td>
+    <td>${invFmt(totCusto)}</td><td></td>
+    <td>${invFmt(totMercado)}</td>
     <td colspan="5"></td>
   </tr>`;
 }
 
 // ── Lançamentos ──
 function invRenderLancamentos(){
-  const load=document.getElementById('inv-lanc-loading');
-  const wrap=document.getElementById('inv-lanc-wrap');
-  const vazio=document.getElementById('inv-lanc-vazio');
-  load.style.display='none';
-  if(!invLancamentos.length){ wrap.style.display='none'; vazio.style.display='block'; return; }
-  wrap.style.display='block'; vazio.style.display='none';
+  document.getElementById('inv-lanc-loading').style.display='none';
+  const sorted = [...invLancamentos].sort((a,b)=>b.data.localeCompare(a.data));
+  if(!sorted.length){
+    document.getElementById('inv-lanc-wrap').style.display='none';
+    document.getElementById('inv-lanc-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('inv-lanc-wrap').style.display='block';
+  document.getElementById('inv-lanc-vazio').style.display='none';
 
-  const tiposCor = {COMPRA:'var(--green)',VENDA:'var(--red)',DIVIDENDO:'var(--gold)',JCP:'var(--gold)',RENDIMENTO:'var(--gold)',BONIFICACAO:'#7c9cff',DESDOBRAMENTO:'#7c9cff',GRUPAMENTO:'#7c9cff'};
-
-  document.getElementById('inv-lanc-tbody').innerHTML=invLancamentos.map(l=>{
+  const tiposCor={COMPRA:'var(--green)',VENDA:'var(--red)',DIVIDENDO:'var(--gold)',JCP:'var(--gold)',RENDIMENTO:'var(--gold)',BONIFICACAO:'#7c9cff',DESDOBRAMENTO:'#7c9cff',GRUPAMENTO:'#7c9cff'};
+  document.getElementById('inv-lanc-tbody').innerHTML=sorted.map(l=>{
     const dt=new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR');
-    const cor=tiposCor[l.tipo_op]||'var(--gray)';
     return `<tr>
       <td>${dt}</td>
-      <td><span style="color:${cor};font-weight:700;font-size:.7rem">${l.tipo_op}</span></td>
+      <td><span style="color:${tiposCor[l.tipo_op]||'var(--gray)'};font-weight:700;font-size:.7rem">${l.tipo_op}</span></td>
       <td><span class="inv-classe-badge ${INV_CLASS_BADGE[l.classe]||'ou'}">${l.classe}</span></td>
       <td style="color:var(--white);font-weight:600">${escapeHtml(l.ticker)}</td>
-      <td>${Number(l.qtd).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+      <td>${Number(l.qtd||0).toLocaleString('pt-BR',{maximumFractionDigits:6})}</td>
       <td>${invFmt(l.preco_unit)}</td>
       <td>${invFmt(l.custo_total)}</td>
       <td style="color:var(--gray)">${escapeHtml(l.corretora||'—')}</td>
@@ -5612,166 +5610,101 @@ function invRenderLancamentos(){
   }).join('');
 }
 
-// ── Proventos ──
-function invRenderProventos(){
-  const load=document.getElementById('inv-prov-loading');
-  const wrap=document.getElementById('inv-prov-wrap');
-  const vazio=document.getElementById('inv-prov-vazio');
-  load.style.display='none';
-  if(!invProventos.length){ wrap.style.display='none'; vazio.style.display='block'; return; }
-  wrap.style.display='block'; vazio.style.display='none';
+// ── Proventos (calculado dos lançamentos) ──
+function invRenderProventos(proventos){
+  document.getElementById('inv-prov-loading').style.display='none';
+  const sorted = [...proventos].sort((a,b)=>b.data.localeCompare(a.data));
+  if(!sorted.length){
+    document.getElementById('inv-prov-wrap').style.display='none';
+    document.getElementById('inv-prov-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('inv-prov-wrap').style.display='block';
+  document.getElementById('inv-prov-vazio').style.display='none';
 
-  document.getElementById('inv-prov-tbody').innerHTML=invProventos.map(p=>{
-    const dt=new Date(p.data_pagamento+'T00:00:00').toLocaleDateString('pt-BR');
+  document.getElementById('inv-prov-tbody').innerHTML=sorted.map(l=>{
+    const dt=new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR');
     return `<tr>
       <td>${dt}</td>
-      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[p.classe]||'ou'}">${p.classe}</span></td>
-      <td style="color:var(--white);font-weight:600">${escapeHtml(p.ticker)}</td>
-      <td style="color:var(--gold)">${p.tipo}</td>
-      <td>${Number(p.qtd).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
-      <td>${invFmt(p.valor_unidade)}</td>
-      <td>${invFmt(p.valor_total)}</td>
-      <td style="color:var(--red)">${invFmt(p.ir_retido)}</td>
-      <td style="color:var(--green);font-weight:700">${invFmt(p.valor_liquido)}</td>
-      <td style="color:var(--gray);font-size:.7rem">${escapeHtml(p.obs||'')}</td>
-      <td><button class="inv-table-edit" onclick="invAbrirFormProv(${p.id})">✎</button></td>
+      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[l.classe]||'ou'}">${l.classe}</span></td>
+      <td style="color:var(--white);font-weight:600">${escapeHtml(l.ticker)}</td>
+      <td style="color:var(--gold)">${l.tipo_op}</td>
+      <td>${Number(l.qtd||0).toLocaleString('pt-BR',{maximumFractionDigits:6})}</td>
+      <td>${invFmt(l.preco_unit)}</td>
+      <td style="color:var(--green);font-weight:700">${invFmt(l.valor_brl)}</td>
+      <td style="color:var(--gray);font-size:.7rem">${escapeHtml(l.obs||'')}</td>
+      <td><button class="inv-table-edit" onclick="invAbrirFormLanc(${l.id})">✎</button></td>
     </tr>`;
   }).join('');
 
-  const totBruto=invProventos.reduce((a,p)=>a+Number(p.valor_total),0);
-  const totIR=invProventos.reduce((a,p)=>a+Number(p.ir_retido),0);
-  const totLiq=invProventos.reduce((a,p)=>a+Number(p.valor_liquido),0);
+  const totProv = sorted.reduce((a,l)=>a+Number(l.valor_brl||0),0);
   document.getElementById('inv-prov-tfoot').innerHTML=`<tr>
     <td colspan="6">TOTAL</td>
-    <td>${invFmt(totBruto)}</td>
-    <td style="color:var(--red)">${invFmt(totIR)}</td>
-    <td style="color:var(--green)">${invFmt(totLiq)}</td>
+    <td style="color:var(--green)">${invFmt(totProv)}</td>
     <td colspan="2"></td>
   </tr>`;
 }
 
 // ── Cotações automáticas (Brapi) ──
 async function invAtualizarCotacoes(){
-  const tickers = invPosicao.filter(p=>['Ações','FIIs'].includes(p.classe)).map(p=>p.ticker.toUpperCase());
-  if(!tickers.length){ alert('Nenhuma ação/FII na carteira para atualizar.'); return; }
+  const { posArray } = invConsolidar();
+  const tickers = posArray.filter(p=>['Ações','FIIs'].includes(p.classe)).map(p=>p.ticker);
+  if(!tickers.length){ alert('Nenhuma ação/FII na carteira.'); return; }
 
   const btn = document.querySelector('.tela-header .orc-btn-config');
   if(btn){ btn.textContent='Atualizando...'; btn.disabled=true; }
 
   try {
-    const url = `https://brapi.dev/api/quote/${tickers.join(',')}?token=demo`;
-    const res = await fetch(url);
+    const res  = await fetch(`https://brapi.dev/api/quote/${tickers.join(',')}?token=demo`);
     const json = await res.json();
-    const quotes = (json.results || []);
-
     const updates = [];
-    for(const q of quotes){
-      const pos = invPosicao.find(p=>p.ticker.toUpperCase()===q.symbol);
-      if(!pos || !q.regularMarketPrice) continue;
-      const novaCot = q.regularMarketPrice;
-      const novoVM = Number(pos.qtd) * novaCot;
-      updates.push(sb.from('investimentos_posicao').update({
-        cotacao_atual: novaCot, valor_mercado: novoVM, updated_at: new Date().toISOString()
-      }).eq('id', pos.id));
-      pos.cotacao_atual = novaCot;
-      pos.valor_mercado = novoVM;
+    for(const q of (json.results||[])){
+      if(!q.regularMarketPrice) continue;
+      invCotacoes[q.symbol] = q.regularMarketPrice;
+      updates.push(sb.from('investimentos_cotacoes').upsert({
+        ticker: q.symbol, cotacao: q.regularMarketPrice, updated_at: new Date().toISOString()
+      }));
     }
     await Promise.all(updates);
-    invRenderDashboard();
-    invRenderPosicao();
-    alert(`${updates.length} cotação(ões) atualizada(s) com sucesso!`);
+    const { posArray: pa, proventos: pv } = invConsolidar();
+    invRenderDashboard(pa, pv);
+    invRenderPosicao(pa, pv);
+    alert(`${updates.length} cotação(ões) atualizada(s)!`);
   } catch(e){
     alert('Erro ao buscar cotações: '+e.message);
   } finally {
-    if(btn){ btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Atualizar cotações'; btn.disabled=false; }
+    if(btn){
+      btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Atualizar cotações';
+      btn.disabled=false;
+    }
   }
 }
 
-// ── Modais: Posição ──
-function invAbrirFormPosicao(id){
-  invEditId.posicao = id;
-  const pos = id ? invPosicao.find(p=>p.id===id) : null;
-  document.getElementById('inv-pos-modal-titulo').textContent = pos ? 'Editar posição' : 'Nova posição';
-  document.getElementById('inv-pos-classe').value     = pos?.classe || 'Ações';
-  document.getElementById('inv-pos-ticker').value     = pos?.ticker || '';
-  document.getElementById('inv-pos-indexador').value  = pos?.indexador || '';
-  document.getElementById('inv-pos-qtd').value        = pos?.qtd || '';
-  document.getElementById('inv-pos-preco').value      = pos?.preco_medio || '';
-  document.getElementById('inv-pos-cotacao').value    = pos?.cotacao_atual || '';
-  document.getElementById('inv-pos-proventos').value  = pos?.proventos_recebidos || 0;
-  document.getElementById('inv-pos-corretora').value  = pos?.corretora || '';
-  document.getElementById('inv-pos-vencimento').value = pos?.vencimento || '';
-  document.getElementById('inv-pos-moeda').value      = pos?.moeda || 'BRL';
-  document.getElementById('inv-pos-obs').value        = pos?.obs || '';
-  document.getElementById('inv-pos-excluir-btn').style.display = pos ? 'inline' : 'none';
-  abrirOverlay('overlay-inv-posicao');
-}
-
-async function invSalvarPosicao(){
-  const qtd = parseFloat(document.getElementById('inv-pos-qtd').value)||0;
-  const preco = parseFloat(document.getElementById('inv-pos-preco').value)||0;
-  const cotacao = parseFloat(document.getElementById('inv-pos-cotacao').value)||0;
-  const ticker = document.getElementById('inv-pos-ticker').value.trim().toUpperCase();
-  if(!ticker){ alert('Informe o ticker/nome.'); return; }
-
-  const payload = {
-    user_id: usuarioAtual.id,
-    classe: document.getElementById('inv-pos-classe').value,
-    ticker,
-    indexador: document.getElementById('inv-pos-indexador').value||null,
-    qtd, preco_medio: preco, custo_total: qtd*preco,
-    cotacao_atual: cotacao, valor_mercado: qtd*cotacao,
-    proventos_recebidos: parseFloat(document.getElementById('inv-pos-proventos').value)||0,
-    corretora: document.getElementById('inv-pos-corretora').value||null,
-    vencimento: document.getElementById('inv-pos-vencimento').value||null,
-    moeda: document.getElementById('inv-pos-moeda').value,
-    obs: document.getElementById('inv-pos-obs').value||null,
-    updated_at: new Date().toISOString()
-  };
-
-  let error;
-  if(invEditId.posicao){
-    ({ error } = await sb.from('investimentos_posicao').update(payload).eq('id', invEditId.posicao));
-  } else {
-    ({ error } = await sb.from('investimentos_posicao').insert(payload));
-  }
-  if(error){ alert('Erro: '+error.message); return; }
-  fecharOverlay('overlay-inv-posicao');
-  await invCarregarTudo();
-}
-
-async function invExcluirPosicao(){
-  if(!confirm('Excluir esta posição?')) return;
-  await sb.from('investimentos_posicao').delete().eq('id', invEditId.posicao);
-  fecharOverlay('overlay-inv-posicao');
-  await invCarregarTudo();
-}
-
-// ── Modais: Lançamento ──
+// ── Modal: Lançamento ──
 function invAbrirFormLanc(id){
   invEditId.lanc = id;
   const l = id ? invLancamentos.find(x=>x.id===id) : null;
   document.getElementById('inv-lanc-modal-titulo').textContent = l ? 'Editar lançamento' : 'Novo lançamento';
-  document.getElementById('inv-lanc-data').value      = l?.data || new Date().toISOString().split('T')[0];
-  document.getElementById('inv-lanc-tipo').value      = l?.tipo_op || 'COMPRA';
-  document.getElementById('inv-lanc-classe').value    = l?.classe || 'Ações';
-  document.getElementById('inv-lanc-ticker').value    = l?.ticker || '';
-  document.getElementById('inv-lanc-indexador').value = l?.indexador || '';
-  document.getElementById('inv-lanc-qtd').value       = l?.qtd || 0;
-  document.getElementById('inv-lanc-preco').value     = l?.preco_unit || 0;
-  document.getElementById('inv-lanc-taxa').value      = l?.taxa || 0;
-  document.getElementById('inv-lanc-corretora').value = l?.corretora || '';
-  document.getElementById('inv-lanc-moeda').value     = l?.moeda || 'BRL';
-  document.getElementById('inv-lanc-cotmoe').value    = l?.cotacao_moeda || 1;
-  document.getElementById('inv-lanc-vencimento').value= l?.vencimento || '';
-  document.getElementById('inv-lanc-obs').value       = l?.obs || '';
+  document.getElementById('inv-lanc-data').value       = l?.data || new Date().toISOString().split('T')[0];
+  document.getElementById('inv-lanc-tipo').value       = l?.tipo_op || 'COMPRA';
+  document.getElementById('inv-lanc-classe').value     = l?.classe || 'Ações';
+  document.getElementById('inv-lanc-ticker').value     = l?.ticker || '';
+  document.getElementById('inv-lanc-indexador').value  = l?.indexador || '';
+  document.getElementById('inv-lanc-qtd').value        = l?.qtd || '';
+  document.getElementById('inv-lanc-preco').value      = l?.preco_unit || '';
+  document.getElementById('inv-lanc-taxa').value       = l?.taxa || 0;
+  document.getElementById('inv-lanc-corretora').value  = l?.corretora || '';
+  document.getElementById('inv-lanc-moeda').value      = l?.moeda || 'BRL';
+  document.getElementById('inv-lanc-cotmoe').value     = l?.cotacao_moeda || 1;
+  document.getElementById('inv-lanc-vencimento').value = l?.vencimento || '';
+  document.getElementById('inv-lanc-obs').value        = l?.obs || '';
   document.getElementById('inv-lanc-excluir-btn').style.display = l ? 'inline' : 'none';
   abrirOverlay('overlay-inv-lanc');
 }
 
 async function invSalvarLanc(){
-  const qtd = parseFloat(document.getElementById('inv-lanc-qtd').value)||0;
-  const preco = parseFloat(document.getElementById('inv-lanc-preco').value)||0;
+  const qtd    = parseFloat(document.getElementById('inv-lanc-qtd').value)||0;
+  const preco  = parseFloat(document.getElementById('inv-lanc-preco').value)||0;
   const cotmoe = parseFloat(document.getElementById('inv-lanc-cotmoe').value)||1;
   const ticker = document.getElementById('inv-lanc-ticker').value.trim().toUpperCase();
   if(!ticker){ alert('Informe o ticker.'); return; }
@@ -5787,8 +5720,7 @@ async function invSalvarLanc(){
     taxa: parseFloat(document.getElementById('inv-lanc-taxa').value)||0,
     corretora: document.getElementById('inv-lanc-corretora').value||null,
     moeda: document.getElementById('inv-lanc-moeda').value,
-    cotacao_moeda: cotmoe,
-    valor_brl: custoTotal * cotmoe,
+    cotacao_moeda: cotmoe, valor_brl: custoTotal*cotmoe,
     vencimento: document.getElementById('inv-lanc-vencimento').value||null,
     obs: document.getElementById('inv-lanc-obs').value||null,
   };
@@ -5805,62 +5737,9 @@ async function invSalvarLanc(){
 }
 
 async function invExcluirLanc(){
-  if(!confirm('Excluir este lançamento?')) return;
+  if(!confirm('Excluir este lançamento? A posição será recalculada.')) return;
   await sb.from('investimentos_lancamentos').delete().eq('id', invEditId.lanc);
   fecharOverlay('overlay-inv-lanc');
-  await invCarregarTudo();
-}
-
-// ── Modais: Provento ──
-function invAbrirFormProv(id){
-  invEditId.prov = id;
-  const p = id ? invProventos.find(x=>x.id===id) : null;
-  document.getElementById('inv-prov-modal-titulo').textContent = p ? 'Editar provento' : 'Novo provento';
-  document.getElementById('inv-prov-data').value    = p?.data_pagamento || new Date().toISOString().split('T')[0];
-  document.getElementById('inv-prov-classe').value  = p?.classe || 'Ações';
-  document.getElementById('inv-prov-ticker').value  = p?.ticker || '';
-  document.getElementById('inv-prov-tipo').value    = p?.tipo || 'Dividendo';
-  document.getElementById('inv-prov-qtd').value     = p?.qtd || 0;
-  document.getElementById('inv-prov-valunit').value = p?.valor_unidade || 0;
-  document.getElementById('inv-prov-ir').value      = p?.ir_retido || 0;
-  document.getElementById('inv-prov-obs').value     = p?.obs || '';
-  document.getElementById('inv-prov-excluir-btn').style.display = p ? 'inline' : 'none';
-  abrirOverlay('overlay-inv-prov');
-}
-
-async function invSalvarProv(){
-  const qtd = parseFloat(document.getElementById('inv-prov-qtd').value)||0;
-  const valUnit = parseFloat(document.getElementById('inv-prov-valunit').value)||0;
-  const ir = parseFloat(document.getElementById('inv-prov-ir').value)||0;
-  const ticker = document.getElementById('inv-prov-ticker').value.trim().toUpperCase();
-  if(!ticker){ alert('Informe o ticker.'); return; }
-
-  const valTotal = qtd*valUnit;
-  const payload = {
-    user_id: usuarioAtual.id,
-    data_pagamento: document.getElementById('inv-prov-data').value,
-    classe: document.getElementById('inv-prov-classe').value,
-    ticker, tipo: document.getElementById('inv-prov-tipo').value,
-    qtd, valor_unidade: valUnit, valor_total: valTotal,
-    ir_retido: ir, valor_liquido: valTotal-ir,
-    obs: document.getElementById('inv-prov-obs').value||null
-  };
-
-  let error;
-  if(invEditId.prov){
-    ({ error } = await sb.from('investimentos_proventos').update(payload).eq('id', invEditId.prov));
-  } else {
-    ({ error } = await sb.from('investimentos_proventos').insert(payload));
-  }
-  if(error){ alert('Erro: '+error.message); return; }
-  fecharOverlay('overlay-inv-prov');
-  await invCarregarTudo();
-}
-
-async function invExcluirProv(){
-  if(!confirm('Excluir este provento?')) return;
-  await sb.from('investimentos_proventos').delete().eq('id', invEditId.prov);
-  fecharOverlay('overlay-inv-prov');
   await invCarregarTudo();
 }
 
