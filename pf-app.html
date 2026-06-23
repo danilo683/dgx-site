@@ -716,6 +716,62 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   background:rgba(0,182,233,0.03);position:sticky;left:0;z-index:1;
 }
 
+/* ════════ CONQUISTAS ════════ */
+.conq-resumo{display:flex;align-items:center;gap:1.5rem;background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.8rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.conq-resumo-item{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.conq-resumo-num{font-size:1.8rem;font-weight:700;color:var(--white);font-family:'Playfair Display',serif;line-height:1}
+.conq-resumo-num.gold{color:var(--gold)}
+.conq-resumo-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray)}
+.conq-resumo-sep{width:1px;height:40px;background:var(--border)}
+.conq-resumo-prog-wrap{display:flex;align-items:center;gap:.8rem;flex:1;min-width:160px;margin-left:auto}
+.conq-resumo-prog-bg{flex:1;height:8px;background:var(--navy3);border-radius:4px;overflow:hidden}
+.conq-resumo-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green));border-radius:4px;transition:width .5s}
+.conq-resumo-prog-pct{font-size:.75rem;font-weight:700;color:var(--gold);white-space:nowrap}
+
+.conq-filtros{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.conq-filtro-btn{
+  background:none;border:1px solid var(--border);color:var(--gray);
+  padding:.4rem .9rem;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;
+  cursor:pointer;border-radius:20px;transition:all .2s;
+}
+.conq-filtro-btn:hover{border-color:var(--gold);color:var(--gold)}
+.conq-filtro-btn.active{background:rgba(0,182,233,0.1);border-color:var(--gold);color:var(--gold)}
+
+.conq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+
+.conq-badge{
+  background:var(--navy2);border:1px solid var(--border);
+  padding:1.4rem;display:flex;flex-direction:column;align-items:center;
+  text-align:center;position:relative;transition:all .3s;border-radius:2px;
+  cursor:default;
+}
+.conq-badge.conquistada{border-color:rgba(0,182,233,0.4);background:rgba(0,182,233,0.04)}
+.conq-badge.conquistada::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,182,233,0.06) 0%,transparent 60%);
+  pointer-events:none;
+}
+.conq-badge-icone{font-size:2.4rem;margin-bottom:.7rem;filter:grayscale(1);opacity:.3;transition:all .3s}
+.conq-badge.conquistada .conq-badge-icone{filter:none;opacity:1}
+.conq-badge-titulo{font-size:.82rem;font-weight:700;color:var(--gray);margin-bottom:.4rem;transition:color .3s}
+.conq-badge.conquistada .conq-badge-titulo{color:var(--white)}
+.conq-badge-desc{font-size:.7rem;color:var(--gray2);line-height:1.5}
+.conq-badge-data{font-size:.62rem;color:var(--gold);margin-top:.6rem;font-weight:600;letter-spacing:.04em}
+.conq-badge-nivel{
+  position:absolute;top:.6rem;right:.6rem;
+  font-size:.58rem;font-weight:700;letter-spacing:.06em;
+  background:rgba(0,182,233,0.15);color:var(--gold);
+  padding:.1rem .45rem;border-radius:10px;
+}
+.conq-badge-check{
+  position:absolute;top:.6rem;left:.6rem;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold);display:none;
+  align-items:center;justify-content:center;
+}
+.conq-badge.conquistada .conq-badge-check{display:flex}
+.conq-badge-check svg{width:10px;height:10px;stroke:var(--navy);stroke-width:3}
+
 /* ════════ INVESTIMENTOS ════════ */
 .inv-tabs{display:flex;gap:.3rem;margin-bottom:1.4rem;border-bottom:1px solid var(--border);padding-bottom:0}
 .inv-tab{
@@ -1104,7 +1160,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('conquistas', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></span>
         Conquistas
-        <span class="menu-badge-soon">em breve</span>
       </button>
       <button class="menu-item" onclick="irPara('wishlist', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
@@ -1579,12 +1634,35 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
       <!-- ── CONQUISTAS ── -->
       <div class="tela" id="tela-conquistas">
-        <div class="tela-header"><h2>Conquistas</h2><p>Sua jornada financeira em marcos</p></div>
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></div>
-          <h3>Jornada de conquistas</h3>
-          <p>Registre e comemore cada marco da sua vida financeira — primeira reserva, dívida quitada, meta atingida. Cada passo conta.</p>
-          <span class="em-breve-tag">Em construção</span>
+        <div class="tela-header">
+          <h2>Conquistas</h2>
+          <p>Sua jornada financeira em marcos</p>
+        </div>
+
+        <!-- Resumo -->
+        <div class="conq-resumo" id="conq-resumo">
+          <div class="conq-resumo-item"><span class="conq-resumo-num" id="conq-total-num">0</span><span class="conq-resumo-label">Total</span></div>
+          <div class="conq-resumo-sep"></div>
+          <div class="conq-resumo-item"><span class="conq-resumo-num gold" id="conq-conc-num">0</span><span class="conq-resumo-label">Conquistadas</span></div>
+          <div class="conq-resumo-sep"></div>
+          <div class="conq-resumo-item"><span class="conq-resumo-num" id="conq-pend-num">0</span><span class="conq-resumo-label">Pendentes</span></div>
+          <div class="conq-resumo-prog-wrap"><div class="conq-resumo-prog-bg"><div class="conq-resumo-prog-fill" id="conq-prog-fill"></div></div><span class="conq-resumo-prog-pct" id="conq-prog-pct">0%</span></div>
+        </div>
+
+        <div class="orc-loading" id="conq-loading">Carregando conquistas...</div>
+
+        <!-- Categorias -->
+        <div id="conq-content" style="display:none">
+          <div class="conq-filtros">
+            <button class="conq-filtro-btn active" onclick="conqFiltrar(this,'todas')">Todas</button>
+            <button class="conq-filtro-btn" onclick="conqFiltrar(this,'dividas')">💳 Dívidas</button>
+            <button class="conq-filtro-btn" onclick="conqFiltrar(this,'orcamento')">📊 Orçamento</button>
+            <button class="conq-filtro-btn" onclick="conqFiltrar(this,'reserva')">🛡️ Reserva</button>
+            <button class="conq-filtro-btn" onclick="conqFiltrar(this,'score')">⭐ Score</button>
+            <button class="conq-filtro-btn" onclick="conqFiltrar(this,'comportamento')">🧠 Comportamento</button>
+            <button class="conq-filtro-btn" onclick="conqFiltrar(this,'renda')">💰 Renda</button>
+          </div>
+          <div class="conq-grid" id="conq-grid"></div>
         </div>
       </div>
 
@@ -2556,6 +2634,7 @@ async function irPara(tela, btn){
     orcdashCarregar();
   }
   if(tela==='investimentos') invCarregarTudo();
+  if(tela==='conquistas') conqCarregar();
 }
 
 // ══════════════════════════════════════════════
@@ -5336,6 +5415,287 @@ function simToggle(modo){
 // ══════════════════════════════════════════════
 // INVESTIMENTOS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// CONQUISTAS
+// ══════════════════════════════════════════════
+const CONQ_CATALOGO = [
+  // DÍVIDAS
+  { codigo:'bola_neve', titulo:'Bola de Neve Andando', icone:'⛄', categoria:'dividas', tipo:'manual',
+    desc:'Quitar a menor dívida ativa.' },
+  { codigo:'zero_dividas', titulo:'Zero Dívidas', icone:'🏳️', categoria:'dividas', tipo:'manual',
+    desc:'Chegar a R$ 0,00 de dívidas após construir o orçamento.' },
+
+  // ORÇAMENTO
+  { codigo:'orc_2meses', titulo:'Orçamento em Ação I', icone:'📊', categoria:'orcamento', tipo:'auto', nivel:'Nível 1',
+    desc:'Planejar o mês e ficar dentro dos limites por 2 meses seguidos.' },
+  { codigo:'orc_4meses', titulo:'Orçamento em Ação II', icone:'📊', categoria:'orcamento', tipo:'auto', nivel:'Nível 2',
+    desc:'Manter o orçamento equilibrado por 4 meses seguidos.' },
+  { codigo:'orc_6meses', titulo:'Orçamento em Ação III', icone:'📊', categoria:'orcamento', tipo:'auto', nivel:'Nível 3',
+    desc:'Manter o orçamento equilibrado por 6 meses seguidos.' },
+  { codigo:'orc_12meses', titulo:'Orçamento em Ação IV', icone:'🏆', categoria:'orcamento', tipo:'auto', nivel:'Nível 4',
+    desc:'Um ano inteiro dentro do orçamento. Excelência financeira!' },
+  { codigo:'envelopes', titulo:'Envelopes Ativos', icone:'✉️', categoria:'orcamento', tipo:'auto',
+    desc:'Não estourar 3 categorias-chave (mercado, transporte, lazer) em um mesmo mês.' },
+
+  // RESERVA
+  { codigo:'mini_colchao', titulo:'Mini-Colchão', icone:'🛏️', categoria:'reserva', tipo:'auto',
+    desc:'Juntar R$ 1.000 (ou 10% dos gastos essenciais mensais).' },
+  { codigo:'reserva_1mes', titulo:'1 Mês Seguro', icone:'🛡️', categoria:'reserva', tipo:'auto',
+    desc:'Reserva de emergência igual a 1 mês de gastos essenciais.' },
+  { codigo:'reserva_3meses', titulo:'Tranquilidade 3x', icone:'🛡️🛡️', categoria:'reserva', tipo:'auto',
+    desc:'Reserva de emergência igual a 3 meses de gastos essenciais.' },
+  { codigo:'reserva_6meses', titulo:'Blindagem Total', icone:'🔒', categoria:'reserva', tipo:'auto',
+    desc:'Reserva de emergência igual a 6 meses (ou 12 se autônomo).' },
+  { codigo:'cofrinho_anual', titulo:'Cofrinho Anual', icone:'🪙', categoria:'reserva', tipo:'manual',
+    desc:'Criar fundo para despesas anuais (IPTU, IPVA, matrícula) com aporte mensal.' },
+  { codigo:'imprevisto_vista', titulo:'Imprevisto Pago à Vista', icone:'⚡', categoria:'reserva', tipo:'manual',
+    desc:'Cobrir 1 gasto inesperado sem parcelar ou usar crédito caro.' },
+  { codigo:'fundo_manutencao', titulo:'Fundo Manutenção', icone:'🔧', categoria:'reserva', tipo:'manual',
+    desc:'Criar "envelope" para manutenção da casa/veículo com aporte mensal.' },
+
+  // SCORE
+  { codigo:'score_ascensao', titulo:'Score em Ascensão', icone:'📈', categoria:'score', tipo:'auto',
+    desc:'Aumentar o score em +50 pontos comparado a 90 dias atrás.' },
+  { codigo:'score_forte', titulo:'Score Forte', icone:'⭐', categoria:'score', tipo:'auto',
+    desc:'Atingir 700+ pontos no score de crédito.' },
+  { codigo:'score_premium', titulo:'Score Premium', icone:'⭐⭐', categoria:'score', tipo:'auto',
+    desc:'Atingir 800+ pontos no score de crédito.' },
+  { codigo:'score_elite', titulo:'Score Elite', icone:'⭐⭐⭐', categoria:'score', tipo:'auto',
+    desc:'Atingir 900+ pontos no score de crédito.' },
+  { codigo:'score_topo', titulo:'Topo do Mapa', icone:'🌟', categoria:'score', tipo:'auto',
+    desc:'1.000 pontos — a conquista aspiracional máxima!' },
+
+  // COMPORTAMENTO
+  { codigo:'faturas_dia', titulo:'Faturas em Dia', icone:'💳', categoria:'comportamento', tipo:'manual',
+    desc:'6 faturas de cartão pagas integralmente, sem parcelamento.' },
+  { codigo:'compra_planejada', titulo:'Compra Grande Planejada', icone:'🛒', categoria:'comportamento', tipo:'manual',
+    desc:'Pesquisar, esperar 7 dias e comprar à vista com desconto.' },
+  { codigo:'leitor', titulo:'Leitor Financeiro', icone:'📚', categoria:'comportamento', tipo:'manual',
+    desc:'Concluir 1 livro ou 1 curso curto de finanças pessoais.' },
+  { codigo:'metas_smart', titulo:'Trilha SMART', icone:'🎯', categoria:'comportamento', tipo:'manual',
+    desc:'Definir 3 metas SMART (curto, médio, longo prazo) com valores e prazos.' },
+  { codigo:'plano_emergencia', titulo:'Plano de Emergências', icone:'🆘', categoria:'comportamento', tipo:'manual',
+    desc:'Checklist de contatos, prazos e passos para imprevistos (saúde, casa, trabalho).' },
+  { codigo:'backup_docs', titulo:'Backup de Documentos', icone:'📁', categoria:'comportamento', tipo:'manual',
+    desc:'Organizar garantias, notas fiscais e apólices em um só lugar.' },
+
+  // RENDA
+  { codigo:'renda_extra_start', titulo:'Renda+ Start', icone:'💰', categoria:'renda', tipo:'manual',
+    desc:'Gerar R$ X de renda extra em 30 dias.' },
+  { codigo:'renda_extra_cons', titulo:'Renda+ Consistente', icone:'💰💰', categoria:'renda', tipo:'manual',
+    desc:'Manter renda extra por 3 meses seguidos.' },
+  { codigo:'negociacao_ninja', titulo:'Negociação Ninja', icone:'🥷', categoria:'renda', tipo:'manual',
+    desc:'Reduzir em R$ X a conta de internet/telefone/serviços.' },
+];
+
+let conqDados = []; // registros do banco
+let conqFiltroAtivo = 'todas';
+let conqScoreHistorico = [];
+
+async function conqCarregar(){
+  document.getElementById('conq-loading').style.display='block';
+  document.getElementById('conq-content').style.display='none';
+
+  const [conqRes, scoreRes] = await Promise.all([
+    sb.from('conquistas').select('*').eq('user_id', usuarioAtual.id),
+    sb.from('score_historico').select('*').eq('user_id', usuarioAtual.id).order('data', {ascending:true})
+  ]);
+
+  conqDados = conqRes.data || [];
+  conqScoreHistorico = scoreRes.data || [];
+
+  // Verificar conquistas automáticas e inserir/atualizar se necessário
+  await conqVerificarAuto();
+
+  document.getElementById('conq-loading').style.display='none';
+  document.getElementById('conq-content').style.display='block';
+
+  conqRenderizar();
+}
+
+async function conqVerificarAuto(){
+  const inserir = [];
+  const atualizar = [];
+
+  for(const c of CONQ_CATALOGO){
+    if(c.tipo !== 'auto') continue;
+
+    const existente = conqDados.find(d=>d.codigo===c.codigo);
+    if(existente?.concluida) continue; // já conquistada
+
+    const concluida = await conqTestar(c.codigo);
+    if(!concluida) continue;
+
+    const hoje = new Date().toISOString().split('T')[0];
+    if(existente){
+      atualizar.push(sb.from('conquistas').update({ concluida:true, data_conclusao:hoje })
+        .eq('id', existente.id));
+      existente.concluida = true;
+      existente.data_conclusao = hoje;
+    } else {
+      const novo = {
+        user_id: usuarioAtual.id, codigo: c.codigo, titulo: c.titulo,
+        descricao: c.desc, icone: c.icone, categoria: c.categoria,
+        tipo: c.tipo, nivel: 1, concluida: true, data_conclusao: hoje
+      };
+      inserir.push(novo);
+      conqDados.push({ ...novo });
+    }
+  }
+
+  if(inserir.length) await sb.from('conquistas').insert(inserir);
+  if(atualizar.length) await Promise.all(atualizar);
+}
+
+async function conqTestar(codigo){
+  try {
+    const hoje = new Date();
+    const anoAtual = hoje.getFullYear();
+
+    switch(codigo){
+
+      // ── Score ──
+      case 'score_ascensao': {
+        if(conqScoreHistorico.length < 2) return false;
+        const ultimo = conqScoreHistorico[conqScoreHistorico.length-1];
+        const noventa = new Date(); noventa.setDate(noventa.getDate()-90);
+        const antigo = conqScoreHistorico.find(s=>new Date(s.data)<=noventa);
+        return antigo && (Number(ultimo.score)-Number(antigo.score)) >= 50;
+      }
+      case 'score_forte': {
+        if(!conqScoreHistorico.length) return false;
+        return Number(conqScoreHistorico[conqScoreHistorico.length-1].score) >= 700;
+      }
+      case 'score_premium': {
+        if(!conqScoreHistorico.length) return false;
+        return Number(conqScoreHistorico[conqScoreHistorico.length-1].score) >= 800;
+      }
+      case 'score_elite': {
+        if(!conqScoreHistorico.length) return false;
+        return Number(conqScoreHistorico[conqScoreHistorico.length-1].score) >= 900;
+      }
+      case 'score_topo': {
+        if(!conqScoreHistorico.length) return false;
+        return Number(conqScoreHistorico[conqScoreHistorico.length-1].score) >= 1000;
+      }
+
+      // ── Orçamento em Ação (saldo positivo por N meses seguidos) ──
+      case 'orc_2meses':  return await conqMesesSaldoPositivo(2);
+      case 'orc_4meses':  return await conqMesesSaldoPositivo(4);
+      case 'orc_6meses':  return await conqMesesSaldoPositivo(6);
+      case 'orc_12meses': return await conqMesesSaldoPositivo(12);
+
+      // ── Mini-colchão: R$1.000 em lançamentos de investimento ──
+      case 'mini_colchao': {
+        const { data } = await sb.from('extrato').select('valor').eq('user_id', usuarioAtual.id).eq('tipo','investimento');
+        const total = (data||[]).reduce((a,r)=>a+Number(r.valor),0);
+        return total >= 1000;
+      }
+
+      // ── Reserva (baseada em gastos do raio X e total investido) ──
+      case 'reserva_1mes':
+      case 'reserva_3meses':
+      case 'reserva_6meses': {
+        const { data: rxRow } = await sb.from('raiox').select('despesas').eq('user_id', usuarioAtual.id).maybeSingle();
+        if(!rxRow) return false;
+        let totalDesp = 0;
+        const desp = rxRow.despesas || {};
+        Object.values(desp).forEach(g=>{
+          Object.entries(g).forEach(([k,v])=>{
+            if(typeof v==='object' && v.m1!==undefined)
+              totalDesp += ((Number(v.m1)||0)+(Number(v.m2)||0)+(Number(v.m3)||0))/3;
+          });
+        });
+        const { data: invData } = await sb.from('extrato').select('valor').eq('user_id', usuarioAtual.id).eq('tipo','investimento');
+        const totalInv = (invData||[]).reduce((a,r)=>a+Number(r.valor),0);
+        const meses = codigo==='reserva_1mes'?1:codigo==='reserva_3meses'?3:6;
+        return totalInv >= totalDesp * meses;
+      }
+
+      // ── Envelopes Ativos ──
+      case 'envelopes': {
+        // Verificar se algum mês no ano teve 3+ categorias-chave dentro do orçado
+        const { data: orcRows } = await sb.from('orcamento').select('*')
+          .eq('user_id', usuarioAtual.id).eq('ano', anoAtual);
+        if(!orcRows?.length) return false;
+        const catChave = ['Mercado','Supermercado','Alimentação','Transporte','Lazer','Entretenimento'];
+        for(let mes=1; mes<=12; mes++){
+          const { data: lancs } = await sb.from('extrato').select('categoria,valor').eq('user_id', usuarioAtual.id)
+            .gte('data', `${anoAtual}-${String(mes).padStart(2,'0')}-01`)
+            .lte('data', `${anoAtual}-${String(mes).padStart(2,'0')}-31`)
+            .eq('tipo','despesa');
+          if(!lancs?.length) continue;
+          const catsSemEstourar = catChave.filter(cat=>{
+            const orc = (orcRows.find(r=>r.mes===mes && r.categoria===cat)||{}).previsto || 0;
+            if(!orc) return false;
+            const real = lancs.filter(l=>l.categoria===cat).reduce((a,l)=>a+Number(l.valor),0);
+            return real <= orc;
+          });
+          if(catsSemEstourar.length >= 3) return true;
+        }
+        return false;
+      }
+
+      default: return false;
+    }
+  } catch(e){ return false; }
+}
+
+async function conqMesesSaldoPositivo(n){
+  const hoje = new Date();
+  let consecutivos = 0;
+  for(let i=1; i<=18; i++){
+    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+    const ano = d.getFullYear(), mes = String(d.getMonth()+1).padStart(2,'0');
+    const { data } = await sb.from('extrato').select('tipo,valor')
+      .eq('user_id', usuarioAtual.id)
+      .gte('data', `${ano}-${mes}-01`)
+      .lte('data', `${ano}-${mes}-31`);
+    if(!data?.length){ consecutivos=0; continue; }
+    const rec = data.filter(r=>r.tipo==='receita').reduce((a,r)=>a+Number(r.valor),0);
+    const dep = data.filter(r=>r.tipo==='despesa').reduce((a,r)=>a+Number(r.valor),0);
+    if(rec-dep>0) consecutivos++; else consecutivos=0;
+    if(consecutivos>=n) return true;
+  }
+  return consecutivos >= n;
+}
+
+function conqRenderizar(){
+  const total = CONQ_CATALOGO.length;
+  const conc = conqDados.filter(d=>d.concluida).length;
+  const pct = Math.round(conc/total*100);
+
+  document.getElementById('conq-total-num').textContent = total;
+  document.getElementById('conq-conc-num').textContent = conc;
+  document.getElementById('conq-pend-num').textContent = total-conc;
+  document.getElementById('conq-prog-fill').style.width = pct+'%';
+  document.getElementById('conq-prog-pct').textContent = pct+'%';
+
+  const filtro = conqFiltroAtivo;
+  const lista = filtro==='todas' ? CONQ_CATALOGO : CONQ_CATALOGO.filter(c=>c.categoria===filtro);
+
+  document.getElementById('conq-grid').innerHTML = lista.map(c=>{
+    const reg = conqDados.find(d=>d.codigo===c.codigo);
+    const ok = reg?.concluida;
+    const data = reg?.data_conclusao ? new Date(reg.data_conclusao+'T00:00:00').toLocaleDateString('pt-BR') : null;
+    return `<div class="conq-badge${ok?' conquistada':''}">
+      <div class="conq-badge-check"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      ${c.nivel ? `<div class="conq-badge-nivel">${c.nivel}</div>` : ''}
+      <div class="conq-badge-icone">${c.icone}</div>
+      <div class="conq-badge-titulo">${c.titulo}</div>
+      <div class="conq-badge-desc">${c.desc}</div>
+      ${ok && data ? `<div class="conq-badge-data">✓ ${data}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function conqFiltrar(btn, filtro){
+  document.querySelectorAll('.conq-filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  conqFiltroAtivo = filtro;
+  conqRenderizar();
+}
+
 const INV_CORES = ['#00B6E9','#4ec98a','#f0c93a','#7c9cff','#e0824f','#e05252','#a78bfa'];
 const INV_CLASSES = ['Renda Fixa','Tesouro Direto','Ações','FIIs','Cripto','Exterior','Outros'];
 const INV_CLASS_BADGE = {
