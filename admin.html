@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — DGX Consulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;700&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0D1B2E;--navy2:#0A1525;--navy3:#111f35;
+  --cyan:#00B4D8;--cyan-dark:#0090C8;
+  --bg:#f0f2f5;--surface:#fff;
+  --text:#1E2D40;--text2:#6b7a8d;--text3:#9aabb8;
+  --border:#dde3eb;--border2:#eef1f5;
+}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text)}
+
+#loadingScreen{position:fixed;inset:0;background:var(--navy2);display:flex;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:36px;height:36px;border:3px solid rgba(0,180,216,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#app{display:none;height:100vh;overflow:hidden}
+.layout{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--navy2);display:flex;flex-direction:column;height:100vh}
+.sidebar-brand{padding:1.25rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar-brand img{height:34px;display:block}
+.sidebar-user{padding:.75rem 1rem;font-size:11px;color:rgba(139,160,176,.55);border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-section{padding:.75rem 1rem .3rem;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(139,160,176,.4);font-weight:500}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.nav-item i{font-size:16px;min-width:18px}
+.nav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.8)}
+.nav-item.active{background:rgba(0,180,216,.1);color:var(--cyan);border-left-color:var(--cyan)}
+.sidebar-footer{margin-top:auto;padding:1rem;border-top:1px solid rgba(255,255,255,.06)}
+.btn-logout{display:flex;align-items:center;gap:.5rem;font-size:12px;color:rgba(139,160,176,.5);cursor:pointer;background:none;border:none;width:100%;padding:.4rem 0;transition:color .2s}
+.btn-logout:hover{color:rgba(255,255,255,.7)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:1.5rem 1.75rem}
+.admin-section{display:none}
+.admin-section.active{display:block}
+
+/* CLIENTES */
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-transform:uppercase;color:var(--text);margin-bottom:.2rem}
+.section-title em{color:var(--cyan);font-style:normal}
+.section-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem}
+.clientes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,.1);max-width:640px;border:1px solid rgba(0,174,239,.1);border-radius:12px;overflow:hidden}
+.cliente-card{background:var(--navy3);padding:2.5rem 2rem;display:flex;align-items:center;justify-content:center;min-height:140px;text-decoration:none;position:relative;transition:background .2s}
+.cliente-card:hover{background:#152236}
+.cliente-card img{max-height:50px;max-width:140px;object-fit:contain;opacity:.8;transition:opacity .2s}
+.cliente-card:hover img{opacity:1}
+.cliente-card .card-lbl{position:absolute;bottom:.6rem;left:0;right:0;text-align:center;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,174,239,.35)}
+
+/* SHARED ADMIN COMPONENTS */
+.adm-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem}
+.adm-page-header h2{font-size:1.15rem;font-weight:700;color:var(--text)}
+.adm-page-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.adm-select{padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:var(--surface);cursor:pointer;outline:none}
+.adm-select:focus{border-color:var(--cyan)}
+.adm-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);outline:none;background:var(--surface)}
+.adm-input:focus{border-color:var(--cyan)}
+.adm-btn-primary{display:inline-flex;align-items:center;gap:.35rem;padding:7px 14px;background:var(--cyan);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer}
+.adm-btn-primary:hover{background:var(--cyan-dark)}
+.adm-btn-sm{display:inline-flex;align-items:center;gap:.3rem;padding:5px 10px;background:#f0f4f8;color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer}
+.adm-btn-sm:hover{background:#e4eaf0}
+.adm-btn-ghost{padding:7px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer}
+.adm-btn-ghost:hover{background:#f0f4f8}
+.adm-form-row{margin-bottom:.85rem}
+.adm-form-row label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:.3rem}
+
+/* CONSULTORIA KPIs */
+.cons-kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:.75rem;margin-bottom:1rem}
+.cons-kpi{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:.85rem 1rem;border-left:3px solid var(--cyan)}
+.cons-kpi-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.25rem}
+.cons-kpi-value{font-size:1.05rem;font-weight:600;color:var(--text)}
+.cons-kpi-sub{font-size:11px;color:var(--text3);margin-top:.15rem}
+
+/* CONSULTORIA CARDS */
+.cons-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem 1.1rem;margin-bottom:.85rem}
+.cons-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--border2)}
+.cons-card-title{font-size:13px;font-weight:600;color:var(--text)}
+.cons-two-col{display:grid;grid-template-columns:1fr 360px;gap:1rem}
+
+/* PROGRESS */
+.cons-progress-bg{background:var(--border2);border-radius:8px;height:12px;overflow:hidden;margin:.5rem 0}
+.cons-progress-fill{height:100%;background:var(--cyan);border-radius:8px;transition:width .4s ease}
+.cons-progress-fill.over{background:#e24b4a}
+.cons-progress-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}
+
+/* TABELAS */
+.cons-table{width:100%;border-collapse:collapse;font-size:12px}
+.cons-table th{text-align:left;padding:.4rem .6rem;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:0.5px solid var(--border2)}
+.cons-table td{padding:.5rem .6rem;border-bottom:0.5px solid var(--border2);color:var(--text);vertical-align:middle}
+.cons-table tr:last-child td{border-bottom:none}
+.cons-empty{text-align:center;color:var(--text3);font-size:13px;padding:1.5rem!important}
+.cons-del-btn{background:none;border:none;color:#c0c9d4;cursor:pointer;padding:2px 4px;border-radius:4px}
+.cons-del-btn:hover{color:#e24b4a;background:#fdecea}
+
+/* BADGES */
+.cons-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500}
+.cons-badge.pago{background:#e6f9f0;color:#0f6e56}
+.cons-badge.pendente{background:#fff3e0;color:#b35900}
+.cons-badge.atrasado{background:#fdecea;color:#b71c1c}
+.cons-badge.concluido{background:#e3f4fb;color:#0077a8}
+.cons-badge.em_andamento{background:#fff8e1;color:#8a6200}
+
+/* AGENDA */
+.cons-agenda-item{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;border-bottom:0.5px solid var(--border2)}
+.cons-agenda-item:last-child{border-bottom:none}
+.cons-agenda-date{min-width:38px;background:var(--navy2);color:#fff;border-radius:6px;text-align:center;padding:.2rem .3rem;font-size:10px;font-weight:500}
+.cons-agenda-day{font-size:14px;font-weight:600;display:block}
+.cons-agenda-tipo{font-size:10px;color:var(--cyan);font-weight:600;text-transform:uppercase}
+.cons-agenda-desc{font-size:12px;color:var(--text)}
+.cons-agenda-fmt{font-size:11px;color:var(--text3)}
+
+/* MODAIS */
+.adm-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}
+.adm-modal{background:var(--surface);border-radius:14px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18);overflow:hidden}
+.adm-modal-header{display:flex;justify-content:space-between;align-items:center;padding:.85rem 1.1rem;border-bottom:1px solid var(--border2);font-size:14px;font-weight:600;color:var(--text)}
+.adm-modal-header button{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px}
+.adm-modal-body{padding:1rem 1.1rem}
+.adm-modal-footer{display:flex;justify-content:flex-end;gap:.5rem;padding:.85rem 1.1rem;border-top:1px solid var(--border2)}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen"><div class="spinner"></div></div>
+
+<div id="app">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand"><img src="logo-dgx.png" alt="DGX Consulting"></div>
+    <div class="sidebar-user" id="sidebarUser">—</div>
+    <div class="sidebar-section">Menu</div>
+    <div class="nav-item active" id="nav-clientes" onclick="irPara('clientes')">
+      <i class="ti ti-layout-grid"></i> Clientes
+    </div>
+    <div class="nav-item" id="nav-consultoria" onclick="irPara('consultoria')">
+      <i class="ti ti-file-invoice"></i> Consultoria
+    </div>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="fazerLogout()">
+        <i class="ti ti-logout" style="font-size:15px"></i> Sair
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- CLIENTES -->
+    <div id="section-clientes" class="admin-section active">
+      <div class="section-title">Área do <em>Cliente</em></div>
+      <p class="section-sub">Selecione a empresa para acessar o dashboard.</p>
+      <div class="clientes-grid">
+        <a href="hawks.html" class="cliente-card"><img src="logo-hawks.png" alt="Hawks Beauty"><span class="card-lbl">Dashboard</span></a>
+        <a href="fnyx.html" class="cliente-card"><img src="logo-fnyx.png" alt="FNYX Cosmetics"><span class="card-lbl">Dashboard</span></a>
+        <a href="#" class="cliente-card"><img src="logo-oak.png" alt="Oak & Co."><span class="card-lbl">Em breve</span></a>
+        <a href="#" class="cliente-card"><img src="logo-mp.png" alt="MP Prudente"><span class="card-lbl">Em breve</span></a>
+      </div>
+    </div>
+
+    <!-- CONSULTORIA -->
+    <div id="section-consultoria" class="admin-section">
+      <div class="adm-page-header">
+        <div>
+          <h2>Consultoria</h2>
+          <p class="adm-page-sub">Gestão de horas, entregas e pagamentos por cliente</p>
+        </div>
+        <div style="display:flex;gap:.6rem;align-items:center">
+          <select id="cons-select-cliente" class="adm-select" onchange="consultoriaCarregar()">
+            <option value="hawks">Hawks Beauty</option>
+            <option value="fnyx">Fnyx Cosmetics</option>
+          </select>
+          <select id="cons-select-mes" class="adm-select" onchange="consultoriaCarregar()"></select>
+          <button class="adm-btn-primary" onclick="consModalMes()"><i class="ti ti-plus"></i> Novo mês</button>
+        </div>
+      </div>
+
+      <div class="cons-kpi-row">
+        <div class="cons-kpi"><div class="cons-kpi-label">Horas utilizadas</div><div class="cons-kpi-value" id="ck-horas">—</div><div class="cons-kpi-sub" id="ck-horas-sub">—</div></div>
+        <div class="cons-kpi"><div class="cons-kpi-label">Horas adicionais</div><div class="cons-kpi-value" id="ck-add">—</div><div class="cons-kpi-sub">aprovadas</div></div>
+        <div class="cons-kpi"><div class="cons-kpi-label">Valor base</div><div class="cons-kpi-value" id="ck-vbase">—</div></div>
+        <div class="cons-kpi"><div class="cons-kpi-label">Valor adicional</div><div class="cons-kpi-value" id="ck-vadd">—</div></div>
+        <div class="cons-kpi"><div class="cons-kpi-label">Total do mês</div><div class="cons-kpi-value" id="ck-vtotal">—</div></div>
+        <div class="cons-kpi"><div class="cons-kpi-label">Status pagamento</div><div class="cons-kpi-value" id="ck-pgto">—</div><div class="cons-kpi-sub" id="ck-pgto-sub">—</div></div>
+      </div>
+
+      <div class="cons-card" style="margin-bottom:1rem">
+        <div class="cons-card-header">
+          <span class="cons-card-title">Consumo de horas</span>
+          <button class="adm-btn-sm" onclick="consModalPagamento()"><i class="ti ti-currency-dollar"></i> Registrar pagamento</button>
+        </div>
+        <div class="cons-progress-bg"><div class="cons-progress-fill" id="cons-prog-fill" style="width:0%"></div></div>
+        <div class="cons-progress-labels"><span id="cons-prog-pct">0%</span><span id="cons-prog-leg">—</span></div>
+      </div>
+
+      <div class="cons-two-col">
+        <div class="cons-card">
+          <div class="cons-card-header">
+            <span class="cons-card-title">Entregas & atividades</span>
+            <button class="adm-btn-sm" onclick="consModalEntrega()"><i class="ti ti-plus"></i> Lançar atividade</button>
+          </div>
+          <table class="cons-table">
+            <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Horas</th><th>Adicional</th><th>Status</th><th></th></tr></thead>
+            <tbody id="cons-entregas-body"><tr><td colspan="7" class="cons-empty">Selecione um mês</td></tr></tbody>
+          </table>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <div class="cons-card">
+            <div class="cons-card-header">
+              <span class="cons-card-title">Agenda</span>
+              <button class="adm-btn-sm" onclick="consModalAgenda()"><i class="ti ti-plus"></i> Agendar</button>
+            </div>
+            <div id="cons-agenda-list"><div class="cons-empty">Nenhum compromisso.</div></div>
+          </div>
+          <div class="cons-card">
+            <div class="cons-card-title" style="margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--border2)">Histórico de pagamentos</div>
+            <table class="cons-table">
+              <thead><tr><th>Comp.</th><th>Horas</th><th>Valor</th><th>Venc.</th><th>Pago em</th><th>Sit.</th></tr></thead>
+              <tbody id="cons-hist-body"><tr><td colspan="6" class="cons-empty">—</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- MODAL: NOVO MÊS -->
+<div id="cons-modal-mes" class="adm-modal-bg" style="display:none">
+  <div class="adm-modal" style="max-width:420px">
+    <div class="adm-modal-header"><span>Abrir novo mês</span><button onclick="consModalFechar('mes')"><i class="ti ti-x"></i></button></div>
+    <div class="adm-modal-body">
+      <div class="adm-form-row"><label>Cliente</label>
+        <select id="cm-cliente" class="adm-select" style="width:100%"><option value="hawks">Hawks Beauty</option><option value="fnyx">Fnyx Cosmetics</option></select>
+      </div>
+      <div class="adm-form-row"><label>Competência</label><input type="month" id="cm-competencia" class="adm-input"></div>
+      <div class="adm-form-row"><label>Valor base mensal (R$)</label><input type="number" id="cm-vbase" class="adm-input" value="3500" step="0.01"></div>
+      <div class="adm-form-row"><label>Data de vencimento</label><input type="date" id="cm-vencimento" class="adm-input"></div>
+      <div class="adm-form-row"><label>Observações</label><textarea id="cm-obs" class="adm-input" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-btn-ghost" onclick="consModalFechar('mes')">Cancelar</button>
+      <button class="adm-btn-primary" onclick="consSalvarMes()">Criar mês</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LANÇAR ATIVIDADE -->
+<div id="cons-modal-entrega" class="adm-modal-bg" style="display:none">
+  <div class="adm-modal" style="max-width:480px">
+    <div class="adm-modal-header"><span>Lançar atividade</span><button onclick="consModalFechar('entrega')"><i class="ti ti-x"></i></button></div>
+    <div class="adm-modal-body">
+      <div class="adm-form-row"><label>Data</label><input type="date" id="ce-data" class="adm-input"></div>
+      <div class="adm-form-row"><label>Tipo</label>
+        <select id="ce-tipo" class="adm-select" style="width:100%">
+          <option value="reuniao_alinhamento">Reunião de Alinhamento</option>
+          <option value="reuniao_resultados">Reunião de Resultados</option>
+          <option value="plano_estrategico">Plano Estratégico</option>
+          <option value="processo_financeiro">Processo Financeiro</option>
+          <option value="reporte_status">Reporte de Status</option>
+          <option value="hora_adicional">Hora Adicional</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="adm-form-row"><label>Descrição</label><input type="text" id="ce-descricao" class="adm-input" placeholder="Descreva brevemente a atividade"></div>
+      <div class="adm-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div><label>Horas</label><input type="number" id="ce-horas" class="adm-input" value="1" min="0.25" step="0.25"></div>
+        <div><label>Status</label>
+          <select id="ce-status" class="adm-select" style="width:100%">
+            <option value="concluido">Concluído</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="pendente">Pendente</option>
+          </select>
+        </div>
+      </div>
+      <div class="adm-form-row">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+          <input type="checkbox" id="ce-adicional"> Hora adicional (cobrada à R$ 400/h)
+        </label>
+      </div>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-btn-ghost" onclick="consModalFechar('entrega')">Cancelar</button>
+      <button class="adm-btn-primary" onclick="consSalvarEntrega()">Lançar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PAGAMENTO -->
+<div id="cons-modal-pagamento" class="adm-modal-bg" style="display:none">
+  <div class="adm-modal" style="max-width:380px">
+    <div class="adm-modal-header"><span>Registrar pagamento</span><button onclick="consModalFechar('pagamento')"><i class="ti ti-x"></i></button></div>
+    <div class="adm-modal-body">
+      <div class="adm-form-row"><label>Status</label>
+        <select id="cp-status" class="adm-select" style="width:100%">
+          <option value="pago">Pago</option><option value="pendente">Pendente</option><option value="atrasado">Atrasado</option>
+        </select>
+      </div>
+      <div class="adm-form-row"><label>Data do pagamento</label><input type="date" id="cp-data" class="adm-input"></div>
+      <div class="adm-form-row">
+        <label>Valor adicional aprovado (R$)</label>
+        <input type="number" id="cp-vadd" class="adm-input" value="0" step="0.01">
+        <small style="color:var(--text3);font-size:11px;margin-top:3px;display:block">Horas adicionais × R$400/h</small>
+      </div>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-btn-ghost" onclick="consModalFechar('pagamento')">Cancelar</button>
+      <button class="adm-btn-primary" onclick="consSalvarPagamento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AGENDA -->
+<div id="cons-modal-agenda" class="adm-modal-bg" style="display:none">
+  <div class="adm-modal" style="max-width:420px">
+    <div class="adm-modal-header"><span>Agendar compromisso</span><button onclick="consModalFechar('agenda')"><i class="ti ti-x"></i></button></div>
+    <div class="adm-modal-body">
+      <div class="adm-form-row"><label>Data</label><input type="date" id="ca-data" class="adm-input"></div>
+      <div class="adm-form-row"><label>Tipo</label>
+        <select id="ca-tipo" class="adm-select" style="width:100%">
+          <option value="reuniao_alinhamento">Reunião de Alinhamento</option>
+          <option value="reuniao_resultados">Reunião de Resultados</option>
+          <option value="entrega">Entrega</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="adm-form-row"><label>Descrição</label><input type="text" id="ca-descricao" class="adm-input" placeholder="Ex: Alinhamento estratégico Jul/26"></div>
+      <div class="adm-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div><label>Formato</label>
+          <select id="ca-formato" class="adm-select" style="width:100%">
+            <option value="remoto">Remoto</option><option value="presencial">Presencial</option>
+          </select>
+        </div>
+        <div><label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin-top:1.6rem">
+          <input type="checkbox" id="ca-confirmado"> Confirmado
+        </label></div>
+      </div>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-btn-ghost" onclick="consModalFechar('agenda')">Cancelar</button>
+      <button class="adm-btn-primary" onclick="consSalvarAgenda()">Agendar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://mixsehmmwvrbpndavvhp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+window.supabaseClient = sb;
+
+// ---- AUTH ----
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'clientes.html'; return; }
+  const { data: profile } = await sb.from('profiles').select('nome,is_admin,tipo').eq('id', session.user.id).single();
+  if (!profile || (!profile.is_admin && profile.tipo !== 'admin')) { window.location.href = 'clientes.html'; return; }
+  document.getElementById('sidebarUser').textContent = profile.nome || session.user.email;
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+async function fazerLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'clientes.html';
+}
+
+// ---- NAVEGAÇÃO ----
+function irPara(secao) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + secao).classList.add('active');
+  document.getElementById('nav-' + secao).classList.add('active');
+  if (secao === 'consultoria') consultoriaCarregar();
+}
+
+// ---- CONSULTORIA ----
+let consMesAtualId = null, consClienteId = null, consMeses = [];
+
+const TIPO_LABEL = {
+  reuniao_alinhamento:'Reunião de Alinhamento', reuniao_resultados:'Reunião de Resultados',
+  plano_estrategico:'Plano Estratégico', processo_financeiro:'Processo Financeiro',
+  reporte_status:'Reporte de Status', hora_adicional:'Hora Adicional', outro:'Outro'
+};
+const AGENDA_LABEL = {
+  reuniao_alinhamento:'Reunião de Alinhamento', reuniao_resultados:'Reunião de Resultados',
+  entrega:'Entrega', outro:'Compromisso'
+};
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function fmtMoeda(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+function fmtData(d){ if(!d)return'—'; const[y,m,dd]=d.split('-'); return`${dd}/${m}/${y}` }
+function fmtComp(d){ if(!d)return'—'; const[y,m]=d.split('-'); return`${MESES[parseInt(m)-1]}/${y}` }
+function badge(s){ const l={pago:'Pago',pendente:'Pendente',atrasado:'Atrasado',concluido:'Concluído',em_andamento:'Em andamento'}; return`<span class="cons-badge ${s}">${l[s]||s}</span>` }
+
+function popularSelectMes(meses){
+  const sel=document.getElementById('cons-select-mes');
+  sel.innerHTML='';
+  if(!meses||!meses.length){sel.innerHTML='<option value="">— Nenhum mês —</option>';return;}
+  meses.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=fmtComp(m.competencia);sel.appendChild(o);});
+}
+
+async function consultoriaCarregar(){
+  consClienteId = document.getElementById('cons-select-cliente').value;
+  const{data:meses}=await sb.from('status_meses').select('*').eq('cliente_id',consClienteId).order('competencia',{ascending:false});
+  consMeses = meses||[];
+  popularSelectMes(consMeses);
+  if(!consMeses.length){
+    limparKpis();
+    document.getElementById('cons-entregas-body').innerHTML='<tr><td colspan="7" class="cons-empty">Nenhum mês cadastrado. Clique em "Novo mês".</td></tr>';
+    document.getElementById('cons-hist-body').innerHTML='<tr><td colspan="6" class="cons-empty">—</td></tr>';
+    document.getElementById('cons-agenda-list').innerHTML='<div class="cons-empty">—</div>';
+    return;
+  }
+  const selId=document.getElementById('cons-select-mes').value||consMeses[0].id;
+  consMesAtualId=selId;
+  const mes=consMeses.find(m=>m.id===selId)||consMeses[0];
+
+  document.getElementById('ck-horas').textContent=`${mes.horas_utilizadas}h`;
+  document.getElementById('ck-horas-sub').textContent=`de 10h contratadas`;
+  document.getElementById('ck-add').textContent=`${mes.horas_adicionais_aprovadas}h`;
+  document.getElementById('ck-vbase').textContent=fmtMoeda(mes.valor_base);
+  document.getElementById('ck-vadd').textContent=fmtMoeda(mes.valor_adicional);
+  document.getElementById('ck-vtotal').textContent=fmtMoeda(mes.valor_total);
+  document.getElementById('ck-pgto').innerHTML=badge(mes.status_pagamento);
+  document.getElementById('ck-pgto-sub').textContent=mes.status_pagamento==='pago'?`Pago em ${fmtData(mes.data_pagamento)}`:`Vence em ${fmtData(mes.data_vencimento)}`;
+
+  const pct=Math.min((mes.horas_utilizadas/10)*100,100);
+  const fill=document.getElementById('cons-prog-fill');
+  fill.style.width=pct+'%';
+  fill.classList.toggle('over',mes.horas_utilizadas>10);
+  document.getElementById('cons-prog-pct').textContent=pct.toFixed(0)+'%';
+  document.getElementById('cons-prog-leg').textContent=`${mes.horas_utilizadas}h de 10h utilizadas`;
+
+  const{data:entregas}=await sb.from('status_entregas').select('*').eq('mes_id',mes.id).order('data_entrega',{ascending:false});
+  document.getElementById('cons-entregas-body').innerHTML=(!entregas||!entregas.length)
+    ?'<tr><td colspan="7" class="cons-empty">Nenhuma atividade lançada.</td></tr>'
+    :entregas.map(e=>`<tr>
+      <td>${fmtData(e.data_entrega)}</td><td>${TIPO_LABEL[e.tipo]||e.tipo}</td>
+      <td>${e.descricao}</td><td>${e.horas}h</td>
+      <td>${e.adicional?'<span class="cons-badge pendente">Sim</span>':'—'}</td>
+      <td>${badge(e.status)}</td>
+      <td><button class="cons-del-btn" onclick="excluirEntrega('${e.id}')"><i class="ti ti-trash" style="font-size:13px"></i></button></td>
+    </tr>`).join('');
+
+  document.getElementById('cons-hist-body').innerHTML=consMeses.map(m=>`<tr>
+    <td>${fmtComp(m.competencia)}</td>
+    <td>${(parseFloat(m.horas_utilizadas)+parseFloat(m.horas_adicionais_aprovadas)).toFixed(1)}h</td>
+    <td>${fmtMoeda(m.valor_total)}</td><td>${fmtData(m.data_vencimento)}</td>
+    <td>${m.data_pagamento?fmtData(m.data_pagamento):'—'}</td>
+    <td>${badge(m.status_pagamento)}</td>
+  </tr>`).join('');
+
+  const hoje=new Date().toISOString().split('T')[0];
+  const{data:agenda}=await sb.from('status_agenda').select('*').eq('cliente_id',consClienteId).gte('data_prevista',hoje).order('data_prevista',{ascending:true}).limit(8);
+  const agList=document.getElementById('cons-agenda-list');
+  if(!agenda||!agenda.length){agList.innerHTML='<div class="cons-empty">Nenhum compromisso agendado.</div>';}
+  else{agList.innerHTML=agenda.map(a=>{const[y,m,d]=a.data_prevista.split('-');return`
+    <div class="cons-agenda-item">
+      <div class="cons-agenda-date"><span class="cons-agenda-day">${d}</span>${MESES[parseInt(m)-1]}</div>
+      <div style="flex:1">
+        <div class="cons-agenda-tipo">${AGENDA_LABEL[a.tipo]||a.tipo}</div>
+        <div class="cons-agenda-desc">${a.descricao}</div>
+        <div class="cons-agenda-fmt">${a.formato==='remoto'?'Remoto':'Presencial'}${a.confirmado?' · Confirmado':' · Aguardando'}</div>
+      </div>
+      <button class="cons-del-btn" onclick="excluirAgenda('${a.id}')"><i class="ti ti-trash" style="font-size:13px"></i></button>
+    </div>`;}).join('');}
+}
+
+function limparKpis(){
+  ['ck-horas','ck-add','ck-vbase','ck-vadd','ck-vtotal'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('ck-pgto').innerHTML='—';
+  document.getElementById('ck-pgto-sub').textContent='—';
+  document.getElementById('cons-prog-fill').style.width='0%';
+}
+
+// Modais
+function consModalMes(){
+  const h=new Date();
+  document.getElementById('cm-competencia').value=h.toISOString().slice(0,7);
+  const d15=new Date(h.getFullYear(),h.getMonth()+1,15);
+  document.getElementById('cm-vencimento').value=d15.toISOString().split('T')[0];
+  document.getElementById('cm-cliente').value=consClienteId||'hawks';
+  document.getElementById('cons-modal-mes').style.display='flex';
+}
+function consModalEntrega(){document.getElementById('ce-data').value=new Date().toISOString().split('T')[0];document.getElementById('cons-modal-entrega').style.display='flex';}
+function consModalPagamento(){document.getElementById('cp-data').value=new Date().toISOString().split('T')[0];document.getElementById('cons-modal-pagamento').style.display='flex';}
+function consModalAgenda(){document.getElementById('ca-data').value=new Date().toISOString().split('T')[0];document.getElementById('cons-modal-agenda').style.display='flex';}
+function consModalFechar(n){document.getElementById(`cons-modal-${n}`).style.display='none';}
+
+async function consSalvarMes(){
+  const clienteId=document.getElementById('cm-cliente').value;
+  const comp=document.getElementById('cm-competencia').value+'-01';
+  const vbase=parseFloat(document.getElementById('cm-vbase').value)||3500;
+  const venc=document.getElementById('cm-vencimento').value;
+  const obs=document.getElementById('cm-obs').value;
+  const{error}=await sb.from('status_meses').insert({cliente_id:clienteId,competencia:comp,horas_utilizadas:0,horas_adicionais_aprovadas:0,valor_base:vbase,valor_adicional:0,valor_total:vbase,data_vencimento:venc,status_pagamento:'pendente',observacoes:obs||null});
+  if(error){alert('Erro: '+error.message);return;}
+  consModalFechar('mes');await consultoriaCarregar();
+}
+
+async function consSalvarEntrega(){
+  if(!consMesAtualId){alert('Selecione um mês primeiro.');return;}
+  const mes=consMeses.find(m=>m.id===consMesAtualId);
+  const horas=parseFloat(document.getElementById('ce-horas').value)||1;
+  const adicional=document.getElementById('ce-adicional').checked;
+  const{error}=await sb.from('status_entregas').insert({mes_id:consMesAtualId,cliente_id:consClienteId,competencia:mes.competencia,data_entrega:document.getElementById('ce-data').value,tipo:document.getElementById('ce-tipo').value,descricao:document.getElementById('ce-descricao').value,horas,adicional,status:document.getElementById('ce-status').value});
+  if(error){alert('Erro: '+error.message);return;}
+  await recalcularHoras(mes);
+  consModalFechar('entrega');await consultoriaCarregar();
+}
+
+async function consSalvarPagamento(){
+  if(!consMesAtualId){alert('Selecione um mês.');return;}
+  const mes=consMeses.find(m=>m.id===consMesAtualId);
+  const status=document.getElementById('cp-status').value;
+  const dataPgto=document.getElementById('cp-data').value;
+  const va=parseFloat(document.getElementById('cp-vadd').value)||0;
+  const{error}=await sb.from('status_meses').update({status_pagamento:status,data_pagamento:status==='pago'?dataPgto:null,valor_adicional:va,horas_adicionais_aprovadas:va/400,valor_total:mes.valor_base+va,updated_at:new Date().toISOString()}).eq('id',consMesAtualId);
+  if(error){alert('Erro: '+error.message);return;}
+  consModalFechar('pagamento');await consultoriaCarregar();
+}
+
+async function consSalvarAgenda(){
+  const{error}=await sb.from('status_agenda').insert({cliente_id:consClienteId,data_prevista:document.getElementById('ca-data').value,tipo:document.getElementById('ca-tipo').value,descricao:document.getElementById('ca-descricao').value,formato:document.getElementById('ca-formato').value,confirmado:document.getElementById('ca-confirmado').checked});
+  if(error){alert('Erro: '+error.message);return;}
+  consModalFechar('agenda');await consultoriaCarregar();
+}
+
+async function recalcularHoras(mes){
+  const{data:todas}=await sb.from('status_entregas').select('horas,adicional').eq('mes_id',consMesAtualId);
+  const ht=(todas||[]).reduce((s,e)=>s+parseFloat(e.horas),0);
+  const ha=(todas||[]).filter(e=>e.adicional).reduce((s,e)=>s+parseFloat(e.horas),0);
+  const va=ha*400;
+  await sb.from('status_meses').update({horas_utilizadas:ht,horas_adicionais_aprovadas:ha,valor_adicional:va,valor_total:mes.valor_base+va,updated_at:new Date().toISOString()}).eq('id',consMesAtualId);
+}
+
+async function excluirEntrega(id){
+  if(!confirm('Excluir esta atividade?'))return;
+  await sb.from('status_entregas').delete().eq('id',id);
+  const mes=consMeses.find(m=>m.id===consMesAtualId);
+  await recalcularHoras(mes);
+  await consultoriaCarregar();
+}
+
+async function excluirAgenda(id){
+  if(!confirm('Excluir este compromisso?'))return;
+  await sb.from('status_agenda').delete().eq('id',id);
+  await consultoriaCarregar();
+}
+
+init();
+</script>
+</body>
+</html>
