@@ -42,7 +42,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .form-btn:disabled{opacity:.5;cursor:not-allowed}
 .error-msg{background:rgba(255,90,90,0.1);border:1px solid rgba(255,90,90,0.3);color:#FF5A5A;padding:.75rem 1rem;font-size:.82rem;margin-bottom:1rem;display:none}
 
-/* DASHBOARD */
+/* DASHBOARD CLIENTE (PJ) */
 .dash-wrap{min-height:calc(100vh - 65px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem}
 .dash-header{text-align:center;margin-bottom:3rem}
 .dash-label{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:1rem}
@@ -51,22 +51,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .dash-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(1.8rem,3vw,2.4rem);font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:.5rem}
 .dash-title em{color:var(--cyan);font-style:normal}
 .dash-sub{font-size:.875rem;color:var(--gray2)}
-.dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(0,174,239,0.12);max-width:700px;width:100%}
-.dash-card{background:var(--navy3);padding:3rem 2rem;display:flex;align-items:center;justify-content:center;min-height:160px;cursor:pointer;transition:background .25s;text-decoration:none;position:relative}
+.dash-grid{display:grid;grid-template-columns:1fr;max-width:380px;width:100%}
+.dash-card{background:var(--navy3);border:1px solid rgba(0,174,239,0.12);padding:3rem 2rem;display:flex;align-items:center;justify-content:center;min-height:160px;cursor:pointer;transition:background .25s;text-decoration:none;position:relative}
 .dash-card:hover{background:#152236}
 .dash-card img{max-height:56px;max-width:160px;object-fit:contain;opacity:.85;transition:opacity .2s}
 .dash-card:hover img{opacity:1}
 .dash-card .card-label{position:absolute;bottom:.75rem;left:0;right:0;text-align:center;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(0,174,239,0.4)}
 .dash-logout{margin-top:2rem;font-size:.75rem;color:var(--gray);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;background:none;border:none;text-decoration:underline;transition:color .2s}
 .dash-logout:hover{color:var(--cyan)}
-.dash-user{font-size:.8rem;color:var(--gray);margin-top:.5rem}
 
 /* Loading */
 .loading-screen{min-height:calc(100vh - 65px);display:flex;align-items:center;justify-content:center}
 .spinner{width:36px;height:36px;border:3px solid rgba(0,174,239,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Hidden */
 .hidden{display:none!important}
 </style>
 </head>
@@ -97,47 +95,18 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
       <label class="form-label">Senha</label>
       <input type="password" class="form-input" id="senhaInput" placeholder="••••••••">
     </div>
-    <button class="form-btn" id="loginBtn" onclick="fazerLogin()">Entrar</button>
+    <button class="form-btn" id="loginBtn">Entrar</button>
   </div>
 </div>
 
-<!-- DASHBOARD ADMIN -->
-<div class="dash-wrap hidden" id="dashAdmin">
-  <div class="dash-header">
-    <div class="dash-label"><span>Área do Cliente</span></div>
-    <h2 class="dash-title">Acesse o <em>Dashboard</em></h2>
-    <p class="dash-sub">Selecione a empresa para acessar os relatórios.</p>
-    <p class="dash-user" id="adminUser"></p>
-  </div>
-  <div class="dash-grid">
-    <a href="hawks.html" class="dash-card">
-      <img src="logo-hawks.png" alt="Hawks">
-      <span class="card-label">Dashboard</span>
-    </a>
-    <a href="fnyx.html" class="dash-card">
-      <img src="logo-fnyx.png" alt="FNYX Cosmetics">
-      <span class="card-label">Dashboard</span>
-    </a>
-    <a href="#" class="dash-card">
-      <img src="logo-oak.png" alt="Oak & Co.">
-      <span class="card-label">Em breve</span>
-    </a>
-    <a href="#" class="dash-card">
-      <img src="logo-mp.png" alt="MP Prudente">
-      <span class="card-label">Em breve</span>
-    </a>
-  </div>
-  <button class="dash-logout" onclick="fazerLogout()">Sair da conta</button>
-</div>
-
-<!-- DASHBOARD CLIENTE -->
+<!-- DASHBOARD CLIENTE PJ -->
 <div class="dash-wrap hidden" id="dashCliente">
   <div class="dash-header">
     <div class="dash-label"><span>Área do Cliente</span></div>
     <h2 class="dash-title">Seu <em>Dashboard</em></h2>
     <p class="dash-sub" id="clienteNome"></p>
   </div>
-  <div class="dash-grid" style="grid-template-columns:1fr;max-width:380px">
+  <div class="dash-grid">
     <a href="#" class="dash-card" id="clienteCard">
       <img src="" alt="" id="clienteLogo">
       <span class="card-label">Acessar Dashboard</span>
@@ -159,9 +128,9 @@ const DASHBOARDS = {
 };
 
 function mostrar(id) {
-  ['loadingScreen','loginScreen','dashAdmin','dashCliente'].forEach(s => {
-    document.getElementById(s).classList.add('hidden');
-  });
+  ['loadingScreen','loginScreen','dashCliente'].forEach(s =>
+    document.getElementById(s).classList.add('hidden')
+  );
   document.getElementById(id).classList.remove('hidden');
 }
 
@@ -169,22 +138,23 @@ async function init() {
   mostrar('loadingScreen');
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { mostrar('loginScreen'); return; }
-  await carregarDash(session.user);
+  await rotear(session.user);
 }
 
-async function carregarDash(user) {
-  const { data: profile } = await sb.from('profiles').select('nome, tipo, dashboard, is_admin').eq('id', user.id).single();
+async function rotear(user) {
+  const { data: profile } = await sb.from('profiles')
+    .select('nome, tipo, dashboard, is_admin')
+    .eq('id', user.id).single();
 
   if (!profile) { mostrar('loginScreen'); return; }
 
-  // Admin vê todos
+  // Admin → vai para admin.html
   if (profile.is_admin || profile.tipo === 'admin') {
-    document.getElementById('adminUser').textContent = `Logado como: ${profile.nome || user.email}`;
-    mostrar('dashAdmin');
+    window.location.href = 'admin.html';
     return;
   }
 
-  // Cliente PJ vê só o seu dashboard
+  // PJ → card do dashboard
   if (profile.tipo === 'PJ' && profile.dashboard && DASHBOARDS[profile.dashboard]) {
     const dash = DASHBOARDS[profile.dashboard];
     document.getElementById('clienteNome').textContent = `Bem-vindo, ${profile.nome || user.email}`;
@@ -195,7 +165,7 @@ async function carregarDash(user) {
     return;
   }
 
-  // PF — redireciona para o portal PF
+  // PF → portal PF
   if (profile.tipo === 'PF') {
     window.location.href = '/pf/app';
     return;
@@ -207,8 +177,8 @@ async function carregarDash(user) {
 async function fazerLogin() {
   const email = document.getElementById('emailInput').value.trim();
   const senha = document.getElementById('senhaInput').value;
-  const btn = document.getElementById('loginBtn');
-  const erro = document.getElementById('errorMsg');
+  const btn   = document.getElementById('loginBtn');
+  const erro  = document.getElementById('errorMsg');
 
   if (!email || !senha) {
     erro.textContent = 'Preencha e-mail e senha.';
@@ -230,7 +200,7 @@ async function fazerLogin() {
     return;
   }
 
-  await carregarDash(data.user);
+  await rotear(data.user);
 }
 
 async function fazerLogout() {
@@ -238,7 +208,10 @@ async function fazerLogout() {
   mostrar('loginScreen');
 }
 
-// Enter para logar
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('loginBtn').addEventListener('click', fazerLogin);
+});
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
     fazerLogin();
