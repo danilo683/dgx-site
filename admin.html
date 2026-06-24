@@ -111,6 +111,7 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
 /* AGENDA */
 .cons-agenda-item{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;border-bottom:0.5px solid var(--border2)}
 .cons-agenda-item:last-child{border-bottom:none}
+.cons-obs-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.85rem}
 .cons-agenda-date{min-width:38px;background:var(--navy2);color:#fff;border-radius:6px;text-align:center;padding:.2rem .3rem;font-size:10px;font-weight:500}
 .cons-agenda-day{font-size:14px;font-weight:600;display:block}
 .cons-agenda-tipo{font-size:10px;color:var(--cyan);font-weight:600;text-transform:uppercase}
@@ -197,6 +198,23 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
         </div>
         <div class="cons-progress-bg"><div class="cons-progress-fill" id="cons-prog-fill" style="width:0%"></div></div>
         <div class="cons-progress-labels"><span id="cons-prog-pct">0%</span><span id="cons-prog-leg">—</span></div>
+      </div>
+
+      <div class="cons-obs-row">
+        <div class="cons-card">
+          <div class="cons-card-header">
+            <span class="cons-card-title"><i class="ti ti-note" style="font-size:14px;margin-right:.3rem"></i>Observações do mês</span>
+            <button class="adm-btn-sm" onclick="salvarObsMes()"><i class="ti ti-device-floppy"></i> Salvar</button>
+          </div>
+          <textarea id="cons-obs-mes" class="adm-input" rows="3" style="resize:vertical;font-size:13px" placeholder="Anotações sobre este mês específico..."></textarea>
+        </div>
+        <div class="cons-card">
+          <div class="cons-card-header">
+            <span class="cons-card-title"><i class="ti ti-user-circle" style="font-size:14px;margin-right:.3rem"></i>Observações do cliente</span>
+            <button class="adm-btn-sm" onclick="salvarObsCliente()"><i class="ti ti-device-floppy"></i> Salvar</button>
+          </div>
+          <textarea id="cons-obs-cliente" class="adm-input" rows="3" style="resize:vertical;font-size:13px" placeholder="Notas permanentes sobre este cliente..."></textarea>
+        </div>
       </div>
 
       <div class="cons-two-col">
@@ -459,6 +477,13 @@ async function consultoriaCarregar(){
     <td>${badge(m.status_pagamento)}</td>
   </tr>`).join('');
 
+  // Obs do mês
+  document.getElementById('cons-obs-mes').value = mes.observacoes || '';
+
+  // Obs do cliente (tabela contratos)
+  const{data:contrato}=await sb.from('contratos').select('observacoes').eq('cliente_id',consClienteId).eq('ativo',true).single();
+  document.getElementById('cons-obs-cliente').value = contrato?.observacoes || '';
+
   const hoje=new Date().toISOString().split('T')[0];
   const{data:agenda}=await sb.from('status_agenda').select('*').eq('cliente_id',consClienteId).gte('data_prevista',hoje).order('data_prevista',{ascending:true}).limit(8);
   const agList=document.getElementById('cons-agenda-list');
@@ -555,6 +580,23 @@ async function excluirAgenda(id){
   if(!confirm('Excluir este compromisso?'))return;
   await sb.from('status_agenda').delete().eq('id',id);
   await consultoriaCarregar();
+}
+
+async function salvarObsMes(){
+  if(!consMesAtualId){alert('Selecione um mês.');return;}
+  const obs=document.getElementById('cons-obs-mes').value;
+  const{error}=await sb.from('status_meses').update({observacoes:obs,updated_at:new Date().toISOString()}).eq('id',consMesAtualId);
+  if(error){alert('Erro: '+error.message);return;}
+  const btn=event.currentTarget; btn.textContent='✓ Salvo'; btn.style.color='#0f6e56';
+  setTimeout(()=>{btn.innerHTML='<i class="ti ti-device-floppy"></i> Salvar';btn.style.color='';},2000);
+}
+
+async function salvarObsCliente(){
+  const obs=document.getElementById('cons-obs-cliente').value;
+  const{error}=await sb.from('contratos').update({observacoes:obs}).eq('cliente_id',consClienteId).eq('ativo',true);
+  if(error){alert('Erro: '+error.message);return;}
+  const btn=event.currentTarget; btn.textContent='✓ Salvo'; btn.style.color='#0f6e56';
+  setTimeout(()=>{btn.innerHTML='<i class="ti ti-device-floppy"></i> Salvar';btn.style.color='';},2000);
 }
 
 init();
