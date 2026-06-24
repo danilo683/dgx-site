@@ -176,6 +176,7 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
           <select id="cons-select-cliente" class="adm-select" onchange="consultoriaCarregar()">
             <option value="hawks">Hawks Beauty</option>
             <option value="fnyx">Fnyx Cosmetics</option>
+            <option value="teste">🧪 Cliente Teste</option>
           </select>
           <select id="cons-select-mes" class="adm-select" onchange="consultoriaCarregar()"></select>
           <button class="adm-btn-primary" onclick="consModalMes()"><i class="ti ti-plus"></i> Novo mês</button>
@@ -257,7 +258,7 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
     <div class="adm-modal-header"><span>Abrir novo mês</span><button onclick="consModalFechar('mes')"><i class="ti ti-x"></i></button></div>
     <div class="adm-modal-body">
       <div class="adm-form-row"><label>Cliente</label>
-        <select id="cm-cliente" class="adm-select" style="width:100%"><option value="hawks">Hawks Beauty</option><option value="fnyx">Fnyx Cosmetics</option></select>
+        <select id="cm-cliente" class="adm-select" style="width:100%"><option value="hawks">Hawks Beauty</option><option value="fnyx">Fnyx Cosmetics</option><option value="teste">🧪 Cliente Teste</option></select>
       </div>
       <div class="adm-form-row"><label>Competência</label><input type="month" id="cm-competencia" class="adm-input"></div>
       <div class="adm-form-row"><label>Valor base mensal (R$)</label><input type="number" id="cm-vbase" class="adm-input" value="3500" step="0.01"></div>
