@@ -245,7 +245,8 @@ async function carregarDadosHawks() {
       var d = new Date(r.competencia);
       MG.meses.push(MESES_LABEL[d.getMonth()]+'/'+String(d.getFullYear()).slice(2));
       MG.receitaLiq.push(n(r.receita_liquida));
-      MG.cmv.push(n(r.cmv_liquido) !== null ? Math.abs(n(r.cmv_liquido)) : n(r.receita_liquida) - n(r.margem_bruta));
+      const cmvH = n(r.cmv_liquido);
+      MG.cmv.push(cmvH !== 0 ? Math.abs(cmvH) : Math.abs(n(r.receita_liquida) - n(r.margem_bruta)));
       MG.margemBruta.push(n(r.margem_bruta));
     });
   }
