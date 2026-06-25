@@ -247,12 +247,16 @@ async function carregarDadosHawks() {
   if (margem && margem.length) {
     MG.meses = []; MG.receitaLiq = []; MG.cmv = []; MG.margemBruta = [];
     margem.forEach(function(r) {
+      // Só incluir meses com receita líquida válida (> 0)
+      var rl = n(r.receita_liquida);
+      var mb = n(r.margem_bruta);
+      if (!rl && !mb) return; // pula meses sem dados
       var pc = parseComp(r.competencia);
       MG.meses.push(MESES_LABEL[pc.mes]+'/'+String(pc.ano).slice(2));
-      MG.receitaLiq.push(n(r.receita_liquida));
+      MG.receitaLiq.push(rl);
       const cmvH = n(r.cmv_liquido);
-      MG.cmv.push(cmvH !== 0 ? Math.abs(cmvH) : Math.abs(n(r.receita_liquida) - n(r.margem_bruta)));
-      MG.margemBruta.push(n(r.margem_bruta));
+      MG.cmv.push(cmvH !== 0 ? Math.abs(cmvH) : Math.abs(rl - mb));
+      MG.margemBruta.push(mb);
     });
   }
 
@@ -453,10 +457,16 @@ function initMargem(){
   var existing=Chart.getChart('chartMargem');if(existing)existing.destroy();
   setTimeout(function(){
     var tc='#6b7a8d',gc='rgba(0,0,0,0.07)';
-    var pctM=MG.receitaLiq.map(function(rl,i){return parseFloat(((rl-MG.cmv[i])/rl*100).toFixed(1));});
+    // % Margem calculada diretamente de margemBruta/receitaLiq (mais precisa)
+    var pctM=MG.receitaLiq.map(function(rl,i){
+      if(!rl||rl===0) return 0;
+      return parseFloat((MG.margemBruta[i]/rl*100).toFixed(1));
+    });
+    var pctMin=Math.max(0, Math.floor(Math.min.apply(null,pctM)-5));
+    var pctMax=Math.ceil(Math.max.apply(null,pctM)+5);
     var fR=function(v){return'R$ '+Math.round(v/1000)+'K';};
     var annotPlugin={id:'annotMargem',afterDatasetsDraw:function(chart){var ctx=chart.ctx;chart.getDatasetMeta(0).data.forEach(function(bar,i){ctx.save();ctx.font='600 11px sans-serif';ctx.fillStyle='#2ECC71';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(pctM[i].toFixed(1)+'%',bar.x,bar.y-4);ctx.restore();});}};
-    new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:MG.meses,datasets:[{label:'Receita L\u00edquida',data:MG.receitaLiq,backgroundColor:'#1E2D40',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV',data:MG.cmv,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fR(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:90,max:100,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
+    new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:MG.meses,datasets:[{label:'Receita L\u00edquida',data:MG.receitaLiq,backgroundColor:'#1E2D40',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV',data:MG.cmv,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fR(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:pctMin,max:pctMax,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
   },100);
 }
 var MESES_LABELS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
