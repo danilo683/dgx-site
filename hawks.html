@@ -212,6 +212,11 @@ function n(v){return v!==null&&v!==undefined ? parseFloat(v) : null;}
 
 async function carregarDadosHawks() {
   const MESES_LABEL = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  // Parser seguro de data — evita bug de timezone (new Date('2026-01-01') = Dez/25 em UTC-3)
+  const parseComp = function(dateStr) {
+    const parts = dateStr.split('-');
+    return { ano: parseInt(parts[0]), mes: parseInt(parts[1]) - 1, dia: parseInt(parts[2]) };
+  };
 
   // VENDAS
   const {data:vendas} = await sb.from('dash_vendas').select('*')
@@ -222,7 +227,7 @@ async function carregarDadosHawks() {
     ['hc','pr','co','qu'].forEach(k => V.cat[k] = Array(12).fill(null));
     ['salao','loja','func'].forEach(k => V.vol[k] = Array(12).fill(null));
     vendas.forEach(function(r) {
-      var mi = new Date(r.competencia).getMonth();
+      var mi = parseComp(r.competencia).mes;
       V.canal.salao[mi] = n(r.canal_salao);
       V.canal.loja[mi]  = n(r.canal_loja);
       V.canal.func[mi]  = n(r.canal_func);
@@ -242,8 +247,8 @@ async function carregarDadosHawks() {
   if (margem && margem.length) {
     MG.meses = []; MG.receitaLiq = []; MG.cmv = []; MG.margemBruta = [];
     margem.forEach(function(r) {
-      var d = new Date(r.competencia);
-      MG.meses.push(MESES_LABEL[d.getMonth()]+'/'+String(d.getFullYear()).slice(2));
+      var pc = parseComp(r.competencia);
+      MG.meses.push(MESES_LABEL[pc.mes]+'/'+String(pc.ano).slice(2));
       MG.receitaLiq.push(n(r.receita_liquida));
       const cmvH = n(r.cmv_liquido);
       MG.cmv.push(cmvH !== 0 ? Math.abs(cmvH) : Math.abs(n(r.receita_liquida) - n(r.margem_bruta)));
@@ -257,8 +262,8 @@ async function carregarDadosHawks() {
   if (dre && dre.length) {
     Object.keys(DRE_DADOS).forEach(k => DRE_DADOS[k] = []);
     dre.forEach(function(r) {
-      var d = new Date(r.competencia);
-      DRE_DADOS.meses.push(MESES_LABEL[d.getMonth()]+'/'+String(d.getFullYear()).slice(2));
+      var pd = parseComp(r.competencia);
+      DRE_DADOS.meses.push(MESES_LABEL[pd.mes]+'/'+String(pd.ano).slice(2));
       DRE_DADOS.recBruta.push(n(r.rec_bruta));
       DRE_DADOS.devDevolucoes.push(n(r.dev_devolucoes));
       DRE_DADOS.impVendas.push(n(r.imp_vendas));
@@ -284,7 +289,7 @@ async function carregarDadosHawks() {
   MESES_COM_DADOS = [];
   if (dfc && dfc.length) {
     dfc.forEach(function(r) {
-      var mi = new Date(r.competencia).getMonth();
+      var mi = parseComp(r.competencia).mes;
       MESES_COM_DADOS.push(mi);
       DFC_DADOS[mi] = {
         caixaInicial: n(r.caixa_inicial), recVendas: n(r.rec_vendas),
@@ -302,19 +307,18 @@ async function carregarDadosHawks() {
 
   // Atualiza período na topbar
   if (vendas && vendas.length > 1) {
-    var primeiro = new Date(vendas[0].competencia);
-    var ultimo = new Date(vendas[vendas.length-1].competencia);
-    var mLabel = function(d){ return MESES_LABEL[d.getMonth()]; };
-    periods.vendas = mLabel(primeiro)+' \u2013 '+mLabel(ultimo)+' '+ultimo.getFullYear();
+    var primeiro = parseComp(vendas[0].competencia);
+    var ultimo = parseComp(vendas[vendas.length-1].competencia);
+    periods.vendas = MESES_LABEL[primeiro.mes]+' \u2013 '+MESES_LABEL[ultimo.mes]+' '+ultimo.ano;
     periods.dre = periods.vendas;
   }
   if (margem && margem.length > 1) {
-    var p = new Date(margem[0].competencia), u = new Date(margem[margem.length-1].competencia);
-    periods.margem = MESES_LABEL[p.getMonth()]+' \u2013 '+MESES_LABEL[u.getMonth()]+' '+u.getFullYear();
+    var p = parseComp(margem[0].competencia), u = parseComp(margem[margem.length-1].competencia);
+    periods.margem = MESES_LABEL[p.mes]+' \u2013 '+MESES_LABEL[u.mes]+' '+u.ano;
   }
   if (dfc && dfc.length > 1) {
-    var p2 = new Date(dfc[0].competencia), u2 = new Date(dfc[dfc.length-1].competencia);
-    periods.dfc = MESES_LABEL[p2.getMonth()]+' \u2013 '+MESES_LABEL[u2.getMonth()]+' '+u2.getFullYear();
+    var p2 = parseComp(dfc[0].competencia), u2 = parseComp(dfc[dfc.length-1].competencia);
+    periods.dfc = MESES_LABEL[p2.mes]+' \u2013 '+MESES_LABEL[u2.mes]+' '+u2.ano;
   }
 }
 
