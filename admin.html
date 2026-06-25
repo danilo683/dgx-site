@@ -769,7 +769,13 @@ async function salvarObsCliente(){
 // ============================================================
 function lancamentoInit() {
   const el = document.getElementById('lanc-mes');
-  if (el && !el.value) el.value = new Date().toISOString().slice(0, 7);
+  if (el && !el.value) {
+    // Usa data LOCAL para evitar problema de timezone (ex: 2025-11 em vez de 2026-01)
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    el.value = ano + '-' + mes;
+  }
   lancamentoCarregar();
 }
 
@@ -831,10 +837,24 @@ async function lancSalvar(modulo) {
   const clienteId = document.getElementById('lanc-cliente').value;
   const mes = document.getElementById('lanc-mes').value;
   if (!mes) { alert('Selecione o mês.'); return; }
+  // Validação extra: confirmar o mês antes de salvar
+  const [anoStr, mesStr] = mes.split('-');
+  const ano = parseInt(anoStr), mesN = parseInt(mesStr);
+  if (ano < 2020 || ano > 2030 || mesN < 1 || mesN > 12) {
+    alert('Mês inválido: ' + mes + '. Selecione novamente.');
+    return;
+  }
   const comp = mes + '-01';
   const statusEl = document.getElementById('lanc-' + modulo + '-status');
   statusEl.textContent = 'Salvando...'; statusEl.className = 'lanc-status';
-  const g = id => parseFloat(document.getElementById(id)?.value) || 0;
+  // gV retorna null se campo vazio (evita salvar zeros indesejados)
+  // gN retorna 0 se campo vazio (para campos que podem ser legitimamente 0)
+  const gV = id => {
+    const el = document.getElementById(id);
+    const v = el?.value;
+    return (v === '' || v === null || v === undefined) ? null : parseFloat(v);
+  };
+  const g = id => gV(id) ?? 0;
 
   let payload = { cliente_id: clienteId, competencia: comp, updated_at: new Date().toISOString() };
   if (modulo === 'vendas') Object.assign(payload, {
