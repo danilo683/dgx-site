@@ -278,6 +278,9 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
           <button class="adm-btn-primary" onclick="lancamentoCarregar()">
             <i class="ti ti-search"></i> Carregar
           </button>
+          <button class="adm-btn-ghost" onclick="lancLimparMes()" style="border-color:#e24b4a;color:#e24b4a" title="Apaga todos os dados deste mês no Supabase">
+            <i class="ti ti-trash"></i> Limpar mês
+          </button>
         </div>
       </div>
 
@@ -912,6 +915,40 @@ async function lancSalvar(modulo) {
   const { error } = await sb.from('dash_' + modulo).upsert(payload, { onConflict: 'cliente_id,competencia' });
   if (error) { statusEl.textContent = 'Erro: ' + error.message; statusEl.className = 'lanc-status erro'; }
   else { statusEl.textContent = '✓ Salvo'; setTimeout(() => statusEl.textContent = '', 3000); }
+}
+
+async function lancLimparMes() {
+  const clienteId = document.getElementById('lanc-cliente').value;
+  const mes = document.getElementById('lanc-mes').value;
+  if (!mes) { alert('Selecione o mês primeiro.'); return; }
+  const [anoStr, mesStr] = mes.split('-');
+  const comp = mes + '-01';
+  const clienteNome = document.getElementById('lanc-cliente').options[document.getElementById('lanc-cliente').selectedIndex].text;
+  const mesLabel = mesStr + '/' + anoStr;
+
+  if (!confirm(`Tem certeza que deseja apagar todos os dados de ${clienteNome} — ${mesLabel}?\n\nEsta ação não pode ser desfeita.`)) return;
+
+  const tabelas = ['dash_vendas', 'dash_margem', 'dash_dre', 'dash_dfc'];
+  let erros = [];
+
+  for (const tabela of tabelas) {
+    const { error } = await sb.from(tabela)
+      .delete()
+      .eq('cliente_id', clienteId)
+      .eq('competencia', comp);
+    if (error) erros.push(tabela + ': ' + error.message);
+  }
+
+  if (erros.length) {
+    alert('Erros ao limpar:\n' + erros.join('\n'));
+  } else {
+    lancLimparCampos();
+    // Mostrar feedback visual
+    const btns = document.querySelectorAll('.lanc-status');
+    btns.forEach(el => { el.textContent = '✓ Mês apagado'; el.className = 'lanc-status'; });
+    setTimeout(() => btns.forEach(el => el.textContent = ''), 3000);
+    alert(`Dados de ${clienteNome} — ${mesLabel} apagados com sucesso.`);
+  }
 }
 
 init();
