@@ -270,11 +270,14 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
           <p class="adm-page-sub">Alimente os dashboards com os dados validados</p>
         </div>
         <div style="display:flex;gap:.6rem;align-items:center">
-          <select id="lanc-cliente" class="adm-select" onchange="lancamentoCarregar()">
+          <select id="lanc-cliente" class="adm-select">
             <option value="hawks">Hawks Beauty</option>
             <option value="fnyx">Fnyx Cosmetics</option>
           </select>
-          <input type="month" id="lanc-mes" class="adm-select" onchange="lancamentoCarregar()">
+          <input type="month" id="lanc-mes" class="adm-select">
+          <button class="adm-btn-primary" onclick="lancamentoCarregar()">
+            <i class="ti ti-search"></i> Carregar
+          </button>
         </div>
       </div>
 
@@ -770,13 +773,14 @@ async function salvarObsCliente(){
 function lancamentoInit() {
   const el = document.getElementById('lanc-mes');
   if (el && !el.value) {
-    // Usa data LOCAL para evitar problema de timezone (ex: 2025-11 em vez de 2026-01)
+    // Usa data LOCAL para evitar problema de timezone
     const hoje = new Date();
     const ano = hoje.getFullYear();
     const mes = String(hoje.getMonth() + 1).padStart(2, '0');
     el.value = ano + '-' + mes;
   }
-  lancamentoCarregar();
+  // NÃO carrega automaticamente — usuário deve clicar em "Carregar"
+  lancLimparCampos();
 }
 
 function lancTab(nome, el) {
@@ -784,6 +788,24 @@ function lancTab(nome, el) {
   document.querySelectorAll('.lanc-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('lanc-' + nome).style.display = '';
   el.classList.add('active');
+}
+
+function lancLimparCampos() {
+  // Limpa todos os campos para evitar dados residuais
+  const ids = [
+    'v-canal-salao','v-canal-loja','v-canal-func','v-canal-outros',
+    'v-cat-homecare','v-cat-profissional','v-cat-coloracao','v-cat-tratamento','v-cat-quimica','v-cat-outros',
+    'v-vol-salao','v-vol-loja','v-vol-func','v-vol-total',
+    'm-rec-bruta','m-rec-liq','m-cmv-bruto','m-politica','m-cmv-liq','m-margem-bruta',
+    'd-rec-bruta','d-devolucoes','d-imp-vendas','d-cmv','d-pessoal','d-prolabore',
+    'd-mkt','d-comissoes','d-logistica','d-ocupacao','d-gerais','d-terceiros','d-impostos',
+    'd-rec-financ','d-desp-financ',
+    'f-caixa-ini','f-rec-vendas','f-emprestimos','f-ent-invest',
+    'f-pgto-truss','f-pgto-nao-truss','f-pgto-pessoal','f-pgto-prolabore','f-pgto-mkt',
+    'f-pgto-comissoes','f-pgto-logistica','f-pgto-ocupacao','f-pgto-gerais',
+    'f-pgto-terceiros','f-pgto-impostos','f-sai-invest','f-pgto-financ'
+  ];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
 }
 
 async function lancamentoCarregar() {
