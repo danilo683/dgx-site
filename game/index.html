@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manager FC</title>
-  <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <style>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --bg: #0f1117;
@@ -140,10 +139,13 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
   text-align: center;
 }
 
-.pos-GOL { background: #7b2d00; color: #ffaa77; }
-.pos-DEF { background: #003a7b; color: #77aaff; }
+.pos-GOL { background: #5c2d00; color: #ffaa77; }
+.pos-LD  { background: #003a7b; color: #77aaff; }
+.pos-ZAG { background: #00307b; color: #88bbff; }
+.pos-LE  { background: #003a7b; color: #77aaff; }
+.pos-VOL { background: #1a4a1a; color: #88dd88; }
 .pos-MEI { background: #1a5c1a; color: #77dd77; }
-.pos-ATK { background: #5c1a1a; color: #ff8888; }
+.pos-ATA { background: #5c1a1a; color: #ff8888; }
 
 .jogador-nome { flex: 1; font-size: 13px; }
 
@@ -391,379 +393,1097 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 }
 
 .btn-primario:hover { opacity: .85; }
-  </style>
+
+/* ── Tela intro / criar manager ── */
+.tela-intro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+}
+
+.intro-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.intro-logo { font-size: 48px; margin-bottom: 12px; }
+.intro-card h2 { font-size: 22px; margin-bottom: 6px; }
+.intro-sub { color: var(--text2); font-size: 13px; margin-bottom: 28px; }
+
+.form-group { text-align: left; margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.form-group input, .form-group select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ── Lista de técnicos ── */
+.lista-tecnicos { display: flex; flex-direction: column; gap: 10px; }
+
+.card-tecnico {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color .15s, transform .1s;
+}
+.card-tecnico:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+.tecnico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.tecnico-nome { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.tecnico-meta { font-size: 12px; color: var(--text2); }
+.flag { font-size: 14px; }
+
+.overall-grande {
+  font-size: 28px;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: center;
+}
+
+.tecnico-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.tstat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.tstat-label { color: var(--text2); }
+.tstat-val   { font-weight: 600; }
+
+/* ── Card staff técnico ── */
+.card-staff-tecnico {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.staff-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.staff-cargo { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.staff-nome  { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+.staff-meta  { font-size: 12px; color: var(--text2); }
+
+.btn-demitir {
+  margin-top: 16px;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background .15s;
+}
+.btn-demitir:hover { background: rgba(231,76,60,.1); }
+
+/* ── Vagas de staff ── */
+.vagas-staff { margin-top: 8px; }
+
+.vaga-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.vaga-item:last-child { border-bottom: none; }
+.vaga-cargo { color: var(--text2); }
+
+.vaga-badge {
+  font-size: 11px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+/* ── Header atualizado ── */
+.header-info-group { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--text2); }
+.header-info-group strong { color: var(--text); }
+
+.tela-selecao h2 { font-size: 18px; margin-bottom: 6px; }
+.tela-selecao .sub { color: var(--text2); margin-bottom: 24px; font-size: 13px; }</style>
 </head>
 <body>
   <div id="app">
     <header>
       <h1>⚽ Manager FC</h1>
-      <span id="header-info" class="hidden">
-        Gerenciando: <strong id="header-clube"></strong>
-      </span>
+      <div id="header-info" class="hidden header-info-group">
+        <span>Manager: <strong id="header-manager"></strong></span>
+        <span>Clube: <strong id="header-clube"></strong></span>
+        <span>Técnico: <strong id="header-tecnico"></strong></span>
+      </div>
     </header>
     <nav id="nav" class="hidden">
       <button data-aba="campeonato" class="ativo">Campeonato</button>
       <button data-aba="tabela">Tabela</button>
       <button data-aba="elenco">Elenco</button>
+      <button data-aba="staff">Comissão</button>
     </nav>
     <main id="main"></main>
   </div>
-
-  <script>
-const CLUBES = [
+  <script>const CLUBES = [
   {
-    id: "flamengo",
-    nome: "Flamengo",
-    sigla: "FLA",
-    cor: "#E8000D",
+    id: "flamengo", nome: "Flamengo", sigla: "FLA", cor: "#E8000D",
     jogadores: [
-      { id: "p01", nome: "Rossi",        posicao: "GOL", overall: 82 },
-      { id: "p02", nome: "Varela",        posicao: "DEF", overall: 75 },
-      { id: "p03", nome: "Léo Pereira",   posicao: "DEF", overall: 78 },
-      { id: "p04", nome: "Ayrton Lucas",  posicao: "DEF", overall: 74 },
-      { id: "p05", nome: "Fabrício Bruno",posicao: "DEF", overall: 76 },
-      { id: "p06", nome: "Pulgar",        posicao: "MEI", overall: 77 },
-      { id: "p07", nome: "De la Cruz",    posicao: "MEI", overall: 83 },
-      { id: "p08", nome: "Gerson",        posicao: "MEI", overall: 80 },
-      { id: "p09", nome: "Arrascaeta",    posicao: "MEI", overall: 87 },
-      { id: "p10", nome: "Bruno Henrique",posicao: "ATK", overall: 79 },
-      { id: "p11", nome: "Gabigol",       posicao: "ATK", overall: 84 },
-      { id: "p12", nome: "Pedro",         posicao: "ATK", overall: 86 },
+      { id: "p001", nome: "Rossi",            posicao: "GOL", overall: 83 },
+      { id: "p002", nome: "Matheus Cunha",     posicao: "GOL", overall: 71 },
+      { id: "p003", nome: "Varela",            posicao: "LD",  overall: 76 },
+      { id: "p004", nome: "Guillermo Varela",  posicao: "LD",  overall: 72 },
+      { id: "p005", nome: "Léo Pereira",       posicao: "ZAG", overall: 79 },
+      { id: "p006", nome: "Fabrício Bruno",    posicao: "ZAG", overall: 77 },
+      { id: "p007", nome: "David Luiz",        posicao: "ZAG", overall: 74 },
+      { id: "p008", nome: "Cleiton",           posicao: "ZAG", overall: 70 },
+      { id: "p009", nome: "Ayrton Lucas",      posicao: "LE",  overall: 78 },
+      { id: "p010", nome: "Matheus Alexandre", posicao: "LE",  overall: 68 },
+      { id: "p011", nome: "Pulgar",            posicao: "VOL", overall: 77 },
+      { id: "p012", nome: "Erick Pulgar",      posicao: "VOL", overall: 74 },
+      { id: "p013", nome: "Allan",             posicao: "VOL", overall: 72 },
+      { id: "p014", nome: "Gerson",            posicao: "MEI", overall: 82 },
+      { id: "p015", nome: "De la Cruz",        posicao: "MEI", overall: 84 },
+      { id: "p016", nome: "Arrascaeta",        posicao: "MEI", overall: 88 },
+      { id: "p017", nome: "Victor Hugo",       posicao: "MEI", overall: 69 },
+      { id: "p018", nome: "Luiz Araújo",       posicao: "MEI", overall: 76 },
+      { id: "p019", nome: "Bruno Henrique",    posicao: "ATA", overall: 80 },
+      { id: "p020", nome: "Gabigol",           posicao: "ATA", overall: 84 },
+      { id: "p021", nome: "Pedro",             posicao: "ATA", overall: 87 },
+      { id: "p022", nome: "Carlinhos",         posicao: "ATA", overall: 71 },
+      { id: "p023", nome: "Everton Cebolinha", posicao: "ATA", overall: 75 },
+      { id: "p024", nome: "Michael",           posicao: "ATA", overall: 73 },
+      { id: "p025", nome: "Plata",             posicao: "ATA", overall: 72 },
     ]
   },
   {
-    id: "palmeiras",
-    nome: "Palmeiras",
-    sigla: "PAL",
-    cor: "#006437",
+    id: "palmeiras", nome: "Palmeiras", sigla: "PAL", cor: "#006437",
     jogadores: [
-      { id: "p13", nome: "Weverton",      posicao: "GOL", overall: 85 },
-      { id: "p14", nome: "Marcos Rocha",  posicao: "DEF", overall: 74 },
-      { id: "p15", nome: "Murilo",        posicao: "DEF", overall: 80 },
-      { id: "p16", nome: "Gustavo Gómez", posicao: "DEF", overall: 83 },
-      { id: "p17", nome: "Piquerez",      posicao: "DEF", overall: 78 },
-      { id: "p18", nome: "Aníbal Moreno", posicao: "MEI", overall: 79 },
-      { id: "p19", nome: "Raphael Veiga", posicao: "MEI", overall: 85 },
-      { id: "p20", nome: "Zé Rafael",     posicao: "MEI", overall: 76 },
-      { id: "p21", nome: "Estêvão",       posicao: "MEI", overall: 82 },
-      { id: "p22", nome: "Rony",          posicao: "ATK", overall: 77 },
-      { id: "p23", nome: "Flaco López",   posicao: "ATK", overall: 80 },
-      { id: "p24", nome: "Endrick",       posicao: "ATK", overall: 81 },
+      { id: "p026", nome: "Weverton",          posicao: "GOL", overall: 86 },
+      { id: "p027", nome: "Marcelo Lomba",     posicao: "GOL", overall: 72 },
+      { id: "p028", nome: "Marcos Rocha",      posicao: "LD",  overall: 75 },
+      { id: "p029", nome: "Mayke",             posicao: "LD",  overall: 73 },
+      { id: "p030", nome: "Gustavo Gómez",     posicao: "ZAG", overall: 84 },
+      { id: "p031", nome: "Murilo",            posicao: "ZAG", overall: 81 },
+      { id: "p032", nome: "Naves",             posicao: "ZAG", overall: 70 },
+      { id: "p033", nome: "Michel",            posicao: "ZAG", overall: 68 },
+      { id: "p034", nome: "Piquerez",          posicao: "LE",  overall: 80 },
+      { id: "p035", nome: "Vanderlan",         posicao: "LE",  overall: 70 },
+      { id: "p036", nome: "Aníbal Moreno",     posicao: "VOL", overall: 80 },
+      { id: "p037", nome: "Zé Rafael",         posicao: "VOL", overall: 77 },
+      { id: "p038", nome: "Richard Ríos",      posicao: "VOL", overall: 79 },
+      { id: "p039", nome: "Raphael Veiga",     posicao: "MEI", overall: 86 },
+      { id: "p040", nome: "Estêvão",           posicao: "MEI", overall: 83 },
+      { id: "p041", nome: "Felipe Anderson",   posicao: "MEI", overall: 80 },
+      { id: "p042", nome: "Gabriel Menino",    posicao: "MEI", overall: 76 },
+      { id: "p043", nome: "Lázaro",            posicao: "MEI", overall: 70 },
+      { id: "p044", nome: "Flaco López",       posicao: "ATA", overall: 81 },
+      { id: "p045", nome: "Endrick",           posicao: "ATA", overall: 82 },
+      { id: "p046", nome: "Rony",              posicao: "ATA", overall: 78 },
+      { id: "p047", nome: "Bruno Rodrigues",   posicao: "ATA", overall: 72 },
+      { id: "p048", nome: "Mauricio",          posicao: "ATA", overall: 74 },
+      { id: "p049", nome: "Dudu",              posicao: "ATA", overall: 76 },
+      { id: "p050", nome: "Caio Paulista",     posicao: "ATA", overall: 69 },
     ]
   },
   {
-    id: "corinthians",
-    nome: "Corinthians",
-    sigla: "COR",
-    cor: "#000000",
+    id: "corinthians", nome: "Corinthians", sigla: "COR", cor: "#1a1a1a",
     jogadores: [
-      { id: "p25", nome: "Hugo Souza",    posicao: "GOL", overall: 78 },
-      { id: "p26", nome: "Fagner",        posicao: "DEF", overall: 73 },
-      { id: "p27", nome: "Gil",           posicao: "DEF", overall: 74 },
-      { id: "p28", nome: "Félix Torres",  posicao: "DEF", overall: 76 },
-      { id: "p29", nome: "Hugo",          posicao: "DEF", overall: 70 },
-      { id: "p30", nome: "Raniele",       posicao: "MEI", overall: 72 },
-      { id: "p31", nome: "Charles",       posicao: "MEI", overall: 75 },
-      { id: "p32", nome: "Rodrigo Garro", posicao: "MEI", overall: 82 },
-      { id: "p33", nome: "Wesley",        posicao: "MEI", overall: 74 },
-      { id: "p34", nome: "Romero",        posicao: "ATK", overall: 76 },
-      { id: "p35", nome: "Yuri Alberto",  posicao: "ATK", overall: 80 },
-      { id: "p36", nome: "Memphis",       posicao: "ATK", overall: 83 },
+      { id: "p051", nome: "Hugo Souza",        posicao: "GOL", overall: 79 },
+      { id: "p052", nome: "Carlos Miguel",     posicao: "GOL", overall: 73 },
+      { id: "p053", nome: "Fagner",            posicao: "LD",  overall: 73 },
+      { id: "p054", nome: "Léo Maná",          posicao: "LD",  overall: 67 },
+      { id: "p055", nome: "Félix Torres",      posicao: "ZAG", overall: 77 },
+      { id: "p056", nome: "Gil",               posicao: "ZAG", overall: 74 },
+      { id: "p057", nome: "Cacá",              posicao: "ZAG", overall: 75 },
+      { id: "p058", nome: "João Pedro Tchoca", posicao: "ZAG", overall: 65 },
+      { id: "p059", nome: "Hugo",              posicao: "LE",  overall: 71 },
+      { id: "p060", nome: "Matheus Bidu",      posicao: "LE",  overall: 68 },
+      { id: "p061", nome: "Raniele",           posicao: "VOL", overall: 73 },
+      { id: "p062", nome: "Charles",           posicao: "VOL", overall: 75 },
+      { id: "p063", nome: "Breno Bidon",       posicao: "VOL", overall: 72 },
+      { id: "p064", nome: "Rodrigo Garro",     posicao: "MEI", overall: 83 },
+      { id: "p065", nome: "Wesley",            posicao: "MEI", overall: 75 },
+      { id: "p066", nome: "Igor Coronado",     posicao: "MEI", overall: 74 },
+      { id: "p067", nome: "Giulio Dourado",    posicao: "MEI", overall: 68 },
+      { id: "p068", nome: "Ruan Oliveira",     posicao: "MEI", overall: 66 },
+      { id: "p069", nome: "Memphis",           posicao: "ATA", overall: 84 },
+      { id: "p070", nome: "Yuri Alberto",      posicao: "ATA", overall: 81 },
+      { id: "p071", nome: "Romero",            posicao: "ATA", overall: 77 },
+      { id: "p072", nome: "Talles Magno",      posicao: "ATA", overall: 73 },
+      { id: "p073", nome: "Pedro Raul",        posicao: "ATA", overall: 70 },
+      { id: "p074", nome: "Giovane",           posicao: "ATA", overall: 67 },
+      { id: "p075", nome: "Arthur Sousa",      posicao: "MEI", overall: 65 },
     ]
   },
   {
-    id: "saopulo",
-    nome: "São Paulo",
-    sigla: "SPF",
-    cor: "#CC0000",
+    id: "saopulo", nome: "São Paulo", sigla: "SPF", cor: "#CC0000",
     jogadores: [
-      { id: "p37", nome: "Rafael",        posicao: "GOL", overall: 80 },
-      { id: "p38", nome: "Rafinha",       posicao: "DEF", overall: 73 },
-      { id: "p39", nome: "Arboleda",      posicao: "DEF", overall: 77 },
-      { id: "p40", nome: "Alan Franco",   posicao: "DEF", overall: 75 },
-      { id: "p41", nome: "Welington",     posicao: "DEF", overall: 74 },
-      { id: "p42", nome: "Luiz Gustavo",  posicao: "MEI", overall: 73 },
-      { id: "p43", nome: "Alisson",       posicao: "MEI", overall: 76 },
-      { id: "p44", nome: "Nestor",        posicao: "MEI", overall: 74 },
-      { id: "p45", nome: "Lucas",         posicao: "MEI", overall: 81 },
-      { id: "p46", nome: "Ferreira",      posicao: "ATK", overall: 75 },
-      { id: "p47", nome: "Calleri",       posicao: "ATK", overall: 82 },
-      { id: "p48", nome: "Luciano",       posicao: "ATK", overall: 78 },
+      { id: "p076", nome: "Rafael",            posicao: "GOL", overall: 81 },
+      { id: "p077", nome: "Jandrei",           posicao: "GOL", overall: 72 },
+      { id: "p078", nome: "Rafinha",           posicao: "LD",  overall: 74 },
+      { id: "p079", nome: "Igor Vinícius",     posicao: "LD",  overall: 69 },
+      { id: "p080", nome: "Arboleda",          posicao: "ZAG", overall: 78 },
+      { id: "p081", nome: "Alan Franco",       posicao: "ZAG", overall: 76 },
+      { id: "p082", nome: "Diego Costa",       posicao: "ZAG", overall: 73 },
+      { id: "p083", nome: "Ruan",              posicao: "ZAG", overall: 67 },
+      { id: "p084", nome: "Welington",         posicao: "LE",  overall: 75 },
+      { id: "p085", nome: "Michel Araújo",     posicao: "LE",  overall: 70 },
+      { id: "p086", nome: "Luiz Gustavo",      posicao: "VOL", overall: 74 },
+      { id: "p087", nome: "Alisson",           posicao: "VOL", overall: 77 },
+      { id: "p088", nome: "Pablo Maia",        posicao: "VOL", overall: 75 },
+      { id: "p089", nome: "Lucas",             posicao: "MEI", overall: 82 },
+      { id: "p090", nome: "Nestor",            posicao: "MEI", overall: 75 },
+      { id: "p091", nome: "Rodrigo Nestor",    posicao: "MEI", overall: 72 },
+      { id: "p092", nome: "Galoppo",           posicao: "MEI", overall: 74 },
+      { id: "p093", nome: "Wellington Rato",   posicao: "MEI", overall: 71 },
+      { id: "p094", nome: "Calleri",           posicao: "ATA", overall: 83 },
+      { id: "p095", nome: "Luciano",           posicao: "ATA", overall: 79 },
+      { id: "p096", nome: "Ferreira",          posicao: "ATA", overall: 76 },
+      { id: "p097", nome: "André Silva",       posicao: "ATA", overall: 70 },
+      { id: "p098", nome: "Erick",             posicao: "ATA", overall: 68 },
+      { id: "p099", nome: "Juan",              posicao: "ATA", overall: 66 },
+      { id: "p100", nome: "Bobadilla",         posicao: "ATA", overall: 69 },
     ]
   },
   {
-    id: "atleticomg",
-    nome: "Atlético-MG",
-    sigla: "CAM",
-    cor: "#000000",
+    id: "atleticomg", nome: "Atlético-MG", sigla: "CAM", cor: "#404040",
     jogadores: [
-      { id: "p49", nome: "Everson",       posicao: "GOL", overall: 81 },
-      { id: "p50", nome: "Mariano",       posicao: "DEF", overall: 72 },
-      { id: "p51", nome: "Jemerson",      posicao: "DEF", overall: 74 },
-      { id: "p52", nome: "Guilherme",     posicao: "DEF", overall: 76 },
-      { id: "p53", nome: "Arana",         posicao: "DEF", overall: 79 },
-      { id: "p54", nome: "Otávio",        posicao: "MEI", overall: 77 },
-      { id: "p55", nome: "Battaglia",     posicao: "MEI", overall: 75 },
-      { id: "p56", nome: "Rubens",        posicao: "MEI", overall: 73 },
-      { id: "p57", nome: "Paulinho",      posicao: "MEI", overall: 82 },
-      { id: "p58", nome: "Vargas",        posicao: "ATK", overall: 78 },
-      { id: "p59", nome: "Hulk",          posicao: "ATK", overall: 80 },
-      { id: "p60", nome: "Deyverson",     posicao: "ATK", overall: 75 },
+      { id: "p101", nome: "Everson",           posicao: "GOL", overall: 82 },
+      { id: "p102", nome: "Matheus Mendes",    posicao: "GOL", overall: 70 },
+      { id: "p103", nome: "Mariano",           posicao: "LD",  overall: 73 },
+      { id: "p104", nome: "Guga",              posicao: "LD",  overall: 69 },
+      { id: "p105", nome: "Guilherme Arana",   posicao: "ZAG", overall: 77 },
+      { id: "p106", nome: "Jemerson",          posicao: "ZAG", overall: 75 },
+      { id: "p107", nome: "Igor Rabello",      posicao: "ZAG", overall: 73 },
+      { id: "p108", nome: "Guilherme",         posicao: "ZAG", overall: 71 },
+      { id: "p109", nome: "Arana",             posicao: "LE",  overall: 80 },
+      { id: "p110", nome: "Rubens",            posicao: "LE",  overall: 74 },
+      { id: "p111", nome: "Otávio",            posicao: "VOL", overall: 78 },
+      { id: "p112", nome: "Battaglia",         posicao: "VOL", overall: 76 },
+      { id: "p113", nome: "Fausto Vera",       posicao: "VOL", overall: 74 },
+      { id: "p114", nome: "Paulinho",          posicao: "MEI", overall: 83 },
+      { id: "p115", nome: "Bernard",           posicao: "MEI", overall: 78 },
+      { id: "p116", nome: "Nacho Fernández",   posicao: "MEI", overall: 80 },
+      { id: "p117", nome: "Alan Kardec",       posicao: "MEI", overall: 68 },
+      { id: "p118", nome: "Vargas",            posicao: "MEI", overall: 76 },
+      { id: "p119", nome: "Hulk",              posicao: "ATA", overall: 81 },
+      { id: "p120", nome: "Deyverson",         posicao: "ATA", overall: 76 },
+      { id: "p121", nome: "Cadu",              posicao: "ATA", overall: 69 },
+      { id: "p122", nome: "Rony",              posicao: "ATA", overall: 72 },
+      { id: "p123", nome: "Eduardo Sasha",     posicao: "ATA", overall: 70 },
+      { id: "p124", nome: "Pedrinho",          posicao: "ATA", overall: 67 },
+      { id: "p125", nome: "Hyoran",            posicao: "MEI", overall: 68 },
     ]
   },
   {
-    id: "internacional",
-    nome: "Internacional",
-    sigla: "INT",
-    cor: "#CC0000",
+    id: "internacional", nome: "Internacional", sigla: "INT", cor: "#CC0000",
     jogadores: [
-      { id: "p61", nome: "Rochet",        posicao: "GOL", overall: 82 },
-      { id: "p62", nome: "Bustos",        posicao: "DEF", overall: 73 },
-      { id: "p63", nome: "Vitão",         posicao: "DEF", overall: 77 },
-      { id: "p64", nome: "Mercado",       posicao: "DEF", overall: 74 },
-      { id: "p65", nome: "Renê",          posicao: "DEF", overall: 72 },
-      { id: "p66", nome: "Rômulo",        posicao: "MEI", overall: 74 },
-      { id: "p67", nome: "Bruno Gomes",   posicao: "MEI", overall: 73 },
-      { id: "p68", nome: "Alan Patrick",  posicao: "MEI", overall: 84 },
-      { id: "p69", nome: "Wesley",        posicao: "MEI", overall: 76 },
-      { id: "p70", nome: "Wanderson",     posicao: "ATK", overall: 75 },
-      { id: "p71", nome: "Borré",         posicao: "ATK", overall: 81 },
-      { id: "p72", nome: "Valencia",      posicao: "ATK", overall: 77 },
+      { id: "p126", nome: "Rochet",            posicao: "GOL", overall: 83 },
+      { id: "p127", nome: "Fabrício",          posicao: "GOL", overall: 70 },
+      { id: "p128", nome: "Bustos",            posicao: "LD",  overall: 74 },
+      { id: "p129", nome: "Bruno Gomes",       posicao: "LD",  overall: 68 },
+      { id: "p130", nome: "Vitão",             posicao: "ZAG", overall: 78 },
+      { id: "p131", nome: "Mercado",           posicao: "ZAG", overall: 75 },
+      { id: "p132", nome: "Clayton Sampaio",   posicao: "ZAG", overall: 70 },
+      { id: "p133", nome: "Igor Gomes",        posicao: "ZAG", overall: 67 },
+      { id: "p134", nome: "Renê",              posicao: "LE",  overall: 73 },
+      { id: "p135", nome: "Alexandro",         posicao: "LE",  overall: 67 },
+      { id: "p136", nome: "Rômulo",            posicao: "VOL", overall: 75 },
+      { id: "p137", nome: "Fernando",          posicao: "VOL", overall: 73 },
+      { id: "p138", nome: "Thiago Maia",       posicao: "VOL", overall: 72 },
+      { id: "p139", nome: "Alan Patrick",      posicao: "MEI", overall: 85 },
+      { id: "p140", nome: "Wesley",            posicao: "MEI", overall: 77 },
+      { id: "p141", nome: "Hyoran",            posicao: "MEI", overall: 69 },
+      { id: "p142", nome: "Mauricio",          posicao: "MEI", overall: 71 },
+      { id: "p143", nome: "Bruno Tabata",      posicao: "MEI", overall: 73 },
+      { id: "p144", nome: "Borré",             posicao: "ATA", overall: 82 },
+      { id: "p145", nome: "Valencia",          posicao: "ATA", overall: 78 },
+      { id: "p146", nome: "Wanderson",         posicao: "ATA", overall: 76 },
+      { id: "p147", nome: "Lucas Alario",      posicao: "ATA", overall: 73 },
+      { id: "p148", nome: "Gabriel Carvalho",  posicao: "ATA", overall: 68 },
+      { id: "p149", nome: "Gustavo Prado",     posicao: "ATA", overall: 65 },
+      { id: "p150", nome: "Pedro Henrique",    posicao: "ATA", overall: 66 },
     ]
   },
   {
-    id: "gremio",
-    nome: "Grêmio",
-    sigla: "GRE",
-    cor: "#3B77BB",
+    id: "gremio", nome: "Grêmio", sigla: "GRE", cor: "#3B77BB",
     jogadores: [
-      { id: "p73", nome: "Marchesín",     posicao: "GOL", overall: 80 },
-      { id: "p74", nome: "João Pedro",    posicao: "DEF", overall: 71 },
-      { id: "p75", nome: "Geromel",       posicao: "DEF", overall: 73 },
-      { id: "p76", nome: "Kannemann",     posicao: "DEF", overall: 75 },
-      { id: "p77", nome: "Reinaldo",      posicao: "DEF", overall: 72 },
-      { id: "p78", nome: "Dodi",          posicao: "MEI", overall: 74 },
-      { id: "p79", nome: "Pepê",          posicao: "MEI", overall: 78 },
-      { id: "p80", nome: "Carballo",      posicao: "MEI", overall: 73 },
-      { id: "p81", nome: "Cristaldo",     posicao: "MEI", overall: 80 },
-      { id: "p82", nome: "Soteldo",       posicao: "ATK", overall: 79 },
-      { id: "p83", nome: "Braithwaite",   posicao: "ATK", overall: 78 },
-      { id: "p84", nome: "Diego Costa",   posicao: "ATK", overall: 76 },
+      { id: "p151", nome: "Marchesín",         posicao: "GOL", overall: 81 },
+      { id: "p152", nome: "Gabriel Grando",    posicao: "GOL", overall: 70 },
+      { id: "p153", nome: "João Pedro",        posicao: "LD",  overall: 72 },
+      { id: "p154", nome: "Fábio",             posicao: "LD",  overall: 67 },
+      { id: "p155", nome: "Geromel",           posicao: "ZAG", overall: 74 },
+      { id: "p156", nome: "Kannemann",         posicao: "ZAG", overall: 76 },
+      { id: "p157", nome: "Rodrigo Ely",       posicao: "ZAG", overall: 71 },
+      { id: "p158", nome: "Bruno Alves",       posicao: "ZAG", overall: 69 },
+      { id: "p159", nome: "Reinaldo",          posicao: "LE",  overall: 73 },
+      { id: "p160", nome: "Nicolas",           posicao: "LE",  overall: 67 },
+      { id: "p161", nome: "Dodi",              posicao: "VOL", overall: 75 },
+      { id: "p162", nome: "Villasanti",        posicao: "VOL", overall: 78 },
+      { id: "p163", nome: "Carballo",          posicao: "VOL", overall: 73 },
+      { id: "p164", nome: "Cristaldo",         posicao: "MEI", overall: 81 },
+      { id: "p165", nome: "Pepê",              posicao: "MEI", overall: 79 },
+      { id: "p166", nome: "Nathan",            posicao: "MEI", overall: 72 },
+      { id: "p167", nome: "Edenilson",         posicao: "MEI", overall: 74 },
+      { id: "p168", nome: "Du Queiroz",        posicao: "MEI", overall: 68 },
+      { id: "p169", nome: "Soteldo",           posicao: "ATA", overall: 80 },
+      { id: "p170", nome: "Braithwaite",       posicao: "ATA", overall: 79 },
+      { id: "p171", nome: "Diego Costa",       posicao: "ATA", overall: 77 },
+      { id: "p172", nome: "Gustavo Nunes",     posicao: "ATA", overall: 72 },
+      { id: "p173", nome: "André",             posicao: "ATA", overall: 68 },
+      { id: "p174", nome: "Everton",           posicao: "ATA", overall: 70 },
+      { id: "p175", nome: "JP Galvão",         posicao: "ATA", overall: 65 },
     ]
   },
   {
-    id: "botafogo",
-    nome: "Botafogo",
-    sigla: "BOT",
-    cor: "#000000",
+    id: "botafogo", nome: "Botafogo", sigla: "BOT", cor: "#1a1a1a",
     jogadores: [
-      { id: "p85", nome: "John",          posicao: "GOL", overall: 79 },
-      { id: "p86", nome: "Damián Suárez", posicao: "DEF", overall: 74 },
-      { id: "p87", nome: "Bastos",        posicao: "DEF", overall: 75 },
-      { id: "p88", nome: "Alexander Barboza", posicao: "DEF", overall: 77 },
-      { id: "p89", nome: "Marçal",        posicao: "DEF", overall: 73 },
-      { id: "p90", nome: "Gregore",       posicao: "MEI", overall: 75 },
-      { id: "p91", nome: "Marlon Freitas",posicao: "MEI", overall: 78 },
-      { id: "p92", nome: "Eduardo",       posicao: "MEI", overall: 74 },
-      { id: "p93", nome: "Tchê Tchê",     posicao: "MEI", overall: 73 },
-      { id: "p94", nome: "Júnior Santos", posicao: "ATK", overall: 77 },
-      { id: "p95", nome: "Tiquinho",      posicao: "ATK", overall: 82 },
-      { id: "p96", nome: "Savarino",      posicao: "ATK", overall: 80 },
+      { id: "p176", nome: "John",              posicao: "GOL", overall: 80 },
+      { id: "p177", nome: "Gatito",            posicao: "GOL", overall: 74 },
+      { id: "p178", nome: "Damián Suárez",     posicao: "LD",  overall: 75 },
+      { id: "p179", nome: "Rafael",            posicao: "LD",  overall: 68 },
+      { id: "p180", nome: "Alexander Barboza", posicao: "ZAG", overall: 78 },
+      { id: "p181", nome: "Bastos",            posicao: "ZAG", overall: 76 },
+      { id: "p182", nome: "Adryelson",         posicao: "ZAG", overall: 73 },
+      { id: "p183", nome: "Kanu",              posicao: "ZAG", overall: 70 },
+      { id: "p184", nome: "Marçal",            posicao: "LE",  overall: 74 },
+      { id: "p185", nome: "Hugo",              posicao: "LE",  overall: 68 },
+      { id: "p186", nome: "Gregore",           posicao: "VOL", overall: 76 },
+      { id: "p187", nome: "Marlon Freitas",    posicao: "VOL", overall: 79 },
+      { id: "p188", nome: "Danilo Barbosa",    posicao: "VOL", overall: 72 },
+      { id: "p189", nome: "Eduardo",           posicao: "MEI", overall: 75 },
+      { id: "p190", nome: "Tchê Tchê",         posicao: "MEI", overall: 74 },
+      { id: "p191", nome: "Luís Henrique",     posicao: "MEI", overall: 78 },
+      { id: "p192", nome: "Thiago Almada",     posicao: "MEI", overall: 82 },
+      { id: "p193", nome: "Luca Langoni",      posicao: "MEI", overall: 70 },
+      { id: "p194", nome: "Tiquinho",          posicao: "ATA", overall: 83 },
+      { id: "p195", nome: "Savarino",          posicao: "ATA", overall: 81 },
+      { id: "p196", nome: "Júnior Santos",     posicao: "ATA", overall: 78 },
+      { id: "p197", nome: "Matheus Nascimento",posicao: "ATA", overall: 74 },
+      { id: "p198", nome: "Carlos Alberto",    posicao: "ATA", overall: 68 },
+      { id: "p199", nome: "Pablo",             posicao: "ATA", overall: 66 },
+      { id: "p200", nome: "Victor Sá",         posicao: "ATA", overall: 72 },
+    ]
+  },
+  {
+    id: "bahia", nome: "Bahia", sigla: "BAH", cor: "#0066CC",
+    jogadores: [
+      { id: "p201", nome: "Marcos Felipe",     posicao: "GOL", overall: 78 },
+      { id: "p202", nome: "Adriel",            posicao: "GOL", overall: 68 },
+      { id: "p203", nome: "Gilberto",          posicao: "LD",  overall: 72 },
+      { id: "p204", nome: "Cicinho",           posicao: "LD",  overall: 66 },
+      { id: "p205", nome: "Gabriel Xavier",    posicao: "ZAG", overall: 74 },
+      { id: "p206", nome: "Kanu",              posicao: "ZAG", overall: 72 },
+      { id: "p207", nome: "Victor Cuesta",     posicao: "ZAG", overall: 70 },
+      { id: "p208", nome: "David Duarte",      posicao: "ZAG", overall: 67 },
+      { id: "p209", nome: "Luciano Juba",      posicao: "LE",  overall: 73 },
+      { id: "p210", nome: "Iago",              posicao: "LE",  overall: 67 },
+      { id: "p211", nome: "Caio Alexandre",    posicao: "VOL", overall: 75 },
+      { id: "p212", nome: "Rezende",           posicao: "VOL", overall: 72 },
+      { id: "p213", nome: "Jean Lucas",        posicao: "VOL", overall: 73 },
+      { id: "p214", nome: "Éverton Ribeiro",   posicao: "MEI", overall: 80 },
+      { id: "p215", nome: "Cauly",             posicao: "MEI", overall: 78 },
+      { id: "p216", nome: "Thaciano",          posicao: "MEI", overall: 72 },
+      { id: "p217", nome: "Biel",              posicao: "MEI", overall: 74 },
+      { id: "p218", nome: "Ademir",            posicao: "MEI", overall: 70 },
+      { id: "p219", nome: "Everaldo",          posicao: "ATA", overall: 75 },
+      { id: "p220", nome: "Estupiñán",         posicao: "ATA", overall: 77 },
+      { id: "p221", nome: "Biel",              posicao: "ATA", overall: 73 },
+      { id: "p222", nome: "Raphael Veiga",     posicao: "ATA", overall: 68 },
+      { id: "p223", nome: "Ratinho",           posicao: "ATA", overall: 66 },
+      { id: "p224", nome: "Acevedo",           posicao: "ATA", overall: 70 },
+      { id: "p225", nome: "Osvaldo",           posicao: "ATA", overall: 65 },
+    ]
+  },
+  {
+    id: "fortaleza", nome: "Fortaleza", sigla: "FOR", cor: "#0033A0",
+    jogadores: [
+      { id: "p226", nome: "João Ricardo",      posicao: "GOL", overall: 80 },
+      { id: "p227", nome: "Magrão",            posicao: "GOL", overall: 68 },
+      { id: "p228", nome: "Tinga",             posicao: "LD",  overall: 74 },
+      { id: "p229", nome: "Dudu",              posicao: "LD",  overall: 67 },
+      { id: "p230", nome: "Titi",              posicao: "ZAG", overall: 77 },
+      { id: "p231", nome: "Brítez",            posicao: "ZAG", overall: 75 },
+      { id: "p232", nome: "Emanuel Brítez",    posicao: "ZAG", overall: 72 },
+      { id: "p233", nome: "Cardona",           posicao: "ZAG", overall: 68 },
+      { id: "p234", nome: "Felipe Jonatan",    posicao: "LE",  overall: 75 },
+      { id: "p235", nome: "Bruno Pacheco",     posicao: "LE",  overall: 69 },
+      { id: "p236", nome: "Hércules",          posicao: "VOL", overall: 76 },
+      { id: "p237", nome: "Pedro Augusto",     posicao: "VOL", overall: 73 },
+      { id: "p238", nome: "Zé Welison",        posicao: "VOL", overall: 72 },
+      { id: "p239", nome: "Pochettino",        posicao: "MEI", overall: 79 },
+      { id: "p240", nome: "Calebe",            posicao: "MEI", overall: 74 },
+      { id: "p241", nome: "Moisés",            posicao: "MEI", overall: 72 },
+      { id: "p242", nome: "Pikachu",           posicao: "MEI", overall: 70 },
+      { id: "p243", nome: "Marinho",           posicao: "MEI", overall: 73 },
+      { id: "p244", nome: "Lucero",            posicao: "ATA", overall: 81 },
+      { id: "p245", nome: "Moisés",            posicao: "ATA", overall: 75 },
+      { id: "p246", nome: "Renato Kayzer",     posicao: "ATA", overall: 73 },
+      { id: "p247", nome: "Silvio Romero",     posicao: "ATA", overall: 72 },
+      { id: "p248", nome: "Breno Lopes",       posicao: "ATA", overall: 68 },
+      { id: "p249", nome: "Pedro",             posicao: "ATA", overall: 66 },
+      { id: "p250", nome: "Yago Pikachu",      posicao: "ATA", overall: 71 },
+    ]
+  },
+  {
+    id: "cruzeiro", nome: "Cruzeiro", sigla: "CRU", cor: "#0032A0",
+    jogadores: [
+      { id: "p251", nome: "Anderson",          posicao: "GOL", overall: 77 },
+      { id: "p252", nome: "Rafael Cabral",     posicao: "GOL", overall: 72 },
+      { id: "p253", nome: "William",           posicao: "LD",  overall: 73 },
+      { id: "p254", nome: "Rafa Silva",        posicao: "LD",  overall: 67 },
+      { id: "p255", nome: "João Marcelo",      posicao: "ZAG", overall: 74 },
+      { id: "p256", nome: "Zé Ivaldo",         posicao: "ZAG", overall: 76 },
+      { id: "p257", nome: "Lucas Villalba",    posicao: "ZAG", overall: 71 },
+      { id: "p258", nome: "Neris",             posicao: "ZAG", overall: 68 },
+      { id: "p259", nome: "Marlon",            posicao: "LE",  overall: 74 },
+      { id: "p260", nome: "Kaiki",             posicao: "LE",  overall: 67 },
+      { id: "p261", nome: "Lucas Silva",       posicao: "VOL", overall: 75 },
+      { id: "p262", nome: "Walace",            posicao: "VOL", overall: 77 },
+      { id: "p263", nome: "Ramiro",            posicao: "VOL", overall: 70 },
+      { id: "p264", nome: "Matheus Pereira",   posicao: "MEI", overall: 84 },
+      { id: "p265", nome: "Lautaro Díaz",      posicao: "MEI", overall: 76 },
+      { id: "p266", nome: "Álvaro Barreal",    posicao: "MEI", overall: 74 },
+      { id: "p267", nome: "Ramón Soria",       posicao: "MEI", overall: 70 },
+      { id: "p268", nome: "Gabriel Veron",     posicao: "MEI", overall: 72 },
+      { id: "p269", nome: "Kaio Jorge",        posicao: "ATA", overall: 78 },
+      { id: "p270", nome: "Arthur Gomes",      posicao: "ATA", overall: 75 },
+      { id: "p271", nome: "Rafa Silva",        posicao: "ATA", overall: 73 },
+      { id: "p272", nome: "Juan Dinenno",      posicao: "ATA", overall: 71 },
+      { id: "p273", nome: "Wesley Gasolina",   posicao: "ATA", overall: 68 },
+      { id: "p274", nome: "Hernán",            posicao: "ATA", overall: 66 },
+      { id: "p275", nome: "Bruno José",        posicao: "ATA", overall: 67 },
+    ]
+  },
+  {
+    id: "fluminense", nome: "Fluminense", sigla: "FLU", cor: "#6B0F1A",
+    jogadores: [
+      { id: "p276", nome: "Fábio",             posicao: "GOL", overall: 82 },
+      { id: "p277", nome: "Vitor Eudes",       posicao: "GOL", overall: 68 },
+      { id: "p278", nome: "Samuel Xavier",     posicao: "LD",  overall: 74 },
+      { id: "p279", nome: "Guga",              posicao: "LD",  overall: 68 },
+      { id: "p280", nome: "Nino",              posicao: "ZAG", overall: 79 },
+      { id: "p281", nome: "Manoel",            posicao: "ZAG", overall: 74 },
+      { id: "p282", nome: "Felipe Melo",       posicao: "ZAG", overall: 72 },
+      { id: "p283", nome: "Antônio Carlos",    posicao: "ZAG", overall: 70 },
+      { id: "p284", nome: "Marcelo",           posicao: "LE",  overall: 77 },
+      { id: "p285", nome: "Diogo Barbosa",     posicao: "LE",  overall: 71 },
+      { id: "p286", nome: "André",             posicao: "VOL", overall: 83 },
+      { id: "p287", nome: "Martinelli",        posicao: "VOL", overall: 74 },
+      { id: "p288", nome: "Felipe Andrade",    posicao: "VOL", overall: 70 },
+      { id: "p289", nome: "Ganso",             posicao: "MEI", overall: 80 },
+      { id: "p290", nome: "Alexsander",        posicao: "MEI", overall: 74 },
+      { id: "p291", nome: "Kauã Elias",        posicao: "MEI", overall: 72 },
+      { id: "p292", nome: "Jhon Arias",        posicao: "MEI", overall: 82 },
+      { id: "p293", nome: "Marquinhos",        posicao: "MEI", overall: 73 },
+      { id: "p294", nome: "Germán Cano",       posicao: "ATA", overall: 84 },
+      { id: "p295", nome: "John Kennedy",      posicao: "ATA", overall: 76 },
+      { id: "p296", nome: "Lelê",              posicao: "ATA", overall: 72 },
+      { id: "p297", nome: "Lucca",             posicao: "ATA", overall: 68 },
+      { id: "p298", nome: "David Terans",      posicao: "ATA", overall: 74 },
+      { id: "p299", nome: "Serna",             posicao: "ATA", overall: 70 },
+      { id: "p300", nome: "Lima",              posicao: "ATA", overall: 66 },
+    ]
+  },
+  {
+    id: "vasco", nome: "Vasco", sigla: "VAS", cor: "#000000",
+    jogadores: [
+      { id: "p301", nome: "Léo Jardim",        posicao: "GOL", overall: 78 },
+      { id: "p302", nome: "Ivan",              posicao: "GOL", overall: 70 },
+      { id: "p303", nome: "Puma Rodríguez",    posicao: "LD",  overall: 73 },
+      { id: "p304", nome: "Paulo Henrique",    posicao: "LD",  overall: 66 },
+      { id: "p305", nome: "Maicon",            posicao: "ZAG", overall: 75 },
+      { id: "p306", nome: "João Victor",       posicao: "ZAG", overall: 74 },
+      { id: "p307", nome: "Léo",              posicao: "ZAG", overall: 72 },
+      { id: "p308", nome: "Medel",             posicao: "ZAG", overall: 73 },
+      { id: "p309", nome: "Lucas Piton",       posicao: "LE",  overall: 75 },
+      { id: "p310", nome: "Luan",              posicao: "LE",  overall: 67 },
+      { id: "p311", nome: "Hugo Moura",        posicao: "VOL", overall: 73 },
+      { id: "p312", nome: "Jair",              posicao: "VOL", overall: 74 },
+      { id: "p313", nome: "Matheus Carvalho",  posicao: "VOL", overall: 70 },
+      { id: "p314", nome: "Payet",             posicao: "MEI", overall: 82 },
+      { id: "p315", nome: "Praxedes",          posicao: "MEI", overall: 74 },
+      { id: "p316", nome: "Rayan",             posicao: "MEI", overall: 72 },
+      { id: "p317", nome: "GB",               posicao: "MEI", overall: 70 },
+      { id: "p318", nome: "Adson",             posicao: "MEI", overall: 71 },
+      { id: "p319", nome: "Vegetti",           posicao: "ATA", overall: 81 },
+      { id: "p320", nome: "David",             posicao: "ATA", overall: 77 },
+      { id: "p321", nome: "Rossi",             posicao: "ATA", overall: 74 },
+      { id: "p322", nome: "Jean David",        posicao: "ATA", overall: 70 },
+      { id: "p323", nome: "Alex Teixeira",     posicao: "ATA", overall: 72 },
+      { id: "p324", nome: "Emerson Rodríguez", posicao: "ATA", overall: 68 },
+      { id: "p325", nome: "Guilherme Estrella",posicao: "ATA", overall: 65 },
+    ]
+  },
+  {
+    id: "atleticopr", nome: "Athletico-PR", sigla: "CAP", cor: "#CC0000",
+    jogadores: [
+      { id: "p326", nome: "Bento",             posicao: "GOL", overall: 84 },
+      { id: "p327", nome: "Mycael",            posicao: "GOL", overall: 70 },
+      { id: "p328", nome: "Khellven",          posicao: "LD",  overall: 72 },
+      { id: "p329", nome: "Erick",             posicao: "LD",  overall: 67 },
+      { id: "p330", nome: "Thiago Heleno",     posicao: "ZAG", overall: 76 },
+      { id: "p331", nome: "Matheus Felipe",    posicao: "ZAG", overall: 73 },
+      { id: "p332", nome: "Kaique Rocha",      posicao: "ZAG", overall: 74 },
+      { id: "p333", nome: "Lucas Fasson",      posicao: "ZAG", overall: 68 },
+      { id: "p334", nome: "Abner",             posicao: "LE",  overall: 74 },
+      { id: "p335", nome: "Fernando",          posicao: "LE",  overall: 67 },
+      { id: "p336", nome: "João Schmidt",      posicao: "VOL", overall: 77 },
+      { id: "p337", nome: "Fernandinho",       posicao: "VOL", overall: 79 },
+      { id: "p338", nome: "Erick",             posicao: "VOL", overall: 73 },
+      { id: "p339", nome: "Canobbio",          posicao: "MEI", overall: 78 },
+      { id: "p340", nome: "Zapelli",           posicao: "MEI", overall: 73 },
+      { id: "p341", nome: "Cuello",            posicao: "MEI", overall: 75 },
+      { id: "p342", nome: "Terans",            posicao: "MEI", overall: 74 },
+      { id: "p343", nome: "Christian",         posicao: "MEI", overall: 72 },
+      { id: "p344", nome: "Pablo",             posicao: "ATA", overall: 79 },
+      { id: "p345", nome: "Vitor Roque",       posicao: "ATA", overall: 80 },
+      { id: "p346", nome: "Julimar",           posicao: "ATA", overall: 71 },
+      { id: "p347", nome: "Di Yorio",          posicao: "ATA", overall: 69 },
+      { id: "p348", nome: "Mastriani",         posicao: "ATA", overall: 68 },
+      { id: "p349", nome: "Rômulo",            posicao: "ATA", overall: 66 },
+      { id: "p350", nome: "Vitinho",           posicao: "ATA", overall: 70 },
+    ]
+  },
+  {
+    id: "rbbragantino", nome: "RB Bragantino", sigla: "RBB", cor: "#CC0000",
+    jogadores: [
+      { id: "p351", nome: "Cleiton",           posicao: "GOL", overall: 82 },
+      { id: "p352", nome: "Lucão",             posicao: "GOL", overall: 68 },
+      { id: "p353", nome: "Andrés Hurtado",    posicao: "LD",  overall: 72 },
+      { id: "p354", nome: "Aderlan",           posicao: "LD",  overall: 69 },
+      { id: "p355", nome: "Léo Ortiz",         posicao: "ZAG", overall: 78 },
+      { id: "p356", nome: "Eduardo Santos",    posicao: "ZAG", overall: 74 },
+      { id: "p357", nome: "Natan",             posicao: "ZAG", overall: 72 },
+      { id: "p358", nome: "Luan Cândido",      posicao: "ZAG", overall: 70 },
+      { id: "p359", nome: "Guilherme Lopes",   posicao: "LE",  overall: 73 },
+      { id: "p360", nome: "Juninho Capixaba",  posicao: "LE",  overall: 69 },
+      { id: "p361", nome: "Jadsom",            posicao: "VOL", overall: 74 },
+      { id: "p362", nome: "Eric Ramires",      posicao: "VOL", overall: 76 },
+      { id: "p363", nome: "Raul",              posicao: "VOL", overall: 72 },
+      { id: "p364", nome: "Matheus Fernandes", posicao: "MEI", overall: 75 },
+      { id: "p365", nome: "Lincoln",           posicao: "MEI", overall: 73 },
+      { id: "p366", nome: "Jhon Jhon",         posicao: "MEI", overall: 77 },
+      { id: "p367", nome: "Vitinho",           posicao: "MEI", overall: 74 },
+      { id: "p368", nome: "Praxedes",          posicao: "MEI", overall: 70 },
+      { id: "p369", nome: "Helinho",           posicao: "ATA", overall: 76 },
+      { id: "p370", nome: "Thiago Borbas",     posicao: "ATA", overall: 78 },
+      { id: "p371", nome: "Eduardo Sasha",     posicao: "ATA", overall: 74 },
+      { id: "p372", nome: "Hyoran",            posicao: "ATA", overall: 70 },
+      { id: "p373", nome: "Mosquito",          posicao: "ATA", overall: 72 },
+      { id: "p374", nome: "Laquintana",        posicao: "ATA", overall: 68 },
+      { id: "p375", nome: "Lucas Evangelista", posicao: "ATA", overall: 66 },
+    ]
+  },
+  {
+    id: "cuiaba", nome: "Cuiabá", sigla: "CUI", cor: "#FFD700",
+    jogadores: [
+      { id: "p376", nome: "Walter",            posicao: "GOL", overall: 74 },
+      { id: "p377", nome: "João Carlos",       posicao: "GOL", overall: 65 },
+      { id: "p378", nome: "Daniel Guedes",     posicao: "LD",  overall: 69 },
+      { id: "p379", nome: "Matheus Alexandre", posicao: "LD",  overall: 64 },
+      { id: "p380", nome: "Marllon",           posicao: "ZAG", overall: 71 },
+      { id: "p381", nome: "Alan Empereur",     posicao: "ZAG", overall: 70 },
+      { id: "p382", nome: "Joaquim",           posicao: "ZAG", overall: 68 },
+      { id: "p383", nome: "Filipe Augusto",    posicao: "ZAG", overall: 65 },
+      { id: "p384", nome: "Rikelme",           posicao: "LE",  overall: 69 },
+      { id: "p385", nome: "Ênio",              posicao: "LE",  overall: 64 },
+      { id: "p386", nome: "Camilo",            posicao: "VOL", overall: 72 },
+      { id: "p387", nome: "Denílson",          posicao: "VOL", overall: 69 },
+      { id: "p388", nome: "Pepê",              posicao: "VOL", overall: 67 },
+      { id: "p389", nome: "Max",               posicao: "MEI", overall: 71 },
+      { id: "p390", nome: "Jonathan Cafu",     posicao: "MEI", overall: 73 },
+      { id: "p391", nome: "Clayson",           posicao: "MEI", overall: 70 },
+      { id: "p392", nome: "Gabriel Pirani",    posicao: "MEI", overall: 68 },
+      { id: "p393", nome: "Derik Lacerda",     posicao: "MEI", overall: 67 },
+      { id: "p394", nome: "Elton",             posicao: "ATA", overall: 72 },
+      { id: "p395", nome: "André Luís",        posicao: "ATA", overall: 70 },
+      { id: "p396", nome: "Isidro Pitta",      posicao: "ATA", overall: 71 },
+      { id: "p397", nome: "Jonathan",          posicao: "ATA", overall: 67 },
+      { id: "p398", nome: "Clayson",           posicao: "ATA", overall: 66 },
+      { id: "p399", nome: "Valdívia",          posicao: "ATA", overall: 65 },
+      { id: "p400", nome: "Alesson",           posicao: "ATA", overall: 64 },
+    ]
+  },
+  {
+    id: "juventude", nome: "Juventude", sigla: "JUV", cor: "#006400",
+    jogadores: [
+      { id: "p401", nome: "Gabriel",           posicao: "GOL", overall: 73 },
+      { id: "p402", nome: "Marcelo Carné",     posicao: "GOL", overall: 64 },
+      { id: "p403", nome: "Ewerthon",          posicao: "LD",  overall: 68 },
+      { id: "p404", nome: "João Paulo",        posicao: "LD",  overall: 63 },
+      { id: "p405", nome: "Danilo Boza",       posicao: "ZAG", overall: 71 },
+      { id: "p406", nome: "Rodrigo Sam",       posicao: "ZAG", overall: 69 },
+      { id: "p407", nome: "Zé Marcos",         posicao: "ZAG", overall: 67 },
+      { id: "p408", nome: "Alan",              posicao: "ZAG", overall: 64 },
+      { id: "p409", nome: "Alan Ruschel",      posicao: "LE",  overall: 68 },
+      { id: "p410", nome: "Felipinho",         posicao: "LE",  overall: 62 },
+      { id: "p411", nome: "Caíque",            posicao: "VOL", overall: 70 },
+      { id: "p412", nome: "Jean Carlos",       posicao: "VOL", overall: 67 },
+      { id: "p413", nome: "Jadson",            posicao: "VOL", overall: 65 },
+      { id: "p414", nome: "Mandaca",           posicao: "MEI", overall: 72 },
+      { id: "p415", nome: "Óscar Ruíz",        posicao: "MEI", overall: 70 },
+      { id: "p416", nome: "Paulo Henrique",    posicao: "MEI", overall: 68 },
+      { id: "p417", nome: "Lucas Barbosa",     posicao: "MEI", overall: 67 },
+      { id: "p418", nome: "Marcelinho",        posicao: "MEI", overall: 65 },
+      { id: "p419", nome: "Gilberto",          posicao: "ATA", overall: 73 },
+      { id: "p420", nome: "Erick Farias",      posicao: "ATA", overall: 70 },
+      { id: "p421", nome: "Lucas Barbosa",     posicao: "ATA", overall: 68 },
+      { id: "p422", nome: "Sorriso",           posicao: "ATA", overall: 66 },
+      { id: "p423", nome: "Edson Cariús",      posicao: "ATA", overall: 65 },
+      { id: "p424", nome: "Batalla",           posicao: "ATA", overall: 67 },
+      { id: "p425", nome: "Nenê",              posicao: "ATA", overall: 63 },
+    ]
+  },
+  {
+    id: "goias", nome: "Goiás", sigla: "GOI", cor: "#006400",
+    jogadores: [
+      { id: "p426", nome: "Tadeu",             posicao: "GOL", overall: 75 },
+      { id: "p427", nome: "Jefferson",         posicao: "GOL", overall: 65 },
+      { id: "p428", nome: "Maguinho",          posicao: "LD",  overall: 69 },
+      { id: "p429", nome: "Diego",             posicao: "LD",  overall: 64 },
+      { id: "p430", nome: "Reynaldo",          posicao: "ZAG", overall: 72 },
+      { id: "p431", nome: "Lucas Halter",      posicao: "ZAG", overall: 70 },
+      { id: "p432", nome: "Sidnei",            posicao: "ZAG", overall: 68 },
+      { id: "p433", nome: "Da Silva",          posicao: "ZAG", overall: 65 },
+      { id: "p434", nome: "Hugo",              posicao: "LE",  overall: 69 },
+      { id: "p435", nome: "Sander",            posicao: "LE",  overall: 64 },
+      { id: "p436", nome: "Auremir",           posicao: "VOL", overall: 72 },
+      { id: "p437", nome: "Fellipe Bastos",    posicao: "VOL", overall: 70 },
+      { id: "p438", nome: "Matheuzinho",       posicao: "VOL", overall: 67 },
+      { id: "p439", nome: "Élvis",             posicao: "MEI", overall: 73 },
+      { id: "p440", nome: "Vinícius",          posicao: "MEI", overall: 70 },
+      { id: "p441", nome: "Matheus Sales",     posicao: "MEI", overall: 68 },
+      { id: "p442", nome: "Diego",             posicao: "MEI", overall: 66 },
+      { id: "p443", nome: "Pedro Raul",        posicao: "MEI", overall: 70 },
+      { id: "p444", nome: "Vitor",             posicao: "ATA", overall: 72 },
+      { id: "p445", nome: "Nicolas",           posicao: "ATA", overall: 71 },
+      { id: "p446", nome: "Dadá Belmonte",     posicao: "ATA", overall: 70 },
+      { id: "p447", nome: "Guilherme",         posicao: "ATA", overall: 68 },
+      { id: "p448", nome: "Paulo Baya",        posicao: "ATA", overall: 66 },
+      { id: "p449", nome: "Marcão",            posicao: "ATA", overall: 65 },
+      { id: "p450", nome: "Luan Dias",         posicao: "ATA", overall: 63 },
+    ]
+  },
+  {
+    id: "coritiba", nome: "Coritiba", sigla: "CFC", cor: "#006400",
+    jogadores: [
+      { id: "p451", nome: "Gabriel",           posicao: "GOL", overall: 72 },
+      { id: "p452", nome: "Wilson",            posicao: "GOL", overall: 64 },
+      { id: "p453", nome: "Natanael",          posicao: "LD",  overall: 68 },
+      { id: "p454", nome: "Diogo",             posicao: "LD",  overall: 62 },
+      { id: "p455", nome: "Thalisson Kelven",  posicao: "ZAG", overall: 70 },
+      { id: "p456", nome: "Henrique",          posicao: "ZAG", overall: 68 },
+      { id: "p457", nome: "Chancellor",        posicao: "ZAG", overall: 67 },
+      { id: "p458", nome: "Bruno Méndez",      posicao: "ZAG", overall: 65 },
+      { id: "p459", nome: "Rodrigo Gelado",    posicao: "LE",  overall: 68 },
+      { id: "p460", nome: "Jamerson",          posicao: "LE",  overall: 63 },
+      { id: "p461", nome: "Willian Farias",    posicao: "VOL", overall: 70 },
+      { id: "p462", nome: "Val",               posicao: "VOL", overall: 67 },
+      { id: "p463", nome: "Régis",             posicao: "VOL", overall: 65 },
+      { id: "p464", nome: "Alef Manga",        posicao: "MEI", overall: 73 },
+      { id: "p465", nome: "Léo Passos",        posicao: "MEI", overall: 69 },
+      { id: "p466", nome: "Robinho",           posicao: "MEI", overall: 67 },
+      { id: "p467", nome: "Cavallini",         posicao: "MEI", overall: 65 },
+      { id: "p468", nome: "Larsson",           posicao: "MEI", overall: 64 },
+      { id: "p469", nome: "Júnior Brumado",    posicao: "ATA", overall: 71 },
+      { id: "p470", nome: "Fabrício Daniel",   posicao: "ATA", overall: 69 },
+      { id: "p471", nome: "Alef Manga",        posicao: "ATA", overall: 68 },
+      { id: "p472", nome: "Valentín Depietri", posicao: "ATA", overall: 67 },
+      { id: "p473", nome: "Léo Gamalho",       posicao: "ATA", overall: 66 },
+      { id: "p474", nome: "Andrey",            posicao: "ATA", overall: 64 },
+      { id: "p475", nome: "Igor Paixão",       posicao: "ATA", overall: 63 },
+    ]
+  },
+  {
+    id: "santos", nome: "Santos", sigla: "SAN", cor: "#000000",
+    jogadores: [
+      { id: "p476", nome: "João Paulo",        posicao: "GOL", overall: 79 },
+      { id: "p477", nome: "Vladimir",          posicao: "GOL", overall: 68 },
+      { id: "p478", nome: "Pará",              posicao: "LD",  overall: 71 },
+      { id: "p479", nome: "Madson",            posicao: "LD",  overall: 66 },
+      { id: "p480", nome: "Maicon",            posicao: "ZAG", overall: 74 },
+      { id: "p481", nome: "Messias",           posicao: "ZAG", overall: 72 },
+      { id: "p482", nome: "Alex",              posicao: "ZAG", overall: 70 },
+      { id: "p483", nome: "Eduardo Bauermann", posicao: "ZAG", overall: 68 },
+      { id: "p484", nome: "Felipe Jonatan",    posicao: "LE",  overall: 73 },
+      { id: "p485", nome: "Dodô",              posicao: "LE",  overall: 67 },
+      { id: "p486", nome: "Rodrigo Fernández", posicao: "VOL", overall: 74 },
+      { id: "p487", nome: "João Basso",        posicao: "VOL", overall: 70 },
+      { id: "p488", nome: "Camacho",           posicao: "VOL", overall: 72 },
+      { id: "p489", nome: "Soteldo",           posicao: "MEI", overall: 79 },
+      { id: "p490", nome: "Lucas Lima",        posicao: "MEI", overall: 73 },
+      { id: "p491", nome: "Carlos Sánchez",    posicao: "MEI", overall: 71 },
+      { id: "p492", nome: "Ivonei",            posicao: "MEI", overall: 68 },
+      { id: "p493", nome: "Rwan",              posicao: "MEI", overall: 66 },
+      { id: "p494", nome: "Marcos Leonardo",   posicao: "ATA", overall: 80 },
+      { id: "p495", nome: "Morelos",           posicao: "ATA", overall: 76 },
+      { id: "p496", nome: "Deivid Washington", posicao: "ATA", overall: 73 },
+      { id: "p497", nome: "Angelo",            posicao: "ATA", overall: 70 },
+      { id: "p498", nome: "Rwan",              posicao: "ATA", overall: 66 },
+      { id: "p499", nome: "Bruno Oliveira",    posicao: "ATA", overall: 65 },
+      { id: "p500", nome: "Sandry",            posicao: "ATA", overall: 68 },
     ]
   }
+];</script>
+  <script>const TECNICOS_DISPONIVEIS = [
+  // Elite (80+)
+  { id: "t01", nome: "Abel Ferreira",    overall: 88, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
+  { id: "t02", nome: "Tite",             overall: 85, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
+  { id: "t03", nome: "Luxemburgo",       overall: 82, formacao: "4-4-2",  estilo: "Equilíbrio",      nacionalidade: "BR" },
+  { id: "t04", nome: "Dorival Júnior",   overall: 81, formacao: "4-2-3-1",estilo: "Defensivo",       nacionalidade: "BR" },
+  { id: "t05", nome: "Artur Jorge",      overall: 83, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
+  { id: "t06", nome: "Zubeldía",         overall: 80, formacao: "4-4-2",  estilo: "Equilíbrio",      nacionalidade: "AR" },
+  // Bons (70-79)
+  { id: "t07", nome: "Mano Menezes",     overall: 77, formacao: "4-4-2",  estilo: "Defensivo",       nacionalidade: "BR" },
+  { id: "t08", nome: "Enderson Moreira", overall: 74, formacao: "3-5-2",  estilo: "Posse de bola",   nacionalidade: "BR" },
+  { id: "t09", nome: "Vojvoda",          overall: 79, formacao: "4-2-3-1",estilo: "Pressão alta",    nacionalidade: "AR" },
+  { id: "t10", nome: "Rogério Ceni",     overall: 76, formacao: "4-3-3",  estilo: "Ataque total",    nacionalidade: "BR" },
+  { id: "t11", nome: "Lisca",            overall: 72, formacao: "4-4-2",  estilo: "Equilíbrio",      nacionalidade: "BR" },
+  { id: "t12", nome: "Cuca",             overall: 75, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
+  { id: "t13", nome: "Eduardo Coudet",   overall: 78, formacao: "3-5-2",  estilo: "Pressão alta",    nacionalidade: "AR" },
+  { id: "t14", nome: "Renato Gaúcho",    overall: 76, formacao: "4-4-2",  estilo: "Contra-ataque",   nacionalidade: "BR" },
+  // Medianos (60-69)
+  { id: "t15", nome: "Hélio dos Anjos",  overall: 68, formacao: "4-4-2",  estilo: "Defensivo",       nacionalidade: "BR" },
+  { id: "t16", nome: "Pintado",          overall: 65, formacao: "3-5-2",  estilo: "Equilíbrio",      nacionalidade: "BR" },
+  { id: "t17", nome: "Maurício Barbieri",overall: 67, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "BR" },
+  { id: "t18", nome: "Jair Ventura",     overall: 63, formacao: "4-2-3-1",estilo: "Defensivo",       nacionalidade: "BR" },
+  { id: "t19", nome: "Paulo Turra",      overall: 66, formacao: "4-4-2",  estilo: "Equilíbrio",      nacionalidade: "BR" },
+  { id: "t20", nome: "Vagner Mancini",   overall: 69, formacao: "5-3-2",  estilo: "Defensivo",       nacionalidade: "BR" },
 ];
-  </script>
-  <script>
-// Calcula a força de um clube por setor
-function calcularForca(clube) {
-  const jogadores = clube.jogadores;
 
-  const media = (posicao) => {
-    const grupo = jogadores.filter(j => j.posicao === posicao);
-    if (grupo.length === 0) return 50;
-    return grupo.reduce((s, j) => s + j.overall, 0) / grupo.length;
+// Requisitos de cada formação por setor
+// Quantos jogadores ideais cada posição precisa ter na formação
+const FORMACOES = {
+  "4-3-3": {
+    descricao: "4 defensores, 3 meias/volantes, 3 atacantes",
+    requisitos: { GOL: 1, LD: 1, ZAG: 2, LE: 1, VOL: 2, MEI: 1, ATA: 3 },
+    pesos:      { GOL: 0.15, LD: 0.10, ZAG: 0.20, LE: 0.10, VOL: 0.13, MEI: 0.12, ATA: 0.20 }
+  },
+  "4-4-2": {
+    descricao: "4 defensores, 4 meias/volantes, 2 atacantes",
+    requisitos: { GOL: 1, LD: 1, ZAG: 2, LE: 1, VOL: 2, MEI: 2, ATA: 2 },
+    pesos:      { GOL: 0.15, LD: 0.10, ZAG: 0.20, LE: 0.10, VOL: 0.15, MEI: 0.15, ATA: 0.15 }
+  },
+  "3-5-2": {
+    descricao: "3 zagueiros, 5 meias/volantes, 2 atacantes",
+    requisitos: { GOL: 1, LD: 1, ZAG: 3, LE: 1, VOL: 3, MEI: 2, ATA: 2 },
+    pesos:      { GOL: 0.15, LD: 0.08, ZAG: 0.22, LE: 0.08, VOL: 0.20, MEI: 0.12, ATA: 0.15 }
+  },
+  "4-2-3-1": {
+    descricao: "4 defensores, 2 volantes, 3 meias, 1 atacante",
+    requisitos: { GOL: 1, LD: 1, ZAG: 2, LE: 1, VOL: 2, MEI: 3, ATA: 1 },
+    pesos:      { GOL: 0.15, LD: 0.10, ZAG: 0.20, LE: 0.10, VOL: 0.15, MEI: 0.18, ATA: 0.12 }
+  },
+  "5-3-2": {
+    descricao: "5 defensores, 3 meias/volantes, 2 atacantes",
+    requisitos: { GOL: 1, LD: 1, ZAG: 3, LE: 1, VOL: 2, MEI: 1, ATA: 2 },
+    pesos:      { GOL: 0.15, LD: 0.12, ZAG: 0.25, LE: 0.12, VOL: 0.13, MEI: 0.08, ATA: 0.15 }
+  }
+};</script>
+  <script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
+function calcularEncaixe(clube, formacao) {
+  const req = FORMACOES[formacao].requisitos;
+  let totalReq = 0, totalAtendido = 0;
+
+  Object.entries(req).forEach(([pos, qtd]) => {
+    const disponiveis = clube.jogadores
+      .filter(j => j.posicao === pos)
+      .sort((a, b) => b.overall - a.overall)
+      .slice(0, qtd);
+
+    totalReq += qtd;
+    totalAtendido += disponiveis.length;
+  });
+
+  return totalAtendido / totalReq;
+}
+
+// Calcula força do clube considerando técnico e formação
+function calcularForca(clube, tecnico = null) {
+  const jogadores = clube.jogadores;
+  const media = (pos) => {
+    const g = jogadores.filter(j => j.posicao === pos);
+    return g.length === 0 ? 50 : g.reduce((s, j) => s + j.overall, 0) / g.length;
   };
 
   const gol = media("GOL");
-  const def = media("DEF");
+  const ld  = media("LD");
+  const zag = media("ZAG");
+  const le  = media("LE");
+  const vol = media("VOL");
   const mei = media("MEI");
-  const atk = media("ATK");
+  const ata = media("ATA");
 
-  // Pesos: defesa vale um pouco mais (realismo)
-  const forca = gol * 0.20 + def * 0.30 + mei * 0.25 + atk * 0.25;
+  // Pesos padrão (sem técnico)
+  let pesos = { GOL: 0.15, LD: 0.10, ZAG: 0.20, LE: 0.10, VOL: 0.15, MEI: 0.15, ATA: 0.15 };
+  let bonusTecnico = 0;
+  let bonusFormacao = 0;
+  let encaixe = 1;
+  let formacao = null;
 
-  return { forca: Math.round(forca), gol, def, mei, atk };
+  if (tecnico) {
+    formacao = tecnico.formacao;
+    pesos = FORMACOES[formacao].pesos;
+
+    // Bônus do overall do técnico: escala de 0 a +6 pontos
+    bonusTecnico = ((tecnico.overall - 60) / 40) * 6;
+
+    // Bônus/penalidade de encaixe: -8 a +4 pontos
+    encaixe = calcularEncaixe(clube, formacao);
+    bonusFormacao = (encaixe - 0.7) * 20; // 70% encaixe = neutro
+  }
+
+  const forcaBase =
+    gol * pesos.GOL +
+    ld  * pesos.LD  +
+    zag * pesos.ZAG +
+    le  * pesos.LE  +
+    vol * pesos.VOL +
+    mei * pesos.MEI +
+    ata * pesos.ATA;
+
+  const forca = Math.round(Math.max(40, Math.min(99,
+    forcaBase + bonusTecnico + bonusFormacao
+  )));
+
+  return {
+    forca, gol, ld, zag, le, vol, mei, ata,
+    bonusTecnico: Math.round(bonusTecnico * 10) / 10,
+    bonusFormacao: Math.round(bonusFormacao * 10) / 10,
+    encaixe: Math.round(encaixe * 100),
+    formacao
+  };
 }
 
-// Gera um número de gols baseado na força de ataque vs defesa adversária
 function gerarGols(ataque, defesaAdversaria) {
   const vantagem = (ataque - defesaAdversaria) / 100;
-  const base = 0.5 + vantagem * 1.5;
   const rand = Math.random();
-
-  if (rand < 0.20) return 0;
-  if (rand < 0.45) return 1;
-  if (rand < 0.68) return 2;
-  if (rand < 0.83) return 3;
-  if (rand < 0.93) return 4;
-  return 5;
+  const limites = [0.20, 0.45, 0.68, 0.83, 0.93];
+  const gols    = [0,    1,    2,    3,    4,    5];
+  // Vantagem desloca levemente os limites
+  const ajuste = vantagem * 0.08;
+  for (let i = 0; i < limites.length; i++) {
+    if (rand < limites[i] - ajuste) return gols[i];
+  }
+  return gols[5];
 }
 
-// Simula uma partida entre dois clubes
-function simularPartida(clubeMandante, clubeVisitante) {
-  const m = calcularForca(clubeMandante);
-  const v = calcularForca(clubeVisitante);
+function simularPartida(clubeMandante, clubeVisitante, tecnicoMandante = null, tecnicoVisitante = null) {
+  const m = calcularForca(clubeMandante,  tecnicoMandante);
+  const v = calcularForca(clubeVisitante, tecnicoVisitante);
 
-  // Fator casa: leve vantagem pro mandante
-  const golsMandante = gerarGols(m.atk + 3, v.def);
-  const golsVisitante = gerarGols(v.atk, m.def + 3);
+  // Fator casa +3 no ataque e +3 na defesa do mandante
+  const golsMandante  = gerarGols(m.ata * pesos(m, 'ata') + m.forca * 0.3 + 3, v.zag * pesos(v, 'zag') + v.forca * 0.3);
+  const golsVisitante = gerarGols(v.ata * pesos(v, 'ata') + v.forca * 0.3,     m.zag * pesos(m, 'zag') + m.forca * 0.3 + 3);
 
   const eventos = gerarEventos(clubeMandante, clubeVisitante, golsMandante, golsVisitante);
 
   return {
-    mandante: clubeMandante.nome,
-    visitante: clubeVisitante.nome,
-    golsMandante,
-    golsVisitante,
-    forcaMandante: m,
-    forcaVisitante: v,
+    mandante: clubeMandante.nome, visitante: clubeVisitante.nome,
+    golsMandante, golsVisitante,
+    forcaMandante: m, forcaVisitante: v,
     eventos
   };
 }
 
-// Gera eventos textuais da partida (gols com autor)
-function gerarEventos(mandante, visitante, golsM, golsV) {
-  const eventos = [];
-  const minutosUsados = new Set();
-
-  const minutoUnico = () => {
-    let m;
-    do { m = Math.floor(Math.random() * 90) + 1; } while (minutosUsados.has(m));
-    minutosUsados.add(m);
-    return m;
-  };
-
-  const atacantes = (clube) =>
-    clube.jogadores.filter(j => j.posicao === "ATK" || j.posicao === "MEI");
-
-  const marcador = (clube) => {
-    const lista = atacantes(clube);
-    return lista[Math.floor(Math.random() * lista.length)];
-  };
-
-  for (let i = 0; i < golsM; i++) {
-    const jogador = marcador(mandante);
-    eventos.push({ minuto: minutoUnico(), texto: `⚽ Gol de ${jogador.nome} (${mandante.nome})` });
-  }
-
-  for (let i = 0; i < golsV; i++) {
-    const jogador = marcador(visitante);
-    eventos.push({ minuto: minutoUnico(), texto: `⚽ Gol de ${jogador.nome} (${visitante.nome})` });
-  }
-
-  eventos.sort((a, b) => a.minuto - b.minuto);
-  return eventos;
+function pesos(f, setor) {
+  // Já está embutido na força calculada — helper simplificado
+  return 1;
 }
 
-// Gera a tabela do campeonato a partir dos resultados
+function simularPartidaSimples(clubeMandante, clubeVisitante, tecnicoMandante = null, tecnicoVisitante = null) {
+  const m = calcularForca(clubeMandante,  tecnicoMandante);
+  const v = calcularForca(clubeVisitante, tecnicoVisitante);
+
+  const golsMandante  = gerarGols(m.forca + 3, v.forca);
+  const golsVisitante = gerarGols(v.forca,     m.forca + 3);
+
+  const eventos = gerarEventos(clubeMandante, clubeVisitante, golsMandante, golsVisitante);
+
+  return {
+    mandante: clubeMandante.nome, visitante: clubeVisitante.nome,
+    golsMandante, golsVisitante,
+    forcaMandante: m, forcaVisitante: v,
+    eventos
+  };
+}
+
+function gerarEventos(mandante, visitante, golsM, golsV) {
+  const eventos = [];
+  const usados = new Set();
+  const minuto = () => {
+    let m;
+    do { m = Math.floor(Math.random() * 90) + 1; } while (usados.has(m));
+    usados.add(m);
+    return m;
+  };
+  const marcador = (clube) => {
+    const lista = clube.jogadores.filter(j => j.posicao === "ATA" || j.posicao === "MEI");
+    return lista[Math.floor(Math.random() * lista.length)];
+  };
+  for (let i = 0; i < golsM; i++) {
+    const j = marcador(mandante);
+    eventos.push({ minuto: minuto(), texto: `⚽ ${j.nome} (${mandante.nome})` });
+  }
+  for (let i = 0; i < golsV; i++) {
+    const j = marcador(visitante);
+    eventos.push({ minuto: minuto(), texto: `⚽ ${j.nome} (${visitante.nome})` });
+  }
+  return eventos.sort((a, b) => a.minuto - b.minuto);
+}
+
 function calcularTabela(clubes, resultados) {
   const tabela = clubes.map(c => ({
-    id: c.id,
-    nome: c.nome,
-    sigla: c.sigla,
-    cor: c.cor,
+    id: c.id, nome: c.nome, sigla: c.sigla, cor: c.cor,
     pts: 0, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, sg: 0
   }));
-
-  const encontrar = (id) => tabela.find(t => t.id === id);
-
+  const find = (id) => tabela.find(t => t.id === id);
   resultados.forEach(r => {
-    const m = encontrar(r.mandanteId);
-    const v = encontrar(r.visitanteId);
+    const m = find(r.mandanteId), v = find(r.visitanteId);
     if (!m || !v) return;
-
     m.j++; v.j++;
     m.gp += r.golsMandante; m.gc += r.golsVisitante;
     v.gp += r.golsVisitante; v.gc += r.golsMandante;
-
-    if (r.golsMandante > r.golsVisitante) {
-      m.pts += 3; m.v++;
-      v.d++;
-    } else if (r.golsMandante < r.golsVisitante) {
-      v.pts += 3; v.v++;
-      m.d++;
-    } else {
-      m.pts++; v.pts++;
-      m.e++; v.e++;
-    }
+    if (r.golsMandante > r.golsVisitante)      { m.pts += 3; m.v++; v.d++; }
+    else if (r.golsMandante < r.golsVisitante) { v.pts += 3; v.v++; m.d++; }
+    else                                        { m.pts++; v.pts++; m.e++; v.e++; }
   });
-
   tabela.forEach(t => t.sg = t.gp - t.gc);
-  tabela.sort((a, b) => b.pts - a.pts || b.sg - a.sg || b.gp - a.gp);
-
-  return tabela;
+  return tabela.sort((a, b) => b.pts - a.pts || b.sg - a.sg || b.gp - a.gp);
 }
 
-// Gera calendário de rodadas (todos contra todos, ida e volta)
 function gerarCalendario(clubes) {
-  const ids = clubes.map(c => c.id);
+  const ids = [...clubes.map(c => c.id)];
+  if (ids.length % 2 !== 0) ids.push(null);
   const rodadas = [];
-  const n = ids.length;
-
-  // Algoritmo round-robin
+  const total = ids.length - 1;
   const lista = [...ids];
-  if (lista.length % 2 !== 0) lista.push(null); // bye
-
-  const totalRodadas = lista.length - 1;
-
-  for (let r = 0; r < totalRodadas; r++) {
+  for (let r = 0; r < total; r++) {
     const jogos = [];
     for (let i = 0; i < lista.length / 2; i++) {
-      const m = lista[i];
-      const v = lista[lista.length - 1 - i];
+      const m = lista[i], v = lista[lista.length - 1 - i];
       if (m && v) jogos.push({ mandanteId: m, visitanteId: v });
     }
     rodadas.push({ numero: r + 1, jogos });
-    // Rotacionar fixando o primeiro
     lista.splice(1, 0, lista.pop());
   }
-
-  // Volta (invertendo mando de campo)
-  const idaLength = rodadas.length;
-  for (let r = 0; r < idaLength; r++) {
+  const ida = rodadas.length;
+  for (let r = 0; r < ida; r++) {
     rodadas.push({
-      numero: idaLength + r + 1,
+      numero: ida + r + 1,
       jogos: rodadas[r].jogos.map(j => ({ mandanteId: j.visitanteId, visitanteId: j.mandanteId }))
     });
   }
-
   return rodadas;
-}
-  </script>
-  <script>
-// ── Estado global ──
+}</script>
+  <script>// ── Estado global ──
 const estado = {
+  manager: null,
   meuClube: null,
+  meuTecnico: null,
   rodadaAtual: 0,
   resultados: [],
   calendario: []
 };
 
-// ── Inicialização ──
+// ── Init ──
 document.addEventListener("DOMContentLoaded", () => {
-  renderSelecaoClube();
+  renderCriarManager();
 });
 
-// ── Tela de seleção de clube ──
-function renderSelecaoClube() {
-  document.getElementById("header-info").classList.add("hidden");
-  document.getElementById("nav").classList.add("hidden");
+// ════════════════════════════════════════
+// TELA 1 — Criar perfil de manager
+// ════════════════════════════════════════
+function renderCriarManager() {
+  ocultarNav();
+  document.getElementById("main").innerHTML = `
+    <div class="tela-intro">
+      <div class="intro-card">
+        <div class="intro-logo">⚽</div>
+        <h2>Manager FC</h2>
+        <p class="intro-sub">Crie seu perfil para começar</p>
 
-  const main = document.getElementById("main");
-  main.innerHTML = `
-    <div id="tela-selecao">
-      <h2>Escolha seu clube</h2>
-      <p>Você será o manager. Escolha com sabedoria.</p>
+        <div class="form-group">
+          <label>Seu nome</label>
+          <input type="text" id="inp-nome" placeholder="Ex: Danilo" maxlength="30" />
+        </div>
+
+        <div class="form-group">
+          <label>Nacionalidade</label>
+          <select id="inp-nac">
+            <option value="BR">🇧🇷 Brasileiro</option>
+            <option value="PT">🇵🇹 Português</option>
+            <option value="AR">🇦🇷 Argentino</option>
+            <option value="ES">🇪🇸 Espanhol</option>
+            <option value="IT">🇮🇹 Italiano</option>
+            <option value="DE">🇩🇪 Alemão</option>
+            <option value="FR">🇫🇷 Francês</option>
+            <option value="EN">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglês</option>
+          </select>
+        </div>
+
+        <button class="btn-primario" onclick="criarManager()">Criar perfil ↗</button>
+      </div>
+    </div>
+  `;
+}
+
+function criarManager() {
+  const nome = document.getElementById("inp-nome").value.trim();
+  const nac  = document.getElementById("inp-nac").value;
+  if (!nome) { alert("Digite seu nome!"); return; }
+
+  estado.manager = { nome, nacionalidade: nac, reputacao: 50, titulos: 0 };
+  renderSelecionarClube();
+}
+
+// ════════════════════════════════════════
+// TELA 2 — Selecionar clube
+// ════════════════════════════════════════
+function renderSelecionarClube() {
+  ocultarNav();
+  document.getElementById("main").innerHTML = `
+    <div class="tela-selecao">
+      <h2>Olá, <strong>${estado.manager.nome}</strong> — escolha seu clube</h2>
+      <p class="sub">Você será o manager. Escolha com sabedoria.</p>
       <div class="grid-clubes">
         ${CLUBES.map(c => {
           const { forca } = calcularForca(c);
@@ -771,7 +1491,7 @@ function renderSelecaoClube() {
             <div class="card-clube" onclick="selecionarClube('${c.id}')">
               <div class="escudo" style="background:${c.cor}">${c.sigla}</div>
               <div class="nome">${c.nome}</div>
-              <div class="forca">Força geral: <strong>${forca}</strong></div>
+              <div class="forca">Força: <strong>${forca}</strong></div>
             </div>
           `;
         }).join("")}
@@ -781,30 +1501,89 @@ function renderSelecaoClube() {
 }
 
 function selecionarClube(id) {
-  estado.meuClube = CLUBES.find(c => c.id === id);
-  estado.calendario = gerarCalendario(CLUBES);
+  estado.meuClube    = CLUBES.find(c => c.id === id);
+  estado.calendario  = gerarCalendario(CLUBES);
   estado.rodadaAtual = 0;
-  estado.resultados = [];
+  estado.resultados  = [];
+  estado.meuTecnico  = null;
+  renderContratarTecnico();
+}
 
-  document.getElementById("header-clube").textContent = estado.meuClube.nome;
+// ════════════════════════════════════════
+// TELA 3 — Contratar técnico
+// ════════════════════════════════════════
+function renderContratarTecnico() {
+  ocultarNav();
+  const clube = estado.meuClube;
+
+  document.getElementById("main").innerHTML = `
+    <div class="tela-selecao">
+      <h2>Contrate seu técnico — <span style="color:var(--accent)">${clube.nome}</span></h2>
+      <p class="sub">O técnico define a formação e influencia o desempenho do time.</p>
+
+      <div class="lista-tecnicos">
+        ${TECNICOS_DISPONIVEIS.map(t => {
+          const encaixe = calcularEncaixe(clube, t.formacao);
+          const encaixePct = Math.round(encaixe * 100);
+          const corEncaixe = encaixePct >= 80 ? "var(--green)" : encaixePct >= 60 ? "var(--yellow)" : "var(--red)";
+          const forcaPrevia = calcularForca(clube, t);
+
+          return `
+            <div class="card-tecnico" onclick="contratarTecnico('${t.id}')">
+              <div class="tecnico-header">
+                <div>
+                  <div class="tecnico-nome">${t.nome} <span class="flag">${bandeira(t.nacionalidade)}</span></div>
+                  <div class="tecnico-meta">${t.estilo} · ${t.formacao}</div>
+                </div>
+                <div class="overall-grande ${overallClasse(t.overall)}">${t.overall}</div>
+              </div>
+
+              <div class="tecnico-stats">
+                <div class="tstat">
+                  <span class="tstat-label">Formação</span>
+                  <span class="tstat-val">${t.formacao}</span>
+                </div>
+                <div class="tstat">
+                  <span class="tstat-label">Encaixe no elenco</span>
+                  <span class="tstat-val" style="color:${corEncaixe}">${encaixePct}%</span>
+                </div>
+                <div class="tstat">
+                  <span class="tstat-label">Força do time</span>
+                  <span class="tstat-val" style="color:var(--accent)">${forcaPrevia.forca}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function contratarTecnico(id) {
+  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(t => t.id === id);
+  iniciarJogo();
+}
+
+// ════════════════════════════════════════
+// JOGO PRINCIPAL
+// ════════════════════════════════════════
+function iniciarJogo() {
+  const clube   = estado.meuClube;
+  const tecnico = estado.meuTecnico;
+
+  document.getElementById("header-clube").textContent = clube.nome;
+  document.getElementById("header-manager").textContent = estado.manager.nome;
+  document.getElementById("header-tecnico").textContent = tecnico.nome;
   document.getElementById("header-info").classList.remove("hidden");
-  document.getElementById("nav").classList.remove("hidden");
-
+  mostrarNav();
   navegarPara("campeonato");
 }
 
-// ── Navegação ──
 function navegarPara(aba) {
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("ativo"));
-  document.querySelector(`nav button[data-aba="${aba}"]`).classList.add("ativo");
-
-  const renders = {
-    campeonato: renderCampeonato,
-    tabela: renderTabela,
-    elenco: renderElenco,
-  };
-
-  renders[aba]?.();
+  document.querySelector(`nav button[data-aba="${aba}"]`)?.classList.add("ativo");
+  ({ campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, staff: renderStaff })[aba]?.();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -813,26 +1592,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ── Aba: Elenco ──
+// ════════════════════════════════════════
+// ABA — Elenco
+// ════════════════════════════════════════
 function renderElenco() {
-  const clube = estado.meuClube;
-  const { forca, gol, def, mei, atk } = calcularForca(clube);
-
-  const ordemPos = { GOL: 0, DEF: 1, MEI: 2, ATK: 3 };
+  const clube   = estado.meuClube;
+  const tecnico = estado.meuTecnico;
+  const stats   = calcularForca(clube, tecnico);
+  const ordemPos = { GOL: 0, LD: 1, ZAG: 2, LE: 3, VOL: 4, MEI: 5, ATA: 6 };
   const jogadores = [...clube.jogadores].sort((a, b) =>
     ordemPos[a.posicao] - ordemPos[b.posicao] || b.overall - a.overall
   );
 
   document.getElementById("main").innerHTML = `
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-valor">${forca}</div><div class="stat-label">Força geral</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(gol)}</div><div class="stat-label">Goleiros</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(def)}</div><div class="stat-label">Defensores</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(mei)}</div><div class="stat-label">Meias</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(atk)}</div><div class="stat-label">Atacantes</div></div>
+      <div class="stat-card"><div class="stat-valor" style="color:var(--accent)">${stats.forca}</div><div class="stat-label">Força c/ técnico</div></div>
+      <div class="stat-card"><div class="stat-valor ${stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo'}">${stats.bonusFormacao > 0 ? '+' : ''}${stats.bonusFormacao}</div><div class="stat-label">Encaixe ${stats.formacao}</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.gol)}</div><div class="stat-label">GOL</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.ld)}</div><div class="stat-label">LD</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.zag)}</div><div class="stat-label">ZAG</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.le)}</div><div class="stat-label">LE</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.vol)}</div><div class="stat-label">VOL</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.mei)}</div><div class="stat-label">MEI</div></div>
+      <div class="stat-card"><div class="stat-valor">${Math.round(stats.ata)}</div><div class="stat-label">ATA</div></div>
     </div>
 
-    <p class="secao-titulo">Elenco — ${clube.nome}</p>
+    <p class="secao-titulo mt16">Elenco — ${clube.nome}</p>
     <div class="lista-jogadores">
       ${jogadores.map(j => `
         <div class="item-jogador">
@@ -845,29 +1630,88 @@ function renderElenco() {
   `;
 }
 
-function overallClasse(v) {
-  if (v >= 80) return "overall-alto";
-  if (v >= 70) return "overall-medio";
-  return "overall-baixo";
+// ════════════════════════════════════════
+// ABA — Staff / Comissão
+// ════════════════════════════════════════
+function renderStaff() {
+  const tecnico = estado.meuTecnico;
+  const clube   = estado.meuClube;
+  const stats   = calcularForca(clube, tecnico);
+  const encaixePct = stats.encaixe;
+  const corEncaixe = encaixePct >= 80 ? "var(--green)" : encaixePct >= 60 ? "var(--yellow)" : "var(--red)";
+
+  document.getElementById("main").innerHTML = `
+    <p class="secao-titulo">Comissão técnica</p>
+
+    <div class="card-staff-tecnico">
+      <div class="staff-header">
+        <div>
+          <div class="staff-cargo">Técnico principal</div>
+          <div class="staff-nome">${tecnico.nome} ${bandeira(tecnico.nacionalidade)}</div>
+          <div class="staff-meta">${tecnico.estilo} · ${tecnico.formacao}</div>
+        </div>
+        <div class="overall-grande ${overallClasse(tecnico.overall)}">${tecnico.overall}</div>
+      </div>
+
+      <div class="tecnico-stats" style="margin-top:16px">
+        <div class="tstat">
+          <span class="tstat-label">Formação preferida</span>
+          <span class="tstat-val">${tecnico.formacao}</span>
+        </div>
+        <div class="tstat">
+          <span class="tstat-label">${FORMACOES[tecnico.formacao].descricao}</span>
+          <span class="tstat-val"></span>
+        </div>
+        <div class="tstat">
+          <span class="tstat-label">Encaixe do elenco</span>
+          <span class="tstat-val" style="color:${corEncaixe}">${encaixePct}%</span>
+        </div>
+        <div class="tstat">
+          <span class="tstat-label">Bônus de overall</span>
+          <span class="tstat-val overall-alto">+${stats.bonusTecnico}</span>
+        </div>
+        <div class="tstat">
+          <span class="tstat-label">Bônus/penalidade de formação</span>
+          <span class="tstat-val ${stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo'}">${stats.bonusFormacao > 0 ? '+' : ''}${stats.bonusFormacao}</span>
+        </div>
+        <div class="tstat">
+          <span class="tstat-label">Força final do time</span>
+          <span class="tstat-val" style="color:var(--accent);font-weight:700">${stats.forca}</span>
+        </div>
+      </div>
+
+      <button class="btn-demitir" onclick="renderContratarTecnico()">⚠ Demitir e contratar novo técnico</button>
+    </div>
+
+    <div class="vagas-staff">
+      <p class="secao-titulo mt16">Restante da comissão</p>
+      ${["Auxiliar técnico","Preparador físico","Preparador de goleiros","Analista de desempenho","Médico","Fisioterapeuta","Scout / Olheiro"].map(cargo => `
+        <div class="vaga-item">
+          <span class="vaga-cargo">${cargo}</span>
+          <span class="vaga-badge">Em breve</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
-// ── Aba: Campeonato ──
+// ════════════════════════════════════════
+// ABA — Campeonato
+// ════════════════════════════════════════
 function renderCampeonato() {
-  const rodadas = estado.calendario;
   const meuId = estado.meuClube.id;
 
   document.getElementById("main").innerHTML = `
-    <p class="secao-titulo">Brasileirão — Todas as rodadas</p>
+    <p class="secao-titulo">Brasileirão — 38 rodadas</p>
     <div class="rodadas-container">
-      ${rodadas.map((rodada, idx) => {
+      ${estado.calendario.map((rodada, idx) => {
         const simulada = idx < estado.rodadaAtual;
-        const proxima = idx === estado.rodadaAtual;
-
+        const proxima  = idx === estado.rodadaAtual;
         return `
           <div class="card-rodada" id="rodada-${idx}">
             <div class="rodada-header">
               <span>Rodada ${rodada.numero}</span>
-              ${proxima ? `<button class="btn-simular" onclick="simularRodada(${idx})">Simular rodada</button>` : ""}
+              ${proxima  ? `<button class="btn-simular" onclick="simularRodada(${idx})">▶ Simular rodada</button>` : ""}
               ${simulada ? `<span style="color:var(--green);font-size:12px">✓ Encerrada</span>` : ""}
             </div>
             <div class="lista-jogos">
@@ -875,78 +1719,63 @@ function renderCampeonato() {
                 const resultado = estado.resultados.find(
                   r => r.rodada === idx && r.mandanteId === jogo.mandanteId && r.visitanteId === jogo.visitanteId
                 );
-                const mandante = CLUBES.find(c => c.id === jogo.mandanteId);
+                const mandante  = CLUBES.find(c => c.id === jogo.mandanteId);
                 const visitante = CLUBES.find(c => c.id === jogo.visitanteId);
-                const ehMeu = jogo.mandanteId === meuId || jogo.visitanteId === meuId;
 
                 let placarHTML = `<span class="placar pendente">vs</span>`;
                 if (resultado) {
-                  const classeP = placarClasse(resultado, meuId);
+                  const cls = placarClasse(resultado, meuId);
                   placarHTML = `
-                    <span class="placar ${classeP}" 
-                      onclick="abrirModal(${JSON.stringify(resultado).replace(/"/g, '&quot;')})"
-                      style="cursor:pointer" title="Ver detalhes">
+                    <span class="placar ${cls}" onclick="abrirModal(${JSON.stringify(resultado).replace(/"/g, '&quot;')})" style="cursor:pointer">
                       ${resultado.golsMandante} – ${resultado.golsVisitante}
-                    </span>
-                  `;
+                    </span>`;
                 }
-
                 return `
                   <div class="item-jogo">
                     <span class="time-nome ${jogo.mandanteId === meuId ? 'meu' : ''}">${mandante.nome}</span>
                     ${placarHTML}
                     <span class="time-nome direita ${jogo.visitanteId === meuId ? 'meu' : ''}">${visitante.nome}</span>
-                  </div>
-                `;
+                  </div>`;
               }).join("")}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join("")}
     </div>
   `;
 }
 
-function placarClasse(resultado, meuId) {
-  if (resultado.mandanteId !== meuId && resultado.visitanteId !== meuId) return "";
-  const euSouMandante = resultado.mandanteId === meuId;
-  const meusGols = euSouMandante ? resultado.golsMandante : resultado.golsVisitante;
-  const delesGols = euSouMandante ? resultado.golsVisitante : resultado.golsMandante;
-  if (meusGols > delesGols) return "vitoria";
-  if (meusGols < delesGols) return "derrota";
-  return "empate";
-}
-
 function simularRodada(idx) {
-  const rodada = estado.calendario[idx];
+  const rodada    = estado.calendario[idx];
+  const meuId     = estado.meuClube.id;
+  const meuTec    = estado.meuTecnico;
 
   rodada.jogos.forEach(jogo => {
-    const mandante = CLUBES.find(c => c.id === jogo.mandanteId);
+    const mandante  = CLUBES.find(c => c.id === jogo.mandanteId);
     const visitante = CLUBES.find(c => c.id === jogo.visitanteId);
-    const resultado = simularPartida(mandante, visitante);
+    const tecM = jogo.mandanteId  === meuId ? meuTec : null;
+    const tecV = jogo.visitanteId === meuId ? meuTec : null;
+    const r    = simularPartidaSimples(mandante, visitante, tecM, tecV);
 
     estado.resultados.push({
       rodada: idx,
-      mandanteId: jogo.mandanteId,
-      visitanteId: jogo.visitanteId,
-      golsMandante: resultado.golsMandante,
-      golsVisitante: resultado.golsVisitante,
-      eventos: resultado.eventos
+      mandanteId: jogo.mandanteId, visitanteId: jogo.visitanteId,
+      golsMandante: r.golsMandante, golsVisitante: r.golsVisitante,
+      eventos: r.eventos,
+      forcaMandante: r.forcaMandante, forcaVisitante: r.forcaVisitante
     });
   });
 
   estado.rodadaAtual = idx + 1;
   renderCampeonato();
-
-  // Scroll suave para próxima rodada
-  const proxima = document.getElementById(`rodada-${idx + 1}`);
-  if (proxima) proxima.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById(`rodada-${idx + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// ── Aba: Tabela ──
+// ════════════════════════════════════════
+// ABA — Tabela
+// ════════════════════════════════════════
 function renderTabela() {
   const tabela = calcularTabela(CLUBES, estado.resultados);
-  const meuId = estado.meuClube.id;
+  const meuId  = estado.meuClube.id;
 
   document.getElementById("main").innerHTML = `
     <p class="secao-titulo">Classificação — Brasileirão</p>
@@ -954,33 +1783,18 @@ function renderTabela() {
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Clube</th>
-            <th>Pts</th>
-            <th>J</th>
-            <th>V</th>
-            <th>E</th>
-            <th>D</th>
-            <th>GP</th>
-            <th>GC</th>
-            <th>SG</th>
+            <th>#</th><th>Clube</th><th>Pts</th><th>J</th>
+            <th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th>
           </tr>
         </thead>
         <tbody>
           ${tabela.map((t, i) => `
             <tr class="${t.id === meuId ? 'meu-clube' : ''}">
               <td class="td-pos">${i + 1}</td>
-              <td>
-                <span class="escudo-mini" style="background:${t.cor}">${t.sigla}</span>
-                ${t.nome}
-              </td>
+              <td><span class="escudo-mini" style="background:${t.cor}">${t.sigla}</span>${t.nome}</td>
               <td class="td-pts">${t.pts}</td>
-              <td>${t.j}</td>
-              <td>${t.v}</td>
-              <td>${t.e}</td>
-              <td>${t.d}</td>
-              <td>${t.gp}</td>
-              <td>${t.gc}</td>
+              <td>${t.j}</td><td>${t.v}</td><td>${t.e}</td><td>${t.d}</td>
+              <td>${t.gp}</td><td>${t.gc}</td>
               <td>${t.sg > 0 ? '+' + t.sg : t.sg}</td>
             </tr>
           `).join("")}
@@ -990,23 +1804,16 @@ function renderTabela() {
   `;
 }
 
-// ── Modal de detalhes da partida ──
+// ════════════════════════════════════════
+// Modal de partida
+// ════════════════════════════════════════
 function abrirModal(resultado) {
-  const mandante = CLUBES.find(c => c.id === resultado.mandanteId);
+  const mandante  = CLUBES.find(c => c.id === resultado.mandanteId);
   const visitante = CLUBES.find(c => c.id === resultado.visitanteId);
-
-  const corPlacar = resultado.golsMandante !== resultado.golsVisitante
-    ? (resultado.golsMandante > resultado.golsVisitante ? "var(--green)" : "var(--red)")
-    : "var(--yellow)";
-
-  const eventosHTML = resultado.eventos.length > 0
-    ? resultado.eventos.map(e => `
-        <div class="evento-item">
-          <span class="evento-minuto">${e.minuto}'</span>
-          <span>${e.texto}</span>
-        </div>
-      `).join("")
-    : `<p style="color:var(--text2);font-size:13px">Jogo sem gols.</p>`;
+  const diff = resultado.golsMandante - resultado.golsVisitante;
+  const cor  = diff > 0 ? "var(--green)" : diff < 0 ? "var(--red)" : "var(--yellow)";
+  const fm   = resultado.forcaMandante;
+  const fv   = resultado.forcaVisitante;
 
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
@@ -1014,27 +1821,65 @@ function abrirModal(resultado) {
     <div class="modal">
       <div class="modal-header">
         <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Resultado final</div>
-        <div class="modal-placar" style="color:${corPlacar}">
-          ${resultado.golsMandante} – ${resultado.golsVisitante}
+        <div class="modal-placar" style="color:${cor}">${resultado.golsMandante} – ${resultado.golsVisitante}</div>
+        <div class="modal-times">
+          <span>${mandante.nome}</span>
+          <span>${visitante.nome}</span>
         </div>
       </div>
-      <div class="modal-times">
-        <span>${mandante.nome}</span>
-        <span>${visitante.nome}</span>
+      ${fm ? `
+      <div style="display:flex;justify-content:space-around;padding:10px 20px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)">
+        <span>Força: <strong style="color:var(--text)">${fm.forca}</strong></span>
+        <span>vs</span>
+        <span>Força: <strong style="color:var(--text)">${fv.forca}</strong></span>
+      </div>` : ""}
+      <div class="modal-eventos">
+        ${resultado.eventos.length > 0
+          ? resultado.eventos.map(e => `
+              <div class="evento-item">
+                <span class="evento-minuto">${e.minuto}'</span>
+                <span>${e.texto}</span>
+              </div>`).join("")
+          : `<p style="color:var(--text2);font-size:13px">Jogo sem gols.</p>`
+        }
       </div>
-      <div class="modal-eventos">${eventosHTML}</div>
       <div class="modal-footer">
         <button class="btn-fechar" onclick="this.closest('.modal-overlay').remove()">Fechar</button>
       </div>
     </div>
   `;
-
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
-
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
 }
-  </script>
+
+// ════════════════════════════════════════
+// Helpers
+// ════════════════════════════════════════
+function placarClasse(resultado, meuId) {
+  if (resultado.mandanteId !== meuId && resultado.visitanteId !== meuId) return "";
+  const euM    = resultado.mandanteId === meuId;
+  const meus   = euM ? resultado.golsMandante : resultado.golsVisitante;
+  const deles  = euM ? resultado.golsVisitante : resultado.golsMandante;
+  return meus > deles ? "vitoria" : meus < deles ? "derrota" : "empate";
+}
+
+function overallClasse(v) {
+  return v >= 80 ? "overall-alto" : v >= 70 ? "overall-medio" : "overall-baixo";
+}
+
+function bandeira(nac) {
+  const flags = { BR:"🇧🇷", PT:"🇵🇹", AR:"🇦🇷", ES:"🇪🇸", IT:"🇮🇹", DE:"🇩🇪", FR:"🇫🇷", EN:"🏴󠁧󠁢󠁥󠁮󠁧󠁿" };
+  return flags[nac] || "🌍";
+}
+
+function ocultarNav() {
+  document.getElementById("header-info").classList.add("hidden");
+  document.getElementById("nav").classList.add("hidden");
+}
+
+function mostrarNav() {
+  document.getElementById("header-info").classList.remove("hidden");
+  document.getElementById("nav").classList.remove("hidden");
+}</script>
 </body>
 </html>
