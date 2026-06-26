@@ -541,7 +541,24 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 .header-info-group strong { color: var(--text); }
 
 .tela-selecao h2 { font-size: 18px; margin-bottom: 6px; }
-.tela-selecao .sub { color: var(--text2); margin-bottom: 24px; font-size: 13px; }</style>
+.tela-selecao .sub { color: var(--text2); margin-bottom: 24px; font-size: 13px; }
+
+/* Técnico atual destacado */
+.card-tecnico.tecnico-atual {
+  border-color: var(--accent);
+  opacity: .7;
+  cursor: default;
+}
+.badge-atual {
+  font-size: 10px;
+  background: var(--bg-accent, rgba(79,142,247,.15));
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-left: 6px;
+  vertical-align: middle;
+}</style>
 </head>
 <body>
   <div id="app">
@@ -563,7 +580,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
   </div>
   <script>const CLUBES = [
   {
-    id: "flamengo", nome: "Flamengo", sigla: "FLA", cor: "#E8000D",
+    id: "flamengo", tecnico_id: "t05", nome: "Flamengo", sigla: "FLA", cor: "#E8000D",
     jogadores: [
       { id: "p001", nome: "Rossi",            posicao: "GOL", overall: 83 },
       { id: "p002", nome: "Matheus Cunha",     posicao: "GOL", overall: 71 },
@@ -593,7 +610,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "palmeiras", nome: "Palmeiras", sigla: "PAL", cor: "#006437",
+    id: "palmeiras", tecnico_id: "t01", nome: "Palmeiras", sigla: "PAL", cor: "#006437",
     jogadores: [
       { id: "p026", nome: "Weverton",          posicao: "GOL", overall: 86 },
       { id: "p027", nome: "Marcelo Lomba",     posicao: "GOL", overall: 72 },
@@ -623,7 +640,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "corinthians", nome: "Corinthians", sigla: "COR", cor: "#1a1a1a",
+    id: "corinthians", tecnico_id: "t10", nome: "Corinthians", sigla: "COR", cor: "#1a1a1a",
     jogadores: [
       { id: "p051", nome: "Hugo Souza",        posicao: "GOL", overall: 79 },
       { id: "p052", nome: "Carlos Miguel",     posicao: "GOL", overall: 73 },
@@ -653,7 +670,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "saopulo", nome: "São Paulo", sigla: "SPF", cor: "#CC0000",
+    id: "saopulo", tecnico_id: "t06", nome: "São Paulo", sigla: "SPF", cor: "#CC0000",
     jogadores: [
       { id: "p076", nome: "Rafael",            posicao: "GOL", overall: 81 },
       { id: "p077", nome: "Jandrei",           posicao: "GOL", overall: 72 },
@@ -683,7 +700,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "atleticomg", nome: "Atlético-MG", sigla: "CAM", cor: "#404040",
+    id: "atleticomg", tecnico_id: "t12", nome: "Atlético-MG", sigla: "CAM", cor: "#404040",
     jogadores: [
       { id: "p101", nome: "Everson",           posicao: "GOL", overall: 82 },
       { id: "p102", nome: "Matheus Mendes",    posicao: "GOL", overall: 70 },
@@ -713,7 +730,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "internacional", nome: "Internacional", sigla: "INT", cor: "#CC0000",
+    id: "internacional", tecnico_id: "t13", nome: "Internacional", sigla: "INT", cor: "#CC0000",
     jogadores: [
       { id: "p126", nome: "Rochet",            posicao: "GOL", overall: 83 },
       { id: "p127", nome: "Fabrício",          posicao: "GOL", overall: 70 },
@@ -743,7 +760,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "gremio", nome: "Grêmio", sigla: "GRE", cor: "#3B77BB",
+    id: "gremio", tecnico_id: "t14", nome: "Grêmio", sigla: "GRE", cor: "#3B77BB",
     jogadores: [
       { id: "p151", nome: "Marchesín",         posicao: "GOL", overall: 81 },
       { id: "p152", nome: "Gabriel Grando",    posicao: "GOL", overall: 70 },
@@ -773,7 +790,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "botafogo", nome: "Botafogo", sigla: "BOT", cor: "#1a1a1a",
+    id: "botafogo", tecnico_id: "t05", nome: "Botafogo", sigla: "BOT", cor: "#1a1a1a",
     jogadores: [
       { id: "p176", nome: "John",              posicao: "GOL", overall: 80 },
       { id: "p177", nome: "Gatito",            posicao: "GOL", overall: 74 },
@@ -803,7 +820,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "bahia", nome: "Bahia", sigla: "BAH", cor: "#0066CC",
+    id: "bahia", tecnico_id: "t09", nome: "Bahia", sigla: "BAH", cor: "#0066CC",
     jogadores: [
       { id: "p201", nome: "Marcos Felipe",     posicao: "GOL", overall: 78 },
       { id: "p202", nome: "Adriel",            posicao: "GOL", overall: 68 },
@@ -833,7 +850,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "fortaleza", nome: "Fortaleza", sigla: "FOR", cor: "#0033A0",
+    id: "fortaleza", tecnico_id: "t09", nome: "Fortaleza", sigla: "FOR", cor: "#0033A0",
     jogadores: [
       { id: "p226", nome: "João Ricardo",      posicao: "GOL", overall: 80 },
       { id: "p227", nome: "Magrão",            posicao: "GOL", overall: 68 },
@@ -863,7 +880,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "cruzeiro", nome: "Cruzeiro", sigla: "CRU", cor: "#0032A0",
+    id: "cruzeiro", tecnico_id: "t07", nome: "Cruzeiro", sigla: "CRU", cor: "#0032A0",
     jogadores: [
       { id: "p251", nome: "Anderson",          posicao: "GOL", overall: 77 },
       { id: "p252", nome: "Rafael Cabral",     posicao: "GOL", overall: 72 },
@@ -893,7 +910,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "fluminense", nome: "Fluminense", sigla: "FLU", cor: "#6B0F1A",
+    id: "fluminense", tecnico_id: "t17", nome: "Fluminense", sigla: "FLU", cor: "#6B0F1A",
     jogadores: [
       { id: "p276", nome: "Fábio",             posicao: "GOL", overall: 82 },
       { id: "p277", nome: "Vitor Eudes",       posicao: "GOL", overall: 68 },
@@ -923,7 +940,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "vasco", nome: "Vasco", sigla: "VAS", cor: "#000000",
+    id: "vasco", tecnico_id: "t11", nome: "Vasco", sigla: "VAS", cor: "#000000",
     jogadores: [
       { id: "p301", nome: "Léo Jardim",        posicao: "GOL", overall: 78 },
       { id: "p302", nome: "Ivan",              posicao: "GOL", overall: 70 },
@@ -953,7 +970,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "atleticopr", nome: "Athletico-PR", sigla: "CAP", cor: "#CC0000",
+    id: "atleticopr", tecnico_id: "t03", nome: "Athletico-PR", sigla: "CAP", cor: "#CC0000",
     jogadores: [
       { id: "p326", nome: "Bento",             posicao: "GOL", overall: 84 },
       { id: "p327", nome: "Mycael",            posicao: "GOL", overall: 70 },
@@ -983,7 +1000,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "rbbragantino", nome: "RB Bragantino", sigla: "RBB", cor: "#CC0000",
+    id: "rbbragantino", tecnico_id: "t08", nome: "RB Bragantino", sigla: "RBB", cor: "#CC0000",
     jogadores: [
       { id: "p351", nome: "Cleiton",           posicao: "GOL", overall: 82 },
       { id: "p352", nome: "Lucão",             posicao: "GOL", overall: 68 },
@@ -1013,7 +1030,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "cuiaba", nome: "Cuiabá", sigla: "CUI", cor: "#FFD700",
+    id: "cuiaba", tecnico_id: "t15", nome: "Cuiabá", sigla: "CUI", cor: "#FFD700",
     jogadores: [
       { id: "p376", nome: "Walter",            posicao: "GOL", overall: 74 },
       { id: "p377", nome: "João Carlos",       posicao: "GOL", overall: 65 },
@@ -1043,7 +1060,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "juventude", nome: "Juventude", sigla: "JUV", cor: "#006400",
+    id: "juventude", tecnico_id: "t19", nome: "Juventude", sigla: "JUV", cor: "#006400",
     jogadores: [
       { id: "p401", nome: "Gabriel",           posicao: "GOL", overall: 73 },
       { id: "p402", nome: "Marcelo Carné",     posicao: "GOL", overall: 64 },
@@ -1073,7 +1090,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "goias", nome: "Goiás", sigla: "GOI", cor: "#006400",
+    id: "goias", tecnico_id: "t16", nome: "Goiás", sigla: "GOI", cor: "#006400",
     jogadores: [
       { id: "p426", nome: "Tadeu",             posicao: "GOL", overall: 75 },
       { id: "p427", nome: "Jefferson",         posicao: "GOL", overall: 65 },
@@ -1103,7 +1120,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "coritiba", nome: "Coritiba", sigla: "CFC", cor: "#006400",
+    id: "coritiba", tecnico_id: "t18", nome: "Coritiba", sigla: "CFC", cor: "#006400",
     jogadores: [
       { id: "p451", nome: "Gabriel",           posicao: "GOL", overall: 72 },
       { id: "p452", nome: "Wilson",            posicao: "GOL", overall: 64 },
@@ -1133,7 +1150,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
     ]
   },
   {
-    id: "santos", nome: "Santos", sigla: "SAN", cor: "#000000",
+    id: "santos", tecnico_id: "t20", nome: "Santos", sigla: "SAN", cor: "#000000",
     jogadores: [
       { id: "p476", nome: "João Paulo",        posicao: "GOL", overall: 79 },
       { id: "p477", nome: "Vladimir",          posicao: "GOL", overall: 68 },
@@ -1505,8 +1522,10 @@ function selecionarClube(id) {
   estado.calendario  = gerarCalendario(CLUBES);
   estado.rodadaAtual = 0;
   estado.resultados  = [];
-  estado.meuTecnico  = null;
-  renderContratarTecnico();
+  // Carrega o técnico atual do clube automaticamente
+  const tec_id = estado.meuClube.tecnico_id;
+  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(t => t.id === tec_id) || TECNICOS_DISPONIVEIS[0];
+  iniciarJogo();
 }
 
 // ════════════════════════════════════════
@@ -1680,7 +1699,7 @@ function renderStaff() {
         </div>
       </div>
 
-      <button class="btn-demitir" onclick="renderContratarTecnico()">⚠ Demitir e contratar novo técnico</button>
+      <button class="btn-demitir" onclick="confirmarDemissao()">⚠ Demitir e contratar novo técnico</button>
     </div>
 
     <div class="vagas-staff">
@@ -1880,6 +1899,59 @@ function ocultarNav() {
 function mostrarNav() {
   document.getElementById("header-info").classList.remove("hidden");
   document.getElementById("nav").classList.remove("hidden");
+}
+
+// ════════════════════════════════════════
+// Demissão e contratação de técnico
+// ════════════════════════════════════════
+function confirmarDemissao() {
+  const tecnico = estado.meuTecnico;
+  if (!confirm(`Deseja demitir ${tecnico.nome}? Você precisará contratar um novo técnico.`)) return;
+  renderContratarTecnico();
+}
+
+function renderContratarTecnico() {
+  ocultarNav();
+  const clube = estado.meuClube;
+
+  document.getElementById("main").innerHTML = `
+    <div class="tela-selecao">
+      <h2>Contratar técnico — <span style="color:var(--accent)">${clube.nome}</span></h2>
+      <p class="sub">Escolha o novo técnico. O encaixe indica quão bem a formação se adapta ao seu elenco.</p>
+      <div class="lista-tecnicos">
+        ${TECNICOS_DISPONIVEIS.map(t => {
+          const encaixe = calcularEncaixe(clube, t.formacao);
+          const encaixePct = Math.round(encaixe * 100);
+          const corEncaixe = encaixePct >= 80 ? "var(--green)" : encaixePct >= 60 ? "var(--yellow)" : "var(--red)";
+          const forcaPrevia = calcularForca(clube, t);
+          const atual = estado.meuTecnico?.id === t.id;
+          return \`
+            <div class="card-tecnico \${atual ? 'tecnico-atual' : ''}" onclick="\${atual ? '' : 'contratarTecnico(' + JSON.stringify(t.id) + ')'}">
+              <div class="tecnico-header">
+                <div>
+                  <div class="tecnico-nome">\${t.nome} <span class="flag">\${bandeira(t.nacionalidade)}</span> \${atual ? '<span class="badge-atual">Técnico atual</span>' : ''}</div>
+                  <div class="tecnico-meta">\${t.estilo} · \${t.formacao}</div>
+                </div>
+                <div class="overall-grande \${overallClasse(t.overall)}">\${t.overall}</div>
+              </div>
+              <div class="tecnico-stats">
+                <div class="tstat"><span class="tstat-label">Encaixe no elenco</span><span class="tstat-val" style="color:\${corEncaixe}">\${encaixePct}%</span></div>
+                <div class="tstat"><span class="tstat-label">Força do time</span><span class="tstat-val" style="color:var(--accent)">\${forcaPrevia.forca}</span></div>
+              </div>
+            </div>
+          \`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function contratarTecnico(id) {
+  const novoTecnico = TECNICOS_DISPONIVEIS.find(t => t.id === id);
+  estado.meuTecnico = novoTecnico;
+  document.getElementById("header-tecnico").textContent = novoTecnico.nome;
+  mostrarNav();
+  navegarPara("staff");
 }</script>
 </body>
 </html>
