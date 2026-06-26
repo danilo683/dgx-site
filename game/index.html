@@ -558,7 +558,140 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
   border-radius: 20px;
   margin-left: 6px;
   vertical-align: middle;
-}</style>
+}
+
+/* ── Mercado ── */
+.janela-aberta, .janela-fechada {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  background: var(--bg2);
+}
+.janela-aberta  { border-color: var(--green); }
+.janela-fechada { border-color: var(--border); }
+.janela-icon { font-size: 20px; }
+
+.budget-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.budget-label { font-size: 12px; color: var(--text2); }
+.budget-valor { font-size: 22px; font-weight: 700; color: var(--green); }
+
+.mercado-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.mtab {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .15s;
+}
+.mtab:hover { color: var(--text); border-color: var(--accent); }
+.mtab.ativo  { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.mercado-filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mercado-filtros select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  flex: 1;
+}
+
+.lista-jogadores-mercado { display: flex; flex-direction: column; gap: 6px; }
+
+.item-mercado {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mercado-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.mercado-jogador { min-width: 0; }
+.mercado-nome { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mercado-clube { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.mercado-valores { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.mercado-overall { font-size: 15px; font-weight: 700; min-width: 28px; text-align: center; }
+.mercado-vm { font-size: 12px; color: var(--text2); min-width: 56px; text-align: right; }
+
+.btn-proposta {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-proposta:hover { opacity: .85; }
+
+.sem-budget { font-size: 11px; color: var(--text2); white-space: nowrap; }
+
+.badge-contrato {
+  font-size: 10px;
+  background: rgba(241,196,15,.15);
+  color: var(--yellow);
+  border: 1px solid var(--yellow);
+  padding: 2px 6px;
+  border-radius: 20px;
+  margin-left: 4px;
+}
+
+.proposta-info { display: flex; flex-direction: column; gap: 6px; }
+.proposta-aviso {
+  background: rgba(241,196,15,.1);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+/* ── Feed de noticias ── */
+.feed-noticias { display: flex; flex-direction: column; gap: 8px; }
+.noticia-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+}
+.noticia-icon { font-size: 16px; flex-shrink: 0; }
+.noticia-texto { flex: 1; line-height: 1.5; }
+.noticia-rodada { font-size: 11px; color: var(--text2); white-space: nowrap; flex-shrink: 0; }</style>
 </head>
 <body>
   <div id="app">
@@ -574,6 +707,7 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
       <button data-aba="campeonato" class="ativo">Campeonato</button>
       <button data-aba="tabela">Tabela</button>
       <button data-aba="elenco">Elenco</button>
+      <button data-aba="mercado">Mercado</button>
       <button data-aba="staff">Comissão</button>
     </nav>
     <main id="main"></main>
@@ -1235,6 +1369,197 @@ const FORMACOES = {
     pesos:      { GOL: 0.15, LD: 0.12, ZAG: 0.25, LE: 0.12, VOL: 0.13, MEI: 0.08, ATA: 0.15 }
   }
 };</script>
+  <script>// ── Janelas de transferência do Brasileirão ──
+const JANELAS = [
+  { nome: "Janela de verão",   inicio: 1,  fim: 6  },
+  { nome: "Janela de inverno", inicio: 19, fim: 23 }
+];
+
+function janelaAberta(rodada) {
+  return JANELAS.find(function(j) { return rodada >= j.inicio && rodada <= j.fim; }) || null;
+}
+
+// ── Valor de mercado por overall ──
+function calcularValorMercado(overall) {
+  if (overall >= 90) return 45000000;
+  if (overall >= 87) return 28000000;
+  if (overall >= 85) return 18000000;
+  if (overall >= 82) return 12000000;
+  if (overall >= 80) return 8000000;
+  if (overall >= 77) return 5000000;
+  if (overall >= 75) return 3000000;
+  if (overall >= 72) return 1800000;
+  if (overall >= 70) return 1000000;
+  if (overall >= 67) return 600000;
+  if (overall >= 65) return 350000;
+  return 180000;
+}
+
+function calcularSalario(valorMercado) {
+  return Math.round(valorMercado * 0.004);
+}
+
+function calcularClausula(valorMercado, overall) {
+  var mult = overall >= 82 ? 2.5 : overall >= 75 ? 2.0 : 1.5;
+  return Math.round(valorMercado * mult);
+}
+
+function calcularContratoTermino(overall) {
+  // Estrelas têm contratos mais longos
+  if (overall >= 82) return Math.floor(Math.random() * 20) + 18;
+  if (overall >= 75) return Math.floor(Math.random() * 20) + 10;
+  return Math.floor(Math.random() * 25) + 5;
+}
+
+// ── Inicializar dados financeiros nos jogadores e clubes ──
+function inicializarFinancas() {
+  var budgets = {
+    flamengo: 95000000,    palmeiras: 90000000,
+    corinthians: 60000000, saopulo: 58000000,
+    atleticomg: 55000000,  internacional: 45000000,
+    gremio: 42000000,      botafogo: 48000000,
+    bahia: 28000000,       fortaleza: 30000000,
+    cruzeiro: 25000000,    fluminense: 32000000,
+    vasco: 28000000,       atleticopr: 38000000,
+    rbbragantino: 22000000,cuiaba: 10000000,
+    juventude: 8000000,    goias: 9000000,
+    coritiba: 7000000,     santos: 14000000
+  };
+
+  CLUBES.forEach(function(clube) {
+    clube.budget = budgets[clube.id] || 10000000;
+    clube.receita_rodada = clube.budget >= 80000000 ? 2500000 :
+                           clube.budget >= 40000000 ? 1500000 : 700000;
+
+    clube.jogadores.forEach(function(j) {
+      if (!j.valor_mercado) {
+        j.valor_mercado       = calcularValorMercado(j.overall);
+        j.salario             = calcularSalario(j.valor_mercado);
+        j.clausula_rescisoria = calcularClausula(j.valor_mercado, j.overall);
+        j.contrato_termino    = calcularContratoTermino(j.overall);
+        j.clube_id            = clube.id;
+      }
+    });
+  });
+}
+
+// ── Formatar moeda ──
+function formatarDinheiro(valor) {
+  if (valor >= 1000000) return 'R$ ' + (valor / 1000000).toFixed(1) + 'M';
+  if (valor >= 1000)    return 'R$ ' + (valor / 1000).toFixed(0) + 'K';
+  return 'R$ ' + valor;
+}
+
+// ── Avaliar proposta do jogador (retorna {aceita, motivo}) ──
+function avaliarProposta(jogador, clubeVendedor, valorProposto) {
+  var vm = jogador.valor_mercado;
+
+  // Fim de contrato: sai de graça
+  if (jogador.contrato_termino <= estado.rodadaAtual + 6) {
+    return { aceita: true, motivo: "Contrato prestes a vencer — clube aceitou liberar." };
+  }
+
+  // Abaixo de 80% do valor → recusa automática
+  if (valorProposto < vm * 0.8) {
+    return { aceita: false, motivo: "Proposta muito abaixo do valor de mercado." };
+  }
+
+  // Acima da cláusula → aceita por lei
+  if (valorProposto >= jogador.clausula_rescisoria) {
+    return { aceita: true, motivo: "Cláusula rescisória ativada — saída garantida por lei." };
+  }
+
+  // Entre 80% e cláusula → chance proporcional
+  var percentual = (valorProposto - vm * 0.8) / (jogador.clausula_rescisoria - vm * 0.8);
+  var chance = 0.15 + percentual * 0.75; // 15% a 90%
+
+  // Ajustes: titular é mais difícil de vender
+  var jogadoresClube = clubeVendedor.jogadores.filter(function(j) { return j.posicao === jogador.posicao; });
+  jogadoresClube.sort(function(a, b) { return b.overall - a.overall; });
+  var eTitular = jogadoresClube[0] && jogadoresClube[0].id === jogador.id;
+  if (eTitular) chance -= 0.2;
+
+  // Clube com budget baixo aceita mais fácil
+  if (clubeVendedor.budget < 15000000) chance += 0.2;
+
+  chance = Math.max(0.05, Math.min(0.95, chance));
+
+  if (Math.random() < chance) {
+    return { aceita: true, motivo: "Proposta aceita pelo clube." };
+  } else {
+    return { aceita: false, motivo: "Clube recusou a proposta. Tente um valor maior." };
+  }
+}
+
+// ── Executar transferência ──
+function executarTransferencia(jogador, clubeOrigem, clubeDestino, valor) {
+  // Remove do clube origem
+  clubeOrigem.jogadores = clubeOrigem.jogadores.filter(function(j) { return j.id !== jogador.id; });
+  clubeOrigem.budget += valor;
+
+  // Adiciona ao clube destino
+  jogador.clube_id = clubeDestino.id;
+  jogador.contrato_termino = estado.rodadaAtual + calcularContratoTermino(jogador.overall);
+  jogador.clausula_rescisoria = calcularClausula(jogador.valor_mercado, jogador.overall);
+  clubeDestino.jogadores.push(jogador);
+  clubeDestino.budget -= valor;
+
+  return jogador;
+}
+
+// ── IA: transferências entre clubes durante a janela ──
+function simularMercadoIA() {
+  var noticias = [];
+  var tentativas = 8;
+
+  for (var i = 0; i < tentativas; i++) {
+    var idxVendedor  = Math.floor(Math.random() * CLUBES.length);
+    var idxComprador = Math.floor(Math.random() * CLUBES.length);
+    if (idxVendedor === idxComprador) continue;
+
+    var vendedor  = CLUBES[idxVendedor];
+    var comprador = CLUBES[idxComprador];
+    if (comprador.budget < 500000) continue;
+    if (vendedor.jogadores.length < 18) continue;
+
+    // Escolhe um jogador que o comprador possa pagar
+    var candidatos = vendedor.jogadores.filter(function(j) {
+      return j.valor_mercado <= comprador.budget * 0.4;
+    });
+    if (candidatos.length === 0) continue;
+
+    var jogador = candidatos[Math.floor(Math.random() * candidatos.length)];
+    var valor   = Math.round(jogador.valor_mercado * (0.9 + Math.random() * 0.3));
+    var result  = avaliarProposta(jogador, vendedor, valor);
+
+    if (result.aceita) {
+      executarTransferencia(jogador, vendedor, comprador, valor);
+      noticias.push({
+        tipo: "transferencia",
+        texto: jogador.nome + " (" + jogador.overall + ") saiu do " + vendedor.nome + " para o " + comprador.nome + " por " + formatarDinheiro(valor)
+      });
+    }
+  }
+
+  return noticias;
+}
+
+// ── Receita por rodada ──
+function processarReceitaRodada(rodadaIdx) {
+  CLUBES.forEach(function(clube) {
+    // Bilheteria dos jogos em casa
+    var jogosEmCasa = estado.calendario[rodadaIdx] ?
+      estado.calendario[rodadaIdx].jogos.filter(function(j) { return j.mandanteId === clube.id; }).length : 0;
+    clube.budget += jogosEmCasa * clube.receita_rodada;
+
+    // Bônus por colocação (pequeno, por rodada)
+    var tabela = calcularTabela(CLUBES, estado.resultados);
+    var pos = tabela.findIndex(function(t) { return t.id === clube.id; });
+    if (pos === 0) clube.budget += 500000;
+    else if (pos < 4) clube.budget += 200000;
+    else if (pos < 8) clube.budget += 100000;
+  });
+}</script>
   <script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
 function calcularEncaixe(clube, formacao) {
   const req = FORMACOES[formacao].requisitos;
@@ -1530,7 +1855,7 @@ function navegarPara(aba) {
   document.querySelectorAll("nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, staff: renderStaff };
+  var abas = { campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, staff: renderStaff, mercado: renderMercado };
   if (abas[aba]) abas[aba]();
 }
 
@@ -1732,6 +2057,7 @@ function simularRodada(idx) {
   });
 
   estado.rodadaAtual = idx + 1;
+  processarMercadoRodada(idx);
   renderCampeonato();
   var proxima = document.getElementById("rodada-" + (idx + 1));
   if (proxima) proxima.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1832,6 +2158,297 @@ function ocultarNav() {
 function mostrarNav() {
   document.getElementById("header-info").classList.remove("hidden");
   document.getElementById("nav").classList.remove("hidden");
+}
+
+// ════════════════════════════════════════
+// ABA — Mercado de Transferências
+// ════════════════════════════════════════
+function renderMercado() {
+  var rodada  = estado.rodadaAtual;
+  var janela  = janelaAberta(rodada);
+  var meuClube = estado.meuClube;
+
+  var html = '<p class="secao-titulo">Mercado de Transferências</p>';
+
+  // Status da janela
+  if (janela) {
+    html += '<div class="janela-aberta">';
+    html += '<span class="janela-icon">🟢</span>';
+    html += '<div><strong>' + janela.nome + ' aberta</strong>';
+    html += '<div style="font-size:12px;color:var(--text2)">Rodadas ' + janela.inicio + ' a ' + janela.fim + ' — fecha na rodada ' + janela.fim + '</div></div>';
+    html += '</div>';
+  } else {
+    var proxima = JANELAS.find(function(j) { return j.inicio > rodada; });
+    html += '<div class="janela-fechada">';
+    html += '<span class="janela-icon">🔴</span>';
+    html += '<div><strong>Mercado fechado</strong>';
+    if (proxima) html += '<div style="font-size:12px;color:var(--text2)">Próxima janela: ' + proxima.nome + ' (rodada ' + proxima.inicio + ')</div>';
+    html += '</div></div>';
+  }
+
+  // Budget do meu clube
+  html += '<div class="budget-card">';
+  html += '<div class="budget-label">Caixa disponível</div>';
+  html += '<div class="budget-valor">' + formatarDinheiro(meuClube.budget) + '</div>';
+  html += '</div>';
+
+  if (janela) {
+    // Abas internas: Buscar jogadores / Feed de noticias
+    html += '<div class="mercado-tabs">';
+    html += '<button class="mtab ativo" onclick="renderMercadoBusca()">🔍 Buscar jogadores</button>';
+    html += '<button class="mtab" onclick="renderFeedNoticias()">📰 Transferências</button>';
+    html += '</div>';
+    html += '<div id="mercado-conteudo">';
+    html += renderMercadoBuscaHTML();
+    html += '</div>';
+  } else {
+    // Mercado fechado — só mostra feed
+    html += '<div class="mercado-tabs">';
+    html += '<button class="mtab ativo" onclick="renderFeedNoticias()">📰 Transferências recentes</button>';
+    html += '</div>';
+    html += '<div id="mercado-conteudo">';
+    html += renderFeedNoticiasHTML();
+    html += '</div>';
+  }
+
+  document.getElementById("main").innerHTML = html;
+}
+
+function renderMercadoBusca() {
+  document.getElementById("mercado-conteudo").innerHTML = renderMercadoBuscaHTML();
+  document.querySelectorAll(".mtab").forEach(function(b) { b.classList.remove("ativo"); });
+  document.querySelectorAll(".mtab")[0].classList.add("ativo");
+}
+
+function renderFeedNoticias() {
+  document.getElementById("mercado-conteudo").innerHTML = renderFeedNoticiasHTML();
+  document.querySelectorAll(".mtab").forEach(function(b) { b.classList.remove("ativo"); });
+  document.querySelectorAll(".mtab")[1].classList.add("ativo");
+}
+
+function renderMercadoBuscaHTML() {
+  var meuClube = estado.meuClube;
+  var todos = [];
+  CLUBES.forEach(function(clube) {
+    if (clube.id === meuClube.id) return;
+    clube.jogadores.forEach(function(j) {
+      todos.push({ jogador: j, clube: clube });
+    });
+  });
+
+  // Ordenar por overall desc
+  todos.sort(function(a, b) { return b.jogador.overall - a.jogador.overall; });
+
+  var html = '<div class="mercado-filtros">';
+  html += '<select id="filtro-pos" onchange="filtrarMercado()">';
+  html += '<option value="">Todas as posições</option>';
+  ["GOL","LD","ZAG","LE","VOL","MEI","ATA"].forEach(function(p) {
+    html += '<option value="' + p + '">' + p + '</option>';
+  });
+  html += '</select>';
+  html += '<select id="filtro-budget" onchange="filtrarMercado()">';
+  html += '<option value="">Qualquer valor</option>';
+  html += '<option value="5000000">Até R$ 5M</option>';
+  html += '<option value="15000000">Até R$ 15M</option>';
+  html += '<option value="30000000">Até R$ 30M</option>';
+  html += '</select>';
+  html += '</div>';
+
+  html += '<div id="lista-mercado">';
+  html += renderListaJogadoresMercado(todos);
+  html += '</div>';
+  return html;
+}
+
+function filtrarMercado() {
+  var pos    = document.getElementById("filtro-pos").value;
+  var budget = document.getElementById("filtro-budget").value;
+  var meuClube = estado.meuClube;
+
+  var todos = [];
+  CLUBES.forEach(function(clube) {
+    if (clube.id === meuClube.id) return;
+    clube.jogadores.forEach(function(j) {
+      if (pos && j.posicao !== pos) return;
+      if (budget && j.valor_mercado > parseInt(budget)) return;
+      todos.push({ jogador: j, clube: clube });
+    });
+  });
+  todos.sort(function(a, b) { return b.jogador.overall - a.jogador.overall; });
+  document.getElementById("lista-mercado").innerHTML = renderListaJogadoresMercado(todos);
+}
+
+function renderListaJogadoresMercado(lista) {
+  if (lista.length === 0) return '<p style="color:var(--text2);padding:16px">Nenhum jogador encontrado.</p>';
+
+  var html = '<div class="lista-jogadores-mercado">';
+  lista.slice(0, 60).forEach(function(item) {
+    var j = item.jogador;
+    var c = item.clube;
+    var fimContrato = j.contrato_termino <= estado.rodadaAtual + 6;
+    var podeContratar = estado.meuClube.budget >= j.valor_mercado * 0.8;
+
+    html += '<div class="item-mercado">';
+    html += '<div class="mercado-info">';
+    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
+    html += '<div class="mercado-jogador">';
+    html += '<div class="mercado-nome">' + j.nome;
+    if (fimContrato) html += ' <span class="badge-contrato">Fim de contrato</span>';
+    html += '</div>';
+    html += '<div class="mercado-clube">' + c.nome + '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="mercado-valores">';
+    html += '<div class="mercado-overall ' + overallClasse(j.overall) + '">' + j.overall + '</div>';
+    html += '<div class="mercado-vm">' + formatarDinheiro(j.valor_mercado) + '</div>';
+    if (podeContratar || fimContrato) {
+      html += '<button class="btn-proposta" onclick="abrirModalProposta(\'' + j.id + '\',\'' + c.id + '\')">Propor</button>';
+    } else {
+      html += '<span class="sem-budget">Sem budget</span>';
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderFeedNoticiasHTML() {
+  var noticias = estado.feedNoticias || [];
+  if (noticias.length === 0) {
+    return '<p style="color:var(--text2);padding:20px 0;font-size:13px">Nenhuma transferência registrada ainda.</p>';
+  }
+  var html = '<div class="feed-noticias">';
+  noticias.slice().reverse().forEach(function(n) {
+    html += '<div class="noticia-item">';
+    html += '<span class="noticia-icon">⚽</span>';
+    html += '<span class="noticia-texto">' + n.texto + '</span>';
+    if (n.rodada !== undefined) html += '<span class="noticia-rodada">Rod. ' + (n.rodada + 1) + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── Modal de proposta ──
+function abrirModalProposta(jogadorId, clubeId) {
+  var clube   = CLUBES.find(function(c) { return c.id === clubeId; });
+  var jogador = clube.jogadores.find(function(j) { return j.id === jogadorId; });
+  var fimContrato = jogador.contrato_termino <= estado.rodadaAtual + 6;
+
+  var overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+
+  var html = '<div class="modal">';
+  html += '<div class="modal-header" style="text-align:left;padding:20px">';
+  html += '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Proposta de transferência</div>';
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+  html += '<span class="posicao-badge pos-' + jogador.posicao + '">' + jogador.posicao + '</span>';
+  html += '<div><div style="font-size:16px;font-weight:600">' + jogador.nome + '</div>';
+  html += '<div style="font-size:12px;color:var(--text2)">' + clube.nome + '</div></div>';
+  html += '<div class="overall-grande ' + overallClasse(jogador.overall) + '" style="margin-left:auto">' + jogador.overall + '</div>';
+  html += '</div>';
+
+  html += '<div class="proposta-info">';
+  html += '<div class="tstat"><span class="tstat-label">Valor de mercado</span><span class="tstat-val">' + formatarDinheiro(jogador.valor_mercado) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Cláusula rescisória</span><span class="tstat-val">' + formatarDinheiro(jogador.clausula_rescisoria) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Salário mensal</span><span class="tstat-val">' + formatarDinheiro(jogador.salario) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Contrato até rodada</span><span class="tstat-val">' + jogador.contrato_termino;
+  if (fimContrato) html += ' <span class="badge-contrato">Em breve</span>';
+  html += '</span></div>';
+  html += '</div>';
+
+  if (fimContrato) {
+    html += '<div class="proposta-aviso">Contrato prestes a vencer — você pode contratar por um valor menor.</div>';
+  }
+
+  html += '<div class="form-group" style="margin-top:16px">';
+  html += '<label>Sua proposta</label>';
+  html += '<input type="number" id="inp-proposta" placeholder="Ex: 8000000" min="0" step="500000" value="' + jogador.valor_mercado + '" />';
+  html += '</div>';
+  html += '<div style="font-size:11px;color:var(--text2);margin-top:4px">Seu caixa: ' + formatarDinheiro(estado.meuClube.budget) + '</div>';
+  html += '</div>';
+
+  html += '<div class="modal-footer" style="display:flex;gap:8px">';
+  html += '<button class="btn-fechar" style="flex:1" onclick="this.closest(\'.modal-overlay\').remove()">Cancelar</button>';
+  html += '<button class="btn-primario" style="flex:1" onclick="enviarProposta(\'' + jogadorId + '\',\'' + clubeId + '\')">Enviar proposta</button>';
+  html += '</div></div>';
+
+  overlay.innerHTML = html;
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function enviarProposta(jogadorId, clubeId) {
+  var clube   = CLUBES.find(function(c) { return c.id === clubeId; });
+  var jogador = clube.jogadores.find(function(j) { return j.id === jogadorId; });
+  var valor   = parseInt(document.getElementById("inp-proposta").value);
+
+  if (!valor || valor <= 0) { alert("Digite um valor válido."); return; }
+  if (valor > estado.meuClube.budget) { alert("Você não tem budget suficiente!"); return; }
+
+  var result = avaliarProposta(jogador, clube, valor);
+
+  document.querySelector(".modal-overlay").remove();
+
+  if (result.aceita) {
+    executarTransferencia(jogador, clube, estado.meuClube, valor);
+    if (!estado.feedNoticias) estado.feedNoticias = [];
+    estado.feedNoticias.push({
+      rodada: estado.rodadaAtual,
+      texto: "✅ " + jogador.nome + " (" + jogador.overall + ") chegou ao " + estado.meuClube.nome + " vindo do " + clube.nome + " por " + formatarDinheiro(valor)
+    });
+    mostrarResultadoProposta(true, result.motivo, jogador.nome);
+  } else {
+    if (!estado.feedNoticias) estado.feedNoticias = [];
+    estado.feedNoticias.push({
+      rodada: estado.rodadaAtual,
+      texto: "❌ " + estado.meuClube.nome + " teve proposta recusada pelo " + clube.nome + " por " + jogador.nome
+    });
+    mostrarResultadoProposta(false, result.motivo, jogador.nome);
+  }
+}
+
+function mostrarResultadoProposta(aceita, motivo, nomeJogador) {
+  var overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  var cor  = aceita ? "var(--green)" : "var(--red)";
+  var icon = aceita ? "✅" : "❌";
+  var titulo = aceita ? "Transferência concluída!" : "Proposta recusada";
+
+  overlay.innerHTML =
+    '<div class="modal">' +
+      '<div class="modal-header" style="text-align:center;padding:28px 20px">' +
+        '<div style="font-size:36px;margin-bottom:8px">' + icon + '</div>' +
+        '<div style="font-size:18px;font-weight:700;color:' + cor + ';margin-bottom:6px">' + titulo + '</div>' +
+        '<div style="font-size:13px;color:var(--text2)">' + motivo + '</div>' +
+        (aceita ? '<div style="font-size:13px;margin-top:8px">' + nomeJogador + ' agora é do seu clube!</div>' : '') +
+      '</div>' +
+      '<div class="modal-footer">' +
+        '<button class="btn-fechar" onclick="this.closest(\'.modal-overlay\').remove();navegarPara(\'mercado\')">OK</button>' +
+      '</div>' +
+    '</div>';
+
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+// ── Processar mercado da IA ao simular rodada ──
+function processarMercadoRodada(rodadaIdx) {
+  if (!estado.feedNoticias) estado.feedNoticias = [];
+  var janela = janelaAberta(rodadaIdx);
+  if (!janela) return;
+
+  // IA faz transferências entre si
+  var noticias = simularMercadoIA();
+  noticias.forEach(function(n) {
+    n.rodada = rodadaIdx;
+    estado.feedNoticias.push(n);
+  });
+
+  // Receita de bilheteria
+  processarReceitaRodada(rodadaIdx);
 }</script>
+  <script>inicializarFinancas();</script>
 </body>
 </html>
