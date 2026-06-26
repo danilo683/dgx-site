@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager FC</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <header>
+      <h1>⚽ Manager FC</h1>
+      <span id="header-info" class="hidden">
+        Gerenciando: <strong id="header-clube"></strong>
+      </span>
+    </header>
+
+    <nav id="nav" class="hidden">
+      <button data-aba="campeonato" class="ativo">Campeonato</button>
+      <button data-aba="tabela">Tabela</button>
+      <button data-aba="elenco">Elenco</button>
+    </nav>
+
+    <main id="main"></main>
+
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
