@@ -1431,8 +1431,7 @@ function gerarCalendario(clubes) {
   }
   return rodadas;
 }</script>
-  <script>// ── Estado global ──
-const estado = {
+  <script>const estado = {
   manager: null,
   meuClube: null,
   meuTecnico: null,
@@ -1441,340 +1440,288 @@ const estado = {
   calendario: []
 };
 
-// ── Init ──
 document.addEventListener("DOMContentLoaded", () => {
   renderCriarManager();
-});
-
-// ════════════════════════════════════════
-// TELA 1 — Criar perfil de manager
-// ════════════════════════════════════════
-function renderCriarManager() {
-  ocultarNav();
-  document.getElementById("main").innerHTML = `
-    <div class="tela-intro">
-      <div class="intro-card">
-        <div class="intro-logo">⚽</div>
-        <h2>Manager FC</h2>
-        <p class="intro-sub">Crie seu perfil para começar</p>
-
-        <div class="form-group">
-          <label>Seu nome</label>
-          <input type="text" id="inp-nome" placeholder="Ex: Danilo" maxlength="30" />
-        </div>
-
-        <div class="form-group">
-          <label>Nacionalidade</label>
-          <select id="inp-nac">
-            <option value="BR">🇧🇷 Brasileiro</option>
-            <option value="PT">🇵🇹 Português</option>
-            <option value="AR">🇦🇷 Argentino</option>
-            <option value="ES">🇪🇸 Espanhol</option>
-            <option value="IT">🇮🇹 Italiano</option>
-            <option value="DE">🇩🇪 Alemão</option>
-            <option value="FR">🇫🇷 Francês</option>
-            <option value="EN">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglês</option>
-          </select>
-        </div>
-
-        <button class="btn-primario" onclick="criarManager()">Criar perfil ↗</button>
-      </div>
-    </div>
-  `;
-}
-
-function criarManager() {
-  const nome = document.getElementById("inp-nome").value.trim();
-  const nac  = document.getElementById("inp-nac").value;
-  if (!nome) { alert("Digite seu nome!"); return; }
-
-  estado.manager = { nome, nacionalidade: nac, reputacao: 50, titulos: 0 };
-  renderSelecionarClube();
-}
-
-// ════════════════════════════════════════
-// TELA 2 — Selecionar clube
-// ════════════════════════════════════════
-function renderSelecionarClube() {
-  ocultarNav();
-  document.getElementById("main").innerHTML = `
-    <div class="tela-selecao">
-      <h2>Olá, <strong>${estado.manager.nome}</strong> — escolha seu clube</h2>
-      <p class="sub">Você será o manager. Escolha com sabedoria.</p>
-      <div class="grid-clubes">
-        ${CLUBES.map(c => {
-          const { forca } = calcularForca(c);
-          return `
-            <div class="card-clube" onclick="selecionarClube('${c.id}')">
-              <div class="escudo" style="background:${c.cor}">${c.sigla}</div>
-              <div class="nome">${c.nome}</div>
-              <div class="forca">Força: <strong>${forca}</strong></div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function selecionarClube(id) {
-  estado.meuClube    = CLUBES.find(c => c.id === id);
-  estado.calendario  = gerarCalendario(CLUBES);
-  estado.rodadaAtual = 0;
-  estado.resultados  = [];
-  // Carrega o técnico atual do clube automaticamente
-  const tec_id = estado.meuClube.tecnico_id;
-  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(t => t.id === tec_id) || TECNICOS_DISPONIVEIS[0];
-  iniciarJogo();
-}
-
-// ════════════════════════════════════════
-// TELA 3 — Contratar técnico
-// ════════════════════════════════════════
-function renderContratarTecnico() {
-  ocultarNav();
-  const clube = estado.meuClube;
-
-  document.getElementById("main").innerHTML = `
-    <div class="tela-selecao">
-      <h2>Contrate seu técnico — <span style="color:var(--accent)">${clube.nome}</span></h2>
-      <p class="sub">O técnico define a formação e influencia o desempenho do time.</p>
-
-      <div class="lista-tecnicos">
-        ${TECNICOS_DISPONIVEIS.map(t => {
-          const encaixe = calcularEncaixe(clube, t.formacao);
-          const encaixePct = Math.round(encaixe * 100);
-          const corEncaixe = encaixePct >= 80 ? "var(--green)" : encaixePct >= 60 ? "var(--yellow)" : "var(--red)";
-          const forcaPrevia = calcularForca(clube, t);
-
-          return `
-            <div class="card-tecnico" onclick="contratarTecnico('${t.id}')">
-              <div class="tecnico-header">
-                <div>
-                  <div class="tecnico-nome">${t.nome} <span class="flag">${bandeira(t.nacionalidade)}</span></div>
-                  <div class="tecnico-meta">${t.estilo} · ${t.formacao}</div>
-                </div>
-                <div class="overall-grande ${overallClasse(t.overall)}">${t.overall}</div>
-              </div>
-
-              <div class="tecnico-stats">
-                <div class="tstat">
-                  <span class="tstat-label">Formação</span>
-                  <span class="tstat-val">${t.formacao}</span>
-                </div>
-                <div class="tstat">
-                  <span class="tstat-label">Encaixe no elenco</span>
-                  <span class="tstat-val" style="color:${corEncaixe}">${encaixePct}%</span>
-                </div>
-                <div class="tstat">
-                  <span class="tstat-label">Força do time</span>
-                  <span class="tstat-val" style="color:var(--accent)">${forcaPrevia.forca}</span>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function contratarTecnico(id) {
-  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(t => t.id === id);
-  iniciarJogo();
-}
-
-// ════════════════════════════════════════
-// JOGO PRINCIPAL
-// ════════════════════════════════════════
-function iniciarJogo() {
-  const clube   = estado.meuClube;
-  const tecnico = estado.meuTecnico;
-
-  document.getElementById("header-clube").textContent = clube.nome;
-  document.getElementById("header-manager").textContent = estado.manager.nome;
-  document.getElementById("header-tecnico").textContent = tecnico.nome;
-  document.getElementById("header-info").classList.remove("hidden");
-  mostrarNav();
-  navegarPara("campeonato");
-}
-
-function navegarPara(aba) {
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("ativo"));
-  document.querySelector(`nav button[data-aba="${aba}"]`)?.classList.add("ativo");
-  ({ campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, staff: renderStaff })[aba]?.();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("nav button[data-aba]").forEach(btn => {
     btn.addEventListener("click", () => navegarPara(btn.dataset.aba));
   });
 });
 
-// ════════════════════════════════════════
-// ABA — Elenco
-// ════════════════════════════════════════
+// ── Tela 1: Criar manager ──
+function renderCriarManager() {
+  ocultarNav();
+  document.getElementById("main").innerHTML =
+    '<div class="tela-intro">' +
+      '<div class="intro-card">' +
+        '<div class="intro-logo">⚽</div>' +
+        '<h2>Manager FC</h2>' +
+        '<p class="intro-sub">Crie seu perfil para começar</p>' +
+        '<div class="form-group">' +
+          '<label>Seu nome</label>' +
+          '<input type="text" id="inp-nome" placeholder="Ex: Danilo" maxlength="30" />' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>Nacionalidade</label>' +
+          '<select id="inp-nac">' +
+            '<option value="BR">🇧🇷 Brasileiro</option>' +
+            '<option value="PT">🇵🇹 Português</option>' +
+            '<option value="AR">🇦🇷 Argentino</option>' +
+            '<option value="ES">🇪🇸 Espanhol</option>' +
+            '<option value="IT">🇮🇹 Italiano</option>' +
+            '<option value="DE">🇩🇪 Alemão</option>' +
+            '<option value="FR">🇫🇷 Francês</option>' +
+            '<option value="EN">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglês</option>' +
+          '</select>' +
+        '</div>' +
+        '<button class="btn-primario" onclick="criarManager()">Criar perfil</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function criarManager() {
+  var nome = document.getElementById("inp-nome").value.trim();
+  var nac  = document.getElementById("inp-nac").value;
+  if (!nome) { alert("Digite seu nome!"); return; }
+  estado.manager = { nome: nome, nacionalidade: nac, reputacao: 50, titulos: 0 };
+  renderSelecionarClube();
+}
+
+// ── Tela 2: Selecionar clube ──
+function renderSelecionarClube() {
+  ocultarNav();
+  var html = '<div class="tela-selecao">';
+  html += '<h2>Olá, <strong>' + estado.manager.nome + '</strong> — escolha seu clube</h2>';
+  html += '<p class="sub">Você será o manager. Escolha com sabedoria.</p>';
+  html += '<div class="grid-clubes">';
+  CLUBES.forEach(function(c) {
+    var f = calcularForca(c);
+    var tec = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === c.tecnico_id; });
+    html += '<div class="card-clube" onclick="selecionarClube(\'' + c.id + '\')">';
+    html += '<div class="escudo" style="background:' + c.cor + '">' + c.sigla + '</div>';
+    html += '<div class="nome">' + c.nome + '</div>';
+    html += '<div class="forca">Força: <strong>' + f.forca + '</strong></div>';
+    html += '<div class="forca" style="font-size:11px;margin-top:2px">' + (tec ? tec.nome : '') + '</div>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function selecionarClube(id) {
+  estado.meuClube   = CLUBES.find(function(c) { return c.id === id; });
+  estado.calendario = gerarCalendario(CLUBES);
+  estado.rodadaAtual = 0;
+  estado.resultados  = [];
+  var tec_id = estado.meuClube.tecnico_id;
+  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === tec_id; }) || TECNICOS_DISPONIVEIS[0];
+  iniciarJogo();
+}
+
+// ── Jogo principal ──
+function iniciarJogo() {
+  document.getElementById("header-clube").textContent   = estado.meuClube.nome;
+  document.getElementById("header-manager").textContent = estado.manager.nome;
+  document.getElementById("header-tecnico").textContent = estado.meuTecnico.nome;
+  mostrarNav();
+  navegarPara("campeonato");
+}
+
+function navegarPara(aba) {
+  document.querySelectorAll("nav button").forEach(function(b) { b.classList.remove("ativo"); });
+  var btn = document.querySelector('nav button[data-aba="' + aba + '"]');
+  if (btn) btn.classList.add("ativo");
+  var abas = { campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, staff: renderStaff };
+  if (abas[aba]) abas[aba]();
+}
+
+// ── Aba: Elenco ──
 function renderElenco() {
-  const clube   = estado.meuClube;
-  const tecnico = estado.meuTecnico;
-  const stats   = calcularForca(clube, tecnico);
-  const ordemPos = { GOL: 0, LD: 1, ZAG: 2, LE: 3, VOL: 4, MEI: 5, ATA: 6 };
-  const jogadores = [...clube.jogadores].sort((a, b) =>
-    ordemPos[a.posicao] - ordemPos[b.posicao] || b.overall - a.overall
-  );
+  var clube   = estado.meuClube;
+  var tecnico = estado.meuTecnico;
+  var stats   = calcularForca(clube, tecnico);
+  var ordemPos = { GOL: 0, LD: 1, ZAG: 2, LE: 3, VOL: 4, MEI: 5, ATA: 6 };
+  var jogadores = clube.jogadores.slice().sort(function(a, b) {
+    return (ordemPos[a.posicao] - ordemPos[b.posicao]) || (b.overall - a.overall);
+  });
 
-  document.getElementById("main").innerHTML = `
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-valor" style="color:var(--accent)">${stats.forca}</div><div class="stat-label">Força c/ técnico</div></div>
-      <div class="stat-card"><div class="stat-valor ${stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo'}">${stats.bonusFormacao > 0 ? '+' : ''}${stats.bonusFormacao}</div><div class="stat-label">Encaixe ${stats.formacao}</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.gol)}</div><div class="stat-label">GOL</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.ld)}</div><div class="stat-label">LD</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.zag)}</div><div class="stat-label">ZAG</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.le)}</div><div class="stat-label">LE</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.vol)}</div><div class="stat-label">VOL</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.mei)}</div><div class="stat-label">MEI</div></div>
-      <div class="stat-card"><div class="stat-valor">${Math.round(stats.ata)}</div><div class="stat-label">ATA</div></div>
-    </div>
+  var html = '<div class="stats-grid">';
+  html += '<div class="stat-card"><div class="stat-valor" style="color:var(--accent)">' + stats.forca + '</div><div class="stat-label">Força c/ técnico</div></div>';
+  var sinal = stats.bonusFormacao >= 0 ? '+' : '';
+  var corBonus = stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo';
+  html += '<div class="stat-card"><div class="stat-valor ' + corBonus + '">' + sinal + stats.bonusFormacao + '</div><div class="stat-label">Encaixe ' + stats.formacao + '</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.gol) + '</div><div class="stat-label">GOL</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.ld)  + '</div><div class="stat-label">LD</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.zag) + '</div><div class="stat-label">ZAG</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.le)  + '</div><div class="stat-label">LE</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.vol) + '</div><div class="stat-label">VOL</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.mei) + '</div><div class="stat-label">MEI</div></div>';
+  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.ata) + '</div><div class="stat-label">ATA</div></div>';
+  html += '</div>';
 
-    <p class="secao-titulo mt16">Elenco — ${clube.nome}</p>
-    <div class="lista-jogadores">
-      ${jogadores.map(j => `
-        <div class="item-jogador">
-          <span class="posicao-badge pos-${j.posicao}">${j.posicao}</span>
-          <span class="jogador-nome">${j.nome}</span>
-          <span class="overall-badge ${overallClasse(j.overall)}">${j.overall}</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  html += '<p class="secao-titulo mt16">Elenco — ' + clube.nome + '</p>';
+  html += '<div class="lista-jogadores">';
+  jogadores.forEach(function(j) {
+    html += '<div class="item-jogador">';
+    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
+    html += '<span class="jogador-nome">' + j.nome + '</span>';
+    html += '<span class="overall-badge ' + overallClasse(j.overall) + '">' + j.overall + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
 }
 
-// ════════════════════════════════════════
-// ABA — Staff / Comissão
-// ════════════════════════════════════════
+// ── Aba: Staff ──
 function renderStaff() {
-  const tecnico = estado.meuTecnico;
-  const clube   = estado.meuClube;
-  const stats   = calcularForca(clube, tecnico);
-  const encaixePct = stats.encaixe;
-  const corEncaixe = encaixePct >= 80 ? "var(--green)" : encaixePct >= 60 ? "var(--yellow)" : "var(--red)";
+  var tecnico = estado.meuTecnico;
+  var clube   = estado.meuClube;
+  var stats   = calcularForca(clube, tecnico);
+  var enc     = stats.encaixe;
+  var corEnc  = enc >= 80 ? "var(--green)" : enc >= 60 ? "var(--yellow)" : "var(--red)";
+  var sinalB  = stats.bonusFormacao >= 0 ? '+' : '';
+  var clsB    = stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo';
 
-  document.getElementById("main").innerHTML = `
-    <p class="secao-titulo">Comissão técnica</p>
+  var vagas = ["Auxiliar técnico","Preparador físico","Preparador de goleiros","Analista de desempenho","Médico","Fisioterapeuta","Scout / Olheiro"];
 
-    <div class="card-staff-tecnico">
-      <div class="staff-header">
-        <div>
-          <div class="staff-cargo">Técnico principal</div>
-          <div class="staff-nome">${tecnico.nome} ${bandeira(tecnico.nacionalidade)}</div>
-          <div class="staff-meta">${tecnico.estilo} · ${tecnico.formacao}</div>
-        </div>
-        <div class="overall-grande ${overallClasse(tecnico.overall)}">${tecnico.overall}</div>
-      </div>
+  var html = '<p class="secao-titulo">Comissão técnica</p>';
+  html += '<div class="card-staff-tecnico">';
+  html += '<div class="staff-header">';
+  html += '<div>';
+  html += '<div class="staff-cargo">Técnico principal</div>';
+  html += '<div class="staff-nome">' + tecnico.nome + ' ' + bandeira(tecnico.nacionalidade) + '</div>';
+  html += '<div class="staff-meta">' + tecnico.estilo + ' · ' + tecnico.formacao + '</div>';
+  html += '</div>';
+  html += '<div class="overall-grande ' + overallClasse(tecnico.overall) + '">' + tecnico.overall + '</div>';
+  html += '</div>';
+  html += '<div class="tecnico-stats" style="margin-top:16px">';
+  html += '<div class="tstat"><span class="tstat-label">Formação preferida</span><span class="tstat-val">' + tecnico.formacao + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Estilo</span><span class="tstat-val">' + tecnico.estilo + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Encaixe do elenco</span><span class="tstat-val" style="color:' + corEnc + '">' + enc + '%</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Bônus de overall</span><span class="tstat-val overall-alto">+' + stats.bonusTecnico + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Bônus/penalidade de formação</span><span class="tstat-val ' + clsB + '">' + sinalB + stats.bonusFormacao + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Força final do time</span><span class="tstat-val" style="color:var(--accent);font-weight:700">' + stats.forca + '</span></div>';
+  html += '</div>';
+  html += '<button class="btn-demitir" onclick="confirmarDemissao()">⚠ Demitir e contratar novo técnico</button>';
+  html += '</div>';
 
-      <div class="tecnico-stats" style="margin-top:16px">
-        <div class="tstat">
-          <span class="tstat-label">Formação preferida</span>
-          <span class="tstat-val">${tecnico.formacao}</span>
-        </div>
-        <div class="tstat">
-          <span class="tstat-label">${FORMACOES[tecnico.formacao].descricao}</span>
-          <span class="tstat-val"></span>
-        </div>
-        <div class="tstat">
-          <span class="tstat-label">Encaixe do elenco</span>
-          <span class="tstat-val" style="color:${corEncaixe}">${encaixePct}%</span>
-        </div>
-        <div class="tstat">
-          <span class="tstat-label">Bônus de overall</span>
-          <span class="tstat-val overall-alto">+${stats.bonusTecnico}</span>
-        </div>
-        <div class="tstat">
-          <span class="tstat-label">Bônus/penalidade de formação</span>
-          <span class="tstat-val ${stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo'}">${stats.bonusFormacao > 0 ? '+' : ''}${stats.bonusFormacao}</span>
-        </div>
-        <div class="tstat">
-          <span class="tstat-label">Força final do time</span>
-          <span class="tstat-val" style="color:var(--accent);font-weight:700">${stats.forca}</span>
-        </div>
-      </div>
+  html += '<p class="secao-titulo mt16">Restante da comissão</p>';
+  html += '<div class="vagas-staff">';
+  vagas.forEach(function(cargo) {
+    html += '<div class="vaga-item"><span class="vaga-cargo">' + cargo + '</span><span class="vaga-badge">Em breve</span></div>';
+  });
+  html += '</div>';
 
-      <button class="btn-demitir" onclick="confirmarDemissao()">⚠ Demitir e contratar novo técnico</button>
-    </div>
-
-    <div class="vagas-staff">
-      <p class="secao-titulo mt16">Restante da comissão</p>
-      ${["Auxiliar técnico","Preparador físico","Preparador de goleiros","Analista de desempenho","Médico","Fisioterapeuta","Scout / Olheiro"].map(cargo => `
-        <div class="vaga-item">
-          <span class="vaga-cargo">${cargo}</span>
-          <span class="vaga-badge">Em breve</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  document.getElementById("main").innerHTML = html;
 }
 
-// ════════════════════════════════════════
-// ABA — Campeonato
-// ════════════════════════════════════════
+// ── Demissão e contratação ──
+function confirmarDemissao() {
+  if (!confirm("Deseja demitir " + estado.meuTecnico.nome + "? Você precisará contratar um novo técnico.")) return;
+  renderContratarTecnico();
+}
+
+function renderContratarTecnico() {
+  ocultarNav();
+  var clube   = estado.meuClube;
+  var atualId = estado.meuTecnico ? estado.meuTecnico.id : null;
+
+  var html = '<div class="tela-selecao">';
+  html += '<h2>Contratar técnico — <span style="color:var(--accent)">' + clube.nome + '</span></h2>';
+  html += '<p class="sub">O encaixe indica quão bem a formação se adapta ao seu elenco.</p>';
+  html += '<div class="lista-tecnicos">';
+
+  TECNICOS_DISPONIVEIS.forEach(function(t) {
+    var enc = calcularEncaixe(clube, t.formacao);
+    var encPct = Math.round(enc * 100);
+    var corEnc = encPct >= 80 ? "var(--green)" : encPct >= 60 ? "var(--yellow)" : "var(--red)";
+    var fp = calcularForca(clube, t);
+    var isAtual = t.id === atualId;
+
+    html += '<div class="card-tecnico' + (isAtual ? ' tecnico-atual' : '') + '"' + (!isAtual ? ' onclick="contratarTecnico(\'' + t.id + '\')"' : '') + '>';
+    html += '<div class="tecnico-header">';
+    html += '<div>';
+    html += '<div class="tecnico-nome">' + t.nome + ' ' + bandeira(t.nacionalidade);
+    if (isAtual) html += ' <span class="badge-atual">Técnico atual</span>';
+    html += '</div>';
+    html += '<div class="tecnico-meta">' + t.estilo + ' · ' + t.formacao + '</div>';
+    html += '</div>';
+    html += '<div class="overall-grande ' + overallClasse(t.overall) + '">' + t.overall + '</div>';
+    html += '</div>';
+    html += '<div class="tecnico-stats">';
+    html += '<div class="tstat"><span class="tstat-label">Encaixe no elenco</span><span class="tstat-val" style="color:' + corEnc + '">' + encPct + '%</span></div>';
+    html += '<div class="tstat"><span class="tstat-label">Força do time</span><span class="tstat-val" style="color:var(--accent)">' + fp.forca + '</span></div>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  html += '</div></div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function contratarTecnico(id) {
+  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === id; });
+  document.getElementById("header-tecnico").textContent = estado.meuTecnico.nome;
+  mostrarNav();
+  navegarPara("staff");
+}
+
+// ── Aba: Campeonato ──
 function renderCampeonato() {
-  const meuId = estado.meuClube.id;
+  var meuId = estado.meuClube.id;
+  var html = '<p class="secao-titulo">Brasileirão — 38 rodadas</p><div class="rodadas-container">';
 
-  document.getElementById("main").innerHTML = `
-    <p class="secao-titulo">Brasileirão — 38 rodadas</p>
-    <div class="rodadas-container">
-      ${estado.calendario.map((rodada, idx) => {
-        const simulada = idx < estado.rodadaAtual;
-        const proxima  = idx === estado.rodadaAtual;
-        return `
-          <div class="card-rodada" id="rodada-${idx}">
-            <div class="rodada-header">
-              <span>Rodada ${rodada.numero}</span>
-              ${proxima  ? `<button class="btn-simular" onclick="simularRodada(${idx})">▶ Simular rodada</button>` : ""}
-              ${simulada ? `<span style="color:var(--green);font-size:12px">✓ Encerrada</span>` : ""}
-            </div>
-            <div class="lista-jogos">
-              ${rodada.jogos.map(jogo => {
-                const resultado = estado.resultados.find(
-                  r => r.rodada === idx && r.mandanteId === jogo.mandanteId && r.visitanteId === jogo.visitanteId
-                );
-                const mandante  = CLUBES.find(c => c.id === jogo.mandanteId);
-                const visitante = CLUBES.find(c => c.id === jogo.visitanteId);
+  estado.calendario.forEach(function(rodada, idx) {
+    var simulada = idx < estado.rodadaAtual;
+    var proxima  = idx === estado.rodadaAtual;
+    html += '<div class="card-rodada" id="rodada-' + idx + '">';
+    html += '<div class="rodada-header"><span>Rodada ' + rodada.numero + '</span>';
+    if (proxima)  html += '<button class="btn-simular" onclick="simularRodada(' + idx + ')">▶ Simular rodada</button>';
+    if (simulada) html += '<span style="color:var(--green);font-size:12px">✓ Encerrada</span>';
+    html += '</div><div class="lista-jogos">';
 
-                let placarHTML = `<span class="placar pendente">vs</span>`;
-                if (resultado) {
-                  const cls = placarClasse(resultado, meuId);
-                  placarHTML = `
-                    <span class="placar ${cls}" onclick="abrirModal(${JSON.stringify(resultado).replace(/"/g, '&quot;')})" style="cursor:pointer">
-                      ${resultado.golsMandante} – ${resultado.golsVisitante}
-                    </span>`;
-                }
-                return `
-                  <div class="item-jogo">
-                    <span class="time-nome ${jogo.mandanteId === meuId ? 'meu' : ''}">${mandante.nome}</span>
-                    ${placarHTML}
-                    <span class="time-nome direita ${jogo.visitanteId === meuId ? 'meu' : ''}">${visitante.nome}</span>
-                  </div>`;
-              }).join("")}
-            </div>
-          </div>`;
-      }).join("")}
-    </div>
-  `;
+    rodada.jogos.forEach(function(jogo) {
+      var resultado = estado.resultados.find(function(r) {
+        return r.rodada === idx && r.mandanteId === jogo.mandanteId && r.visitanteId === jogo.visitanteId;
+      });
+      var mandante  = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
+      var visitante = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+      var clsM = jogo.mandanteId  === meuId ? ' meu' : '';
+      var clsV = jogo.visitanteId === meuId ? ' meu' : '';
+
+      var placar;
+      if (resultado) {
+        var cls = placarClasse(resultado, meuId);
+        var dadosStr = encodeURIComponent(JSON.stringify(resultado));
+        placar = '<span class="placar ' + cls + '" onclick="abrirModal(\'' + dadosStr + '\')" style="cursor:pointer">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</span>';
+      } else {
+        placar = '<span class="placar pendente">vs</span>';
+      }
+
+      html += '<div class="item-jogo">';
+      html += '<span class="time-nome' + clsM + '">' + mandante.nome + '</span>';
+      html += placar;
+      html += '<span class="time-nome direita' + clsV + '">' + visitante.nome + '</span>';
+      html += '</div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
 }
 
 function simularRodada(idx) {
-  const rodada    = estado.calendario[idx];
-  const meuId     = estado.meuClube.id;
-  const meuTec    = estado.meuTecnico;
+  var rodada = estado.calendario[idx];
+  var meuId  = estado.meuClube.id;
+  var meuTec = estado.meuTecnico;
 
-  rodada.jogos.forEach(jogo => {
-    const mandante  = CLUBES.find(c => c.id === jogo.mandanteId);
-    const visitante = CLUBES.find(c => c.id === jogo.visitanteId);
-    const tecM = jogo.mandanteId  === meuId ? meuTec : null;
-    const tecV = jogo.visitanteId === meuId ? meuTec : null;
-    const r    = simularPartidaSimples(mandante, visitante, tecM, tecV);
-
+  rodada.jogos.forEach(function(jogo) {
+    var mandante  = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
+    var visitante = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+    var tecM = jogo.mandanteId  === meuId ? meuTec : null;
+    var tecV = jogo.visitanteId === meuId ? meuTec : null;
+    var r = simularPartidaSimples(mandante, visitante, tecM, tecV);
     estado.resultados.push({
       rodada: idx,
       mandanteId: jogo.mandanteId, visitanteId: jogo.visitanteId,
@@ -1786,99 +1733,85 @@ function simularRodada(idx) {
 
   estado.rodadaAtual = idx + 1;
   renderCampeonato();
-  document.getElementById(`rodada-${idx + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  var proxima = document.getElementById("rodada-" + (idx + 1));
+  if (proxima) proxima.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// ════════════════════════════════════════
-// ABA — Tabela
-// ════════════════════════════════════════
+// ── Aba: Tabela ──
 function renderTabela() {
-  const tabela = calcularTabela(CLUBES, estado.resultados);
-  const meuId  = estado.meuClube.id;
+  var tabela = calcularTabela(CLUBES, estado.resultados);
+  var meuId  = estado.meuClube.id;
 
-  document.getElementById("main").innerHTML = `
-    <p class="secao-titulo">Classificação — Brasileirão</p>
-    <div class="tabela-classificacao">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>Clube</th><th>Pts</th><th>J</th>
-            <th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tabela.map((t, i) => `
-            <tr class="${t.id === meuId ? 'meu-clube' : ''}">
-              <td class="td-pos">${i + 1}</td>
-              <td><span class="escudo-mini" style="background:${t.cor}">${t.sigla}</span>${t.nome}</td>
-              <td class="td-pts">${t.pts}</td>
-              <td>${t.j}</td><td>${t.v}</td><td>${t.e}</td><td>${t.d}</td>
-              <td>${t.gp}</td><td>${t.gc}</td>
-              <td>${t.sg > 0 ? '+' + t.sg : t.sg}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  var html = '<p class="secao-titulo">Classificação — Brasileirão</p>';
+  html += '<div class="tabela-classificacao"><table>';
+  html += '<thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead><tbody>';
+
+  tabela.forEach(function(t, i) {
+    var cls = t.id === meuId ? ' class="meu-clube"' : '';
+    var sg  = t.sg > 0 ? '+' + t.sg : t.sg;
+    html += '<tr' + cls + '>';
+    html += '<td class="td-pos">' + (i + 1) + '</td>';
+    html += '<td><span class="escudo-mini" style="background:' + t.cor + '">' + t.sigla + '</span>' + t.nome + '</td>';
+    html += '<td class="td-pts">' + t.pts + '</td>';
+    html += '<td>' + t.j + '</td><td>' + t.v + '</td><td>' + t.e + '</td><td>' + t.d + '</td>';
+    html += '<td>' + t.gp + '</td><td>' + t.gc + '</td><td>' + sg + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById("main").innerHTML = html;
 }
 
-// ════════════════════════════════════════
-// Modal de partida
-// ════════════════════════════════════════
-function abrirModal(resultado) {
-  const mandante  = CLUBES.find(c => c.id === resultado.mandanteId);
-  const visitante = CLUBES.find(c => c.id === resultado.visitanteId);
-  const diff = resultado.golsMandante - resultado.golsVisitante;
-  const cor  = diff > 0 ? "var(--green)" : diff < 0 ? "var(--red)" : "var(--yellow)";
-  const fm   = resultado.forcaMandante;
-  const fv   = resultado.forcaVisitante;
+// ── Modal de partida ──
+function abrirModal(dadosStr) {
+  var resultado = JSON.parse(decodeURIComponent(dadosStr));
+  var mandante  = CLUBES.find(function(c) { return c.id === resultado.mandanteId; });
+  var visitante = CLUBES.find(function(c) { return c.id === resultado.visitanteId; });
+  var diff = resultado.golsMandante - resultado.golsVisitante;
+  var cor  = diff > 0 ? "var(--green)" : diff < 0 ? "var(--red)" : "var(--yellow)";
+  var fm   = resultado.forcaMandante;
+  var fv   = resultado.forcaVisitante;
 
-  const overlay = document.createElement("div");
+  var eventosHtml = '';
+  if (resultado.eventos && resultado.eventos.length > 0) {
+    resultado.eventos.forEach(function(e) {
+      eventosHtml += '<div class="evento-item"><span class="evento-minuto">' + e.minuto + '\'</span><span>' + e.texto + '</span></div>';
+    });
+  } else {
+    eventosHtml = '<p style="color:var(--text2);font-size:13px">Jogo sem gols.</p>';
+  }
+
+  var forcaHtml = '';
+  if (fm) {
+    forcaHtml = '<div style="display:flex;justify-content:space-around;padding:10px 20px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)">' +
+      '<span>Força: <strong style="color:var(--text)">' + fm.forca + '</strong></span><span>vs</span>' +
+      '<span>Força: <strong style="color:var(--text)">' + fv.forca + '</strong></span></div>';
+  }
+
+  var overlay = document.createElement("div");
   overlay.className = "modal-overlay";
-  overlay.innerHTML = `
-    <div class="modal">
-      <div class="modal-header">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Resultado final</div>
-        <div class="modal-placar" style="color:${cor}">${resultado.golsMandante} – ${resultado.golsVisitante}</div>
-        <div class="modal-times">
-          <span>${mandante.nome}</span>
-          <span>${visitante.nome}</span>
-        </div>
-      </div>
-      ${fm ? `
-      <div style="display:flex;justify-content:space-around;padding:10px 20px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)">
-        <span>Força: <strong style="color:var(--text)">${fm.forca}</strong></span>
-        <span>vs</span>
-        <span>Força: <strong style="color:var(--text)">${fv.forca}</strong></span>
-      </div>` : ""}
-      <div class="modal-eventos">
-        ${resultado.eventos.length > 0
-          ? resultado.eventos.map(e => `
-              <div class="evento-item">
-                <span class="evento-minuto">${e.minuto}'</span>
-                <span>${e.texto}</span>
-              </div>`).join("")
-          : `<p style="color:var(--text2);font-size:13px">Jogo sem gols.</p>`
-        }
-      </div>
-      <div class="modal-footer">
-        <button class="btn-fechar" onclick="this.closest('.modal-overlay').remove()">Fechar</button>
-      </div>
-    </div>
-  `;
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  overlay.innerHTML =
+    '<div class="modal">' +
+      '<div class="modal-header">' +
+        '<div style="font-size:12px;color:var(--text2);margin-bottom:6px">Resultado final</div>' +
+        '<div class="modal-placar" style="color:' + cor + '">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</div>' +
+        '<div class="modal-times"><span>' + mandante.nome + '</span><span>' + visitante.nome + '</span></div>' +
+      '</div>' +
+      forcaHtml +
+      '<div class="modal-eventos">' + eventosHtml + '</div>' +
+      '<div class="modal-footer"><button class="btn-fechar" onclick="this.closest(\'.modal-overlay\').remove()">Fechar</button></div>' +
+    '</div>';
+
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
 }
 
-// ════════════════════════════════════════
-// Helpers
-// ════════════════════════════════════════
+// ── Helpers ──
 function placarClasse(resultado, meuId) {
   if (resultado.mandanteId !== meuId && resultado.visitanteId !== meuId) return "";
-  const euM    = resultado.mandanteId === meuId;
-  const meus   = euM ? resultado.golsMandante : resultado.golsVisitante;
-  const deles  = euM ? resultado.golsVisitante : resultado.golsMandante;
+  var euM  = resultado.mandanteId === meuId;
+  var meus = euM ? resultado.golsMandante : resultado.golsVisitante;
+  var deles= euM ? resultado.golsVisitante : resultado.golsMandante;
   return meus > deles ? "vitoria" : meus < deles ? "derrota" : "empate";
 }
 
@@ -1887,7 +1820,7 @@ function overallClasse(v) {
 }
 
 function bandeira(nac) {
-  const flags = { BR:"🇧🇷", PT:"🇵🇹", AR:"🇦🇷", ES:"🇪🇸", IT:"🇮🇹", DE:"🇩🇪", FR:"🇫🇷", EN:"🏴󠁧󠁢󠁥󠁮󠁧󠁿" };
+  var flags = { BR:"🇧🇷", PT:"🇵🇹", AR:"🇦🇷", ES:"🇪🇸", IT:"🇮🇹", DE:"🇩🇪", FR:"🇫🇷", EN:"🏴󠁧󠁢󠁥󠁮󠁧󠁿" };
   return flags[nac] || "🌍";
 }
 
@@ -1899,59 +1832,6 @@ function ocultarNav() {
 function mostrarNav() {
   document.getElementById("header-info").classList.remove("hidden");
   document.getElementById("nav").classList.remove("hidden");
-}
-
-// ════════════════════════════════════════
-// Demissão e contratação de técnico
-// ════════════════════════════════════════
-function confirmarDemissao() {
-  const tecnico = estado.meuTecnico;
-  if (!confirm(`Deseja demitir ${tecnico.nome}? Você precisará contratar um novo técnico.`)) return;
-  renderContratarTecnico();
-}
-
-function renderContratarTecnico() {
-  ocultarNav();
-  const clube = estado.meuClube;
-
-  document.getElementById("main").innerHTML = `
-    <div class="tela-selecao">
-      <h2>Contratar técnico — <span style="color:var(--accent)">${clube.nome}</span></h2>
-      <p class="sub">Escolha o novo técnico. O encaixe indica quão bem a formação se adapta ao seu elenco.</p>
-      <div class="lista-tecnicos">
-        ${TECNICOS_DISPONIVEIS.map(t => {
-          const encaixe = calcularEncaixe(clube, t.formacao);
-          const encaixePct = Math.round(encaixe * 100);
-          const corEncaixe = encaixePct >= 80 ? "var(--green)" : encaixePct >= 60 ? "var(--yellow)" : "var(--red)";
-          const forcaPrevia = calcularForca(clube, t);
-          const atual = estado.meuTecnico?.id === t.id;
-          return \`
-            <div class="card-tecnico \${atual ? 'tecnico-atual' : ''}" onclick="\${atual ? '' : 'contratarTecnico(' + JSON.stringify(t.id) + ')'}">
-              <div class="tecnico-header">
-                <div>
-                  <div class="tecnico-nome">\${t.nome} <span class="flag">\${bandeira(t.nacionalidade)}</span> \${atual ? '<span class="badge-atual">Técnico atual</span>' : ''}</div>
-                  <div class="tecnico-meta">\${t.estilo} · \${t.formacao}</div>
-                </div>
-                <div class="overall-grande \${overallClasse(t.overall)}">\${t.overall}</div>
-              </div>
-              <div class="tecnico-stats">
-                <div class="tstat"><span class="tstat-label">Encaixe no elenco</span><span class="tstat-val" style="color:\${corEncaixe}">\${encaixePct}%</span></div>
-                <div class="tstat"><span class="tstat-label">Força do time</span><span class="tstat-val" style="color:var(--accent)">\${forcaPrevia.forca}</span></div>
-              </div>
-            </div>
-          \`;
-        }).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function contratarTecnico(id) {
-  const novoTecnico = TECNICOS_DISPONIVEIS.find(t => t.id === id);
-  estado.meuTecnico = novoTecnico;
-  document.getElementById("header-tecnico").textContent = novoTecnico.nome;
-  mostrarNav();
-  navegarPara("staff");
 }</script>
 </body>
 </html>
