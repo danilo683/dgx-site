@@ -691,7 +691,221 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 }
 .noticia-icon { font-size: 16px; flex-shrink: 0; }
 .noticia-texto { flex: 1; line-height: 1.5; }
-.noticia-rodada { font-size: 11px; color: var(--text2); white-space: nowrap; flex-shrink: 0; }</style>
+.noticia-rodada { font-size: 11px; color: var(--text2); white-space: nowrap; flex-shrink: 0; }
+
+/* ══════════════════════════════════
+   DASHBOARD
+══════════════════════════════════ */
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dash-nav-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.dash-nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.dash-nav-btn:disabled { opacity: .3; cursor: default; }
+.dash-nav-btn.destaque { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 18px; width: 48px; height: 48px; }
+.dash-nav-btn.destaque:hover { opacity: .85; }
+
+.dash-evento-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.dash-evento-icone { font-size: 28px; flex-shrink: 0; }
+.dash-evento-titulo { font-size: 16px; font-weight: 600; }
+.dash-evento-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+.temporada-progress {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.temporada-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+
+/* Grid 2x3 */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.dash-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 160px;
+}
+
+.dash-card-titulo {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-empty {
+  font-size: 13px;
+  color: var(--text2);
+  padding: 8px 0;
+}
+
+.dash-ver-mais {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: center;
+}
+.dash-ver-mais:hover { text-decoration: underline; }
+
+/* ── Mini calendário ── */
+.mini-cal { display: flex; flex-direction: column; gap: 4px; }
+
+.cal-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .1s;
+  color: var(--text2);
+}
+.cal-item:hover { background: var(--bg3); }
+.cal-item.cal-atual { background: rgba(79,142,247,.12); color: var(--text); font-weight: 500; }
+.cal-item.cal-passado { opacity: .5; }
+.cal-icone { font-size: 14px; flex-shrink: 0; }
+.cal-titulo { flex: 1; }
+.cal-agora { font-size: 10px; background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 10px; }
+
+/* ── Inbox ── */
+.inbox-badge {
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.inbox-lista { display: flex; flex-direction: column; gap: 4px; }
+.inbox-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg3);
+  cursor: pointer;
+  transition: background .1s;
+  border-left: 3px solid transparent;
+}
+.inbox-item:hover { background: var(--border); }
+.inbox-item.nao-lida { border-left-color: var(--accent); }
+.inbox-remetente { font-size: 11px; color: var(--text2); margin-bottom: 2px; }
+.inbox-assunto { font-size: 13px; font-weight: 500; }
+
+/* ── Jogos ── */
+.jogos-lista { display: flex; flex-direction: column; gap: 4px; }
+.jogos-secao-titulo { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+
+.jogo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg3);
+  font-size: 12px;
+}
+.jogo-item.proximo { opacity: .7; }
+.jogo-rodada { color: var(--text2); min-width: 24px; font-size: 11px; }
+.jogo-mando {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.jogo-adv { flex: 1; font-weight: 500; }
+.jogo-resultado { font-weight: 700; font-size: 13px; min-width: 32px; text-align: right; }
+.jogo-resultado.pendente { color: var(--text2); font-weight: 400; font-size: 11px; }
+.res-v { color: var(--green); }
+.res-d { color: var(--red); }
+.res-e { color: var(--yellow); }
+
+/* ── Mini tabela ── */
+.mini-tabela { display: flex; flex-direction: column; gap: 2px; }
+.mini-tab-header {
+  display: grid;
+  grid-template-columns: 24px 1fr 28px 20px 28px;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  padding: 0 4px;
+  margin-bottom: 4px;
+}
+.mini-tab-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 28px 20px 28px;
+  gap: 4px;
+  font-size: 12px;
+  padding: 5px 4px;
+  border-radius: 6px;
+  align-items: center;
+}
+.mini-tab-row.mini-tab-eu { background: rgba(79,142,247,.1); font-weight: 600; }
+.mini-tab-pos { color: var(--text2); font-size: 11px; }
+.mini-tab-nome { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; }
+.mini-tab-pts { color: var(--accent); font-weight: 700; }
+
+/* ── Baixas ── */
+.baixas-lista { display: flex; flex-direction: column; gap: 6px; }
+.baixa-item { display: flex; align-items: center; gap: 8px; }
+.baixa-info { flex: 1; }
+.baixa-nome { font-size: 13px; font-weight: 500; }
+.baixa-detalhe { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* ── Notícias ── */
+.noticias-lista { display: flex; flex-direction: column; gap: 6px; }
+.noticia-dash {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.noticia-dash:last-child { border-bottom: none; }
+.noticia-dash-texto { color: var(--text); }
+.noticia-dash-rodada { font-size: 11px; color: var(--text2); margin-top: 3px; }</style>
 </head>
 <body>
   <div id="app">
@@ -704,7 +918,8 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
       </div>
     </header>
     <nav id="nav" class="hidden">
-      <button data-aba="campeonato" class="ativo">Campeonato</button>
+      <button data-aba="dashboard" class="ativo">Dashboard</button>
+      <button data-aba="campeonato">Campeonato</button>
       <button data-aba="tabela">Tabela</button>
       <button data-aba="elenco">Elenco</button>
       <button data-aba="mercado">Mercado</button>
@@ -1756,6 +1971,549 @@ function gerarCalendario(clubes) {
   }
   return rodadas;
 }</script>
+  <script>// ── Tipos de evento ──
+var TIPO_EVENTO = {
+  JOGO:              "jogo",
+  JANELA_ABRE:       "janela_abre",
+  JANELA_FECHA:      "janela_fecha",
+  FIM_CONTRATO:      "fim_contrato",
+  NOTICIA:           "noticia",
+  MENSAGEM:          "mensagem"
+};
+
+// ── Gerar lista de eventos da temporada ──
+function gerarEventos() {
+  var eventos = [];
+
+  // Jogos (38 rodadas)
+  estado.calendario.forEach(function(rodada, idx) {
+    eventos.push({
+      id: "jogo_" + idx,
+      tipo: TIPO_EVENTO.JOGO,
+      rodada: idx,
+      titulo: "Rodada " + rodada.numero,
+      icone: "⚽",
+      processado: false
+    });
+  });
+
+  // Janelas de mercado
+  JANELAS.forEach(function(j) {
+    eventos.push({
+      id: "janela_abre_" + j.inicio,
+      tipo: TIPO_EVENTO.JANELA_ABRE,
+      rodada: j.inicio - 0.5, // aparece antes da rodada
+      titulo: j.nome + " aberta",
+      descricao: "O mercado de transferências está aberto até a rodada " + j.fim,
+      icone: "🟢",
+      processado: false
+    });
+    eventos.push({
+      id: "janela_fecha_" + j.fim,
+      tipo: TIPO_EVENTO.JANELA_FECHA,
+      rodada: j.fim + 0.5, // aparece após a rodada
+      titulo: j.nome + " encerrada",
+      descricao: "A janela de transferências foi fechada.",
+      icone: "🔴",
+      processado: false
+    });
+  });
+
+  // Fim de contrato dos jogadores do meu clube
+  estado.meuClube.jogadores.forEach(function(j) {
+    if (j.contrato_termino <= 38) {
+      eventos.push({
+        id: "contrato_" + j.id,
+        tipo: TIPO_EVENTO.FIM_CONTRATO,
+        rodada: j.contrato_termino - 3, // avisa 3 rodadas antes
+        titulo: "Contrato prestes a vencer",
+        descricao: j.nome + " (" + j.posicao + " " + j.overall + ") tem contrato até a rodada " + j.contrato_termino + ". Renove ou perca o jogador de graça.",
+        icone: "📋",
+        jogadorId: j.id,
+        processado: false
+      });
+    }
+  });
+
+  // Mensagens iniciais do jogo
+  var mensagensIniciais = [
+    {
+      rodada: 0.1,
+      remetente: "Diretoria",
+      assunto: "Bem-vindo ao clube!",
+      texto: "Olá, manager! A diretoria está entusiasmada com sua chegada. Temos grandes expectativas para esta temporada. Conte com nosso apoio.",
+      icone: "✉️"
+    },
+    {
+      rodada: 0.2,
+      remetente: "Técnico",
+      assunto: "Plantel à disposição",
+      texto: "Olá! Já analisei o elenco. Temos bons jogadores mas precisamos ficar atentos ao mercado. Vamos juntos!",
+      icone: "✉️"
+    }
+  ];
+
+  mensagensIniciais.forEach(function(m, i) {
+    eventos.push({
+      id: "msg_inicial_" + i,
+      tipo: TIPO_EVENTO.MENSAGEM,
+      rodada: m.rodada,
+      titulo: m.assunto,
+      remetente: m.remetente,
+      texto: m.texto,
+      icone: m.icone,
+      lida: false,
+      processado: false
+    });
+  });
+
+  // Ordenar por rodada
+  eventos.sort(function(a, b) { return a.rodada - b.rodada; });
+  return eventos;
+}
+
+// ── Adicionar mensagem dinamicamente ──
+function adicionarMensagem(remetente, assunto, texto, rodada) {
+  if (!estado.eventos) return;
+  var msg = {
+    id: "msg_" + Date.now(),
+    tipo: TIPO_EVENTO.MENSAGEM,
+    rodada: rodada || estado.eventoAtual,
+    titulo: assunto,
+    remetente: remetente,
+    texto: texto,
+    icone: "✉️",
+    lida: false,
+    processado: false
+  };
+  estado.inbox = estado.inbox || [];
+  estado.inbox.push(msg);
+}
+
+// ── Adicionar notícia dinamicamente ──
+function adicionarNoticia(texto, rodada) {
+  if (!estado.noticias) estado.noticias = [];
+  estado.noticias.push({
+    texto: texto,
+    rodada: rodada || estado.eventoAtual,
+    timestamp: Date.now()
+  });
+}
+
+// ── Processar evento ao chegar nele ──
+function processarEvento(evento) {
+  if (evento.processado) return;
+  evento.processado = true;
+
+  switch (evento.tipo) {
+    case TIPO_EVENTO.JOGO:
+      simularRodada(evento.rodada);
+      // Mensagem após jogo do meu clube
+      var rodada = estado.calendario[evento.rodada];
+      var meuJogo = rodada && rodada.jogos.find(function(j) {
+        return j.mandanteId === estado.meuClube.id || j.visitanteId === estado.meuClube.id;
+      });
+      if (meuJogo) {
+        var resultado = estado.resultados[estado.resultados.length - 1];
+        var euMandante = meuJogo.mandanteId === estado.meuClube.id;
+        var meusGols = euMandante ? resultado.golsMandante : resultado.golsVisitante;
+        var delesGols = euMandante ? resultado.golsVisitante : resultado.golsMandante;
+        var adversario = CLUBES.find(function(c) {
+          return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
+        });
+        var placar = meusGols + " x " + delesGols;
+        var resultado_txt = meusGols > delesGols ? "Vitória" : meusGols < delesGols ? "Derrota" : "Empate";
+        adicionarMensagem(
+          "Imprensa",
+          resultado_txt + " por " + placar,
+          resultado_txt + " do " + estado.meuClube.nome + " contra o " + adversario.nome + " por " + placar + " na rodada " + (evento.rodada + 1) + ".",
+          evento.rodada
+        );
+      }
+      break;
+
+    case TIPO_EVENTO.JANELA_ABRE:
+      adicionarMensagem(
+        "Diretoria",
+        "Janela de transferências aberta",
+        evento.descricao + " Aproveite para reforçar o elenco.",
+        evento.rodada
+      );
+      adicionarNoticia("🟢 " + evento.titulo + " — mercado aberto para negociações.", evento.rodada);
+      break;
+
+    case TIPO_EVENTO.JANELA_FECHA:
+      adicionarNoticia("🔴 " + evento.titulo + " — mercado encerrado.", evento.rodada);
+      break;
+
+    case TIPO_EVENTO.FIM_CONTRATO:
+      adicionarMensagem(
+        "Departamento jurídico",
+        evento.titulo,
+        evento.descricao,
+        evento.rodada
+      );
+      break;
+
+    case TIPO_EVENTO.MENSAGEM:
+      estado.inbox = estado.inbox || [];
+      estado.inbox.push(evento);
+      break;
+  }
+}
+
+// ── Avançar para o próximo evento ──
+function avancarEvento() {
+  if (!estado.eventos || estado.eventos.length === 0) return;
+  if (estado.eventoAtual >= estado.eventos.length - 1) {
+    alert("Temporada encerrada!");
+    return;
+  }
+  estado.eventoAtual++;
+  var evento = estado.eventos[estado.eventoAtual];
+  processarEvento(evento);
+  renderDashboard();
+}
+
+function voltarEvento() {
+  if (!estado.eventos || estado.eventoAtual <= 0) return;
+  estado.eventoAtual--;
+  renderDashboard();
+}
+
+// ── Inicializar calendário ──
+function inicializarCalendario() {
+  estado.eventoAtual = 0;
+  estado.inbox       = [];
+  estado.noticias    = [];
+  estado.eventos     = gerarEventos();
+  // Processa primeiro evento automaticamente
+  processarEvento(estado.eventos[0]);
+}</script>
+  <script>// ════════════════════════════════════════
+// DASHBOARD — Tela principal
+// ════════════════════════════════════════
+function renderDashboard() {
+  var evento  = estado.eventos[estado.eventoAtual];
+  var total   = estado.eventos.length;
+  var progPct = Math.round((estado.eventoAtual / (total - 1)) * 100);
+
+  // ── Header do calendário ──
+  var html = '<div class="dash-header">';
+  html += '<button class="dash-nav-btn" onclick="voltarEvento()" ' + (estado.eventoAtual === 0 ? 'disabled' : '') + '>◀</button>';
+  html += '<div class="dash-evento-info">';
+  html += '<div class="dash-evento-icone">' + evento.icone + '</div>';
+  html += '<div>';
+  html += '<div class="dash-evento-titulo">' + evento.titulo + '</div>';
+  html += '<div class="dash-evento-sub">Evento ' + (estado.eventoAtual + 1) + ' de ' + total + '</div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<button class="dash-nav-btn destaque" onclick="avancarEvento()" ' + (estado.eventoAtual >= total - 1 ? 'disabled' : '') + '>▶</button>';
+  html += '</div>';
+
+  // Barra de progresso da temporada
+  html += '<div class="temporada-progress">';
+  html += '<div class="temporada-bar" style="width:' + progPct + '%"></div>';
+  html += '</div>';
+
+  // ── Grid principal ──
+  html += '<div class="dash-grid">';
+
+  // [1] Mini calendário
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-titulo">📅 Calendário</div>';
+  html += renderMiniCalendario();
+  html += '</div>';
+
+  // [2] Inbox
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-titulo">✉️ Inbox <span class="inbox-badge">' + contarNaoLidas() + '</span></div>';
+  html += renderInboxPreview();
+  html += '</div>';
+
+  // [3] Próximos e últimos jogos
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-titulo">⚽ Jogos</div>';
+  html += renderJogosCard();
+  html += '</div>';
+
+  // [4] Mini tabela
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-titulo">📊 Classificação</div>';
+  html += renderMiniTabela();
+  html += '</div>';
+
+  // [5] Suspensos / Machucados
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-titulo">🏥 Baixas</div>';
+  html += renderBaixas();
+  html += '</div>';
+
+  // [6] Notícias
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-titulo">📰 Notícias</div>';
+  html += renderNoticias();
+  html += '</div>';
+
+  html += '</div>'; // dash-grid
+
+  document.getElementById("main").innerHTML = html;
+}
+
+// ── Mini calendário (próximos 6 eventos) ──
+function renderMiniCalendario() {
+  var eventos = estado.eventos;
+  var atual   = estado.eventoAtual;
+  var html = '<div class="mini-cal">';
+
+  var inicio = Math.max(0, atual - 1);
+  var fim    = Math.min(eventos.length, inicio + 7);
+
+  for (var i = inicio; i < fim; i++) {
+    var ev  = eventos[i];
+    var cls = i === atual ? ' cal-atual' : i < atual ? ' cal-passado' : '';
+    html += '<div class="cal-item' + cls + '" onclick="irParaEvento(' + i + ')">';
+    html += '<span class="cal-icone">' + ev.icone + '</span>';
+    html += '<span class="cal-titulo">' + ev.titulo + '</span>';
+    if (i === atual) html += '<span class="cal-agora">agora</span>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function irParaEvento(idx) {
+  // Processa todos os eventos entre o atual e o destino
+  while (estado.eventoAtual < idx) {
+    estado.eventoAtual++;
+    processarEvento(estado.eventos[estado.eventoAtual]);
+  }
+  renderDashboard();
+}
+
+// ── Inbox preview ──
+function contarNaoLidas() {
+  var inbox = estado.inbox || [];
+  var nao = inbox.filter(function(m) { return !m.lida; }).length;
+  return nao;
+}
+
+function renderInboxPreview() {
+  var inbox = (estado.inbox || []).slice().reverse();
+  if (inbox.length === 0) {
+    return '<div class="dash-empty">Nenhuma mensagem ainda.</div>';
+  }
+
+  var html = '<div class="inbox-lista">';
+  inbox.slice(0, 5).forEach(function(msg, i) {
+    var idx = (estado.inbox.length - 1) - i;
+    html += '<div class="inbox-item ' + (msg.lida ? '' : 'nao-lida') + '" onclick="abrirMensagem(' + idx + ')">';
+    html += '<div class="inbox-remetente">' + (msg.remetente || 'Sistema') + '</div>';
+    html += '<div class="inbox-assunto">' + msg.titulo + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  if (inbox.length > 5) {
+    html += '<div class="dash-ver-mais" onclick="navegarPara(\'inbox\')">Ver todas (' + inbox.length + ')</div>';
+  }
+  return html;
+}
+
+function abrirMensagem(idx) {
+  var msg = estado.inbox[idx];
+  if (!msg) return;
+  msg.lida = true;
+
+  var overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML =
+    '<div class="modal">' +
+      '<div class="modal-header" style="text-align:left;padding:20px">' +
+        '<div style="font-size:11px;color:var(--text2);margin-bottom:4px">De: ' + (msg.remetente || 'Sistema') + '</div>' +
+        '<div style="font-size:16px;font-weight:600;margin-bottom:12px">' + msg.titulo + '</div>' +
+        '<div style="font-size:14px;line-height:1.6;color:var(--text2)">' + msg.texto + '</div>' +
+      '</div>' +
+      '<div class="modal-footer">' +
+        '<button class="btn-fechar" onclick="this.closest(\'.modal-overlay\').remove();renderDashboard()">Fechar</button>' +
+      '</div>' +
+    '</div>';
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) { overlay.remove(); renderDashboard(); } });
+  document.body.appendChild(overlay);
+}
+
+// ── Jogos: últimos 3 + próximos 3 ──
+function renderJogosCard() {
+  var meuId    = estado.meuClube.id;
+  var rodadaAtual = estado.rodadaAtual;
+  var cal      = estado.calendario;
+
+  // Pegar todos os jogos do meu clube em ordem
+  var meusJogos = [];
+  cal.forEach(function(rodada, idx) {
+    rodada.jogos.forEach(function(jogo) {
+      if (jogo.mandanteId === meuId || jogo.visitanteId === meuId) {
+        meusJogos.push({ rodadaIdx: idx, rodadaNum: rodada.numero, jogo: jogo });
+      }
+    });
+  });
+
+  // Separar passados e futuros
+  var passados = meusJogos.filter(function(j) { return j.rodadaIdx < rodadaAtual; }).slice(-3);
+  var futuros  = meusJogos.filter(function(j) { return j.rodadaIdx >= rodadaAtual; }).slice(0, 3);
+
+  var html = '<div class="jogos-lista">';
+
+  // Últimos 3
+  if (passados.length > 0) {
+    html += '<div class="jogos-secao-titulo">Últimos jogos</div>';
+    passados.forEach(function(item) {
+      var resultado = estado.resultados.find(function(r) {
+        return r.rodada === item.rodadaIdx &&
+               r.mandanteId === item.jogo.mandanteId &&
+               r.visitanteId === item.jogo.visitanteId;
+      });
+      var adv = CLUBES.find(function(c) {
+        return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId);
+      });
+      var euMandante = item.jogo.mandanteId === meuId;
+      html += '<div class="jogo-item">';
+      html += '<span class="jogo-rodada">R' + item.rodadaNum + '</span>';
+      html += '<span class="jogo-mando">' + (euMandante ? 'C' : 'F') + '</span>';
+      html += '<span class="jogo-adv">' + adv.sigla + '</span>';
+      if (resultado) {
+        var meusG = euMandante ? resultado.golsMandante : resultado.golsVisitante;
+        var delesG = euMandante ? resultado.golsVisitante : resultado.golsMandante;
+        var cls = meusG > delesG ? 'res-v' : meusG < delesG ? 'res-d' : 'res-e';
+        html += '<span class="jogo-resultado ' + cls + '">' + meusG + '-' + delesG + '</span>';
+      }
+      html += '</div>';
+    });
+  }
+
+  // Próximos 3
+  if (futuros.length > 0) {
+    html += '<div class="jogos-secao-titulo" style="margin-top:10px">Próximos jogos</div>';
+    futuros.forEach(function(item) {
+      var adv = CLUBES.find(function(c) {
+        return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId);
+      });
+      var euMandante = item.jogo.mandanteId === meuId;
+      html += '<div class="jogo-item proximo">';
+      html += '<span class="jogo-rodada">R' + item.rodadaNum + '</span>';
+      html += '<span class="jogo-mando">' + (euMandante ? 'C' : 'F') + '</span>';
+      html += '<span class="jogo-adv">' + adv.sigla + '</span>';
+      html += '<span class="jogo-resultado pendente">vs</span>';
+      html += '</div>';
+    });
+  }
+
+  if (passados.length === 0 && futuros.length === 0) {
+    html += '<div class="dash-empty">Nenhum jogo encontrado.</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// ── Mini tabela (você ±2) ──
+function renderMiniTabela() {
+  var tabela = calcularTabela(CLUBES, estado.resultados);
+  var meuId  = estado.meuClube.id;
+  var minhaPos = tabela.findIndex(function(t) { return t.id === meuId; });
+
+  var inicio = Math.max(0, minhaPos - 2);
+  var fim    = Math.min(tabela.length, minhaPos + 3);
+  var slice  = tabela.slice(inicio, fim);
+
+  var html = '<div class="mini-tabela">';
+  html += '<div class="mini-tab-header">';
+  html += '<span>#</span><span>Clube</span><span>Pts</span><span>J</span><span>SG</span>';
+  html += '</div>';
+
+  slice.forEach(function(t, i) {
+    var pos = inicio + i + 1;
+    var cls = t.id === meuId ? ' mini-tab-eu' : '';
+    html += '<div class="mini-tab-row' + cls + '">';
+    html += '<span class="mini-tab-pos">' + pos + '</span>';
+    html += '<span class="mini-tab-nome"><span class="escudo-mini" style="background:' + t.cor + '">' + t.sigla + '</span>' + t.nome + '</span>';
+    html += '<span class="mini-tab-pts">' + t.pts + '</span>';
+    html += '<span>' + t.j + '</span>';
+    html += '<span>' + (t.sg > 0 ? '+' + t.sg : t.sg) + '</span>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  html += '<div class="dash-ver-mais" onclick="navegarPara(\'tabela\')">Tabela completa</div>';
+  return html;
+}
+
+// ── Baixas (suspensos e machucados) ──
+function renderBaixas() {
+  // Por ora, gerar algumas baixas aleatórias baseadas nos jogadores
+  if (!estado.baixas) {
+    estado.baixas = [];
+    // Simula 0-2 machucados aleatórios no início
+    var jogadores = estado.meuClube.jogadores;
+    var qtd = Math.floor(Math.random() * 2);
+    for (var i = 0; i < qtd; i++) {
+      var j = jogadores[Math.floor(Math.random() * jogadores.length)];
+      estado.baixas.push({
+        jogadorId: j.id,
+        nome: j.nome,
+        posicao: j.posicao,
+        tipo: "machucado",
+        ate_rodada: estado.rodadaAtual + Math.floor(Math.random() * 4) + 1
+      });
+    }
+  }
+
+  // Remover baixas que já passaram
+  estado.baixas = estado.baixas.filter(function(b) { return b.ate_rodada > estado.rodadaAtual; });
+
+  if (estado.baixas.length === 0) {
+    return '<div class="dash-empty">Nenhuma baixa no momento. ✅</div>';
+  }
+
+  var html = '<div class="baixas-lista">';
+  estado.baixas.forEach(function(b) {
+    var icon = b.tipo === "machucado" ? "🏥" : "🟨";
+    var label = b.tipo === "machucado" ? "Machucado" : "Suspenso";
+    html += '<div class="baixa-item">';
+    html += '<span class="posicao-badge pos-' + b.posicao + '">' + b.posicao + '</span>';
+    html += '<div class="baixa-info">';
+    html += '<div class="baixa-nome">' + b.nome + '</div>';
+    html += '<div class="baixa-detalhe">' + icon + ' ' + label + ' · retorna rod. ' + b.ate_rodada + '</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── Notícias ──
+function renderNoticias() {
+  var noticias = (estado.noticias || []).slice().reverse();
+  var feed     = (estado.feedNoticias || []).slice().reverse();
+
+  // Mesclar as duas fontes
+  var todas = noticias.concat(feed.map(function(n) { return { texto: n.texto, rodada: n.rodada }; }));
+  todas.sort(function(a, b) { return (b.rodada || 0) - (a.rodada || 0); });
+
+  if (todas.length === 0) {
+    return '<div class="dash-empty">Nenhuma notícia ainda.</div>';
+  }
+
+  var html = '<div class="noticias-lista">';
+  todas.slice(0, 6).forEach(function(n) {
+    html += '<div class="noticia-dash">';
+    html += '<div class="noticia-dash-texto">' + n.texto + '</div>';
+    if (n.rodada !== undefined) html += '<div class="noticia-dash-rodada">Rod. ' + Math.ceil(n.rodada) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}</script>
   <script>const estado = {
   manager: null,
   meuClube: null,
@@ -1848,14 +2606,15 @@ function iniciarJogo() {
   document.getElementById("header-manager").textContent = estado.manager.nome;
   document.getElementById("header-tecnico").textContent = estado.meuTecnico.nome;
   mostrarNav();
-  navegarPara("campeonato");
+  inicializarCalendario();
+  renderDashboard();
 }
 
 function navegarPara(aba) {
   document.querySelectorAll("nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, staff: renderStaff, mercado: renderMercado };
+  var abas = { dashboard: renderDashboard, campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, staff: renderStaff };
   if (abas[aba]) abas[aba]();
 }
 
