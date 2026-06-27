@@ -1952,7 +1952,92 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
   letter-spacing: 1px;
   padding: 12px 12px 4px;
   opacity: .6;
-}</style>
+}
+
+/* ── Torneios ── */
+.torneios-tela { max-width: 900px; }
+.torneio-conteudo { margin-top: 4px; }
+
+.torneio-campeao {
+  background: linear-gradient(135deg, rgba(241,196,15,.15), rgba(241,196,15,.05));
+  border: 1px solid var(--yellow);
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--yellow);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.torneio-fases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.torneio-fase {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 200px;
+  flex: 1;
+}
+
+.torneio-fase-titulo {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.torneio-jogo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.torneio-jogo:last-child { border-bottom: none; }
+.torneio-jogo.torneio-meu { background: rgba(79,142,247,.08); }
+.torneio-time { flex: 1; color: var(--text2); }
+.torneio-time.right { text-align: right; }
+.torneio-placar { font-weight: 700; min-width: 32px; text-align: center; font-size: 13px; }
+.torneio-placar.pendente { color: var(--text2); font-weight: 400; font-size: 11px; }
+
+/* Libertadores grupos */
+.lib-grupos { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.lib-grupo { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.lib-grupo-titulo { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; }
+.lib-clube-row {
+  display: grid; grid-template-columns: 16px 1fr 24px 20px;
+  gap: 4px; font-size: 11px; padding: 4px 2px;
+  border-bottom: 1px solid var(--border); align-items: center;
+}
+.lib-clube-row:last-child { border-bottom: none; }
+.lib-clube-row.lib-eu { font-weight: 700; color: var(--accent); }
+.lib-clube-row.lib-prom { background: rgba(46,204,113,.06); }
+.lib-pos { color: var(--text2); }
+.lib-pts { font-weight: 700; text-align: center; }
+.lib-j  { color: var(--text2); text-align: center; }
+
+/* Estaduais */
+.estaduais-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.estadual-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px; text-align: center;
+}
+.estadual-card.estadual-meu { border-color: var(--accent); }
+.estadual-nome { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.estadual-campeao { font-size: 12px; color: var(--yellow); }
+.estadual-prog { font-size: 12px; color: var(--text2); }</style>
 </head>
 <body>
   <div id="app">
@@ -1969,10 +2054,12 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
       <nav id="sidebar-nav" class="hidden">
         <button data-aba="dashboard">🏠 Dashboard</button>
         <button data-aba="inbox">✉️ Inbox</button>
-        <div class="sidebar-sep">CLUBE</div>
-        <button data-aba="campeonato">📋 Campeonato</button>
+        <div class="sidebar-sep">COMPETIÇÕES</div>
+        <button data-aba="campeonato">📋 Brasileirão</button>
         <button data-aba="divisoes">🏆 Divisões</button>
+        <button data-aba="torneios">🌎 Torneios</button>
         <button data-aba="tabela">📊 Tabela</button>
+        <div class="sidebar-sep">CLUBE</div>
         <button data-aba="elenco">👥 Elenco</button>
         <button data-aba="mercado">💰 Mercado</button>
         <button data-aba="financeiro">📑 Financeiro</button>
@@ -4776,6 +4863,693 @@ function mudarDivisao(div) {
   renderDivisoes();
 }</script>
   <script>// ════════════════════════════════════════
+// SISTEMA DE TORNEIOS
+// ════════════════════════════════════════
+
+var estadoTorneios = {
+  copaBrasil:    null,
+  libertadores:  null,
+  mundial:       null,
+  estaduais:     null
+};
+
+// ── Utilitários ──
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+function simularJogoTorneio(mandante, visitante) {
+  var tecM = TECNICOS_DISPONIVEIS.find(function(t){return t.id===mandante.tecnico_id;});
+  var tecV = TECNICOS_DISPONIVEIS.find(function(t){return t.id===visitante.tecnico_id;});
+  var r = simularPartidaSimples(mandante, visitante, tecM, tecV);
+  return { gM: r.golsMandante, gV: r.golsVisitante };
+}
+
+function clubePorId(id) {
+  var c = CLUBES.find(function(x){return x.id===id;});
+  if (c) return c;
+  c = (estadoDivisoes.b.clubes||[]).find(function(x){return x.id===id;});
+  if (c) return c;
+  c = (estadoDivisoes.c.clubes||[]).find(function(x){return x.id===id;});
+  if (c) return c;
+  c = (estadoDivisoes.d.clubes||[]).find(function(x){return x.id===id;});
+  return c || null;
+}
+
+// ════════════════════════════════════════
+// COPA DO BRASIL
+// ════════════════════════════════════════
+function inicializarCopaBrasil() {
+  // 64 clubes: 20 Série A + 20 B + 20 C + 4 D
+  var participantes = shuffle(
+    CLUBES.slice().concat(
+      (estadoDivisoes.b.clubes||[]).slice(),
+      (estadoDivisoes.c.clubes||[]).slice(),
+      (estadoDivisoes.d.clubes||[]).slice(0,4)
+    )
+  ).slice(0, 64);
+
+  estadoTorneios.copaBrasil = {
+    nome: "Copa do Brasil",
+    icone: "🏆",
+    participantes: participantes.map(function(c){return c.id;}),
+    fases: ["1ª Rodada","Oitavas","Quartas","Semifinal","Final"],
+    faseAtual: 0,
+    jogos: [], // { fase, mandanteId, visitanteId, gM, gV, simulado }
+    eliminados: [],
+    campeao: null,
+    rodadaInicio: 3
+  };
+
+  gerarFaseCopa(0, participantes.map(function(c){return c.id;}));
+}
+
+function gerarFaseCopa(faseIdx, clubesRestantes) {
+  var cb = estadoTorneios.copaBrasil;
+  var emb = shuffle(clubesRestantes);
+  for (var i = 0; i < emb.length; i += 2) {
+    if (i+1 >= emb.length) break;
+    cb.jogos.push({ fase: faseIdx, mandanteId: emb[i], visitanteId: emb[i+1], gM:null, gV:null, simulado:false });
+  }
+}
+
+function simularFaseCopa(faseIdx) {
+  var cb = estadoTorneios.copaBrasil;
+  var meuId = estado.meuClube.id;
+  var classificados = [];
+  var jogosRodada = cb.jogos.filter(function(j){return j.fase===faseIdx && !j.simulado;});
+
+  jogosRodada.forEach(function(jogo) {
+    if (jogo.simulado) return;
+    var m = clubePorId(jogo.mandanteId);
+    var v = clubePorId(jogo.visitanteId);
+    if (!m || !v) return;
+
+    var ehMeu = jogo.mandanteId === meuId || jogo.visitanteId === meuId;
+
+    if (ehMeu) {
+      // Vai para tela de jogo ao vivo — registrar como pendente
+      cb.jogoPendente = jogo;
+      return;
+    }
+
+    var r = simularJogoTorneio(m, v);
+    jogo.gM = r.gM; jogo.gV = r.gV; jogo.simulado = true;
+
+    // Em caso de empate, pênaltis (50/50)
+    if (r.gM === r.gV) {
+      jogo.penaltis = Math.random() > 0.5 ? "mandante" : "visitante";
+    }
+
+    var vencedor = r.gM > r.gV ? jogo.mandanteId :
+                   r.gM < r.gV ? jogo.visitanteId :
+                   (jogo.penaltis === "mandante" ? jogo.mandanteId : jogo.visitanteId);
+
+    classificados.push(vencedor);
+    cb.eliminados.push(r.gM > r.gV ? jogo.visitanteId : jogo.mandanteId);
+
+    adicionarNoticia("🏆 Copa BR · " + (m.sigla||m.nome) + " " + r.gM + "x" + r.gV + " " + (v.sigla||v.nome), estado.rodadaAtual);
+  });
+
+  return classificados;
+}
+
+function avancarFaseCopa() {
+  var cb = estadoTorneios.copaBrasil;
+  if (!cb || cb.campeao) return;
+
+  var fase = cb.faseAtual;
+  var classificados = simularFaseCopa(fase);
+
+  // Se ainda tem jogo pendente (meu time), aguardar
+  if (cb.jogoPendente && !cb.jogoPendente.simulado) return;
+
+  // Adicionar meu resultado se estava pendente
+  if (cb.jogoPendente && cb.jogoPendente.simulado) {
+    var jp = cb.jogoPendente;
+    var meuId = estado.meuClube.id;
+    var venc = jp.gM > jp.gV ? jp.mandanteId :
+               jp.gM < jp.gV ? jp.visitanteId :
+               (jp.penaltis === "mandante" ? jp.mandanteId : jp.visitanteId);
+    classificados.push(venc);
+    cb.eliminados.push(venc === jp.mandanteId ? jp.visitanteId : jp.mandanteId);
+    cb.jogoPendente = null;
+  }
+
+  if (classificados.length === 1) {
+    cb.campeao = classificados[0];
+    var camp = clubePorId(cb.campeao);
+    adicionarNoticia("🏆 " + (camp?camp.nome:"?") + " é CAMPEÃO da Copa do Brasil!", estado.rodadaAtual);
+    if (cb.campeao === estado.meuClube.id) {
+      estado.manager.titulos = (estado.manager.titulos||0) + 1;
+      estado.inbox.push({ id:"titulo_copa_"+Date.now(), titulo:"🏆 CAMPEÃO DA COPA DO BRASIL!", remetente:"Confederação", texto:"Parabéns! Seu clube conquistou a Copa do Brasil!", lida:false });
+    }
+    return;
+  }
+
+  cb.faseAtual++;
+  if (classificados.length > 1) gerarFaseCopa(cb.faseAtual, classificados);
+}
+
+// ════════════════════════════════════════
+// LIBERTADORES
+// ════════════════════════════════════════
+function inicializarLibertadores() {
+  // Top 6 da Série A + campeão Copa Brasil + 1 runner-up = 8 times diretos
+  // Mais 8 times de outros países simulados
+  var tabela = calcularTabela(CLUBES, estado.resultados);
+  var top6 = tabela.slice(0, 6).map(function(t){return t.id;});
+
+  var timesEstrangeiros = [
+    { id: "rp01", nome: "River Plate",      sigla: "RIV", cor: "#CC0000", overall: 84 },
+    { id: "rp02", nome: "Boca Juniors",      sigla: "BOC", cor: "#FFD700", overall: 83 },
+    { id: "rp03", nome: "Nacional",          sigla: "NAC", cor: "#CC0000", overall: 79 },
+    { id: "rp04", nome: "Peñarol",           sigla: "PEN", cor: "#FFD700", overall: 78 },
+    { id: "rp05", nome: "LDU",               sigla: "LDU", cor: "#FFD700", overall: 76 },
+    { id: "rp06", nome: "Olimpia",           sigla: "OLI", cor: "#CC0000", overall: 74 },
+    { id: "rp07", nome: "Colo-Colo",         sigla: "COL", cor: "#CC0000", overall: 77 },
+    { id: "rp08", nome: "Talleres",          sigla: "TAL", cor: "#0033A0", overall: 75 },
+    { id: "rp09", nome: "Fluminense",        sigla: "FLU", cor: "#6B0F1A", overall: 80 },
+    { id: "rp10", nome: "Estudiantes",       sigla: "EST", cor: "#CC0000", overall: 76 },
+  ].map(function(t) {
+    return Object.assign({}, t, {
+      jogadores: gerarJogadoresFicticios(t.id, t.overall),
+      budget: 20000000, tecnico_id: "t01"
+    });
+  });
+
+  var participantes = shuffle(
+    top6.map(function(id){ return clubePorId(id); }).filter(Boolean)
+    .concat(timesEstrangeiros)
+  ).slice(0, 32);
+
+  // Fase de grupos: 8 grupos de 4
+  var grupos = [];
+  for (var i = 0; i < 8; i++) {
+    grupos.push({
+      letra: "ABCDEFGH"[i],
+      clubes: participantes.slice(i*4, i*4+4).map(function(c){return c.id;}),
+      jogos: [],
+      tabela: {}
+    });
+  }
+
+  // Guardar times estrangeiros no estado
+  estadoTorneios._timesEstrangeiros = timesEstrangeiros;
+
+  estadoTorneios.libertadores = {
+    nome: "Libertadores",
+    icone: "🌎",
+    grupos: grupos,
+    faseAtual: "grupos", // grupos → oitavas → quartas → semi → final
+    jogos: [],
+    campeao: null,
+    rodadaInicio: 5
+  };
+
+  // Gerar jogos da fase de grupos
+  grupos.forEach(function(g) {
+    for (var i = 0; i < g.clubes.length; i++) {
+      for (var j = i+1; j < g.clubes.length; j++) {
+        estadoTorneios.libertadores.jogos.push({
+          fase: "grupos", grupo: g.letra,
+          mandanteId: g.clubes[i], visitanteId: g.clubes[j],
+          gM: null, gV: null, simulado: false
+        });
+        // Jogo de volta
+        estadoTorneios.libertadores.jogos.push({
+          fase: "grupos", grupo: g.letra,
+          mandanteId: g.clubes[j], visitanteId: g.clubes[i],
+          gM: null, gV: null, simulado: false
+        });
+      }
+    }
+  });
+}
+
+function simularRodadaLibertadores() {
+  var lib = estadoTorneios.libertadores;
+  if (!lib || lib.campeao) return;
+  var meuId = estado.meuClube.id;
+
+  var pendentes = lib.jogos.filter(function(j){return !j.simulado;}).slice(0, 8);
+  pendentes.forEach(function(jogo) {
+    var m = clubePorId(jogo.mandanteId) || (estadoTorneios._timesEstrangeiros||[]).find(function(t){return t.id===jogo.mandanteId;});
+    var v = clubePorId(jogo.visitanteId) || (estadoTorneios._timesEstrangeiros||[]).find(function(t){return t.id===jogo.visitanteId;});
+    if (!m || !v) { jogo.simulado=true; jogo.gM=0; jogo.gV=0; return; }
+
+    var ehMeu = jogo.mandanteId===meuId || jogo.visitanteId===meuId;
+    var tecM = TECNICOS_DISPONIVEIS.find(function(t){return t.id===m.tecnico_id;});
+    var tecV = TECNICOS_DISPONIVEIS.find(function(t){return t.id===v.tecnico_id;});
+    var r = simularPartidaSimples(m, v, tecM, tecV);
+    jogo.gM = r.golsMandante; jogo.gV = r.golsVisitante; jogo.simulado = true;
+
+    if (ehMeu) {
+      var euM = jogo.mandanteId===meuId;
+      var mg = euM?r.golsMandante:r.golsVisitante;
+      var dg = euM?r.golsVisitante:r.golsMandante;
+      var adv = euM?v:m;
+      adicionarNoticia("🌎 Libertadores · " + estado.meuClube.sigla + " " + mg + "x" + dg + " " + adv.sigla, estado.rodadaAtual);
+    }
+  });
+
+  // Verificar se todos os jogos de grupos terminaram
+  var gruposPendentes = lib.jogos.filter(function(j){return j.fase==="grupos"&&!j.simulado;});
+  if (gruposPendentes.length === 0 && lib.faseAtual === "grupos") {
+    avancarLibertadoresMataM();
+  }
+}
+
+function avancarLibertadoresMataM() {
+  var lib = estadoTorneios.libertadores;
+  // Calcular classificados de cada grupo (top 2)
+  var classificados = [];
+  lib.grupos.forEach(function(g) {
+    var pts = {};
+    g.clubes.forEach(function(id){ pts[id]={p:0,gp:0,gc:0}; });
+    lib.jogos.filter(function(j){return j.grupo===g.letra&&j.simulado;}).forEach(function(j){
+      if (!pts[j.mandanteId]||!pts[j.visitanteId]) return;
+      pts[j.mandanteId].gp+=j.gM; pts[j.mandanteId].gc+=j.gV;
+      pts[j.visitanteId].gp+=j.gV; pts[j.visitanteId].gc+=j.gM;
+      if(j.gM>j.gV){ pts[j.mandanteId].p+=3; }
+      else if(j.gM<j.gV){ pts[j.visitanteId].p+=3; }
+      else{ pts[j.mandanteId].p+=1; pts[j.visitanteId].p+=1; }
+    });
+    var ranking = g.clubes.slice().sort(function(a,b){
+      var pa=pts[a]||{p:0,gp:0,gc:0}, pb=pts[b]||{p:0,gp:0,gc:0};
+      return (pb.p-pa.p)||(pb.gp-pb.gc)-(pa.gp-pa.gc);
+    });
+    classificados.push(ranking[0], ranking[1]);
+  });
+
+  lib.faseAtual = "oitavas";
+  var sorteados = shuffle(classificados);
+  for (var i=0; i<sorteados.length; i+=2) {
+    if (i+1>=sorteados.length) break;
+    lib.jogos.push({fase:"oitavas",mandanteId:sorteados[i],visitanteId:sorteados[i+1],gM:null,gV:null,simulado:false});
+    lib.jogos.push({fase:"oitavas",mandanteId:sorteados[i+1],visitanteId:sorteados[i],gM:null,gV:null,simulado:false});
+  }
+  adicionarNoticia("🌎 Libertadores: fase de oitavas definida!", estado.rodadaAtual);
+}
+
+// ════════════════════════════════════════
+// MUNDIAL DE CLUBES
+// ════════════════════════════════════════
+function inicializarMundial() {
+  var lib = estadoTorneios.libertadores;
+  var campLibertadores = lib ? lib.campeao : null;
+
+  var times = [
+    { id: "m01", nome: "Real Madrid",     sigla: "RMA", cor: "#FFFFFF", overall: 92 },
+    { id: "m02", nome: "Manchester City", sigla: "MCI", cor: "#6CABDD", overall: 90 },
+    { id: "m03", nome: "Bayern München",  sigla: "BAY", cor: "#DC052D", overall: 89 },
+    { id: "m04", nome: "PSG",             sigla: "PSG", cor: "#004170", overall: 87 },
+    { id: "m05", nome: "Al-Hilal",        sigla: "HIL", cor: "#0033A0", overall: 82 },
+    { id: "m06", nome: "Fluminense",      sigla: "FLU", cor: "#6B0F1A", overall: 81 },
+    { id: "m07", nome: "Auckland City",   sigla: "AUC", cor: "#1a1a1a", overall: 68 },
+  ].map(function(t) {
+    return Object.assign({}, t, {
+      jogadores: gerarJogadoresFicticios(t.id, t.overall),
+      budget: 50000000, tecnico_id: "t01"
+    });
+  });
+
+  var participantes = times.slice();
+  if (campLibertadores && campLibertadores !== "m06") {
+    var camp = clubePorId(campLibertadores);
+    if (camp) participantes.push(camp);
+  }
+  participantes = shuffle(participantes).slice(0, 8);
+  estadoTorneios._timesMundial = times;
+
+  // Fase de grupos: 2 grupos de 4
+  var grupos = [
+    { letra:"A", clubes: participantes.slice(0,4).map(function(c){return c.id;}), jogos:[] },
+    { letra:"B", clubes: participantes.slice(4,8).map(function(c){return c.id;}), jogos:[] }
+  ];
+
+  estadoTorneios.mundial = {
+    nome: "Mundial de Clubes",
+    icone: "🌍",
+    grupos: grupos,
+    jogos: [],
+    faseAtual: "grupos",
+    campeao: null
+  };
+
+  grupos.forEach(function(g) {
+    for (var i=0;i<g.clubes.length;i++) {
+      for (var j=i+1;j<g.clubes.length;j++) {
+        estadoTorneios.mundial.jogos.push({ fase:"grupos",grupo:g.letra,mandanteId:g.clubes[i],visitanteId:g.clubes[j],gM:null,gV:null,simulado:false });
+      }
+    }
+  });
+}
+
+function simularMundial() {
+  var mun = estadoTorneios.mundial;
+  if (!mun || mun.campeao) return;
+  var meuId = estado.meuClube.id;
+  var todos = (estadoTorneios._timesMundial||[]).concat(CLUBES);
+
+  function findClube(id) { return todos.find(function(c){return c.id===id;}) || clubePorId(id); }
+
+  mun.jogos.filter(function(j){return !j.simulado;}).forEach(function(jogo) {
+    var m = findClube(jogo.mandanteId);
+    var v = findClube(jogo.visitanteId);
+    if (!m||!v) { jogo.simulado=true; jogo.gM=0; jogo.gV=0; return; }
+    var r = simularJogoTorneio(m, v);
+    jogo.gM=r.gM; jogo.gV=r.gV; jogo.simulado=true;
+
+    var ehMeu = jogo.mandanteId===meuId||jogo.visitanteId===meuId;
+    if (ehMeu) {
+      var euM=jogo.mandanteId===meuId;
+      adicionarNoticia("🌍 Mundial · " + (euM?m.sigla:v.sigla) + " " + (euM?r.gM:r.gV) + "x" + (euM?r.gV:r.gM) + " " + (euM?v.sigla:m.sigla), estado.rodadaAtual);
+    }
+  });
+
+  // Verificar campeão (simplificado: melhor pontuação geral)
+  var todos_pendentes = mun.jogos.filter(function(j){return !j.simulado;});
+  if (todos_pendentes.length === 0 && mun.faseAtual !== "fim") {
+    var pts = {};
+    mun.jogos.forEach(function(j) {
+      if (!pts[j.mandanteId]) pts[j.mandanteId]=0;
+      if (!pts[j.visitanteId]) pts[j.visitanteId]=0;
+      if(j.gM>j.gV) pts[j.mandanteId]+=3;
+      else if(j.gM<j.gV) pts[j.visitanteId]+=3;
+      else { pts[j.mandanteId]+=1; pts[j.visitanteId]+=1; }
+    });
+    var campeaoId = Object.keys(pts).sort(function(a,b){return pts[b]-pts[a];})[0];
+    mun.campeao = campeaoId;
+    mun.faseAtual = "fim";
+    var camp = findClube(campeaoId);
+    adicionarNoticia("🌍 " + (camp?camp.nome:"?") + " é CAMPEÃO MUNDIAL!", estado.rodadaAtual);
+    if (campeaoId===meuId) {
+      estado.manager.titulos = (estado.manager.titulos||0)+1;
+      estado.inbox.push({ id:"mundial_"+Date.now(), titulo:"🌍 CAMPEÃO MUNDIAL!", remetente:"FIFA", texto:"Seu clube conquistou o Mundial de Clubes! Feito histórico!", lida:false });
+    }
+  }
+}
+
+// ════════════════════════════════════════
+// ESTADUAIS
+// ════════════════════════════════════════
+var ESTADOS_CLUBES = {
+  "SP": ["palmeiras","corinthians","saopulo","santos","rbbragantino"],
+  "RJ": ["flamengo","fluminense","vasco","botafogo"],
+  "MG": ["atleticomg","cruzeiro"],
+  "RS": ["internacional","gremio","juventude"],
+  "PR": ["atleticopr"],
+  "BA": ["bahia"],
+  "CE": ["fortaleza"],
+  "MT": ["cuiaba"],
+  "GO": ["goias"]
+};
+
+var NOMES_ESTADUAIS = {
+  "SP":"Campeonato Paulista","RJ":"Campeonato Carioca","MG":"Campeonato Mineiro",
+  "RS":"Campeonato Gaúcho","PR":"Campeonato Paranaense","BA":"Campeonato Baiano",
+  "CE":"Campeonato Cearense","MT":"Campeonato Mato-grossense","GO":"Campeonato Goiano"
+};
+
+function inicializarEstaduais() {
+  estadoTorneios.estaduais = {};
+  Object.entries(ESTADOS_CLUBES).forEach(function(entry) {
+    var uf = entry[0], ids = entry[1];
+    var clubes = ids.map(function(id){ return clubePorId(id); }).filter(Boolean);
+    if (clubes.length < 2) return;
+
+    var jogos = [];
+    var shuffled = shuffle(clubes);
+    for (var i=0; i<shuffled.length; i++) {
+      for (var j=i+1; j<shuffled.length; j++) {
+        jogos.push({ mandanteId:shuffled[i].id, visitanteId:shuffled[j].id, gM:null, gV:null, simulado:false });
+        jogos.push({ mandanteId:shuffled[j].id, visitanteId:shuffled[i].id, gM:null, gV:null, simulado:false });
+      }
+    }
+
+    estadoTorneios.estaduais[uf] = {
+      nome: NOMES_ESTADUAIS[uf],
+      uf: uf,
+      clubes: clubes.map(function(c){return c.id;}),
+      jogos: jogos,
+      campeao: null
+    };
+  });
+}
+
+function simularRodadaEstaduais() {
+  if (!estadoTorneios.estaduais) return;
+  var meuId = estado.meuClube.id;
+
+  Object.values(estadoTorneios.estaduais).forEach(function(est) {
+    if (est.campeao) return;
+    var pendente = est.jogos.find(function(j){return !j.simulado;});
+    if (!pendente) {
+      // Calcular campeão
+      var pts = {};
+      est.clubes.forEach(function(id){pts[id]=0;});
+      est.jogos.forEach(function(j){
+        if(j.gM>j.gV) pts[j.mandanteId]=(pts[j.mandanteId]||0)+3;
+        else if(j.gM<j.gV) pts[j.visitanteId]=(pts[j.visitanteId]||0)+3;
+        else { pts[j.mandanteId]=(pts[j.mandanteId]||0)+1; pts[j.visitanteId]=(pts[j.visitanteId]||0)+1; }
+      });
+      est.campeao = est.clubes.slice().sort(function(a,b){return (pts[b]||0)-(pts[a]||0);})[0];
+      var camp = clubePorId(est.campeao);
+      adicionarNoticia("🏅 " + (camp?camp.nome:"?") + " é campeão do " + est.nome + "!", estado.rodadaAtual);
+      if (est.campeao===meuId) {
+        estado.manager.titulos=(estado.manager.titulos||0)+1;
+        estado.inbox.push({id:"est_"+est.uf+"_"+Date.now(),titulo:"🏅 Campeão do "+est.nome+"!",remetente:"Federação",texto:"Parabéns! Título estadual conquistado!",lida:false});
+      }
+      return;
+    }
+
+    var m = clubePorId(pendente.mandanteId);
+    var v = clubePorId(pendente.visitanteId);
+    if (!m||!v) { pendente.simulado=true; pendente.gM=0; pendente.gV=0; return; }
+
+    var r = simularJogoTorneio(m, v);
+    pendente.gM=r.gM; pendente.gV=r.gV; pendente.simulado=true;
+
+    var ehMeu = pendente.mandanteId===meuId||pendente.visitanteId===meuId;
+    if (ehMeu) {
+      var euM=pendente.mandanteId===meuId;
+      adicionarNoticia("🏅 " + est.nome + " · " + m.sigla + " " + r.gM + "x" + r.gV + " " + v.sigla, estado.rodadaAtual);
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// INICIALIZAR TODOS OS TORNEIOS
+// ════════════════════════════════════════
+function inicializarTorneios() {
+  inicializarEstaduais();
+  inicializarCopaBrasil();
+  inicializarLibertadores();
+  // Mundial só após Libertadores
+}
+
+// Chamado a cada rodada simulada
+function processarTorneiosRodada(rodadaIdx) {
+  // Estaduais: rodam nas primeiras rodadas
+  if (rodadaIdx < 8) simularRodadaEstaduais();
+
+  // Copa do Brasil: a partir da rodada 3
+  if (rodadaIdx >= 3 && estadoTorneios.copaBrasil && !estadoTorneios.copaBrasil.campeao) {
+    avancarFaseCopa();
+  }
+
+  // Libertadores: a partir da rodada 5
+  if (rodadaIdx >= 5 && estadoTorneios.libertadores && !estadoTorneios.libertadores.campeao) {
+    simularRodadaLibertadores();
+  }
+
+  // Mundial: após rodada 38
+  if (rodadaIdx >= 37) {
+    if (!estadoTorneios.mundial && estadoTorneios.libertadores && estadoTorneios.libertadores.campeao) {
+      inicializarMundial();
+    }
+    if (estadoTorneios.mundial) simularMundial();
+  }
+}
+
+// ════════════════════════════════════════
+// TELA DE TORNEIOS
+// ════════════════════════════════════════
+function renderTorneios() {
+  var aba = window._torneioAba || "copa";
+  var html = '<div class="torneios-tela">';
+
+  html += '<div class="divisoes-tabs">';
+  [
+    {k:"copa",  label:"🏆 Copa do Brasil"},
+    {k:"lib",   label:"🌎 Libertadores"},
+    {k:"mundial",label:"🌍 Mundial"},
+    {k:"estad", label:"🏅 Estaduais"}
+  ].forEach(function(t) {
+    html += '<button class="div-tab' + (aba===t.k?" ativo":"") + '" onclick="mudarTorneioAba(\'' + t.k + '\')">' + t.label + '</button>';
+  });
+  html += '</div>';
+
+  if (aba==="copa")    html += renderCopaBrasilTela();
+  if (aba==="lib")     html += renderLibertadoresTela();
+  if (aba==="mundial") html += renderMundialTela();
+  if (aba==="estad")   html += renderEstaduaisTela();
+
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function mudarTorneioAba(aba) { window._torneioAba=aba; renderTorneios(); }
+
+function renderCopaBrasilTela() {
+  var cb = estadoTorneios.copaBrasil;
+  if (!cb) return '<div class="dash-empty">Copa do Brasil não iniciada ainda.</div>';
+  var meuId = estado.meuClube.id;
+  var fases = cb.fases;
+  var html = '<div class="torneio-conteudo">';
+
+  if (cb.campeao) {
+    var camp = clubePorId(cb.campeao);
+    html += '<div class="torneio-campeao">🏆 CAMPEÃO: ' + (camp?camp.nome:"?") + '</div>';
+  }
+
+  html += '<div class="torneio-fases">';
+  fases.forEach(function(fase, fi) {
+    var jogos = cb.jogos.filter(function(j){return j.fase===fi;});
+    if (jogos.length===0) return;
+    html += '<div class="torneio-fase">';
+    html += '<div class="torneio-fase-titulo">' + fase + '</div>';
+    jogos.forEach(function(j) {
+      var m = clubePorId(j.mandanteId);
+      var v = clubePorId(j.visitanteId);
+      if (!m||!v) return;
+      var ehMeu = j.mandanteId===meuId||j.visitanteId===meuId;
+      html += '<div class="torneio-jogo' + (ehMeu?" torneio-meu":"") + '">';
+      html += '<span class="torneio-time">' + (m.sigla||m.nome) + '</span>';
+      if (j.simulado) {
+        var diff=j.gM-j.gV;
+        var cor=diff>0?"var(--green)":diff<0?"var(--red)":"var(--yellow)";
+        html += '<span class="torneio-placar" style="color:' + (ehMeu?(j.mandanteId===meuId?cor:(diff<0?"var(--green)":diff>0?"var(--red)":"var(--yellow)")):cor) + '">' + j.gM + '-' + j.gV + '</span>';
+      } else {
+        html += '<span class="torneio-placar pendente">vs</span>';
+      }
+      html += '<span class="torneio-time right">' + (v.sigla||v.nome) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderLibertadoresTela() {
+  var lib = estadoTorneios.libertadores;
+  if (!lib) return '<div class="dash-empty">Libertadores não iniciada ainda.</div>';
+  var meuId = estado.meuClube.id;
+  var html = '<div class="torneio-conteudo">';
+
+  if (lib.campeao) {
+    var camp = clubePorId(lib.campeao) || (estadoTorneios._timesEstrangeiros||[]).find(function(t){return t.id===lib.campeao;});
+    html += '<div class="torneio-campeao">🌎 CAMPEÃO: ' + (camp?camp.nome:"?") + '</div>';
+  }
+
+  html += '<div class="lib-grupos">';
+  lib.grupos.forEach(function(g) {
+    var pts={};
+    g.clubes.forEach(function(id){pts[id]={p:0,j:0,gp:0,gc:0};});
+    lib.jogos.filter(function(j){return j.grupo===g.letra&&j.simulado;}).forEach(function(j){
+      if(!pts[j.mandanteId]||!pts[j.visitanteId]) return;
+      pts[j.mandanteId].j++; pts[j.visitanteId].j++;
+      pts[j.mandanteId].gp+=j.gM; pts[j.mandanteId].gc+=j.gV;
+      pts[j.visitanteId].gp+=j.gV; pts[j.visitanteId].gc+=j.gM;
+      if(j.gM>j.gV) pts[j.mandanteId].p+=3;
+      else if(j.gM<j.gV) pts[j.visitanteId].p+=3;
+      else{pts[j.mandanteId].p+=1;pts[j.visitanteId].p+=1;}
+    });
+
+    html += '<div class="lib-grupo">';
+    html += '<div class="lib-grupo-titulo">Grupo ' + g.letra + '</div>';
+    var ranking = g.clubes.slice().sort(function(a,b){
+      var pa=pts[a]||{p:0,gp:0,gc:0}, pb=pts[b]||{p:0,gp:0,gc:0};
+      return (pb.p-pa.p)||((pb.gp-pb.gc)-(pa.gp-pa.gc));
+    });
+    ranking.forEach(function(id, i) {
+      var c = clubePorId(id)||(estadoTorneios._timesEstrangeiros||[]).find(function(t){return t.id===id;});
+      var p = pts[id]||{p:0,j:0,gp:0,gc:0};
+      var cls = id===meuId?" lib-eu":"";
+      var promovido = i<2?" lib-prom":"";
+      html += '<div class="lib-clube-row' + cls + promovido + '">';
+      html += '<span class="lib-pos">' + (i+1) + '</span>';
+      html += '<span class="lib-nome">' + (c?c.sigla:id) + '</span>';
+      html += '<span class="lib-pts">' + p.p + '</span>';
+      html += '<span class="lib-j">' + p.j + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderMundialTela() {
+  var mun = estadoTorneios.mundial;
+  if (!mun) return '<div class="dash-empty">Mundial acontece após conquistar a Libertadores.</div>';
+  var meuId = estado.meuClube.id;
+  var todos = (estadoTorneios._timesMundial||[]).concat(CLUBES);
+  function fc(id){ return todos.find(function(c){return c.id===id;})||clubePorId(id); }
+
+  var html = '<div class="torneio-conteudo">';
+  if (mun.campeao) {
+    var camp = fc(mun.campeao);
+    html += '<div class="torneio-campeao">🌍 CAMPEÃO MUNDIAL: ' + (camp?camp.nome:"?") + '</div>';
+  }
+  mun.grupos.forEach(function(g) {
+    html += '<div class="torneio-fase"><div class="torneio-fase-titulo">Grupo ' + g.letra + '</div>';
+    mun.jogos.filter(function(j){return j.grupo===g.letra;}).forEach(function(j) {
+      var m=fc(j.mandanteId), v=fc(j.visitanteId);
+      if(!m||!v) return;
+      var ehMeu=j.mandanteId===meuId||j.visitanteId===meuId;
+      html += '<div class="torneio-jogo' + (ehMeu?" torneio-meu":"") + '">';
+      html += '<span class="torneio-time">' + (m.sigla||"?") + '</span>';
+      html += j.simulado ? '<span class="torneio-placar">' + j.gM + '-' + j.gV + '</span>' : '<span class="torneio-placar pendente">vs</span>';
+      html += '<span class="torneio-time right">' + (v.sigla||"?") + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderEstaduaisTela() {
+  if (!estadoTorneios.estaduais) return '<div class="dash-empty">Estaduais não iniciados.</div>';
+  var meuId = estado.meuClube.id;
+  var html = '<div class="torneio-conteudo"><div class="estaduais-grid">';
+
+  Object.values(estadoTorneios.estaduais).forEach(function(est) {
+    var ehMeu = est.clubes.indexOf(meuId) >= 0;
+    html += '<div class="estadual-card' + (ehMeu?" estadual-meu":"") + '">';
+    html += '<div class="estadual-nome">' + est.nome + '</div>';
+    if (est.campeao) {
+      var camp = clubePorId(est.campeao);
+      html += '<div class="estadual-campeao">🏅 ' + (camp?camp.nome:"?") + '</div>';
+    } else {
+      var jogados = est.jogos.filter(function(j){return j.simulado;}).length;
+      var total   = est.jogos.length;
+      html += '<div class="estadual-prog">' + jogados + '/' + total + ' jogos</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}</script>
+  <script>// ════════════════════════════════════════
 // MENU MANAGER
 // ════════════════════════════════════════
 function renderManager() {
@@ -5480,6 +6254,7 @@ function iniciarJogo() {
   mostrarNav();
   inicializarCalendario();
   inicializarDivisoes();
+  inicializarTorneios();
   salvarJogo();
   renderDashboard();
 }
@@ -5488,7 +6263,7 @@ function navegarPara(aba) {
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { dashboard: renderDashboard, inbox: renderInbox, campeonato: renderCampeonato, divisoes: renderDivisoes, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
+  var abas = { dashboard: renderDashboard, inbox: renderInbox, campeonato: renderCampeonato, divisoes: renderDivisoes, torneios: renderTorneios, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
   if (abas[aba]) abas[aba]();
 }
 
@@ -6527,29 +7302,19 @@ function confirmarEmprestimo(jogadorId) {
     inicializarFinancas();
     function atualizarSaldo() {
       var s = estado.meuClube ? formatarDinheiro(estado.meuClube.budget) : '';
-      var e1 = document.getElementById("header-saldo");
-      var e2 = document.getElementById("sidebar-saldo");
-      if (e1) e1.textContent = s;
-      if (e2) e2.textContent = s;
+      var e1=document.getElementById("header-saldo");
+      var e2=document.getElementById("sidebar-saldo");
+      if(e1) e1.textContent=s; if(e2) e2.textContent=s;
     }
     setInterval(atualizarSaldo, 2000);
     function salvarManual() {
       atualizarSaldo();
-      var ok = salvarJogo();
-      var btn = document.getElementById("btn-salvar");
-      if (btn) {
-        btn.textContent = ok ? "✅ Salvo!" : "❌ Erro";
-        btn.classList.add("salvo");
-        setTimeout(function() { btn.textContent = "💾 Salvar jogo"; btn.classList.remove("salvo"); }, 2000);
-      }
+      var ok=salvarJogo();
+      var btn=document.getElementById("btn-salvar");
+      if(btn){btn.textContent=ok?"✅ Salvo!":"❌ Erro";btn.classList.add("salvo");setTimeout(function(){btn.textContent="💾 Salvar jogo";btn.classList.remove("salvo");},2000);}
     }
-    var _origMostrarNav = mostrarNav;
-    mostrarNav = function() {
-      _origMostrarNav();
-      var btn = document.getElementById("btn-salvar");
-      if (btn) btn.classList.remove("hidden");
-      atualizarSaldo();
-    };
+    var _origMostrarNav=mostrarNav;
+    mostrarNav=function(){_origMostrarNav();var btn=document.getElementById("btn-salvar");if(btn)btn.classList.remove("hidden");atualizarSaldo();};
   </script>
 </body>
 </html>
