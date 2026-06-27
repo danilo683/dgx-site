@@ -1748,7 +1748,211 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
   font-size: 14px;
   transition: all .15s;
 }
-.btn-acao-jogador:hover { border-color: var(--accent); color: var(--accent); }</style>
+.btn-acao-jogador:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Ficha do jogador ── */
+.ficha-jogador { max-width: 860px; margin: 0 auto; }
+
+.btn-voltar-ficha {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-voltar-ficha:hover { text-decoration: underline; }
+
+.ficha-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.ficha-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ficha-escudo-pos { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ficha-flag { font-size: 28px; }
+
+.ficha-identidade { flex: 1; }
+.ficha-nome { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.ficha-meta { font-size: 13px; color: var(--text2); }
+
+.ficha-overall {
+  font-size: 48px;
+  font-weight: 800;
+  text-align: center;
+  min-width: 80px;
+}
+
+.ficha-stats {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ficha-stat {
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.ficha-stat-val   { font-size: 22px; font-weight: 700; }
+.ficha-stat-label { font-size: 11px; color: var(--text2); margin-top: 3px; text-transform: uppercase; letter-spacing: .4px; }
+
+.ficha-secao-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 10px;
+}
+
+.ficha-fadiga-wrap { margin-bottom: 4px; }
+
+.ficha-financeiro { display: flex; flex-direction: column; gap: 8px; }
+
+/* Grid de ações */
+.ficha-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ficha-acao-bloco {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.ficha-acao-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.ficha-acao-form { display: flex; flex-direction: column; gap: 10px; }
+
+/* Linha clicável no elenco */
+.elenco-linha-clicavel { cursor: pointer; }
+.elenco-linha-clicavel:hover td { background: var(--bg3) !important; }
+
+/* ── Saldo no header ── */
+.header-saldo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(46,204,113,.1);
+  border: 1px solid rgba(46,204,113,.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ── Divisões ── */
+.divisoes-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.div-tab {
+  background: var(--bg2); border: 1px solid var(--border); color: var(--text2);
+  padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all .15s;
+}
+.div-tab:hover { border-color: var(--accent); color: var(--text); }
+.div-tab.ativo { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.divisoes-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.div-tabela-wrap { overflow-x: auto; }
+.div-resultados { display: flex; flex-direction: column; gap: 4px; }
+
+/* ── Manager ── */
+.manager-tela { max-width: 700px; }
+.manager-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+  padding: 24px; display: flex; align-items: center; gap: 20px; margin-bottom: 20px;
+}
+.manager-avatar { font-size: 56px; }
+.manager-info { flex: 1; }
+.manager-nome  { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.manager-meta  { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.manager-clube { font-size: 13px; color: var(--accent); }
+.manager-rep   { text-align: center; }
+.manager-rep-val   { font-size: 42px; font-weight: 800; color: var(--accent); }
+.manager-rep-label { font-size: 11px; color: var(--text2); text-transform: uppercase; }
+.manager-stats { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 20px; }
+.manager-reputacoes, .manager-titulos {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; margin-bottom: 16px;
+}
+.rep-linha {
+  display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.rep-linha:last-child { border-bottom: none; }
+.rep-icon  { font-size: 18px; flex-shrink: 0; }
+.rep-label { flex: 1; color: var(--text2); }
+.rep-barra-wrap { width: 120px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.rep-barra { height: 100%; border-radius: 3px; }
+.rep-val { min-width: 28px; text-align: right; font-weight: 700; font-size: 12px; }
+
+/* ── Staff ── */
+.staff-tela { max-width: 760px; }
+.staff-vagas { display: flex; flex-direction: column; gap: 10px; }
+.staff-vaga-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+}
+.staff-vaga-icon { font-size: 28px; flex-shrink: 0; }
+.staff-vaga-info { flex: 1; }
+.staff-vaga-cargo { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.staff-vaga-desc  { font-size: 12px; color: var(--text2); }
+.btn-contratar-staff {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: not-allowed; white-space: nowrap;
+}
+
+/* ── Infraestrutura ── */
+.inf-tela { max-width: 860px; }
+.inf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.inf-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px; display: flex; gap: 14px; align-items: flex-start;
+}
+.inf-card-icon { font-size: 32px; flex-shrink: 0; }
+.inf-card-info { flex: 1; }
+.inf-card-nome { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.inf-card-desc { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+.inf-nivel { display: flex; gap: 4px; margin-bottom: 6px; }
+.inf-nivel-pip {
+  width: 24px; height: 6px; border-radius: 3px; background: var(--border);
+}
+.inf-nivel-pip.ativo { background: var(--accent); }
+.inf-label-nivel { font-size: 11px; color: var(--text2); }
+.inf-card-acao { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.inf-custo { font-size: 12px; color: var(--text2); }
+.inf-btn { padding: 7px 14px; font-size: 12px; white-space: nowrap; }
+.inf-max { font-size: 12px; color: var(--green); font-weight: 600; }
+
+.sidebar-sep {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 12px 4px;
+  opacity: .6;
+}</style>
 </head>
 <body>
   <div id="app">
@@ -1759,17 +1963,23 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
           <div class="sidebar-info-item"><strong id="sidebar-manager-nome"></strong>Manager</div>
           <div class="sidebar-info-item"><strong id="sidebar-clube-nome"></strong>Clube</div>
           <div class="sidebar-info-item"><strong id="sidebar-tecnico-nome"></strong>Técnico</div>
+          <div class="sidebar-info-item" style="margin-top:6px"><span class="header-saldo" id="sidebar-saldo"></span></div>
         </div>
       </div>
       <nav id="sidebar-nav" class="hidden">
         <button data-aba="dashboard">🏠 Dashboard</button>
         <button data-aba="inbox">✉️ Inbox</button>
+        <div class="sidebar-sep">CLUBE</div>
         <button data-aba="campeonato">📋 Campeonato</button>
+        <button data-aba="divisoes">🏆 Divisões</button>
         <button data-aba="tabela">📊 Tabela</button>
         <button data-aba="elenco">👥 Elenco</button>
         <button data-aba="mercado">💰 Mercado</button>
         <button data-aba="financeiro">📑 Financeiro</button>
-        <button data-aba="staff">🎽 Comissão</button>
+        <div class="sidebar-sep">GESTÃO</div>
+        <button data-aba="manager">👤 Manager</button>
+        <button data-aba="staff">🎽 Staff</button>
+        <button data-aba="infraestrutura">🏗 Infraestrutura</button>
       </nav>
       <button id="btn-salvar" class="sidebar-save-btn hidden" onclick="salvarManual()">💾 Salvar jogo</button>
     </div>
@@ -1780,6 +1990,7 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
           <span>Manager: <strong id="header-manager"></strong></span>
           <span>Clube: <strong id="header-clube"></strong></span>
           <span>Técnico: <strong id="header-tecnico"></strong></span>
+          <span class="header-saldo" id="header-saldo"></span>
         </div>
       </header>
       <main id="main"></main>
@@ -4275,6 +4486,503 @@ function renderFinanceiro() {
 
   document.getElementById("main").innerHTML = html;
 }</script>
+  <script>// ════════════════════════════════════════
+// DIVISÕES — Série B, C e D
+// ════════════════════════════════════════
+
+const CLUBES_SERIE_B = [
+  { id: "b01", nome: "Sport",           sigla: "SPT", cor: "#CC0000", divisao: "B" },
+  { id: "b02", nome: "Coritiba",        sigla: "CFC", cor: "#006400", divisao: "B" },
+  { id: "b03", nome: "Vila Nova",       sigla: "VNF", cor: "#CC0000", divisao: "B" },
+  { id: "b04", nome: "Mirassol",        sigla: "MIR", cor: "#FFD700", divisao: "B" },
+  { id: "b05", nome: "Novorizontino",   sigla: "NOV", cor: "#1a1a1a", divisao: "B" },
+  { id: "b06", nome: "Ceará",           sigla: "CEA", cor: "#1a1a1a", divisao: "B" },
+  { id: "b07", nome: "Santos",          sigla: "SAN", cor: "#1a1a1a", divisao: "B" },
+  { id: "b08", nome: "Goiás",           sigla: "GOI", cor: "#006400", divisao: "B" },
+  { id: "b09", nome: "Chapecoense",     sigla: "CHA", cor: "#006400", divisao: "B" },
+  { id: "b10", nome: "América-MG",      sigla: "AME", cor: "#006400", divisao: "B" },
+  { id: "b11", nome: "Guarani",         sigla: "GUA", cor: "#006400", divisao: "B" },
+  { id: "b12", nome: "Ponte Preta",     sigla: "POP", cor: "#1a1a1a", divisao: "B" },
+  { id: "b13", nome: "Operário-PR",     sigla: "OPR", cor: "#1a1a1a", divisao: "B" },
+  { id: "b14", nome: "Ituano",          sigla: "ITU", cor: "#CC0000", divisao: "B" },
+  { id: "b15", nome: "Paysandu",        sigla: "PAY", cor: "#0033A0", divisao: "B" },
+  { id: "b16", nome: "Remo",            sigla: "REM", cor: "#0033A0", divisao: "B" },
+  { id: "b17", nome: "Caxias do Sul",   sigla: "SER", cor: "#0033A0", divisao: "B" },
+  { id: "b18", nome: "Botafogo-SP",     sigla: "BSP", cor: "#CC0000", divisao: "B" },
+  { id: "b19", nome: "Sampaio Corrêa",  sigla: "SAM", cor: "#CC0000", divisao: "B" },
+  { id: "b20", nome: "Tombense",        sigla: "TOM", cor: "#FFD700", divisao: "B" },
+];
+
+const CLUBES_SERIE_C = [
+  { id: "c01", nome: "ABC",             sigla: "ABC", cor: "#CC0000", divisao: "C" },
+  { id: "c02", nome: "Náutico",         sigla: "NAU", cor: "#CC0000", divisao: "C" },
+  { id: "c03", nome: "CSA",             sigla: "CSA", cor: "#0033A0", divisao: "C" },
+  { id: "c04", nome: "Ferroviária",     sigla: "FER", cor: "#CC0000", divisao: "C" },
+  { id: "c05", nome: "Figueirense",     sigla: "FIG", cor: "#1a1a1a", divisao: "C" },
+  { id: "c06", nome: "Floresta",        sigla: "FLO", cor: "#006400", divisao: "C" },
+  { id: "c07", nome: "Volta Redonda",   sigla: "VOR", cor: "#CC0000", divisao: "C" },
+  { id: "c08", nome: "Aparecidense",    sigla: "APA", cor: "#006400", divisao: "C" },
+  { id: "c09", nome: "Atlético-CE",     sigla: "ACE", cor: "#CC0000", divisao: "C" },
+  { id: "c10", nome: "Ferroviário",     sigla: "FRV", cor: "#CC0000", divisao: "C" },
+  { id: "c11", nome: "São Bernardo",    sigla: "SBC", cor: "#0033A0", divisao: "C" },
+  { id: "c12", nome: "Londrina",        sigla: "LON", cor: "#CC0000", divisao: "C" },
+  { id: "c13", nome: "Athletic Club",   sigla: "ATH", cor: "#1a1a1a", divisao: "C" },
+  { id: "c14", nome: "Ypiranga",        sigla: "YPI", cor: "#FFD700", divisao: "C" },
+  { id: "c15", nome: "Pouso Alegre",    sigla: "POA", cor: "#006400", divisao: "C" },
+  { id: "c16", nome: "Tuna Luso",       sigla: "TUN", cor: "#0033A0", divisao: "C" },
+  { id: "c17", nome: "Confiança",       sigla: "CON", cor: "#0033A0", divisao: "C" },
+  { id: "c18", nome: "Amazonas FC",     sigla: "AMA", cor: "#FFD700", divisao: "C" },
+  { id: "c19", nome: "Caldense",        sigla: "CAL", cor: "#006400", divisao: "C" },
+  { id: "c20", nome: "Botafogo-PB",     sigla: "BPB", cor: "#1a1a1a", divisao: "C" },
+];
+
+const CLUBES_SERIE_D = [
+  { id: "d01", nome: "Brusque",         sigla: "BRU", cor: "#0033A0", divisao: "D" },
+  { id: "d02", nome: "Maringá FC",      sigla: "MAR", cor: "#0033A0", divisao: "D" },
+  { id: "d03", nome: "Cianorte",        sigla: "CIA", cor: "#006400", divisao: "D" },
+  { id: "d04", nome: "Cascavel CR",     sigla: "CAS", cor: "#CC0000", divisao: "D" },
+  { id: "d05", nome: "Moto Club",       sigla: "MOT", cor: "#CC0000", divisao: "D" },
+  { id: "d06", nome: "São Raimundo",    sigla: "SRA", cor: "#006400", divisao: "D" },
+  { id: "d07", nome: "Fast Clube",      sigla: "FST", cor: "#CC0000", divisao: "D" },
+  { id: "d08", nome: "Manauara EC",     sigla: "MEC", cor: "#FFD700", divisao: "D" },
+  { id: "d09", nome: "Tocantinópolis",  sigla: "TOC", cor: "#006400", divisao: "D" },
+  { id: "d10", nome: "Cametá",          sigla: "CAM", cor: "#0033A0", divisao: "D" },
+  { id: "d11", nome: "Jacuipense",      sigla: "JAC", cor: "#CC0000", divisao: "D" },
+  { id: "d12", nome: "Itabaiana",       sigla: "ITA", cor: "#006400", divisao: "D" },
+  { id: "d13", nome: "Juazeirense",     sigla: "JUA", cor: "#006400", divisao: "D" },
+  { id: "d14", nome: "Potiguar",        sigla: "POT", cor: "#CC0000", divisao: "D" },
+  { id: "d15", nome: "Treze",           sigla: "TRE", cor: "#FFD700", divisao: "D" },
+  { id: "d16", nome: "ASA",             sigla: "ASA", cor: "#0033A0", divisao: "D" },
+  { id: "d17", nome: "Tocantins EC",    sigla: "TEC", cor: "#006400", divisao: "D" },
+  { id: "d18", nome: "Galvez EC",       sigla: "GAL", cor: "#CC0000", divisao: "D" },
+  { id: "d19", nome: "Princesa do Solimões", sigla: "PSO", cor: "#006400", divisao: "D" },
+  { id: "d20", nome: "Humaitá FC",      sigla: "HUM", cor: "#CC0000", divisao: "D" },
+];
+
+// Estado das divisões inferiores
+var estadoDivisoes = {
+  b: { clubes: null, resultados: [], calendario: [], rodadaAtual: 0 },
+  c: { clubes: null, resultados: [], calendario: [], rodadaAtual: 0 },
+  d: { clubes: null, resultados: [], calendario: [], rodadaAtual: 0 }
+};
+
+function inicializarDivisoes() {
+  // Copiar clubes e gerar overalls baseados no nível
+  function prepararClubes(lista, overallBase, spread) {
+    return lista.map(function(c) {
+      var overall = overallBase - Math.floor(Math.random() * spread);
+      return Object.assign({}, c, {
+        jogadores: gerarJogadoresFicticios(c.id, overall),
+        budget: Math.round((overallBase / 100) * 15000000 * (0.7 + Math.random() * 0.6)),
+        tecnico_id: "t" + (String(Math.floor(Math.random() * 20) + 1)).padStart(2,"0")
+      });
+    });
+  }
+
+  estadoDivisoes.b.clubes = prepararClubes(CLUBES_SERIE_B, 70, 10);
+  estadoDivisoes.c.clubes = prepararClubes(CLUBES_SERIE_C, 62, 8);
+  estadoDivisoes.d.clubes = prepararClubes(CLUBES_SERIE_D, 55, 8);
+
+  // Gerar calendários
+  estadoDivisoes.b.calendario = gerarCalendario(estadoDivisoes.b.clubes);
+  estadoDivisoes.c.calendario = gerarCalendario(estadoDivisoes.c.clubes);
+  estadoDivisoes.d.calendario = gerarCalendario(estadoDivisoes.d.clubes);
+}
+
+function gerarJogadoresFicticios(clubeId, overallBase) {
+  var posicoes = ["GOL","GOL","LD","LD","ZAG","ZAG","ZAG","LE","LE","VOL","VOL","VOL","MEI","MEI","MEI","ATA","ATA","ATA","ATA","ATA","MEI","VOL","ZAG","LD","LE"];
+  return posicoes.map(function(pos, i) {
+    var ov = Math.max(40, Math.min(85, overallBase + Math.floor(Math.random()*10) - 5));
+    return {
+      id: clubeId + "_j" + i,
+      nome: "Jogador " + (i+1),
+      posicao: pos,
+      overall: ov,
+      stats: { jogos:0, gols:0, assistencias:0, nota_media:0 },
+      valor_mercado: Math.round(ov * 8000),
+      salario: Math.round(ov * 300),
+      clausula_rescisoria: Math.round(ov * 20000),
+      contrato_termino: 20 + Math.floor(Math.random()*18),
+      fadiga: 0
+    };
+  });
+}
+
+// Simular todas as rodadas das divisões inferiores junto com a Série A
+function simularRodadaDivisoes(rodadaIdx) {
+  ["b","c","d"].forEach(function(div) {
+    var est = estadoDivisoes[div];
+    if (!est.clubes || rodadaIdx >= est.calendario.length) return;
+    var rodada = est.calendario[rodadaIdx];
+    rodada.jogos.forEach(function(jogo) {
+      var m = est.clubes.find(function(c){return c.id===jogo.mandanteId;});
+      var v = est.clubes.find(function(c){return c.id===jogo.visitanteId;});
+      if (!m || !v) return;
+      var r = simularPartidaSimples(m, v, null, null);
+      est.resultados.push({
+        rodada: rodadaIdx,
+        mandanteId: m.id, visitanteId: v.id,
+        golsMandante: r.golsMandante, golsVisitante: r.golsVisitante
+      });
+    });
+    est.rodadaAtual = rodadaIdx + 1;
+  });
+}
+
+// Promoção e rebaixamento ao fim da temporada
+function processarPromocaoRebaixamento() {
+  var tabelaA = calcularTabela(CLUBES, estado.resultados);
+  var tabelaB = calcularTabela(estadoDivisoes.b.clubes, estadoDivisoes.b.resultados);
+  var tabelaC = calcularTabela(estadoDivisoes.c.clubes, estadoDivisoes.c.resultados);
+  var tabelaD = calcularTabela(estadoDivisoes.d.clubes, estadoDivisoes.d.resultados);
+
+  var noticias = [];
+
+  // Rebaixados da A → B (4 últimos)
+  var rebaixadosA = tabelaA.slice(-4);
+  var promovidos_B = tabelaB.slice(0, 4); // campeões da B sobem
+
+  rebaixadosA.forEach(function(t) {
+    var clube = CLUBES.find(function(c){return c.id===t.id;});
+    if (clube) { clube.divisao = "B"; estadoDivisoes.b.clubes.push(clube); CLUBES.splice(CLUBES.indexOf(clube),1); }
+    noticias.push("⬇ " + t.nome + " rebaixado para a Série B");
+  });
+  promovidos_B.forEach(function(t) {
+    var clube = estadoDivisoes.b.clubes.find(function(c){return c.id===t.id;});
+    if (clube) { clube.divisao = "A"; CLUBES.push(clube); estadoDivisoes.b.clubes.splice(estadoDivisoes.b.clubes.indexOf(clube),1); }
+    noticias.push("⬆ " + t.nome + " promovido para a Série A");
+  });
+
+  // B ↔ C
+  var rebaixadosB = tabelaB.slice(-4);
+  var promovidosC = tabelaC.slice(0, 4);
+  rebaixadosB.forEach(function(t) {
+    var c = estadoDivisoes.b.clubes.find(function(x){return x.id===t.id;});
+    if (c) { c.divisao="C"; estadoDivisoes.c.clubes.push(c); estadoDivisoes.b.clubes.splice(estadoDivisoes.b.clubes.indexOf(c),1); }
+    noticias.push("⬇ " + t.nome + " rebaixado para a Série C");
+  });
+  promovidosC.forEach(function(t) {
+    var c = estadoDivisoes.c.clubes.find(function(x){return x.id===t.id;});
+    if (c) { c.divisao="B"; estadoDivisoes.b.clubes.push(c); estadoDivisoes.c.clubes.splice(estadoDivisoes.c.clubes.indexOf(c),1); }
+    noticias.push("⬆ " + t.nome + " promovido para a Série B");
+  });
+
+  // C ↔ D
+  var rebaixadosC = tabelaC.slice(-4);
+  var promovidosD = tabelaD.slice(0, 4);
+  rebaixadosC.forEach(function(t) {
+    var c = estadoDivisoes.c.clubes.find(function(x){return x.id===t.id;});
+    if (c) { c.divisao="D"; estadoDivisoes.d.clubes.push(c); estadoDivisoes.c.clubes.splice(estadoDivisoes.c.clubes.indexOf(c),1); }
+    noticias.push("⬇ " + t.nome + " rebaixado para a Série D");
+  });
+  promovidosD.forEach(function(t) {
+    var c = estadoDivisoes.d.clubes.find(function(x){return x.id===t.id;});
+    if (c) { c.divisao="C"; estadoDivisoes.c.clubes.push(c); estadoDivisoes.d.clubes.splice(estadoDivisoes.d.clubes.indexOf(c),1); }
+    noticias.push("⬆ " + t.nome + " promovido para a Série C");
+  });
+
+  noticias.forEach(function(n) { adicionarNoticia(n, estado.rodadaAtual); });
+  return noticias;
+}
+
+// ── TELA DIVISÕES ──
+function renderDivisoes() {
+  var divAtiva = window._divAtiva || "A";
+
+  var html = '<div class="divisoes-tela">';
+  html += '<div class="divisoes-tabs">';
+  ["A","B","C","D"].forEach(function(d) {
+    html += '<button class="div-tab' + (divAtiva===d?" ativo":"") + '" onclick="mudarDivisao(\'' + d + '\')">Série ' + d + '</button>';
+  });
+  html += '</div>';
+
+  var clubes, resultados, calendario, rodada;
+  if (divAtiva === "A") {
+    clubes = CLUBES; resultados = estado.resultados;
+    calendario = estado.calendario; rodada = estado.rodadaAtual;
+  } else {
+    var est = estadoDivisoes[divAtiva.toLowerCase()];
+    clubes = est.clubes || []; resultados = est.resultados;
+    calendario = est.calendario; rodada = est.rodadaAtual;
+  }
+
+  if (!clubes || clubes.length === 0) {
+    html += '<div class="dash-empty">Aguardando inicialização...</div>';
+    html += '</div>';
+    document.getElementById("main").innerHTML = html;
+    return;
+  }
+
+  var tabela = calcularTabela(clubes, resultados);
+  var meuId  = estado.meuClube.id;
+
+  html += '<div class="divisoes-grid">';
+
+  // Tabela classificação
+  html += '<div class="div-tabela-wrap">';
+  html += '<div class="fin-secao-titulo">Classificação — Série ' + divAtiva + '</div>';
+  html += '<table class="elenco-tabela">';
+  html += '<thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead><tbody>';
+
+  tabela.forEach(function(t, i) {
+    var pos = i + 1;
+    var cls = t.id === meuId ? " mini-tab-eu" : "";
+    var zonaCor = pos <= 4 ? "color:var(--green)" : pos > tabela.length - 4 ? "color:var(--red)" : "";
+    html += '<tr class="' + cls + '">';
+    html += '<td class="td-pos" style="' + zonaCor + '">' + pos + '</td>';
+    html += '<td><span class="escudo-mini" style="background:' + t.cor + '">' + t.sigla + '</span>' + t.nome + '</td>';
+    html += '<td class="td-pts">' + t.pts + '</td>';
+    html += '<td>' + t.j + '</td><td>' + t.v + '</td><td>' + t.e + '</td><td>' + t.d + '</td>';
+    html += '<td>' + t.gp + '</td><td>' + t.gc + '</td>';
+    html += '<td>' + (t.sg > 0 ? "+" + t.sg : t.sg) + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="font-size:11px;color:var(--text2);margin-top:8px">🟢 Top 4 = promoção · 🔴 Últimos 4 = rebaixamento</div>';
+  html += '</div>';
+
+  // Últimos resultados da rodada atual
+  html += '<div class="div-resultados">';
+  html += '<div class="fin-secao-titulo">Rodada ' + rodada + ' — Resultados</div>';
+  if (rodada === 0) {
+    html += '<div class="dash-empty">Nenhuma rodada simulada ainda.</div>';
+  } else {
+    var ultRodada = rodada - 1;
+    var jogosRodada = calendario[ultRodada] ? calendario[ultRodada].jogos : [];
+    jogosRodada.forEach(function(jogo) {
+      var res = resultados.find(function(r) {
+        return r.rodada === ultRodada && r.mandanteId === jogo.mandanteId && r.visitanteId === jogo.visitanteId;
+      });
+      var m = clubes.find(function(c){return c.id===jogo.mandanteId;});
+      var v = clubes.find(function(c){return c.id===jogo.visitanteId;});
+      if (!m || !v) return;
+      html += '<div class="resultado-item" style="font-size:12px">';
+      html += '<span class="res-time">' + m.nome + '</span>';
+      if (res) html += '<span class="res-placar">' + res.golsMandante + ' – ' + res.golsVisitante + '</span>';
+      else html += '<span class="res-placar" style="color:var(--text2)">vs</span>';
+      html += '<span class="res-time direita">' + v.nome + '</span>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div>'; // divisoes-grid
+  html += '</div>'; // divisoes-tela
+  document.getElementById("main").innerHTML = html;
+}
+
+function mudarDivisao(div) {
+  window._divAtiva = div;
+  renderDivisoes();
+}</script>
+  <script>// ════════════════════════════════════════
+// MENU MANAGER
+// ════════════════════════════════════════
+function renderManager() {
+  var mgr = estado.manager;
+  var clube = estado.meuClube;
+  var tabela = calcularTabela(CLUBES, estado.resultados);
+  var minhaPos = tabela.findIndex(function(t){return t.id===clube.id;}) + 1;
+  var vitorias = estado.resultados.filter(function(r){
+    var euM = r.mandanteId===clube.id, euV = r.visitanteId===clube.id;
+    return (euM && r.golsMandante>r.golsVisitante)||(euV && r.golsVisitante>r.golsMandante);
+  }).length;
+  var derrotas = estado.resultados.filter(function(r){
+    var euM = r.mandanteId===clube.id, euV = r.visitanteId===clube.id;
+    return (euM && r.golsMandante<r.golsVisitante)||(euV && r.golsVisitante<r.golsMandante);
+  }).length;
+  var jogos = estado.resultados.filter(function(r){ return r.mandanteId===clube.id||r.visitanteId===clube.id; }).length;
+  var aproveitamento = jogos > 0 ? Math.round((vitorias*3)/(jogos*3)*100) : 0;
+
+  // Reputação baseada em resultados
+  var rep = Math.min(100, Math.max(10, 50 + (vitorias*3) - (derrotas*2) + (minhaPos <= 4 ? 10 : minhaPos >= 17 ? -10 : 0)));
+
+  var html = '<div class="manager-tela">';
+
+  // Card do manager
+  html += '<div class="manager-card">';
+  html += '<div class="manager-avatar">👤</div>';
+  html += '<div class="manager-info">';
+  html += '<h2 class="manager-nome">' + mgr.nome + '</h2>';
+  html += '<div class="manager-meta">Manager · ' + bandeira(mgr.nacionalidade) + ' ' + mgr.nacionalidade + '</div>';
+  html += '<div class="manager-clube">⚽ ' + clube.nome + '</div>';
+  html += '</div>';
+  html += '<div class="manager-rep"><div class="manager-rep-val">' + rep + '</div><div class="manager-rep-label">Reputação</div></div>';
+  html += '</div>';
+
+  // Stats do manager
+  html += '<div class="manager-stats">';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val">' + jogos + '</div><div class="ficha-stat-label">Jogos</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val" style="color:var(--green)">' + vitorias + '</div><div class="ficha-stat-label">Vitórias</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val" style="color:var(--red)">' + derrotas + '</div><div class="ficha-stat-label">Derrotas</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val" style="color:var(--accent)">' + aproveitamento + '%</div><div class="ficha-stat-label">Aproveit.</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val">' + minhaPos + 'º</div><div class="ficha-stat-label">Posição</div></div>';
+  html += '</div>';
+
+  // Reputações por área
+  html += '<div class="manager-reputacoes">';
+  html += '<div class="fin-secao-titulo">Reputação por área</div>';
+  var areas = [
+    { label: "Com a torcida",   icon: "❤️",  val: Math.min(100, rep + Math.floor(Math.random()*5)) },
+    { label: "Com a diretoria", icon: "🏢",  val: Math.min(100, rep - 5 + Math.floor(Math.random()*10)) },
+    { label: "Com o técnico",   icon: "🎽",  val: Math.min(100, rep + 5 + Math.floor(Math.random()*5)) },
+    { label: "Com a imprensa",  icon: "📰",  val: Math.min(100, rep - 3 + Math.floor(Math.random()*8)) },
+  ];
+  areas.forEach(function(a) {
+    var cor = a.val >= 70 ? "var(--green)" : a.val >= 40 ? "var(--yellow)" : "var(--red)";
+    html += '<div class="rep-linha">';
+    html += '<span class="rep-icon">' + a.icon + '</span>';
+    html += '<span class="rep-label">' + a.label + '</span>';
+    html += '<div class="rep-barra-wrap"><div class="rep-barra" style="width:' + a.val + '%;background:' + cor + '"></div></div>';
+    html += '<span class="rep-val" style="color:' + cor + '">' + a.val + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Títulos
+  html += '<div class="manager-titulos">';
+  html += '<div class="fin-secao-titulo">🏆 Títulos</div>';
+  if ((mgr.titulos || 0) === 0) {
+    html += '<div class="dash-empty">Nenhum título ainda. Vá em busca do campeonato!</div>';
+  } else {
+    html += '<div>Títulos conquistados: ' + mgr.titulos + '</div>';
+  }
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+// ════════════════════════════════════════
+// MENU STAFF
+// ════════════════════════════════════════
+function renderStaff() {
+  var tecnico = estado.meuTecnico;
+  var clube   = estado.meuClube;
+  var stats   = calcularForca(clube, tecnico);
+  var enc     = stats.encaixe;
+  var corEnc  = enc >= 80 ? "var(--green)" : enc >= 60 ? "var(--yellow)" : "var(--red)";
+
+  var vagas = [
+    { cargo: "Auxiliar técnico",         icon: "🎯", desc: "Apoia o técnico nos treinos e estratégias táticas",       nivel: null },
+    { cargo: "Preparador físico",        icon: "💪", desc: "Reduz a fadiga dos jogadores e previne lesões",            nivel: null },
+    { cargo: "Preparador de goleiros",   icon: "🧤", desc: "Melhora o desempenho específico dos goleiros",             nivel: null },
+    { cargo: "Analista de desempenho",   icon: "📊", desc: "Estuda adversários e gera relatórios táticos",             nivel: null },
+    { cargo: "Médico do clube",          icon: "🏥", desc: "Acelera recuperação de lesionados",                        nivel: null },
+    { cargo: "Fisioterapeuta",           icon: "🩺", desc: "Trata lesões e mantém jogadores em forma",                 nivel: null },
+    { cargo: "Scout / Olheiro",          icon: "🔭", desc: "Descobre talentos no mercado e avalia jogadores",          nivel: null },
+  ];
+
+  var html = '<div class="staff-tela">';
+
+  // Técnico atual
+  html += '<div class="fin-secao-titulo">Técnico principal</div>';
+  html += '<div class="card-staff-tecnico" style="margin-bottom:20px">';
+  html += '<div class="staff-header">';
+  html += '<div>';
+  html += '<div class="staff-cargo">Técnico principal</div>';
+  html += '<div class="staff-nome">' + tecnico.nome + ' ' + bandeira(tecnico.nacionalidade) + '</div>';
+  html += '<div class="staff-meta">' + tecnico.estilo + ' · ' + tecnico.formacao + '</div>';
+  html += '</div>';
+  html += '<div class="overall-grande ' + overallClasse(tecnico.overall) + '">' + tecnico.overall + '</div>';
+  html += '</div>';
+  html += '<div class="tecnico-stats" style="margin-top:12px">';
+  html += '<div class="tstat"><span class="tstat-label">Encaixe do elenco</span><span class="tstat-val" style="color:' + corEnc + '">' + enc + '%</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Bônus técnico</span><span class="tstat-val overall-alto">+' + stats.bonusTecnico + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Força final</span><span class="tstat-val" style="color:var(--accent)">' + stats.forca + '</span></div>';
+  html += '</div>';
+  html += '<button class="btn-demitir" onclick="confirmarDemissao()">⚠ Demitir e contratar novo técnico</button>';
+  html += '</div>';
+
+  // Vagas da comissão
+  html += '<div class="fin-secao-titulo">Comissão técnica</div>';
+  html += '<div class="staff-vagas">';
+  vagas.forEach(function(v) {
+    html += '<div class="staff-vaga-card">';
+    html += '<div class="staff-vaga-icon">' + v.icon + '</div>';
+    html += '<div class="staff-vaga-info">';
+    html += '<div class="staff-vaga-cargo">' + v.cargo + '</div>';
+    html += '<div class="staff-vaga-desc">' + v.desc + '</div>';
+    html += '</div>';
+    html += '<button class="btn-contratar-staff" disabled>Em breve</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+// ════════════════════════════════════════
+// MENU INFRAESTRUTURA
+// ════════════════════════════════════════
+function renderInfraestrutura() {
+  var clube = estado.meuClube;
+  var nivel_estadio   = clube.inf_estadio   || 1;
+  var nivel_ct        = clube.inf_ct        || 1;
+  var nivel_base      = clube.inf_base      || 1;
+  var nivel_med       = clube.inf_med       || 1;
+
+  function labelNivel(n) {
+    return ["","Básico","Intermediário","Avançado","Elite","Máximo"][n] || "Básico";
+  }
+  function custoUpgrade(n) {
+    return [0, 2000000, 5000000, 12000000, 25000000][n] || 99999999;
+  }
+
+  var itens = [
+    { key: "inf_estadio", icon: "🏟", nome: "Estádio", desc: "Capacidade e qualidade do estádio. Aumenta receita de bilheteria.", nivel: nivel_estadio, efeito: "Bilheteria +" + (nivel_estadio*15) + "%" },
+    { key: "inf_ct",      icon: "🏋", nome: "Centro de Treinamento", desc: "Qualidade dos treinos. Reduz fadiga e acelera evolução.", nivel: nivel_ct, efeito: "Fadiga -" + (nivel_ct*5) + "% por jogo" },
+    { key: "inf_base",    icon: "🌱", nome: "Categorias de Base", desc: "Revela talentos jovens para o elenco.", nivel: nivel_base, efeito: "Scout de jovens: " + labelNivel(nivel_base) },
+    { key: "inf_med",     icon: "🏥", nome: "Departamento Médico", desc: "Velocidade de recuperação de lesionados.", nivel: nivel_med, efeito: "Recuperação +" + (nivel_med*20) + "%" },
+  ];
+
+  var html = '<div class="inf-tela">';
+  html += '<div class="fin-secao-titulo" style="margin-bottom:16px">🏗 Infraestrutura — ' + clube.nome + '</div>';
+
+  html += '<div class="inf-grid">';
+  itens.forEach(function(item) {
+    var custo = custoUpgrade(item.nivel);
+    var podeMelhorar = item.nivel < 5 && clube.budget >= custo;
+    var maxNivel = item.nivel >= 5;
+
+    html += '<div class="inf-card">';
+    html += '<div class="inf-card-icon">' + item.icon + '</div>';
+    html += '<div class="inf-card-info">';
+    html += '<div class="inf-card-nome">' + item.nome + '</div>';
+    html += '<div class="inf-card-desc">' + item.desc + '</div>';
+    html += '<div class="inf-nivel">';
+    for (var i=1; i<=5; i++) {
+      html += '<div class="inf-nivel-pip' + (i<=item.nivel?" ativo":"") + '"></div>';
+    }
+    html += '</div>';
+    html += '<div class="inf-label-nivel">' + labelNivel(item.nivel) + ' · ' + item.efeito + '</div>';
+    html += '</div>';
+    html += '<div class="inf-card-acao">';
+    if (maxNivel) {
+      html += '<div class="inf-max">✅ Máximo</div>';
+    } else {
+      html += '<div class="inf-custo">' + formatarDinheiro(custo) + '</div>';
+      html += '<button class="btn-primario inf-btn" ' + (podeMelhorar?'':'disabled') + ' onclick="melhorarInfraestrutura(\'' + item.key + '\',' + custo + ')">' + (podeMelhorar ? '⬆ Melhorar' : 'Sem budget') + '</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function melhorarInfraestrutura(key, custo) {
+  var clube = estado.meuClube;
+  if (clube.budget < custo) { alert("Budget insuficiente!"); return; }
+  if (!confirm("Investir " + formatarDinheiro(custo) + " em infraestrutura?")) return;
+  clube.budget -= custo;
+  clube[key] = (clube[key] || 1) + 1;
+  adicionarNoticia("🏗 " + clube.nome + " melhorou a infraestrutura do clube.", estado.rodadaAtual);
+  salvarJogo();
+  renderInfraestrutura();
+}</script>
   <script>
 // ════════════════════════════════════════
 // DASHBOARD
@@ -4771,6 +5479,7 @@ function iniciarJogo() {
   if (sb) sb.classList.remove("hidden");
   mostrarNav();
   inicializarCalendario();
+  inicializarDivisoes();
   salvarJogo();
   renderDashboard();
 }
@@ -4779,7 +5488,7 @@ function navegarPara(aba) {
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { dashboard: renderDashboard, inbox: renderInbox, campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, staff: renderStaff };
+  var abas = { dashboard: renderDashboard, inbox: renderInbox, campeonato: renderCampeonato, divisoes: renderDivisoes, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
   if (abas[aba]) abas[aba]();
 }
 
@@ -4840,7 +5549,6 @@ function renderElenco() {
     { key: 'contrato',    label: 'Contrato' },
     { key: 'salario',     label: 'Salário' },
     { key: 'valor',       label: 'Valor' },
-    { key: 'acoes',       label: '' }
   ];
 
   html += '<thead><tr>';
@@ -4861,7 +5569,7 @@ function renderElenco() {
     var contratoLabel = rodadasRestantes > 0 ? 'Rod. ' + j.contrato_termino : '<span style="color:var(--red)">Vencido</span>';
     var corContrato   = rodadasRestantes <= 5 ? 'color:var(--yellow)' : '';
 
-    html += '<tr>';
+    html += '<tr class="elenco-linha-clicavel" onclick="abrirFichaJogador(\'' + j.id + '\')">';
     html += '<td><span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span></td>';
     html += '<td class="col-nome"><span class="flag-jogador">' + flag + '</span>' + j.nome + '</td>';
     html += '<td class="col-centro ' + overallClasse(j.overall) + '">' + j.overall + '</td>';
@@ -4890,48 +5598,7 @@ function ordenarElenco(col) {
   renderElenco();
 }
 
-// ── Aba: Staff ──
-function renderStaff() {
-  var tecnico = estado.meuTecnico;
-  var clube   = estado.meuClube;
-  var stats   = calcularForca(clube, tecnico);
-  var enc     = stats.encaixe;
-  var corEnc  = enc >= 80 ? "var(--green)" : enc >= 60 ? "var(--yellow)" : "var(--red)";
-  var sinalB  = stats.bonusFormacao >= 0 ? '+' : '';
-  var clsB    = stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo';
-
-  var vagas = ["Auxiliar técnico","Preparador físico","Preparador de goleiros","Analista de desempenho","Médico","Fisioterapeuta","Scout / Olheiro"];
-
-  var html = '<p class="secao-titulo">Comissão técnica</p>';
-  html += '<div class="card-staff-tecnico">';
-  html += '<div class="staff-header">';
-  html += '<div>';
-  html += '<div class="staff-cargo">Técnico principal</div>';
-  html += '<div class="staff-nome">' + tecnico.nome + ' ' + bandeira(tecnico.nacionalidade) + '</div>';
-  html += '<div class="staff-meta">' + tecnico.estilo + ' · ' + tecnico.formacao + '</div>';
-  html += '</div>';
-  html += '<div class="overall-grande ' + overallClasse(tecnico.overall) + '">' + tecnico.overall + '</div>';
-  html += '</div>';
-  html += '<div class="tecnico-stats" style="margin-top:16px">';
-  html += '<div class="tstat"><span class="tstat-label">Formação preferida</span><span class="tstat-val">' + tecnico.formacao + '</span></div>';
-  html += '<div class="tstat"><span class="tstat-label">Estilo</span><span class="tstat-val">' + tecnico.estilo + '</span></div>';
-  html += '<div class="tstat"><span class="tstat-label">Encaixe do elenco</span><span class="tstat-val" style="color:' + corEnc + '">' + enc + '%</span></div>';
-  html += '<div class="tstat"><span class="tstat-label">Bônus de overall</span><span class="tstat-val overall-alto">+' + stats.bonusTecnico + '</span></div>';
-  html += '<div class="tstat"><span class="tstat-label">Bônus/penalidade de formação</span><span class="tstat-val ' + clsB + '">' + sinalB + stats.bonusFormacao + '</span></div>';
-  html += '<div class="tstat"><span class="tstat-label">Força final do time</span><span class="tstat-val" style="color:var(--accent);font-weight:700">' + stats.forca + '</span></div>';
-  html += '</div>';
-  html += '<button class="btn-demitir" onclick="confirmarDemissao()">⚠ Demitir e contratar novo técnico</button>';
-  html += '</div>';
-
-  html += '<p class="secao-titulo mt16">Restante da comissão</p>';
-  html += '<div class="vagas-staff">';
-  vagas.forEach(function(cargo) {
-    html += '<div class="vaga-item"><span class="vaga-cargo">' + cargo + '</span><span class="vaga-badge">Em breve</span></div>';
-  });
-  html += '</div>';
-
-  document.getElementById("main").innerHTML = html;
-}
+// renderStaff movido para menus.js
 
 // ── Demissão e contratação ──
 function confirmarDemissao() {
@@ -4994,7 +5661,6 @@ function renderCampeonato() {
     var proxima  = idx === estado.rodadaAtual;
     html += '<div class="card-rodada" id="rodada-' + idx + '">';
     html += '<div class="rodada-header"><span>Rodada ' + rodada.numero + '</span>';
-    if (proxima)  html += '<button class="btn-simular" onclick="simularRodada(' + idx + ')">▶ Simular rodada</button>';
     if (simulada) html += '<span style="color:var(--green);font-size:12px">✓ Encerrada</span>';
     html += '</div><div class="lista-jogos">';
 
@@ -5051,6 +5717,8 @@ function simularRodada(idx) {
   });
 
   estado.rodadaAtual = idx + 1;
+  simularRodadaDivisoes(idx);
+  if (idx === 37) processarPromocaoRebaixamento();
   processarMercadoRodada(idx);
   // Receitas da rodada para todos os clubes
   CLUBES.forEach(function(c) {
@@ -5678,10 +6346,195 @@ function responderProposta(msgId, aceitar) {
   msg.lida = true;
   salvarJogo();
   renderInbox();
+}
+
+// ════════════════════════════════════════
+// FICHA DO JOGADOR — tela completa
+// ════════════════════════════════════════
+function abrirFichaJogador(jogadorId) {
+  var clube   = estado.meuClube;
+  var j       = clube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
+
+  var flags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' };
+  var flag    = flags[j.nacionalidade] || '🌍';
+  var s       = j.stats || { jogos:0, gols:0, assistencias:0, nota_media:0 };
+  var rodadasRestantes = Math.max(0, (j.contrato_termino || 0) - estado.rodadaAtual);
+  var corContrato = rodadasRestantes <= 5 ? 'var(--red)' : rodadasRestantes <= 10 ? 'var(--yellow)' : 'var(--green)';
+  var fadiga  = Math.round(j.fadiga || 0);
+  var corFad  = fadiga >= 75 ? 'var(--red)' : fadiga >= 50 ? 'var(--yellow)' : 'var(--green)';
+  var custoRescisao = Math.round((j.salario||0) * rodadasRestantes * 0.5);
+
+  var html = '<div class="ficha-jogador">';
+
+  // Botão voltar
+  html += '<button class="btn-voltar-ficha" onclick="renderElenco()">← Voltar ao elenco</button>';
+
+  // Card principal
+  html += '<div class="ficha-card">';
+  html += '<div class="ficha-header">';
+  html += '<div class="ficha-escudo-pos">';
+  html += '<div class="ficha-flag">' + flag + '</div>';
+  html += '<span class="posicao-badge pos-' + j.posicao + '" style="font-size:14px;padding:6px 12px">' + j.posicao + '</span>';
+  html += '</div>';
+  html += '<div class="ficha-identidade">';
+  html += '<h2 class="ficha-nome">' + j.nome + '</h2>';
+  html += '<div class="ficha-meta">' + (j.idade || '-') + ' anos · ' + (j.nacionalidade || '-') + '</div>';
+  html += '</div>';
+  html += '<div class="ficha-overall ' + overallClasse(j.overall) + '">' + j.overall + '<div style="font-size:12px;font-weight:400;color:var(--text2)">OVR</div></div>';
+  html += '</div>'; // ficha-header
+
+  // Stats em grid
+  html += '<div class="ficha-stats">';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val">' + s.jogos + '</div><div class="ficha-stat-label">Jogos</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val" style="color:var(--green)">' + s.gols + '</div><div class="ficha-stat-label">Gols</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val" style="color:var(--accent)">' + s.assistencias + '</div><div class="ficha-stat-label">Assist.</div></div>';
+  html += '<div class="ficha-stat"><div class="ficha-stat-val">' + (s.jogos > 0 ? s.nota_media.toFixed(1) : '-') + '</div><div class="ficha-stat-label">Nota média</div></div>';
+  html += '</div>';
+
+  // Fadiga
+  html += '<div class="ficha-secao-titulo">Condição física</div>';
+  html += '<div class="ficha-fadiga-wrap">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Fadiga</span><span style="color:' + corFad + '">' + fadiga + '%</span></div>';
+  html += '<div class="fadiga-barra-wrap" style="height:8px"><div class="fadiga-barra" style="width:' + fadiga + '%;background:' + corFad + '"></div></div>';
+  html += '</div>';
+
+  // Contrato e financeiro
+  html += '<div class="ficha-secao-titulo" style="margin-top:16px">Contrato & Financeiro</div>';
+  html += '<div class="ficha-financeiro">';
+  html += '<div class="tstat"><span class="tstat-label">Contrato até rodada</span><span class="tstat-val" style="color:' + corContrato + '">' + (j.contrato_termino || '-') + ' <small>(' + rodadasRestantes + ' rodadas restantes)</small></span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Salário mensal</span><span class="tstat-val">' + formatarDinheiro(j.salario || 0) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Valor de mercado</span><span class="tstat-val">' + formatarDinheiro(j.valor_mercado || 0) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Cláusula rescisória</span><span class="tstat-val">' + formatarDinheiro(j.clausula_rescisoria || 0) + '</span></div>';
+  html += '</div>';
+
+  html += '</div>'; // ficha-card
+
+  // ── Ações ──
+  html += '<div class="ficha-acoes">';
+
+  // Renovar contrato
+  html += '<div class="ficha-acao-bloco">';
+  html += '<div class="ficha-acao-titulo">📝 Renovar contrato</div>';
+  html += '<div class="ficha-acao-form">';
+  html += '<div class="form-group"><label>Novo salário mensal</label>';
+  html += '<input type="number" id="inp-sal-renovacao" value="' + Math.round((j.salario||0)*1.1) + '" step="10000"/></div>';
+  html += '<div class="form-group"><label>Duração (rodadas)</label>';
+  html += '<select id="inp-dur-renovacao">';
+  html += '<option value="10">10 rodadas</option>';
+  html += '<option value="19" selected>19 rodadas</option>';
+  html += '<option value="30">30 rodadas</option>';
+  html += '<option value="38">38 rodadas (2 temporadas)</option>';
+  html += '</select></div>';
+  html += '<button class="btn-primario" style="width:100%" onclick="renovarContrato(\'' + j.id + '\')">✅ Propor renovação</button>';
+  html += '</div></div>';
+
+  // Colocar à venda
+  html += '<div class="ficha-acao-bloco">';
+  html += '<div class="ficha-acao-titulo">🏷 Colocar à venda</div>';
+  html += '<div class="ficha-acao-form">';
+  html += '<div class="form-group"><label>Preço mínimo</label>';
+  html += '<input type="number" id="inp-preco-venda" value="' + (j.valor_mercado||0) + '" step="500000"/></div>';
+  html += '<button class="btn-primario" style="width:100%" onclick="confirmarVenda(\'' + j.id + '\')">📢 Anunciar venda</button>';
+  if (j.a_venda) html += '<div style="font-size:12px;color:var(--yellow);margin-top:6px">⚠ Já está à venda</div>';
+  html += '</div></div>';
+
+  // Empréstimo
+  html += '<div class="ficha-acao-bloco">';
+  html += '<div class="ficha-acao-titulo">🔄 Empréstimo</div>';
+  html += '<div class="ficha-acao-form">';
+  html += '<div class="form-group"><label>Duração</label>';
+  html += '<select id="inp-emprestimo-rodadas">';
+  html += '<option value="5">5 rodadas</option>';
+  html += '<option value="10">10 rodadas</option>';
+  html += '<option value="19">Resto da temporada</option>';
+  html += '</select></div>';
+  html += '<button class="btn-primario" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text)" onclick="confirmarEmprestimo(\'' + j.id + '\')">🔄 Colocar para empréstimo</button>';
+  html += '</div></div>';
+
+  // Dispensar
+  html += '<div class="ficha-acao-bloco">';
+  html += '<div class="ficha-acao-titulo" style="color:var(--red)">✂ Dispensar</div>';
+  html += '<div class="ficha-acao-form">';
+  html += '<button class="btn-demitir" style="width:100%;margin-bottom:8px" onclick="confirmarDispensaFicha(\'' + j.id + '\',true)">Acordo mútuo — sem custo</button>';
+  if (custoRescisao > 0) {
+    html += '<button class="btn-demitir" style="width:100%;border-color:#555;color:var(--text2)" onclick="confirmarDispensaFicha(\'' + j.id + '\',false)">Rescisão unilateral — ' + formatarDinheiro(custoRescisao) + '</button>';
+  }
+  html += '</div></div>';
+
+  html += '</div>'; // ficha-acoes
+  html += '</div>'; // ficha-jogador
+
+  document.getElementById("main").innerHTML = html;
+}
+
+// Renovar contrato
+function renovarContrato(jogadorId) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
+  var novoSalario = parseInt(document.getElementById("inp-sal-renovacao").value);
+  var duracao     = parseInt(document.getElementById("inp-dur-renovacao").value);
+  if (!novoSalario || novoSalario <= 0) { alert("Digite um salário válido."); return; }
+
+  // Jogador aceita se salário >= atual
+  var aceita = novoSalario >= j.salario;
+  // Chance de recusar mesmo com aumento se overall alto
+  if (aceita && j.overall >= 82 && novoSalario < j.salario * 1.15) {
+    aceita = Math.random() > 0.4;
+  }
+
+  if (aceita) {
+    j.salario          = novoSalario;
+    j.contrato_termino = estado.rodadaAtual + duracao;
+    j.clausula_rescisoria = Math.round(j.valor_mercado * (j.overall >= 82 ? 2.5 : 2.0));
+    adicionarNoticia("📝 " + j.nome + " renovou contrato até a rodada " + j.contrato_termino + " por " + formatarDinheiro(novoSalario) + "/mês", estado.rodadaAtual);
+    salvarJogo();
+    alert("✅ " + j.nome + " aceitou a renovação!");
+    abrirFichaJogador(jogadorId);
+  } else {
+    alert("❌ " + j.nome + " recusou a proposta. Tente um salário maior.");
+  }
+}
+
+function confirmarDispensaFicha(jogadorId, acordoMutuo) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!confirm("Dispensar " + j.nome + "?")) return;
+  var result = dispensarJogador(jogadorId, acordoMutuo);
+  if (result && result.erro) { alert(result.erro); return; }
+  salvarJogo();
+  renderElenco();
+}
+
+function confirmarVenda(jogadorId) {
+  var inp = document.getElementById("inp-preco-venda");
+  if (!inp) return;
+  var preco = parseInt(inp.value);
+  if (!preco || preco <= 0) { alert("Digite um preço válido."); return; }
+  colocarAVenda(jogadorId, preco);
+  salvarJogo();
+  abrirFichaJogador(jogadorId);
+}
+
+function confirmarEmprestimo(jogadorId) {
+  var inp = document.getElementById("inp-emprestimo-rodadas");
+  if (!inp) return;
+  var rodadas = parseInt(inp.value);
+  colocarParaEmprestimo(jogadorId, rodadas);
+  salvarJogo();
+  abrirFichaJogador(jogadorId);
 }</script>
   <script>
     inicializarFinancas();
+    function atualizarSaldo() {
+      var s = estado.meuClube ? formatarDinheiro(estado.meuClube.budget) : '';
+      var e1 = document.getElementById("header-saldo");
+      var e2 = document.getElementById("sidebar-saldo");
+      if (e1) e1.textContent = s;
+      if (e2) e2.textContent = s;
+    }
+    setInterval(atualizarSaldo, 2000);
     function salvarManual() {
+      atualizarSaldo();
       var ok = salvarJogo();
       var btn = document.getElementById("btn-salvar");
       if (btn) {
@@ -5695,6 +6548,7 @@ function responderProposta(msgId, aceitar) {
       _origMostrarNav();
       var btn = document.getElementById("btn-salvar");
       if (btn) btn.classList.remove("hidden");
+      atualizarSaldo();
     };
   </script>
 </body>
