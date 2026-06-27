@@ -1133,6 +1133,26 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 
 .dash-card-full-row .jogos-secao-titulo {
   grid-column: 1 / -1;
+}
+
+/* ── Grid 3 colunas ── */
+.dash-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* ── Sidebar botões maiores ── */
+#sidebar-nav button {
+  padding: 13px 14px !important;
+  font-size: 14px !important;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+}
+
+#sidebar-nav button.ativo {
+  font-weight: 700 !important;
 }</style>
 </head>
 <body>
@@ -2654,27 +2674,22 @@ function renderDashboard() {
   html += '</div>';
   html += '<div class="temporada-progress"><div class="temporada-bar" style="width:' + progPct + '%"></div></div>';
 
-  // Linha 1: Calendário + Próximos eventos
-  html += '<div class="dash-grid-top">';
+  // Grid 3x2: linha 1 = Calendário + Próximos eventos + Inbox
+  var naoLidas = contarNaoLidas();
+  html += '<div class="dash-grid-3col">';
   html += '<div class="dash-card"><div class="dash-card-titulo">📅 Calendário</div>' + renderCalendarioVisual() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">🗓 Próximos eventos</div>' + renderProximosEventos() + '</div>';
-  html += '</div>';
-
-  // Linha 2: Jogos largura total
-  html += '<div class="dash-card-full-row">';
-  html += '<div class="dash-card-titulo">⚽ Jogos — <span style="font-size:11px;color:var(--text2)">Casa (C) · Fora (F)</span></div>';
-  html += renderJogosCard();
-  html += '</div>';
-
-  // Linha 3: Inbox + Tabela + Notícias
-  var naoLidas = contarNaoLidas();
-  html += '<div class="dash-grid-bottom">';
   html += '<div class="dash-card"><div class="dash-card-titulo">✉️ Inbox ' + (naoLidas > 0 ? '<span class="inbox-badge">' + naoLidas + '</span>' : '') + '</div>' + renderInboxPreview() + '</div>';
+  html += '</div>';
+
+  // Linha 2: Jogos + Tabela + Notícias
+  html += '<div class="dash-grid-3col">';
+  html += '<div class="dash-card"><div class="dash-card-titulo">⚽ Jogos — <span style="font-size:11px;color:var(--text2)">C=Casa · F=Fora</span></div>' + renderJogosCard() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">📊 Classificação</div>' + renderMiniTabela() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">📰 Notícias</div>' + renderNoticias() + '</div>';
   html += '</div>';
 
-  // Linha 4: Baixas largura total
+  // Linha 3: Baixas largura total
   html += '<div class="dash-card-full-row">';
   html += '<div class="dash-card-titulo">🏥 Baixas</div>';
   html += renderBaixas();
