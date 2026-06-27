@@ -1153,6 +1153,121 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 
 #sidebar-nav button.ativo {
   font-weight: 700 !important;
+}
+
+/* ── Save ── */
+.save-encontrado {
+  background: var(--bg3);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.save-titulo { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+.save-detalhe { font-size: 13px; margin-bottom: 4px; }
+
+.btn-novo-jogo {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 8px;
+  transition: border-color .15s;
+}
+.btn-novo-jogo:hover { border-color: var(--red); color: var(--red); }
+
+/* Botão salvar na sidebar */
+.sidebar-save-btn {
+  margin: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .15s;
+  width: calc(100% - 16px);
+}
+.sidebar-save-btn:hover { border-color: var(--green); color: var(--green); }
+.sidebar-save-btn.salvo { color: var(--green); border-color: var(--green); }
+
+/* ── Tabela de elenco ── */
+.elenco-tabela-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.elenco-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 780px;
+}
+
+.elenco-tabela thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.elenco-tabela thead th:hover { color: var(--text); }
+.elenco-tabela thead th.col-ativa { color: var(--accent); }
+
+.elenco-tabela tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.elenco-tabela tbody tr:last-child { border-bottom: none; }
+.elenco-tabela tbody tr:hover { background: var(--bg3); }
+
+.elenco-tabela td {
+  padding: 9px 12px;
+  vertical-align: middle;
+}
+
+.col-nome {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.col-centro { text-align: center; }
+
+.flag-jogador { font-size: 15px; flex-shrink: 0; }
+
+/* ── Grid dashboard com proporção ajustada ── */
+.dash-grid-top2 {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Cards da linha de baixo maiores */
+.dash-grid-top2 .dash-card {
+  min-height: 200px;
 }</style>
 </head>
 <body>
@@ -1174,6 +1289,7 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
         <button data-aba="mercado">💰 Mercado</button>
         <button data-aba="staff">🎽 Comissão</button>
       </nav>
+      <button id="btn-salvar" class="sidebar-save-btn hidden" onclick="salvarManual()">💾 Salvar jogo</button>
     </div>
     <div id="conteudo">
       <header>
@@ -1191,601 +1307,601 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
   {
     id: "flamengo", tecnico_id: "t05", nome: "Flamengo", sigla: "FLA", cor: "#E8000D",
     jogadores: [
-      { id: "p001", nome: "Rossi",            posicao: "GOL", overall: 83 },
-      { id: "p002", nome: "Matheus Cunha",     posicao: "GOL", overall: 71 },
-      { id: "p003", nome: "Varela",            posicao: "LD",  overall: 76 },
-      { id: "p004", nome: "Guillermo Varela",  posicao: "LD",  overall: 72 },
-      { id: "p005", nome: "Léo Pereira",       posicao: "ZAG", overall: 79 },
-      { id: "p006", nome: "Fabrício Bruno",    posicao: "ZAG", overall: 77 },
-      { id: "p007", nome: "David Luiz",        posicao: "ZAG", overall: 74 },
-      { id: "p008", nome: "Cleiton",           posicao: "ZAG", overall: 70 },
-      { id: "p009", nome: "Ayrton Lucas",      posicao: "LE",  overall: 78 },
-      { id: "p010", nome: "Matheus Alexandre", posicao: "LE",  overall: 68 },
-      { id: "p011", nome: "Pulgar",            posicao: "VOL", overall: 77 },
-      { id: "p012", nome: "Erick Pulgar",      posicao: "VOL", overall: 74 },
-      { id: "p013", nome: "Allan",             posicao: "VOL", overall: 72 },
-      { id: "p014", nome: "Gerson",            posicao: "MEI", overall: 82 },
-      { id: "p015", nome: "De la Cruz",        posicao: "MEI", overall: 84 },
-      { id: "p016", nome: "Arrascaeta",        posicao: "MEI", overall: 88 },
-      { id: "p017", nome: "Victor Hugo",       posicao: "MEI", overall: 69 },
-      { id: "p018", nome: "Luiz Araújo",       posicao: "MEI", overall: 76 },
-      { id: "p019", nome: "Bruno Henrique",    posicao: "ATA", overall: 80 },
-      { id: "p020", nome: "Gabigol",           posicao: "ATA", overall: 84 },
-      { id: "p021", nome: "Pedro",             posicao: "ATA", overall: 87 },
-      { id: "p022", nome: "Carlinhos",         posicao: "ATA", overall: 71 },
-      { id: "p023", nome: "Everton Cebolinha", posicao: "ATA", overall: 75 },
-      { id: "p024", nome: "Michael",           posicao: "ATA", overall: 73 },
-      { id: "p025", nome: "Plata",             posicao: "ATA", overall: 72 },
+      { id: "p001", nome: "Rossi",            posicao: "GOL", overall: 83, nacionalidade: "BR", idade: 34, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p002", nome: "Matheus Cunha",     posicao: "GOL", overall: 71, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p003", nome: "Varela",            posicao: "LD",  overall: 76, nacionalidade: "UY", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p004", nome: "Guillermo Varela",  posicao: "LD",  overall: 72, nacionalidade: "UY", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p005", nome: "Léo Pereira",       posicao: "ZAG", overall: 79, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p006", nome: "Fabrício Bruno",    posicao: "ZAG", overall: 77, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p007", nome: "David Luiz",        posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p008", nome: "Cleiton",           posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p009", nome: "Ayrton Lucas",      posicao: "LE",  overall: 78, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p010", nome: "Matheus Alexandre", posicao: "LE",  overall: 68, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p011", nome: "Pulgar",            posicao: "VOL", overall: 77, nacionalidade: "CL", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p012", nome: "Erick Pulgar",      posicao: "VOL", overall: 74, nacionalidade: "CL", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p013", nome: "Allan",             posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p014", nome: "Gerson",            posicao: "MEI", overall: 82, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p015", nome: "De la Cruz",        posicao: "MEI", overall: 84, nacionalidade: "UY", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p016", nome: "Arrascaeta",        posicao: "MEI", overall: 88, nacionalidade: "UY", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p017", nome: "Victor Hugo",       posicao: "MEI", overall: 69, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p018", nome: "Luiz Araújo",       posicao: "MEI", overall: 76, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p019", nome: "Bruno Henrique",    posicao: "ATA", overall: 80, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p020", nome: "Gabigol",           posicao: "ATA", overall: 84, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p021", nome: "Pedro",             posicao: "ATA", overall: 87, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p022", nome: "Carlinhos",         posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p023", nome: "Everton Cebolinha", posicao: "ATA", overall: 75, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p024", nome: "Michael",           posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p025", nome: "Plata",             posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "palmeiras", tecnico_id: "t01", nome: "Palmeiras", sigla: "PAL", cor: "#006437",
     jogadores: [
-      { id: "p026", nome: "Weverton",          posicao: "GOL", overall: 86 },
-      { id: "p027", nome: "Marcelo Lomba",     posicao: "GOL", overall: 72 },
-      { id: "p028", nome: "Marcos Rocha",      posicao: "LD",  overall: 75 },
-      { id: "p029", nome: "Mayke",             posicao: "LD",  overall: 73 },
-      { id: "p030", nome: "Gustavo Gómez",     posicao: "ZAG", overall: 84 },
-      { id: "p031", nome: "Murilo",            posicao: "ZAG", overall: 81 },
-      { id: "p032", nome: "Naves",             posicao: "ZAG", overall: 70 },
-      { id: "p033", nome: "Michel",            posicao: "ZAG", overall: 68 },
-      { id: "p034", nome: "Piquerez",          posicao: "LE",  overall: 80 },
-      { id: "p035", nome: "Vanderlan",         posicao: "LE",  overall: 70 },
-      { id: "p036", nome: "Aníbal Moreno",     posicao: "VOL", overall: 80 },
-      { id: "p037", nome: "Zé Rafael",         posicao: "VOL", overall: 77 },
-      { id: "p038", nome: "Richard Ríos",      posicao: "VOL", overall: 79 },
-      { id: "p039", nome: "Raphael Veiga",     posicao: "MEI", overall: 86 },
-      { id: "p040", nome: "Estêvão",           posicao: "MEI", overall: 83 },
-      { id: "p041", nome: "Felipe Anderson",   posicao: "MEI", overall: 80 },
-      { id: "p042", nome: "Gabriel Menino",    posicao: "MEI", overall: 76 },
-      { id: "p043", nome: "Lázaro",            posicao: "MEI", overall: 70 },
-      { id: "p044", nome: "Flaco López",       posicao: "ATA", overall: 81 },
-      { id: "p045", nome: "Endrick",           posicao: "ATA", overall: 82 },
-      { id: "p046", nome: "Rony",              posicao: "ATA", overall: 78 },
-      { id: "p047", nome: "Bruno Rodrigues",   posicao: "ATA", overall: 72 },
-      { id: "p048", nome: "Mauricio",          posicao: "ATA", overall: 74 },
-      { id: "p049", nome: "Dudu",              posicao: "ATA", overall: 76 },
-      { id: "p050", nome: "Caio Paulista",     posicao: "ATA", overall: 69 },
+      { id: "p026", nome: "Weverton",          posicao: "GOL", overall: 86, nacionalidade: "BR", idade: 35, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p027", nome: "Marcelo Lomba",     posicao: "GOL", overall: 72, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p028", nome: "Marcos Rocha",      posicao: "LD",  overall: 75, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p029", nome: "Mayke",             posicao: "LD",  overall: 73, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p030", nome: "Gustavo Gómez",     posicao: "ZAG", overall: 84, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p031", nome: "Murilo",            posicao: "ZAG", overall: 81, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p032", nome: "Naves",             posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p033", nome: "Michel",            posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p034", nome: "Piquerez",          posicao: "LE",  overall: 80, nacionalidade: "UY", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p035", nome: "Vanderlan",         posicao: "LE",  overall: 70, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p036", nome: "Aníbal Moreno",     posicao: "VOL", overall: 80, nacionalidade: "AR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p037", nome: "Zé Rafael",         posicao: "VOL", overall: 77, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p038", nome: "Richard Ríos",      posicao: "VOL", overall: 79, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p039", nome: "Raphael Veiga",     posicao: "MEI", overall: 86, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p040", nome: "Estêvão",           posicao: "MEI", overall: 83, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p041", nome: "Felipe Anderson",   posicao: "MEI", overall: 80, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p042", nome: "Gabriel Menino",    posicao: "MEI", overall: 76, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p043", nome: "Lázaro",            posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p044", nome: "Flaco López",       posicao: "ATA", overall: 81, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p045", nome: "Endrick",           posicao: "ATA", overall: 82, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p046", nome: "Rony",              posicao: "ATA", overall: 78, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p047", nome: "Bruno Rodrigues",   posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p048", nome: "Mauricio",          posicao: "ATA", overall: 74, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p049", nome: "Dudu",              posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p050", nome: "Caio Paulista",     posicao: "ATA", overall: 69, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "corinthians", tecnico_id: "t10", nome: "Corinthians", sigla: "COR", cor: "#1a1a1a",
     jogadores: [
-      { id: "p051", nome: "Hugo Souza",        posicao: "GOL", overall: 79 },
-      { id: "p052", nome: "Carlos Miguel",     posicao: "GOL", overall: 73 },
-      { id: "p053", nome: "Fagner",            posicao: "LD",  overall: 73 },
-      { id: "p054", nome: "Léo Maná",          posicao: "LD",  overall: 67 },
-      { id: "p055", nome: "Félix Torres",      posicao: "ZAG", overall: 77 },
-      { id: "p056", nome: "Gil",               posicao: "ZAG", overall: 74 },
-      { id: "p057", nome: "Cacá",              posicao: "ZAG", overall: 75 },
-      { id: "p058", nome: "João Pedro Tchoca", posicao: "ZAG", overall: 65 },
-      { id: "p059", nome: "Hugo",              posicao: "LE",  overall: 71 },
-      { id: "p060", nome: "Matheus Bidu",      posicao: "LE",  overall: 68 },
-      { id: "p061", nome: "Raniele",           posicao: "VOL", overall: 73 },
-      { id: "p062", nome: "Charles",           posicao: "VOL", overall: 75 },
-      { id: "p063", nome: "Breno Bidon",       posicao: "VOL", overall: 72 },
-      { id: "p064", nome: "Rodrigo Garro",     posicao: "MEI", overall: 83 },
-      { id: "p065", nome: "Wesley",            posicao: "MEI", overall: 75 },
-      { id: "p066", nome: "Igor Coronado",     posicao: "MEI", overall: 74 },
-      { id: "p067", nome: "Giulio Dourado",    posicao: "MEI", overall: 68 },
-      { id: "p068", nome: "Ruan Oliveira",     posicao: "MEI", overall: 66 },
-      { id: "p069", nome: "Memphis",           posicao: "ATA", overall: 84 },
-      { id: "p070", nome: "Yuri Alberto",      posicao: "ATA", overall: 81 },
-      { id: "p071", nome: "Romero",            posicao: "ATA", overall: 77 },
-      { id: "p072", nome: "Talles Magno",      posicao: "ATA", overall: 73 },
-      { id: "p073", nome: "Pedro Raul",        posicao: "ATA", overall: 70 },
-      { id: "p074", nome: "Giovane",           posicao: "ATA", overall: 67 },
-      { id: "p075", nome: "Arthur Sousa",      posicao: "MEI", overall: 65 },
+      { id: "p051", nome: "Hugo Souza",        posicao: "GOL", overall: 79, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p052", nome: "Carlos Miguel",     posicao: "GOL", overall: 73, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p053", nome: "Fagner",            posicao: "LD",  overall: 73, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p054", nome: "Léo Maná",          posicao: "LD",  overall: 67, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p055", nome: "Félix Torres",      posicao: "ZAG", overall: 77, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p056", nome: "Gil",               posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p057", nome: "Cacá",              posicao: "ZAG", overall: 75, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p058", nome: "João Pedro Tchoca", posicao: "ZAG", overall: 65, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p059", nome: "Hugo",              posicao: "LE",  overall: 71, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p060", nome: "Matheus Bidu",      posicao: "LE",  overall: 68, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p061", nome: "Raniele",           posicao: "VOL", overall: 73, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p062", nome: "Charles",           posicao: "VOL", overall: 75, nacionalidade: "BR", idade: 31, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p063", nome: "Breno Bidon",       posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p064", nome: "Rodrigo Garro",     posicao: "MEI", overall: 83, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p065", nome: "Wesley",            posicao: "MEI", overall: 75, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p066", nome: "Igor Coronado",     posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p067", nome: "Giulio Dourado",    posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p068", nome: "Ruan Oliveira",     posicao: "MEI", overall: 66, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p069", nome: "Memphis",           posicao: "ATA", overall: 84, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p070", nome: "Yuri Alberto",      posicao: "ATA", overall: 81, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p071", nome: "Romero",            posicao: "ATA", overall: 77, nacionalidade: "BR", idade: 31, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p072", nome: "Talles Magno",      posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p073", nome: "Pedro Raul",        posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p074", nome: "Giovane",           posicao: "ATA", overall: 67, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p075", nome: "Arthur Sousa",      posicao: "MEI", overall: 65, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "saopulo", tecnico_id: "t06", nome: "São Paulo", sigla: "SPF", cor: "#CC0000",
     jogadores: [
-      { id: "p076", nome: "Rafael",            posicao: "GOL", overall: 81 },
-      { id: "p077", nome: "Jandrei",           posicao: "GOL", overall: 72 },
-      { id: "p078", nome: "Rafinha",           posicao: "LD",  overall: 74 },
-      { id: "p079", nome: "Igor Vinícius",     posicao: "LD",  overall: 69 },
-      { id: "p080", nome: "Arboleda",          posicao: "ZAG", overall: 78 },
-      { id: "p081", nome: "Alan Franco",       posicao: "ZAG", overall: 76 },
-      { id: "p082", nome: "Diego Costa",       posicao: "ZAG", overall: 73 },
-      { id: "p083", nome: "Ruan",              posicao: "ZAG", overall: 67 },
-      { id: "p084", nome: "Welington",         posicao: "LE",  overall: 75 },
-      { id: "p085", nome: "Michel Araújo",     posicao: "LE",  overall: 70 },
-      { id: "p086", nome: "Luiz Gustavo",      posicao: "VOL", overall: 74 },
-      { id: "p087", nome: "Alisson",           posicao: "VOL", overall: 77 },
-      { id: "p088", nome: "Pablo Maia",        posicao: "VOL", overall: 75 },
-      { id: "p089", nome: "Lucas",             posicao: "MEI", overall: 82 },
-      { id: "p090", nome: "Nestor",            posicao: "MEI", overall: 75 },
-      { id: "p091", nome: "Rodrigo Nestor",    posicao: "MEI", overall: 72 },
-      { id: "p092", nome: "Galoppo",           posicao: "MEI", overall: 74 },
-      { id: "p093", nome: "Wellington Rato",   posicao: "MEI", overall: 71 },
-      { id: "p094", nome: "Calleri",           posicao: "ATA", overall: 83 },
-      { id: "p095", nome: "Luciano",           posicao: "ATA", overall: 79 },
-      { id: "p096", nome: "Ferreira",          posicao: "ATA", overall: 76 },
-      { id: "p097", nome: "André Silva",       posicao: "ATA", overall: 70 },
-      { id: "p098", nome: "Erick",             posicao: "ATA", overall: 68 },
-      { id: "p099", nome: "Juan",              posicao: "ATA", overall: 66 },
-      { id: "p100", nome: "Bobadilla",         posicao: "ATA", overall: 69 },
+      { id: "p076", nome: "Rafael",            posicao: "GOL", overall: 81, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p077", nome: "Jandrei",           posicao: "GOL", overall: 72, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p078", nome: "Rafinha",           posicao: "LD",  overall: 74, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p079", nome: "Igor Vinícius",     posicao: "LD",  overall: 69, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p080", nome: "Arboleda",          posicao: "ZAG", overall: 78, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p081", nome: "Alan Franco",       posicao: "ZAG", overall: 76, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p082", nome: "Diego Costa",       posicao: "ZAG", overall: 73, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p083", nome: "Ruan",              posicao: "ZAG", overall: 67, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p084", nome: "Welington",         posicao: "LE",  overall: 75, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p085", nome: "Michel Araújo",     posicao: "LE",  overall: 70, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p086", nome: "Luiz Gustavo",      posicao: "VOL", overall: 74, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p087", nome: "Alisson",           posicao: "VOL", overall: 77, nacionalidade: "BR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p088", nome: "Pablo Maia",        posicao: "VOL", overall: 75, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p089", nome: "Lucas",             posicao: "MEI", overall: 82, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p090", nome: "Nestor",            posicao: "MEI", overall: 75, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p091", nome: "Rodrigo Nestor",    posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p092", nome: "Galoppo",           posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p093", nome: "Wellington Rato",   posicao: "MEI", overall: 71, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p094", nome: "Calleri",           posicao: "ATA", overall: 83, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p095", nome: "Luciano",           posicao: "ATA", overall: 79, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p096", nome: "Ferreira",          posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p097", nome: "André Silva",       posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p098", nome: "Erick",             posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p099", nome: "Juan",              posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p100", nome: "Bobadilla",         posicao: "ATA", overall: 69, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "atleticomg", tecnico_id: "t12", nome: "Atlético-MG", sigla: "CAM", cor: "#404040",
     jogadores: [
-      { id: "p101", nome: "Everson",           posicao: "GOL", overall: 82 },
-      { id: "p102", nome: "Matheus Mendes",    posicao: "GOL", overall: 70 },
-      { id: "p103", nome: "Mariano",           posicao: "LD",  overall: 73 },
-      { id: "p104", nome: "Guga",              posicao: "LD",  overall: 69 },
-      { id: "p105", nome: "Guilherme Arana",   posicao: "ZAG", overall: 77 },
-      { id: "p106", nome: "Jemerson",          posicao: "ZAG", overall: 75 },
-      { id: "p107", nome: "Igor Rabello",      posicao: "ZAG", overall: 73 },
-      { id: "p108", nome: "Guilherme",         posicao: "ZAG", overall: 71 },
-      { id: "p109", nome: "Arana",             posicao: "LE",  overall: 80 },
-      { id: "p110", nome: "Rubens",            posicao: "LE",  overall: 74 },
-      { id: "p111", nome: "Otávio",            posicao: "VOL", overall: 78 },
-      { id: "p112", nome: "Battaglia",         posicao: "VOL", overall: 76 },
-      { id: "p113", nome: "Fausto Vera",       posicao: "VOL", overall: 74 },
-      { id: "p114", nome: "Paulinho",          posicao: "MEI", overall: 83 },
-      { id: "p115", nome: "Bernard",           posicao: "MEI", overall: 78 },
-      { id: "p116", nome: "Nacho Fernández",   posicao: "MEI", overall: 80 },
-      { id: "p117", nome: "Alan Kardec",       posicao: "MEI", overall: 68 },
-      { id: "p118", nome: "Vargas",            posicao: "MEI", overall: 76 },
-      { id: "p119", nome: "Hulk",              posicao: "ATA", overall: 81 },
-      { id: "p120", nome: "Deyverson",         posicao: "ATA", overall: 76 },
-      { id: "p121", nome: "Cadu",              posicao: "ATA", overall: 69 },
-      { id: "p122", nome: "Rony",              posicao: "ATA", overall: 72 },
-      { id: "p123", nome: "Eduardo Sasha",     posicao: "ATA", overall: 70 },
-      { id: "p124", nome: "Pedrinho",          posicao: "ATA", overall: 67 },
-      { id: "p125", nome: "Hyoran",            posicao: "MEI", overall: 68 },
+      { id: "p101", nome: "Everson",           posicao: "GOL", overall: 82, nacionalidade: "BR", idade: 34, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p102", nome: "Matheus Mendes",    posicao: "GOL", overall: 70, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p103", nome: "Mariano",           posicao: "LD",  overall: 73, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p104", nome: "Guga",              posicao: "LD",  overall: 69, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p105", nome: "Guilherme Arana",   posicao: "ZAG", overall: 77, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p106", nome: "Jemerson",          posicao: "ZAG", overall: 75, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p107", nome: "Igor Rabello",      posicao: "ZAG", overall: 73, nacionalidade: "PT", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p108", nome: "Guilherme",         posicao: "ZAG", overall: 71, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p109", nome: "Arana",             posicao: "LE",  overall: 80, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p110", nome: "Rubens",            posicao: "LE",  overall: 74, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p111", nome: "Otávio",            posicao: "VOL", overall: 78, nacionalidade: "PT", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p112", nome: "Battaglia",         posicao: "VOL", overall: 76, nacionalidade: "AR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p113", nome: "Fausto Vera",       posicao: "VOL", overall: 74, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p114", nome: "Paulinho",          posicao: "MEI", overall: 83, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p115", nome: "Bernard",           posicao: "MEI", overall: 78, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p116", nome: "Nacho Fernández",   posicao: "MEI", overall: 80, nacionalidade: "BR", idade: 31, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p117", nome: "Alan Kardec",       posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p118", nome: "Vargas",            posicao: "MEI", overall: 76, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p119", nome: "Hulk",              posicao: "ATA", overall: 81, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p120", nome: "Deyverson",         posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p121", nome: "Cadu",              posicao: "ATA", overall: 69, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p122", nome: "Rony",              posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p123", nome: "Eduardo Sasha",     posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p124", nome: "Pedrinho",          posicao: "ATA", overall: 67, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p125", nome: "Hyoran",            posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "internacional", tecnico_id: "t13", nome: "Internacional", sigla: "INT", cor: "#CC0000",
     jogadores: [
-      { id: "p126", nome: "Rochet",            posicao: "GOL", overall: 83 },
-      { id: "p127", nome: "Fabrício",          posicao: "GOL", overall: 70 },
-      { id: "p128", nome: "Bustos",            posicao: "LD",  overall: 74 },
-      { id: "p129", nome: "Bruno Gomes",       posicao: "LD",  overall: 68 },
-      { id: "p130", nome: "Vitão",             posicao: "ZAG", overall: 78 },
-      { id: "p131", nome: "Mercado",           posicao: "ZAG", overall: 75 },
-      { id: "p132", nome: "Clayton Sampaio",   posicao: "ZAG", overall: 70 },
-      { id: "p133", nome: "Igor Gomes",        posicao: "ZAG", overall: 67 },
-      { id: "p134", nome: "Renê",              posicao: "LE",  overall: 73 },
-      { id: "p135", nome: "Alexandro",         posicao: "LE",  overall: 67 },
-      { id: "p136", nome: "Rômulo",            posicao: "VOL", overall: 75 },
-      { id: "p137", nome: "Fernando",          posicao: "VOL", overall: 73 },
-      { id: "p138", nome: "Thiago Maia",       posicao: "VOL", overall: 72 },
-      { id: "p139", nome: "Alan Patrick",      posicao: "MEI", overall: 85 },
-      { id: "p140", nome: "Wesley",            posicao: "MEI", overall: 77 },
-      { id: "p141", nome: "Hyoran",            posicao: "MEI", overall: 69 },
-      { id: "p142", nome: "Mauricio",          posicao: "MEI", overall: 71 },
-      { id: "p143", nome: "Bruno Tabata",      posicao: "MEI", overall: 73 },
-      { id: "p144", nome: "Borré",             posicao: "ATA", overall: 82 },
-      { id: "p145", nome: "Valencia",          posicao: "ATA", overall: 78 },
-      { id: "p146", nome: "Wanderson",         posicao: "ATA", overall: 76 },
-      { id: "p147", nome: "Lucas Alario",      posicao: "ATA", overall: 73 },
-      { id: "p148", nome: "Gabriel Carvalho",  posicao: "ATA", overall: 68 },
-      { id: "p149", nome: "Gustavo Prado",     posicao: "ATA", overall: 65 },
-      { id: "p150", nome: "Pedro Henrique",    posicao: "ATA", overall: 66 },
+      { id: "p126", nome: "Rochet",            posicao: "GOL", overall: 83, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p127", nome: "Fabrício",          posicao: "GOL", overall: 70, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p128", nome: "Bustos",            posicao: "LD",  overall: 74, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p129", nome: "Bruno Gomes",       posicao: "LD",  overall: 68, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p130", nome: "Vitão",             posicao: "ZAG", overall: 78, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p131", nome: "Mercado",           posicao: "ZAG", overall: 75, nacionalidade: "BR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p132", nome: "Clayton Sampaio",   posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p133", nome: "Igor Gomes",        posicao: "ZAG", overall: 67, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p134", nome: "Renê",              posicao: "LE",  overall: 73, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p135", nome: "Alexandro",         posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p136", nome: "Rômulo",            posicao: "VOL", overall: 75, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p137", nome: "Fernando",          posicao: "VOL", overall: 73, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p138", nome: "Thiago Maia",       posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p139", nome: "Alan Patrick",      posicao: "MEI", overall: 85, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p140", nome: "Wesley",            posicao: "MEI", overall: 77, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p141", nome: "Hyoran",            posicao: "MEI", overall: 69, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p142", nome: "Mauricio",          posicao: "MEI", overall: 71, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p143", nome: "Bruno Tabata",      posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p144", nome: "Borré",             posicao: "ATA", overall: 82, nacionalidade: "CO", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p145", nome: "Valencia",          posicao: "ATA", overall: 78, nacionalidade: "EC", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p146", nome: "Wanderson",         posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p147", nome: "Lucas Alario",      posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p148", nome: "Gabriel Carvalho",  posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p149", nome: "Gustavo Prado",     posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p150", nome: "Pedro Henrique",    posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "gremio", tecnico_id: "t14", nome: "Grêmio", sigla: "GRE", cor: "#3B77BB",
     jogadores: [
-      { id: "p151", nome: "Marchesín",         posicao: "GOL", overall: 81 },
-      { id: "p152", nome: "Gabriel Grando",    posicao: "GOL", overall: 70 },
-      { id: "p153", nome: "João Pedro",        posicao: "LD",  overall: 72 },
-      { id: "p154", nome: "Fábio",             posicao: "LD",  overall: 67 },
-      { id: "p155", nome: "Geromel",           posicao: "ZAG", overall: 74 },
-      { id: "p156", nome: "Kannemann",         posicao: "ZAG", overall: 76 },
-      { id: "p157", nome: "Rodrigo Ely",       posicao: "ZAG", overall: 71 },
-      { id: "p158", nome: "Bruno Alves",       posicao: "ZAG", overall: 69 },
-      { id: "p159", nome: "Reinaldo",          posicao: "LE",  overall: 73 },
-      { id: "p160", nome: "Nicolas",           posicao: "LE",  overall: 67 },
-      { id: "p161", nome: "Dodi",              posicao: "VOL", overall: 75 },
-      { id: "p162", nome: "Villasanti",        posicao: "VOL", overall: 78 },
-      { id: "p163", nome: "Carballo",          posicao: "VOL", overall: 73 },
-      { id: "p164", nome: "Cristaldo",         posicao: "MEI", overall: 81 },
-      { id: "p165", nome: "Pepê",              posicao: "MEI", overall: 79 },
-      { id: "p166", nome: "Nathan",            posicao: "MEI", overall: 72 },
-      { id: "p167", nome: "Edenilson",         posicao: "MEI", overall: 74 },
-      { id: "p168", nome: "Du Queiroz",        posicao: "MEI", overall: 68 },
-      { id: "p169", nome: "Soteldo",           posicao: "ATA", overall: 80 },
-      { id: "p170", nome: "Braithwaite",       posicao: "ATA", overall: 79 },
-      { id: "p171", nome: "Diego Costa",       posicao: "ATA", overall: 77 },
-      { id: "p172", nome: "Gustavo Nunes",     posicao: "ATA", overall: 72 },
-      { id: "p173", nome: "André",             posicao: "ATA", overall: 68 },
-      { id: "p174", nome: "Everton",           posicao: "ATA", overall: 70 },
-      { id: "p175", nome: "JP Galvão",         posicao: "ATA", overall: 65 },
+      { id: "p151", nome: "Marchesín",         posicao: "GOL", overall: 81, nacionalidade: "AR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p152", nome: "Gabriel Grando",    posicao: "GOL", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p153", nome: "João Pedro",        posicao: "LD",  overall: 72, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p154", nome: "Fábio",             posicao: "LD",  overall: 67, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p155", nome: "Geromel",           posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p156", nome: "Kannemann",         posicao: "ZAG", overall: 76, nacionalidade: "AR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p157", nome: "Rodrigo Ely",       posicao: "ZAG", overall: 71, nacionalidade: "AR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p158", nome: "Bruno Alves",       posicao: "ZAG", overall: 69, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p159", nome: "Reinaldo",          posicao: "LE",  overall: 73, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p160", nome: "Nicolas",           posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p161", nome: "Dodi",              posicao: "VOL", overall: 75, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p162", nome: "Villasanti",        posicao: "VOL", overall: 78, nacionalidade: "AR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p163", nome: "Carballo",          posicao: "VOL", overall: 73, nacionalidade: "AR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p164", nome: "Cristaldo",         posicao: "MEI", overall: 81, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p165", nome: "Pepê",              posicao: "MEI", overall: 79, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p166", nome: "Nathan",            posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p167", nome: "Edenilson",         posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p168", nome: "Du Queiroz",        posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p169", nome: "Soteldo",           posicao: "ATA", overall: 80, nacionalidade: "VE", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p170", nome: "Braithwaite",       posicao: "ATA", overall: 79, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p171", nome: "Diego Costa",       posicao: "ATA", overall: 77, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p172", nome: "Gustavo Nunes",     posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p173", nome: "André",             posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p174", nome: "Everton",           posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p175", nome: "JP Galvão",         posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "botafogo", tecnico_id: "t05", nome: "Botafogo", sigla: "BOT", cor: "#1a1a1a",
     jogadores: [
-      { id: "p176", nome: "John",              posicao: "GOL", overall: 80 },
-      { id: "p177", nome: "Gatito",            posicao: "GOL", overall: 74 },
-      { id: "p178", nome: "Damián Suárez",     posicao: "LD",  overall: 75 },
-      { id: "p179", nome: "Rafael",            posicao: "LD",  overall: 68 },
-      { id: "p180", nome: "Alexander Barboza", posicao: "ZAG", overall: 78 },
-      { id: "p181", nome: "Bastos",            posicao: "ZAG", overall: 76 },
-      { id: "p182", nome: "Adryelson",         posicao: "ZAG", overall: 73 },
-      { id: "p183", nome: "Kanu",              posicao: "ZAG", overall: 70 },
-      { id: "p184", nome: "Marçal",            posicao: "LE",  overall: 74 },
-      { id: "p185", nome: "Hugo",              posicao: "LE",  overall: 68 },
-      { id: "p186", nome: "Gregore",           posicao: "VOL", overall: 76 },
-      { id: "p187", nome: "Marlon Freitas",    posicao: "VOL", overall: 79 },
-      { id: "p188", nome: "Danilo Barbosa",    posicao: "VOL", overall: 72 },
-      { id: "p189", nome: "Eduardo",           posicao: "MEI", overall: 75 },
-      { id: "p190", nome: "Tchê Tchê",         posicao: "MEI", overall: 74 },
-      { id: "p191", nome: "Luís Henrique",     posicao: "MEI", overall: 78 },
-      { id: "p192", nome: "Thiago Almada",     posicao: "MEI", overall: 82 },
-      { id: "p193", nome: "Luca Langoni",      posicao: "MEI", overall: 70 },
-      { id: "p194", nome: "Tiquinho",          posicao: "ATA", overall: 83 },
-      { id: "p195", nome: "Savarino",          posicao: "ATA", overall: 81 },
-      { id: "p196", nome: "Júnior Santos",     posicao: "ATA", overall: 78 },
-      { id: "p197", nome: "Matheus Nascimento",posicao: "ATA", overall: 74 },
-      { id: "p198", nome: "Carlos Alberto",    posicao: "ATA", overall: 68 },
-      { id: "p199", nome: "Pablo",             posicao: "ATA", overall: 66 },
-      { id: "p200", nome: "Victor Sá",         posicao: "ATA", overall: 72 },
+      { id: "p176", nome: "John",              posicao: "GOL", overall: 80, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p177", nome: "Gatito",            posicao: "GOL", overall: 74, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p178", nome: "Damián Suárez",     posicao: "LD",  overall: 75, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p179", nome: "Rafael",            posicao: "LD",  overall: 68, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p180", nome: "Alexander Barboza", posicao: "ZAG", overall: 78, nacionalidade: "UY", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p181", nome: "Bastos",            posicao: "ZAG", overall: 76, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p182", nome: "Adryelson",         posicao: "ZAG", overall: 73, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p183", nome: "Kanu",              posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p184", nome: "Marçal",            posicao: "LE",  overall: 74, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p185", nome: "Hugo",              posicao: "LE",  overall: 68, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p186", nome: "Gregore",           posicao: "VOL", overall: 76, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p187", nome: "Marlon Freitas",    posicao: "VOL", overall: 79, nacionalidade: "BR", idade: 31, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p188", nome: "Danilo Barbosa",    posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p189", nome: "Eduardo",           posicao: "MEI", overall: 75, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p190", nome: "Tchê Tchê",         posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p191", nome: "Luís Henrique",     posicao: "MEI", overall: 78, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p192", nome: "Thiago Almada",     posicao: "MEI", overall: 82, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p193", nome: "Luca Langoni",      posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p194", nome: "Tiquinho",          posicao: "ATA", overall: 83, nacionalidade: "BR", idade: 31, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p195", nome: "Savarino",          posicao: "ATA", overall: 81, nacionalidade: "VE", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p196", nome: "Júnior Santos",     posicao: "ATA", overall: 78, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p197", nome: "Matheus Nascimento",posicao: "ATA", overall: 74, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p198", nome: "Carlos Alberto",    posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p199", nome: "Pablo",             posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p200", nome: "Victor Sá",         posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "bahia", tecnico_id: "t09", nome: "Bahia", sigla: "BAH", cor: "#0066CC",
     jogadores: [
-      { id: "p201", nome: "Marcos Felipe",     posicao: "GOL", overall: 78 },
-      { id: "p202", nome: "Adriel",            posicao: "GOL", overall: 68 },
-      { id: "p203", nome: "Gilberto",          posicao: "LD",  overall: 72 },
-      { id: "p204", nome: "Cicinho",           posicao: "LD",  overall: 66 },
-      { id: "p205", nome: "Gabriel Xavier",    posicao: "ZAG", overall: 74 },
-      { id: "p206", nome: "Kanu",              posicao: "ZAG", overall: 72 },
-      { id: "p207", nome: "Victor Cuesta",     posicao: "ZAG", overall: 70 },
-      { id: "p208", nome: "David Duarte",      posicao: "ZAG", overall: 67 },
-      { id: "p209", nome: "Luciano Juba",      posicao: "LE",  overall: 73 },
-      { id: "p210", nome: "Iago",              posicao: "LE",  overall: 67 },
-      { id: "p211", nome: "Caio Alexandre",    posicao: "VOL", overall: 75 },
-      { id: "p212", nome: "Rezende",           posicao: "VOL", overall: 72 },
-      { id: "p213", nome: "Jean Lucas",        posicao: "VOL", overall: 73 },
-      { id: "p214", nome: "Éverton Ribeiro",   posicao: "MEI", overall: 80 },
-      { id: "p215", nome: "Cauly",             posicao: "MEI", overall: 78 },
-      { id: "p216", nome: "Thaciano",          posicao: "MEI", overall: 72 },
-      { id: "p217", nome: "Biel",              posicao: "MEI", overall: 74 },
-      { id: "p218", nome: "Ademir",            posicao: "MEI", overall: 70 },
-      { id: "p219", nome: "Everaldo",          posicao: "ATA", overall: 75 },
-      { id: "p220", nome: "Estupiñán",         posicao: "ATA", overall: 77 },
-      { id: "p221", nome: "Biel",              posicao: "ATA", overall: 73 },
-      { id: "p222", nome: "Raphael Veiga",     posicao: "ATA", overall: 68 },
-      { id: "p223", nome: "Ratinho",           posicao: "ATA", overall: 66 },
-      { id: "p224", nome: "Acevedo",           posicao: "ATA", overall: 70 },
-      { id: "p225", nome: "Osvaldo",           posicao: "ATA", overall: 65 },
+      { id: "p201", nome: "Marcos Felipe",     posicao: "GOL", overall: 78, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p202", nome: "Adriel",            posicao: "GOL", overall: 68, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p203", nome: "Gilberto",          posicao: "LD",  overall: 72, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p204", nome: "Cicinho",           posicao: "LD",  overall: 66, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p205", nome: "Gabriel Xavier",    posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p206", nome: "Kanu",              posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p207", nome: "Victor Cuesta",     posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p208", nome: "David Duarte",      posicao: "ZAG", overall: 67, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p209", nome: "Luciano Juba",      posicao: "LE",  overall: 73, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p210", nome: "Iago",              posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p211", nome: "Caio Alexandre",    posicao: "VOL", overall: 75, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p212", nome: "Rezende",           posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p213", nome: "Jean Lucas",        posicao: "VOL", overall: 73, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p214", nome: "Éverton Ribeiro",   posicao: "MEI", overall: 80, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p215", nome: "Cauly",             posicao: "MEI", overall: 78, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p216", nome: "Thaciano",          posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p217", nome: "Biel",              posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p218", nome: "Ademir",            posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p219", nome: "Everaldo",          posicao: "ATA", overall: 75, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p220", nome: "Estupiñán",         posicao: "ATA", overall: 77, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p221", nome: "Biel",              posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p222", nome: "Raphael Veiga",     posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p223", nome: "Ratinho",           posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p224", nome: "Acevedo",           posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p225", nome: "Osvaldo",           posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "fortaleza", tecnico_id: "t09", nome: "Fortaleza", sigla: "FOR", cor: "#0033A0",
     jogadores: [
-      { id: "p226", nome: "João Ricardo",      posicao: "GOL", overall: 80 },
-      { id: "p227", nome: "Magrão",            posicao: "GOL", overall: 68 },
-      { id: "p228", nome: "Tinga",             posicao: "LD",  overall: 74 },
-      { id: "p229", nome: "Dudu",              posicao: "LD",  overall: 67 },
-      { id: "p230", nome: "Titi",              posicao: "ZAG", overall: 77 },
-      { id: "p231", nome: "Brítez",            posicao: "ZAG", overall: 75 },
-      { id: "p232", nome: "Emanuel Brítez",    posicao: "ZAG", overall: 72 },
-      { id: "p233", nome: "Cardona",           posicao: "ZAG", overall: 68 },
-      { id: "p234", nome: "Felipe Jonatan",    posicao: "LE",  overall: 75 },
-      { id: "p235", nome: "Bruno Pacheco",     posicao: "LE",  overall: 69 },
-      { id: "p236", nome: "Hércules",          posicao: "VOL", overall: 76 },
-      { id: "p237", nome: "Pedro Augusto",     posicao: "VOL", overall: 73 },
-      { id: "p238", nome: "Zé Welison",        posicao: "VOL", overall: 72 },
-      { id: "p239", nome: "Pochettino",        posicao: "MEI", overall: 79 },
-      { id: "p240", nome: "Calebe",            posicao: "MEI", overall: 74 },
-      { id: "p241", nome: "Moisés",            posicao: "MEI", overall: 72 },
-      { id: "p242", nome: "Pikachu",           posicao: "MEI", overall: 70 },
-      { id: "p243", nome: "Marinho",           posicao: "MEI", overall: 73 },
-      { id: "p244", nome: "Lucero",            posicao: "ATA", overall: 81 },
-      { id: "p245", nome: "Moisés",            posicao: "ATA", overall: 75 },
-      { id: "p246", nome: "Renato Kayzer",     posicao: "ATA", overall: 73 },
-      { id: "p247", nome: "Silvio Romero",     posicao: "ATA", overall: 72 },
-      { id: "p248", nome: "Breno Lopes",       posicao: "ATA", overall: 68 },
-      { id: "p249", nome: "Pedro",             posicao: "ATA", overall: 66 },
-      { id: "p250", nome: "Yago Pikachu",      posicao: "ATA", overall: 71 },
+      { id: "p226", nome: "João Ricardo",      posicao: "GOL", overall: 80, nacionalidade: "BR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p227", nome: "Magrão",            posicao: "GOL", overall: 68, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p228", nome: "Tinga",             posicao: "LD",  overall: 74, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p229", nome: "Dudu",              posicao: "LD",  overall: 67, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p230", nome: "Titi",              posicao: "ZAG", overall: 77, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p231", nome: "Brítez",            posicao: "ZAG", overall: 75, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p232", nome: "Emanuel Brítez",    posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p233", nome: "Cardona",           posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p234", nome: "Felipe Jonatan",    posicao: "LE",  overall: 75, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p235", nome: "Bruno Pacheco",     posicao: "LE",  overall: 69, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p236", nome: "Hércules",          posicao: "VOL", overall: 76, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p237", nome: "Pedro Augusto",     posicao: "VOL", overall: 73, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p238", nome: "Zé Welison",        posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p239", nome: "Pochettino",        posicao: "MEI", overall: 79, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p240", nome: "Calebe",            posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p241", nome: "Moisés",            posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p242", nome: "Pikachu",           posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p243", nome: "Marinho",           posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p244", nome: "Lucero",            posicao: "ATA", overall: 81, nacionalidade: "AR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p245", nome: "Moisés",            posicao: "ATA", overall: 75, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p246", nome: "Renato Kayzer",     posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p247", nome: "Silvio Romero",     posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p248", nome: "Breno Lopes",       posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p249", nome: "Pedro",             posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p250", nome: "Yago Pikachu",      posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "cruzeiro", tecnico_id: "t07", nome: "Cruzeiro", sigla: "CRU", cor: "#0032A0",
     jogadores: [
-      { id: "p251", nome: "Anderson",          posicao: "GOL", overall: 77 },
-      { id: "p252", nome: "Rafael Cabral",     posicao: "GOL", overall: 72 },
-      { id: "p253", nome: "William",           posicao: "LD",  overall: 73 },
-      { id: "p254", nome: "Rafa Silva",        posicao: "LD",  overall: 67 },
-      { id: "p255", nome: "João Marcelo",      posicao: "ZAG", overall: 74 },
-      { id: "p256", nome: "Zé Ivaldo",         posicao: "ZAG", overall: 76 },
-      { id: "p257", nome: "Lucas Villalba",    posicao: "ZAG", overall: 71 },
-      { id: "p258", nome: "Neris",             posicao: "ZAG", overall: 68 },
-      { id: "p259", nome: "Marlon",            posicao: "LE",  overall: 74 },
-      { id: "p260", nome: "Kaiki",             posicao: "LE",  overall: 67 },
-      { id: "p261", nome: "Lucas Silva",       posicao: "VOL", overall: 75 },
-      { id: "p262", nome: "Walace",            posicao: "VOL", overall: 77 },
-      { id: "p263", nome: "Ramiro",            posicao: "VOL", overall: 70 },
-      { id: "p264", nome: "Matheus Pereira",   posicao: "MEI", overall: 84 },
-      { id: "p265", nome: "Lautaro Díaz",      posicao: "MEI", overall: 76 },
-      { id: "p266", nome: "Álvaro Barreal",    posicao: "MEI", overall: 74 },
-      { id: "p267", nome: "Ramón Soria",       posicao: "MEI", overall: 70 },
-      { id: "p268", nome: "Gabriel Veron",     posicao: "MEI", overall: 72 },
-      { id: "p269", nome: "Kaio Jorge",        posicao: "ATA", overall: 78 },
-      { id: "p270", nome: "Arthur Gomes",      posicao: "ATA", overall: 75 },
-      { id: "p271", nome: "Rafa Silva",        posicao: "ATA", overall: 73 },
-      { id: "p272", nome: "Juan Dinenno",      posicao: "ATA", overall: 71 },
-      { id: "p273", nome: "Wesley Gasolina",   posicao: "ATA", overall: 68 },
-      { id: "p274", nome: "Hernán",            posicao: "ATA", overall: 66 },
-      { id: "p275", nome: "Bruno José",        posicao: "ATA", overall: 67 },
+      { id: "p251", nome: "Anderson",          posicao: "GOL", overall: 77, nacionalidade: "BR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p252", nome: "Rafael Cabral",     posicao: "GOL", overall: 72, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p253", nome: "William",           posicao: "LD",  overall: 73, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p254", nome: "Rafa Silva",        posicao: "LD",  overall: 67, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p255", nome: "João Marcelo",      posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p256", nome: "Zé Ivaldo",         posicao: "ZAG", overall: 76, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p257", nome: "Lucas Villalba",    posicao: "ZAG", overall: 71, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p258", nome: "Neris",             posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p259", nome: "Marlon",            posicao: "LE",  overall: 74, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p260", nome: "Kaiki",             posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p261", nome: "Lucas Silva",       posicao: "VOL", overall: 75, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p262", nome: "Walace",            posicao: "VOL", overall: 77, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p263", nome: "Ramiro",            posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p264", nome: "Matheus Pereira",   posicao: "MEI", overall: 84, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p265", nome: "Lautaro Díaz",      posicao: "MEI", overall: 76, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p266", nome: "Álvaro Barreal",    posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p267", nome: "Ramón Soria",       posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p268", nome: "Gabriel Veron",     posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p269", nome: "Kaio Jorge",        posicao: "ATA", overall: 78, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p270", nome: "Arthur Gomes",      posicao: "ATA", overall: 75, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p271", nome: "Rafa Silva",        posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p272", nome: "Juan Dinenno",      posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p273", nome: "Wesley Gasolina",   posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p274", nome: "Hernán",            posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p275", nome: "Bruno José",        posicao: "ATA", overall: 67, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "fluminense", tecnico_id: "t17", nome: "Fluminense", sigla: "FLU", cor: "#6B0F1A",
     jogadores: [
-      { id: "p276", nome: "Fábio",             posicao: "GOL", overall: 82 },
-      { id: "p277", nome: "Vitor Eudes",       posicao: "GOL", overall: 68 },
-      { id: "p278", nome: "Samuel Xavier",     posicao: "LD",  overall: 74 },
-      { id: "p279", nome: "Guga",              posicao: "LD",  overall: 68 },
-      { id: "p280", nome: "Nino",              posicao: "ZAG", overall: 79 },
-      { id: "p281", nome: "Manoel",            posicao: "ZAG", overall: 74 },
-      { id: "p282", nome: "Felipe Melo",       posicao: "ZAG", overall: 72 },
-      { id: "p283", nome: "Antônio Carlos",    posicao: "ZAG", overall: 70 },
-      { id: "p284", nome: "Marcelo",           posicao: "LE",  overall: 77 },
-      { id: "p285", nome: "Diogo Barbosa",     posicao: "LE",  overall: 71 },
-      { id: "p286", nome: "André",             posicao: "VOL", overall: 83 },
-      { id: "p287", nome: "Martinelli",        posicao: "VOL", overall: 74 },
-      { id: "p288", nome: "Felipe Andrade",    posicao: "VOL", overall: 70 },
-      { id: "p289", nome: "Ganso",             posicao: "MEI", overall: 80 },
-      { id: "p290", nome: "Alexsander",        posicao: "MEI", overall: 74 },
-      { id: "p291", nome: "Kauã Elias",        posicao: "MEI", overall: 72 },
-      { id: "p292", nome: "Jhon Arias",        posicao: "MEI", overall: 82 },
-      { id: "p293", nome: "Marquinhos",        posicao: "MEI", overall: 73 },
-      { id: "p294", nome: "Germán Cano",       posicao: "ATA", overall: 84 },
-      { id: "p295", nome: "John Kennedy",      posicao: "ATA", overall: 76 },
-      { id: "p296", nome: "Lelê",              posicao: "ATA", overall: 72 },
-      { id: "p297", nome: "Lucca",             posicao: "ATA", overall: 68 },
-      { id: "p298", nome: "David Terans",      posicao: "ATA", overall: 74 },
-      { id: "p299", nome: "Serna",             posicao: "ATA", overall: 70 },
-      { id: "p300", nome: "Lima",              posicao: "ATA", overall: 66 },
+      { id: "p276", nome: "Fábio",             posicao: "GOL", overall: 82, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p277", nome: "Vitor Eudes",       posicao: "GOL", overall: 68, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p278", nome: "Samuel Xavier",     posicao: "LD",  overall: 74, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p279", nome: "Guga",              posicao: "LD",  overall: 68, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p280", nome: "Nino",              posicao: "ZAG", overall: 79, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p281", nome: "Manoel",            posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p282", nome: "Felipe Melo",       posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p283", nome: "Antônio Carlos",    posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p284", nome: "Marcelo",           posicao: "LE",  overall: 77, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p285", nome: "Diogo Barbosa",     posicao: "LE",  overall: 71, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p286", nome: "André",             posicao: "VOL", overall: 83, nacionalidade: "BR", idade: 32, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p287", nome: "Martinelli",        posicao: "VOL", overall: 74, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p288", nome: "Felipe Andrade",    posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p289", nome: "Ganso",             posicao: "MEI", overall: 80, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p290", nome: "Alexsander",        posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p291", nome: "Kauã Elias",        posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p292", nome: "Jhon Arias",        posicao: "MEI", overall: 82, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p293", nome: "Marquinhos",        posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p294", nome: "Germán Cano",       posicao: "ATA", overall: 84, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p295", nome: "John Kennedy",      posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p296", nome: "Lelê",              posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p297", nome: "Lucca",             posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p298", nome: "David Terans",      posicao: "ATA", overall: 74, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p299", nome: "Serna",             posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p300", nome: "Lima",              posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "vasco", tecnico_id: "t11", nome: "Vasco", sigla: "VAS", cor: "#000000",
     jogadores: [
-      { id: "p301", nome: "Léo Jardim",        posicao: "GOL", overall: 78 },
-      { id: "p302", nome: "Ivan",              posicao: "GOL", overall: 70 },
-      { id: "p303", nome: "Puma Rodríguez",    posicao: "LD",  overall: 73 },
-      { id: "p304", nome: "Paulo Henrique",    posicao: "LD",  overall: 66 },
-      { id: "p305", nome: "Maicon",            posicao: "ZAG", overall: 75 },
-      { id: "p306", nome: "João Victor",       posicao: "ZAG", overall: 74 },
-      { id: "p307", nome: "Léo",              posicao: "ZAG", overall: 72 },
-      { id: "p308", nome: "Medel",             posicao: "ZAG", overall: 73 },
-      { id: "p309", nome: "Lucas Piton",       posicao: "LE",  overall: 75 },
-      { id: "p310", nome: "Luan",              posicao: "LE",  overall: 67 },
-      { id: "p311", nome: "Hugo Moura",        posicao: "VOL", overall: 73 },
-      { id: "p312", nome: "Jair",              posicao: "VOL", overall: 74 },
-      { id: "p313", nome: "Matheus Carvalho",  posicao: "VOL", overall: 70 },
-      { id: "p314", nome: "Payet",             posicao: "MEI", overall: 82 },
-      { id: "p315", nome: "Praxedes",          posicao: "MEI", overall: 74 },
-      { id: "p316", nome: "Rayan",             posicao: "MEI", overall: 72 },
-      { id: "p317", nome: "GB",               posicao: "MEI", overall: 70 },
-      { id: "p318", nome: "Adson",             posicao: "MEI", overall: 71 },
-      { id: "p319", nome: "Vegetti",           posicao: "ATA", overall: 81 },
-      { id: "p320", nome: "David",             posicao: "ATA", overall: 77 },
-      { id: "p321", nome: "Rossi",             posicao: "ATA", overall: 74 },
-      { id: "p322", nome: "Jean David",        posicao: "ATA", overall: 70 },
-      { id: "p323", nome: "Alex Teixeira",     posicao: "ATA", overall: 72 },
-      { id: "p324", nome: "Emerson Rodríguez", posicao: "ATA", overall: 68 },
-      { id: "p325", nome: "Guilherme Estrella",posicao: "ATA", overall: 65 },
+      { id: "p301", nome: "Léo Jardim",        posicao: "GOL", overall: 78, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p302", nome: "Ivan",              posicao: "GOL", overall: 70, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p303", nome: "Puma Rodríguez",    posicao: "LD",  overall: 73, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p304", nome: "Paulo Henrique",    posicao: "LD",  overall: 66, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p305", nome: "Maicon",            posicao: "ZAG", overall: 75, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p306", nome: "João Victor",       posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p307", nome: "Léo",              posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p308", nome: "Medel",             posicao: "ZAG", overall: 73, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p309", nome: "Lucas Piton",       posicao: "LE",  overall: 75, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p310", nome: "Luan",              posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p311", nome: "Hugo Moura",        posicao: "VOL", overall: 73, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p312", nome: "Jair",              posicao: "VOL", overall: 74, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p313", nome: "Matheus Carvalho",  posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p314", nome: "Payet",             posicao: "MEI", overall: 82, nacionalidade: "FR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p315", nome: "Praxedes",          posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p316", nome: "Rayan",             posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p317", nome: "GB",               posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p318", nome: "Adson",             posicao: "MEI", overall: 71, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p319", nome: "Vegetti",           posicao: "ATA", overall: 81, nacionalidade: "AR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p320", nome: "David",             posicao: "ATA", overall: 77, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p321", nome: "Rossi",             posicao: "ATA", overall: 74, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p322", nome: "Jean David",        posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p323", nome: "Alex Teixeira",     posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p324", nome: "Emerson Rodríguez", posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p325", nome: "Guilherme Estrella",posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "atleticopr", tecnico_id: "t03", nome: "Athletico-PR", sigla: "CAP", cor: "#CC0000",
     jogadores: [
-      { id: "p326", nome: "Bento",             posicao: "GOL", overall: 84 },
-      { id: "p327", nome: "Mycael",            posicao: "GOL", overall: 70 },
-      { id: "p328", nome: "Khellven",          posicao: "LD",  overall: 72 },
-      { id: "p329", nome: "Erick",             posicao: "LD",  overall: 67 },
-      { id: "p330", nome: "Thiago Heleno",     posicao: "ZAG", overall: 76 },
-      { id: "p331", nome: "Matheus Felipe",    posicao: "ZAG", overall: 73 },
-      { id: "p332", nome: "Kaique Rocha",      posicao: "ZAG", overall: 74 },
-      { id: "p333", nome: "Lucas Fasson",      posicao: "ZAG", overall: 68 },
-      { id: "p334", nome: "Abner",             posicao: "LE",  overall: 74 },
-      { id: "p335", nome: "Fernando",          posicao: "LE",  overall: 67 },
-      { id: "p336", nome: "João Schmidt",      posicao: "VOL", overall: 77 },
-      { id: "p337", nome: "Fernandinho",       posicao: "VOL", overall: 79 },
-      { id: "p338", nome: "Erick",             posicao: "VOL", overall: 73 },
-      { id: "p339", nome: "Canobbio",          posicao: "MEI", overall: 78 },
-      { id: "p340", nome: "Zapelli",           posicao: "MEI", overall: 73 },
-      { id: "p341", nome: "Cuello",            posicao: "MEI", overall: 75 },
-      { id: "p342", nome: "Terans",            posicao: "MEI", overall: 74 },
-      { id: "p343", nome: "Christian",         posicao: "MEI", overall: 72 },
-      { id: "p344", nome: "Pablo",             posicao: "ATA", overall: 79 },
-      { id: "p345", nome: "Vitor Roque",       posicao: "ATA", overall: 80 },
-      { id: "p346", nome: "Julimar",           posicao: "ATA", overall: 71 },
-      { id: "p347", nome: "Di Yorio",          posicao: "ATA", overall: 69 },
-      { id: "p348", nome: "Mastriani",         posicao: "ATA", overall: 68 },
-      { id: "p349", nome: "Rômulo",            posicao: "ATA", overall: 66 },
-      { id: "p350", nome: "Vitinho",           posicao: "ATA", overall: 70 },
+      { id: "p326", nome: "Bento",             posicao: "GOL", overall: 84, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p327", nome: "Mycael",            posicao: "GOL", overall: 70, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p328", nome: "Khellven",          posicao: "LD",  overall: 72, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p329", nome: "Erick",             posicao: "LD",  overall: 67, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p330", nome: "Thiago Heleno",     posicao: "ZAG", overall: 76, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p331", nome: "Matheus Felipe",    posicao: "ZAG", overall: 73, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p332", nome: "Kaique Rocha",      posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p333", nome: "Lucas Fasson",      posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p334", nome: "Abner",             posicao: "LE",  overall: 74, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p335", nome: "Fernando",          posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p336", nome: "João Schmidt",      posicao: "VOL", overall: 77, nacionalidade: "BR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p337", nome: "Fernandinho",       posicao: "VOL", overall: 79, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p338", nome: "Erick",             posicao: "VOL", overall: 73, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p339", nome: "Canobbio",          posicao: "MEI", overall: 78, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p340", nome: "Zapelli",           posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p341", nome: "Cuello",            posicao: "MEI", overall: 75, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p342", nome: "Terans",            posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p343", nome: "Christian",         posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p344", nome: "Pablo",             posicao: "ATA", overall: 79, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p345", nome: "Vitor Roque",       posicao: "ATA", overall: 80, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p346", nome: "Julimar",           posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p347", nome: "Di Yorio",          posicao: "ATA", overall: 69, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p348", nome: "Mastriani",         posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p349", nome: "Rômulo",            posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p350", nome: "Vitinho",           posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "rbbragantino", tecnico_id: "t08", nome: "RB Bragantino", sigla: "RBB", cor: "#CC0000",
     jogadores: [
-      { id: "p351", nome: "Cleiton",           posicao: "GOL", overall: 82 },
-      { id: "p352", nome: "Lucão",             posicao: "GOL", overall: 68 },
-      { id: "p353", nome: "Andrés Hurtado",    posicao: "LD",  overall: 72 },
-      { id: "p354", nome: "Aderlan",           posicao: "LD",  overall: 69 },
-      { id: "p355", nome: "Léo Ortiz",         posicao: "ZAG", overall: 78 },
-      { id: "p356", nome: "Eduardo Santos",    posicao: "ZAG", overall: 74 },
-      { id: "p357", nome: "Natan",             posicao: "ZAG", overall: 72 },
-      { id: "p358", nome: "Luan Cândido",      posicao: "ZAG", overall: 70 },
-      { id: "p359", nome: "Guilherme Lopes",   posicao: "LE",  overall: 73 },
-      { id: "p360", nome: "Juninho Capixaba",  posicao: "LE",  overall: 69 },
-      { id: "p361", nome: "Jadsom",            posicao: "VOL", overall: 74 },
-      { id: "p362", nome: "Eric Ramires",      posicao: "VOL", overall: 76 },
-      { id: "p363", nome: "Raul",              posicao: "VOL", overall: 72 },
-      { id: "p364", nome: "Matheus Fernandes", posicao: "MEI", overall: 75 },
-      { id: "p365", nome: "Lincoln",           posicao: "MEI", overall: 73 },
-      { id: "p366", nome: "Jhon Jhon",         posicao: "MEI", overall: 77 },
-      { id: "p367", nome: "Vitinho",           posicao: "MEI", overall: 74 },
-      { id: "p368", nome: "Praxedes",          posicao: "MEI", overall: 70 },
-      { id: "p369", nome: "Helinho",           posicao: "ATA", overall: 76 },
-      { id: "p370", nome: "Thiago Borbas",     posicao: "ATA", overall: 78 },
-      { id: "p371", nome: "Eduardo Sasha",     posicao: "ATA", overall: 74 },
-      { id: "p372", nome: "Hyoran",            posicao: "ATA", overall: 70 },
-      { id: "p373", nome: "Mosquito",          posicao: "ATA", overall: 72 },
-      { id: "p374", nome: "Laquintana",        posicao: "ATA", overall: 68 },
-      { id: "p375", nome: "Lucas Evangelista", posicao: "ATA", overall: 66 },
+      { id: "p351", nome: "Cleiton",           posicao: "GOL", overall: 82, nacionalidade: "BR", idade: 33, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p352", nome: "Lucão",             posicao: "GOL", overall: 68, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p353", nome: "Andrés Hurtado",    posicao: "LD",  overall: 72, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p354", nome: "Aderlan",           posicao: "LD",  overall: 69, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p355", nome: "Léo Ortiz",         posicao: "ZAG", overall: 78, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p356", nome: "Eduardo Santos",    posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p357", nome: "Natan",             posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p358", nome: "Luan Cândido",      posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p359", nome: "Guilherme Lopes",   posicao: "LE",  overall: 73, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p360", nome: "Juninho Capixaba",  posicao: "LE",  overall: 69, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p361", nome: "Jadsom",            posicao: "VOL", overall: 74, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p362", nome: "Eric Ramires",      posicao: "VOL", overall: 76, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p363", nome: "Raul",              posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p364", nome: "Matheus Fernandes", posicao: "MEI", overall: 75, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p365", nome: "Lincoln",           posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p366", nome: "Jhon Jhon",         posicao: "MEI", overall: 77, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p367", nome: "Vitinho",           posicao: "MEI", overall: 74, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p368", nome: "Praxedes",          posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p369", nome: "Helinho",           posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p370", nome: "Thiago Borbas",     posicao: "ATA", overall: 78, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p371", nome: "Eduardo Sasha",     posicao: "ATA", overall: 74, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p372", nome: "Hyoran",            posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p373", nome: "Mosquito",          posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p374", nome: "Laquintana",        posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p375", nome: "Lucas Evangelista", posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "cuiaba", tecnico_id: "t15", nome: "Cuiabá", sigla: "CUI", cor: "#FFD700",
     jogadores: [
-      { id: "p376", nome: "Walter",            posicao: "GOL", overall: 74 },
-      { id: "p377", nome: "João Carlos",       posicao: "GOL", overall: 65 },
-      { id: "p378", nome: "Daniel Guedes",     posicao: "LD",  overall: 69 },
-      { id: "p379", nome: "Matheus Alexandre", posicao: "LD",  overall: 64 },
-      { id: "p380", nome: "Marllon",           posicao: "ZAG", overall: 71 },
-      { id: "p381", nome: "Alan Empereur",     posicao: "ZAG", overall: 70 },
-      { id: "p382", nome: "Joaquim",           posicao: "ZAG", overall: 68 },
-      { id: "p383", nome: "Filipe Augusto",    posicao: "ZAG", overall: 65 },
-      { id: "p384", nome: "Rikelme",           posicao: "LE",  overall: 69 },
-      { id: "p385", nome: "Ênio",              posicao: "LE",  overall: 64 },
-      { id: "p386", nome: "Camilo",            posicao: "VOL", overall: 72 },
-      { id: "p387", nome: "Denílson",          posicao: "VOL", overall: 69 },
-      { id: "p388", nome: "Pepê",              posicao: "VOL", overall: 67 },
-      { id: "p389", nome: "Max",               posicao: "MEI", overall: 71 },
-      { id: "p390", nome: "Jonathan Cafu",     posicao: "MEI", overall: 73 },
-      { id: "p391", nome: "Clayson",           posicao: "MEI", overall: 70 },
-      { id: "p392", nome: "Gabriel Pirani",    posicao: "MEI", overall: 68 },
-      { id: "p393", nome: "Derik Lacerda",     posicao: "MEI", overall: 67 },
-      { id: "p394", nome: "Elton",             posicao: "ATA", overall: 72 },
-      { id: "p395", nome: "André Luís",        posicao: "ATA", overall: 70 },
-      { id: "p396", nome: "Isidro Pitta",      posicao: "ATA", overall: 71 },
-      { id: "p397", nome: "Jonathan",          posicao: "ATA", overall: 67 },
-      { id: "p398", nome: "Clayson",           posicao: "ATA", overall: 66 },
-      { id: "p399", nome: "Valdívia",          posicao: "ATA", overall: 65 },
-      { id: "p400", nome: "Alesson",           posicao: "ATA", overall: 64 },
+      { id: "p376", nome: "Walter",            posicao: "GOL", overall: 74, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p377", nome: "João Carlos",       posicao: "GOL", overall: 65, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p378", nome: "Daniel Guedes",     posicao: "LD",  overall: 69, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p379", nome: "Matheus Alexandre", posicao: "LD",  overall: 64, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p380", nome: "Marllon",           posicao: "ZAG", overall: 71, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p381", nome: "Alan Empereur",     posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p382", nome: "Joaquim",           posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p383", nome: "Filipe Augusto",    posicao: "ZAG", overall: 65, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p384", nome: "Rikelme",           posicao: "LE",  overall: 69, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p385", nome: "Ênio",              posicao: "LE",  overall: 64, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p386", nome: "Camilo",            posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p387", nome: "Denílson",          posicao: "VOL", overall: 69, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p388", nome: "Pepê",              posicao: "VOL", overall: 67, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p389", nome: "Max",               posicao: "MEI", overall: 71, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p390", nome: "Jonathan Cafu",     posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p391", nome: "Clayson",           posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p392", nome: "Gabriel Pirani",    posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p393", nome: "Derik Lacerda",     posicao: "MEI", overall: 67, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p394", nome: "Elton",             posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p395", nome: "André Luís",        posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p396", nome: "Isidro Pitta",      posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p397", nome: "Jonathan",          posicao: "ATA", overall: 67, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p398", nome: "Clayson",           posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p399", nome: "Valdívia",          posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p400", nome: "Alesson",           posicao: "ATA", overall: 64, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "juventude", tecnico_id: "t19", nome: "Juventude", sigla: "JUV", cor: "#006400",
     jogadores: [
-      { id: "p401", nome: "Gabriel",           posicao: "GOL", overall: 73 },
-      { id: "p402", nome: "Marcelo Carné",     posicao: "GOL", overall: 64 },
-      { id: "p403", nome: "Ewerthon",          posicao: "LD",  overall: 68 },
-      { id: "p404", nome: "João Paulo",        posicao: "LD",  overall: 63 },
-      { id: "p405", nome: "Danilo Boza",       posicao: "ZAG", overall: 71 },
-      { id: "p406", nome: "Rodrigo Sam",       posicao: "ZAG", overall: 69 },
-      { id: "p407", nome: "Zé Marcos",         posicao: "ZAG", overall: 67 },
-      { id: "p408", nome: "Alan",              posicao: "ZAG", overall: 64 },
-      { id: "p409", nome: "Alan Ruschel",      posicao: "LE",  overall: 68 },
-      { id: "p410", nome: "Felipinho",         posicao: "LE",  overall: 62 },
-      { id: "p411", nome: "Caíque",            posicao: "VOL", overall: 70 },
-      { id: "p412", nome: "Jean Carlos",       posicao: "VOL", overall: 67 },
-      { id: "p413", nome: "Jadson",            posicao: "VOL", overall: 65 },
-      { id: "p414", nome: "Mandaca",           posicao: "MEI", overall: 72 },
-      { id: "p415", nome: "Óscar Ruíz",        posicao: "MEI", overall: 70 },
-      { id: "p416", nome: "Paulo Henrique",    posicao: "MEI", overall: 68 },
-      { id: "p417", nome: "Lucas Barbosa",     posicao: "MEI", overall: 67 },
-      { id: "p418", nome: "Marcelinho",        posicao: "MEI", overall: 65 },
-      { id: "p419", nome: "Gilberto",          posicao: "ATA", overall: 73 },
-      { id: "p420", nome: "Erick Farias",      posicao: "ATA", overall: 70 },
-      { id: "p421", nome: "Lucas Barbosa",     posicao: "ATA", overall: 68 },
-      { id: "p422", nome: "Sorriso",           posicao: "ATA", overall: 66 },
-      { id: "p423", nome: "Edson Cariús",      posicao: "ATA", overall: 65 },
-      { id: "p424", nome: "Batalla",           posicao: "ATA", overall: 67 },
-      { id: "p425", nome: "Nenê",              posicao: "ATA", overall: 63 },
+      { id: "p401", nome: "Gabriel",           posicao: "GOL", overall: 73, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p402", nome: "Marcelo Carné",     posicao: "GOL", overall: 64, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p403", nome: "Ewerthon",          posicao: "LD",  overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p404", nome: "João Paulo",        posicao: "LD",  overall: 63, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p405", nome: "Danilo Boza",       posicao: "ZAG", overall: 71, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p406", nome: "Rodrigo Sam",       posicao: "ZAG", overall: 69, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p407", nome: "Zé Marcos",         posicao: "ZAG", overall: 67, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p408", nome: "Alan",              posicao: "ZAG", overall: 64, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p409", nome: "Alan Ruschel",      posicao: "LE",  overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p410", nome: "Felipinho",         posicao: "LE",  overall: 62, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p411", nome: "Caíque",            posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p412", nome: "Jean Carlos",       posicao: "VOL", overall: 67, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p413", nome: "Jadson",            posicao: "VOL", overall: 65, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p414", nome: "Mandaca",           posicao: "MEI", overall: 72, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p415", nome: "Óscar Ruíz",        posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p416", nome: "Paulo Henrique",    posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p417", nome: "Lucas Barbosa",     posicao: "MEI", overall: 67, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p418", nome: "Marcelinho",        posicao: "MEI", overall: 65, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p419", nome: "Gilberto",          posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p420", nome: "Erick Farias",      posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p421", nome: "Lucas Barbosa",     posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p422", nome: "Sorriso",           posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p423", nome: "Edson Cariús",      posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p424", nome: "Batalla",           posicao: "ATA", overall: 67, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p425", nome: "Nenê",              posicao: "ATA", overall: 63, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "goias", tecnico_id: "t16", nome: "Goiás", sigla: "GOI", cor: "#006400",
     jogadores: [
-      { id: "p426", nome: "Tadeu",             posicao: "GOL", overall: 75 },
-      { id: "p427", nome: "Jefferson",         posicao: "GOL", overall: 65 },
-      { id: "p428", nome: "Maguinho",          posicao: "LD",  overall: 69 },
-      { id: "p429", nome: "Diego",             posicao: "LD",  overall: 64 },
-      { id: "p430", nome: "Reynaldo",          posicao: "ZAG", overall: 72 },
-      { id: "p431", nome: "Lucas Halter",      posicao: "ZAG", overall: 70 },
-      { id: "p432", nome: "Sidnei",            posicao: "ZAG", overall: 68 },
-      { id: "p433", nome: "Da Silva",          posicao: "ZAG", overall: 65 },
-      { id: "p434", nome: "Hugo",              posicao: "LE",  overall: 69 },
-      { id: "p435", nome: "Sander",            posicao: "LE",  overall: 64 },
-      { id: "p436", nome: "Auremir",           posicao: "VOL", overall: 72 },
-      { id: "p437", nome: "Fellipe Bastos",    posicao: "VOL", overall: 70 },
-      { id: "p438", nome: "Matheuzinho",       posicao: "VOL", overall: 67 },
-      { id: "p439", nome: "Élvis",             posicao: "MEI", overall: 73 },
-      { id: "p440", nome: "Vinícius",          posicao: "MEI", overall: 70 },
-      { id: "p441", nome: "Matheus Sales",     posicao: "MEI", overall: 68 },
-      { id: "p442", nome: "Diego",             posicao: "MEI", overall: 66 },
-      { id: "p443", nome: "Pedro Raul",        posicao: "MEI", overall: 70 },
-      { id: "p444", nome: "Vitor",             posicao: "ATA", overall: 72 },
-      { id: "p445", nome: "Nicolas",           posicao: "ATA", overall: 71 },
-      { id: "p446", nome: "Dadá Belmonte",     posicao: "ATA", overall: 70 },
-      { id: "p447", nome: "Guilherme",         posicao: "ATA", overall: 68 },
-      { id: "p448", nome: "Paulo Baya",        posicao: "ATA", overall: 66 },
-      { id: "p449", nome: "Marcão",            posicao: "ATA", overall: 65 },
-      { id: "p450", nome: "Luan Dias",         posicao: "ATA", overall: 63 },
+      { id: "p426", nome: "Tadeu",             posicao: "GOL", overall: 75, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p427", nome: "Jefferson",         posicao: "GOL", overall: 65, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p428", nome: "Maguinho",          posicao: "LD",  overall: 69, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p429", nome: "Diego",             posicao: "LD",  overall: 64, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p430", nome: "Reynaldo",          posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p431", nome: "Lucas Halter",      posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p432", nome: "Sidnei",            posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p433", nome: "Da Silva",          posicao: "ZAG", overall: 65, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p434", nome: "Hugo",              posicao: "LE",  overall: 69, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p435", nome: "Sander",            posicao: "LE",  overall: 64, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p436", nome: "Auremir",           posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p437", nome: "Fellipe Bastos",    posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p438", nome: "Matheuzinho",       posicao: "VOL", overall: 67, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p439", nome: "Élvis",             posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p440", nome: "Vinícius",          posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p441", nome: "Matheus Sales",     posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p442", nome: "Diego",             posicao: "MEI", overall: 66, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p443", nome: "Pedro Raul",        posicao: "MEI", overall: 70, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p444", nome: "Vitor",             posicao: "ATA", overall: 72, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p445", nome: "Nicolas",           posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p446", nome: "Dadá Belmonte",     posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p447", nome: "Guilherme",         posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p448", nome: "Paulo Baya",        posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p449", nome: "Marcão",            posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p450", nome: "Luan Dias",         posicao: "ATA", overall: 63, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "coritiba", tecnico_id: "t18", nome: "Coritiba", sigla: "CFC", cor: "#006400",
     jogadores: [
-      { id: "p451", nome: "Gabriel",           posicao: "GOL", overall: 72 },
-      { id: "p452", nome: "Wilson",            posicao: "GOL", overall: 64 },
-      { id: "p453", nome: "Natanael",          posicao: "LD",  overall: 68 },
-      { id: "p454", nome: "Diogo",             posicao: "LD",  overall: 62 },
-      { id: "p455", nome: "Thalisson Kelven",  posicao: "ZAG", overall: 70 },
-      { id: "p456", nome: "Henrique",          posicao: "ZAG", overall: 68 },
-      { id: "p457", nome: "Chancellor",        posicao: "ZAG", overall: 67 },
-      { id: "p458", nome: "Bruno Méndez",      posicao: "ZAG", overall: 65 },
-      { id: "p459", nome: "Rodrigo Gelado",    posicao: "LE",  overall: 68 },
-      { id: "p460", nome: "Jamerson",          posicao: "LE",  overall: 63 },
-      { id: "p461", nome: "Willian Farias",    posicao: "VOL", overall: 70 },
-      { id: "p462", nome: "Val",               posicao: "VOL", overall: 67 },
-      { id: "p463", nome: "Régis",             posicao: "VOL", overall: 65 },
-      { id: "p464", nome: "Alef Manga",        posicao: "MEI", overall: 73 },
-      { id: "p465", nome: "Léo Passos",        posicao: "MEI", overall: 69 },
-      { id: "p466", nome: "Robinho",           posicao: "MEI", overall: 67 },
-      { id: "p467", nome: "Cavallini",         posicao: "MEI", overall: 65 },
-      { id: "p468", nome: "Larsson",           posicao: "MEI", overall: 64 },
-      { id: "p469", nome: "Júnior Brumado",    posicao: "ATA", overall: 71 },
-      { id: "p470", nome: "Fabrício Daniel",   posicao: "ATA", overall: 69 },
-      { id: "p471", nome: "Alef Manga",        posicao: "ATA", overall: 68 },
-      { id: "p472", nome: "Valentín Depietri", posicao: "ATA", overall: 67 },
-      { id: "p473", nome: "Léo Gamalho",       posicao: "ATA", overall: 66 },
-      { id: "p474", nome: "Andrey",            posicao: "ATA", overall: 64 },
-      { id: "p475", nome: "Igor Paixão",       posicao: "ATA", overall: 63 },
+      { id: "p451", nome: "Gabriel",           posicao: "GOL", overall: 72, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p452", nome: "Wilson",            posicao: "GOL", overall: 64, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p453", nome: "Natanael",          posicao: "LD",  overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p454", nome: "Diogo",             posicao: "LD",  overall: 62, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p455", nome: "Thalisson Kelven",  posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p456", nome: "Henrique",          posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p457", nome: "Chancellor",        posicao: "ZAG", overall: 67, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p458", nome: "Bruno Méndez",      posicao: "ZAG", overall: 65, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p459", nome: "Rodrigo Gelado",    posicao: "LE",  overall: 68, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p460", nome: "Jamerson",          posicao: "LE",  overall: 63, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p461", nome: "Willian Farias",    posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p462", nome: "Val",               posicao: "VOL", overall: 67, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p463", nome: "Régis",             posicao: "VOL", overall: 65, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p464", nome: "Alef Manga",        posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p465", nome: "Léo Passos",        posicao: "MEI", overall: 69, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p466", nome: "Robinho",           posicao: "MEI", overall: 67, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p467", nome: "Cavallini",         posicao: "MEI", overall: 65, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p468", nome: "Larsson",           posicao: "MEI", overall: 64, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p469", nome: "Júnior Brumado",    posicao: "ATA", overall: 71, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p470", nome: "Fabrício Daniel",   posicao: "ATA", overall: 69, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p471", nome: "Alef Manga",        posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p472", nome: "Valentín Depietri", posicao: "ATA", overall: 67, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p473", nome: "Léo Gamalho",       posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p474", nome: "Andrey",            posicao: "ATA", overall: 64, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p475", nome: "Igor Paixão",       posicao: "ATA", overall: 63, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   },
   {
     id: "santos", tecnico_id: "t20", nome: "Santos", sigla: "SAN", cor: "#000000",
     jogadores: [
-      { id: "p476", nome: "João Paulo",        posicao: "GOL", overall: 79 },
-      { id: "p477", nome: "Vladimir",          posicao: "GOL", overall: 68 },
-      { id: "p478", nome: "Pará",              posicao: "LD",  overall: 71 },
-      { id: "p479", nome: "Madson",            posicao: "LD",  overall: 66 },
-      { id: "p480", nome: "Maicon",            posicao: "ZAG", overall: 74 },
-      { id: "p481", nome: "Messias",           posicao: "ZAG", overall: 72 },
-      { id: "p482", nome: "Alex",              posicao: "ZAG", overall: 70 },
-      { id: "p483", nome: "Eduardo Bauermann", posicao: "ZAG", overall: 68 },
-      { id: "p484", nome: "Felipe Jonatan",    posicao: "LE",  overall: 73 },
-      { id: "p485", nome: "Dodô",              posicao: "LE",  overall: 67 },
-      { id: "p486", nome: "Rodrigo Fernández", posicao: "VOL", overall: 74 },
-      { id: "p487", nome: "João Basso",        posicao: "VOL", overall: 70 },
-      { id: "p488", nome: "Camacho",           posicao: "VOL", overall: 72 },
-      { id: "p489", nome: "Soteldo",           posicao: "MEI", overall: 79 },
-      { id: "p490", nome: "Lucas Lima",        posicao: "MEI", overall: 73 },
-      { id: "p491", nome: "Carlos Sánchez",    posicao: "MEI", overall: 71 },
-      { id: "p492", nome: "Ivonei",            posicao: "MEI", overall: 68 },
-      { id: "p493", nome: "Rwan",              posicao: "MEI", overall: 66 },
-      { id: "p494", nome: "Marcos Leonardo",   posicao: "ATA", overall: 80 },
-      { id: "p495", nome: "Morelos",           posicao: "ATA", overall: 76 },
-      { id: "p496", nome: "Deivid Washington", posicao: "ATA", overall: 73 },
-      { id: "p497", nome: "Angelo",            posicao: "ATA", overall: 70 },
-      { id: "p498", nome: "Rwan",              posicao: "ATA", overall: 66 },
-      { id: "p499", nome: "Bruno Oliveira",    posicao: "ATA", overall: 65 },
-      { id: "p500", nome: "Sandry",            posicao: "ATA", overall: 68 },
+      { id: "p476", nome: "João Paulo",        posicao: "GOL", overall: 79, nacionalidade: "BR", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p477", nome: "Vladimir",          posicao: "GOL", overall: 68, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p478", nome: "Pará",              posicao: "LD",  overall: 71, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p479", nome: "Madson",            posicao: "LD",  overall: 66, nacionalidade: "BR", idade: 24, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p480", nome: "Maicon",            posicao: "ZAG", overall: 74, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p481", nome: "Messias",           posicao: "ZAG", overall: 72, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p482", nome: "Alex",              posicao: "ZAG", overall: 70, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p483", nome: "Eduardo Bauermann", posicao: "ZAG", overall: 68, nacionalidade: "BR", idade: 30, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p484", nome: "Felipe Jonatan",    posicao: "LE",  overall: 73, nacionalidade: "BR", idade: 22, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p485", nome: "Dodô",              posicao: "LE",  overall: 67, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p486", nome: "Rodrigo Fernández", posicao: "VOL", overall: 74, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p487", nome: "João Basso",        posicao: "VOL", overall: 70, nacionalidade: "BR", idade: 25, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p488", nome: "Camacho",           posicao: "VOL", overall: 72, nacionalidade: "BR", idade: 28, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p489", nome: "Soteldo",           posicao: "MEI", overall: 79, nacionalidade: "VE", idade: 26, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p490", nome: "Lucas Lima",        posicao: "MEI", overall: 73, nacionalidade: "BR", idade: 27, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p491", nome: "Carlos Sánchez",    posicao: "MEI", overall: 71, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p492", nome: "Ivonei",            posicao: "MEI", overall: 68, nacionalidade: "BR", idade: 20, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p493", nome: "Rwan",              posicao: "MEI", overall: 66, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p494", nome: "Marcos Leonardo",   posicao: "ATA", overall: 80, nacionalidade: "BR", idade: 21, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p495", nome: "Morelos",           posicao: "ATA", overall: 76, nacionalidade: "BR", idade: 31, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p496", nome: "Deivid Washington", posicao: "ATA", overall: 73, nacionalidade: "BR", idade: 29, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p497", nome: "Angelo",            posicao: "ATA", overall: 70, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p498", nome: "Rwan",              posicao: "ATA", overall: 66, nacionalidade: "BR", idade: 23, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p499", nome: "Bruno Oliveira",    posicao: "ATA", overall: 65, nacionalidade: "BR", idade: 18, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
+      { id: "p500", nome: "Sandry",            posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   }
 ];</script>
@@ -2426,6 +2542,7 @@ function avancarEvento() {
   var ev = estado.eventos[estado.eventoAtual];
   processarEvento(ev);
 
+  salvarJogo();
   if (ev.tipo === TIPO_EVENTO.JOGO) {
     renderTelaJogo(ev.rodada);
   } else {
@@ -2473,6 +2590,163 @@ function inicializarCalendario() {
 function adicionarNoticia(texto, rodada) {
   estado.noticias = estado.noticias || [];
   estado.noticias.push({ texto: texto, rodada: rodada });
+}</script>
+  <script>// ════════════════════════════════════════
+// SISTEMA DE SAVE — localStorage
+// ════════════════════════════════════════
+var SAVE_KEY = "managerfc_save";
+
+function salvarJogo() {
+  try {
+    var save = {
+      versao: 1,
+      timestamp: Date.now(),
+      manager: estado.manager,
+      meuClubeId: estado.meuClube ? estado.meuClube.id : null,
+      meuTecnicoId: estado.meuTecnico ? estado.meuTecnico.id : null,
+      rodadaAtual: estado.rodadaAtual,
+      eventoAtual: estado.eventoAtual,
+      resultados: estado.resultados,
+      inbox: estado.inbox || [],
+      noticias: estado.noticias || [],
+      feedNoticias: estado.feedNoticias || [],
+      baixas: estado.baixas || [],
+      calView: calView,
+      // Dados financeiros dos clubes
+      clubesBudget: CLUBES.map(function(c) {
+        return { id: c.id, budget: c.budget };
+      }),
+      // Jogadores transferidos (mudanças de clube)
+      transferencias: coletarTransferencias(),
+      // Contratos e valores dos jogadores do meu clube
+      jogadoresMeuClube: estado.meuClube ? estado.meuClube.jogadores.map(function(j) {
+        return {
+          id: j.id, clube_id: j.clube_id,
+          valor_mercado: j.valor_mercado, salario: j.salario,
+          clausula_rescisoria: j.clausula_rescisoria,
+          contrato_termino: j.contrato_termino
+        };
+      }) : []
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
+  } catch(e) {
+    console.error("Erro ao salvar:", e);
+    return false;
+  }
+}
+
+// Coleta todos os jogadores que mudaram de clube
+function coletarTransferencias() {
+  var result = [];
+  CLUBES.forEach(function(clube) {
+    clube.jogadores.forEach(function(j) {
+      if (j.clube_id && j.clube_id !== clube.id) {
+        result.push({ jogadorId: j.id, clubeAtualId: clube.id });
+      }
+    });
+  });
+  return result;
+}
+
+function temSave() {
+  return !!localStorage.getItem(SAVE_KEY);
+}
+
+function carregarJogo() {
+  try {
+    var raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    var save = JSON.parse(raw);
+    if (!save || save.versao !== 1) return false;
+
+    // Restaurar estado básico
+    estado.manager      = save.manager;
+    estado.rodadaAtual  = save.rodadaAtual;
+    estado.eventoAtual  = save.eventoAtual || 0;
+    estado.resultados   = save.resultados || [];
+    estado.inbox        = save.inbox || [];
+    estado.noticias     = save.noticias || [];
+    estado.feedNoticias = save.feedNoticias || [];
+    estado.baixas       = save.baixas || [];
+
+    // Restaurar calView
+    if (save.calView) {
+      calView.mes = save.calView.mes;
+      calView.ano = save.calView.ano;
+    }
+
+    // Restaurar clube e técnico
+    estado.meuClube  = CLUBES.find(function(c) { return c.id === save.meuClubeId; });
+    estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === save.meuTecnicoId; });
+
+    if (!estado.meuClube || !estado.meuTecnico) return false;
+
+    // Restaurar budgets
+    if (save.clubesBudget) {
+      save.clubesBudget.forEach(function(cb) {
+        var clube = CLUBES.find(function(c) { return c.id === cb.id; });
+        if (clube) clube.budget = cb.budget;
+      });
+    }
+
+    // Restaurar dados financeiros dos jogadores do meu clube
+    if (save.jogadoresMeuClube) {
+      save.jogadoresMeuClube.forEach(function(sj) {
+        var j = estado.meuClube.jogadores.find(function(x) { return x.id === sj.id; });
+        if (j) {
+          j.clube_id            = sj.clube_id;
+          j.valor_mercado       = sj.valor_mercado;
+          j.salario             = sj.salario;
+          j.clausula_rescisoria = sj.clausula_rescisoria;
+          j.contrato_termino    = sj.contrato_termino;
+        }
+      });
+    }
+
+    // Reconstruir calendário
+    estado.calendario = gerarCalendario(CLUBES);
+
+    // Reconstruir eventos (não serializa funções, então regenera)
+    estado.eventos = gerarEventos();
+
+    // Marcar eventos já processados
+    for (var i = 0; i <= estado.eventoAtual; i++) {
+      if (estado.eventos[i]) estado.eventos[i].processado = true;
+    }
+
+    return true;
+  } catch(e) {
+    console.error("Erro ao carregar save:", e);
+    return false;
+  }
+}
+
+function apagarSave() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+function formatarTimestamp(ts) {
+  var d = new Date(ts);
+  var dia  = d.getDate().toString().padStart(2, "0");
+  var mes  = (d.getMonth() + 1).toString().padStart(2, "0");
+  var hora = d.getHours().toString().padStart(2, "0");
+  var min  = d.getMinutes().toString().padStart(2, "0");
+  return dia + "/" + mes + "/" + d.getFullYear() + " às " + hora + ":" + min;
+}
+
+function infoSave() {
+  try {
+    var raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    var save = JSON.parse(raw);
+    return {
+      manager: save.manager ? save.manager.nome : "?",
+      clube: save.meuClubeId || "?",
+      rodada: save.rodadaAtual || 0,
+      timestamp: save.timestamp ? formatarTimestamp(save.timestamp) : "?"
+    };
+  } catch(e) { return null; }
 }</script>
   <script>// ════════════════════════════════════════
 // TELA DE JOGO — aparece quando chega numa rodada
@@ -2674,16 +2948,17 @@ function renderDashboard() {
   html += '</div>';
   html += '<div class="temporada-progress"><div class="temporada-bar" style="width:' + progPct + '%"></div></div>';
 
-  // Grid 3x2: linha 1 = Calendário + Próximos eventos + Inbox
   var naoLidas = contarNaoLidas();
-  html += '<div class="dash-grid-3col">';
+
+  // Linha 1: Calendário (1.2fr) + Próximos eventos (1fr) + Inbox (1fr)
+  html += '<div class="dash-grid-top2">';
   html += '<div class="dash-card"><div class="dash-card-titulo">📅 Calendário</div>' + renderCalendarioVisual() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">🗓 Próximos eventos</div>' + renderProximosEventos() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">✉️ Inbox ' + (naoLidas > 0 ? '<span class="inbox-badge">' + naoLidas + '</span>' : '') + '</div>' + renderInboxPreview() + '</div>';
   html += '</div>';
 
-  // Linha 2: Jogos + Tabela + Notícias
-  html += '<div class="dash-grid-3col">';
+  // Linha 2: Jogos (1.2fr) + Tabela (1fr) + Notícias (1fr)
+  html += '<div class="dash-grid-top2">';
   html += '<div class="dash-card"><div class="dash-card-titulo">⚽ Jogos — <span style="font-size:11px;color:var(--text2)">C=Casa · F=Fora</span></div>' + renderJogosCard() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">📊 Classificação</div>' + renderMiniTabela() + '</div>';
   html += '<div class="dash-card"><div class="dash-card-titulo">📰 Notícias</div>' + renderNoticias() + '</div>';
@@ -2823,7 +3098,7 @@ function renderProximosEventos() {
   var eventos = estado.eventos;
   var proximos = [];
 
-  for (var i = atual + 1; i < eventos.length && proximos.length < 6; i++) {
+  for (var i = atual + 1; i < eventos.length && proximos.length < 5; i++) {
     proximos.push({ ev: eventos[i], idx: i });
   }
 
@@ -3026,32 +3301,72 @@ document.addEventListener("DOMContentLoaded", () => {
 // ── Tela 1: Criar manager ──
 function renderCriarManager() {
   ocultarNav();
+  var info = infoSave();
+  var saveBlocoHTML = "";
+
+  if (info) {
+    var nomeClube = (CLUBES.find(function(c) { return c.id === info.clube; }) || {}).nome || info.clube;
+    saveBlocoHTML =
+      '<div class="save-encontrado">' +
+        '<div class="save-titulo">💾 Jogo salvo encontrado</div>' +
+        '<div class="save-detalhe">Manager: <strong>' + info.manager + '</strong></div>' +
+        '<div class="save-detalhe">Clube: <strong>' + nomeClube + '</strong> · Rodada ' + info.rodada + '</div>' +
+        '<div class="save-detalhe" style="color:var(--text2);font-size:11px">Salvo em: ' + info.timestamp + '</div>' +
+        '<button class="btn-primario" style="width:100%;margin-top:12px" onclick="continuarJogo()">▶ Continuar jogo</button>' +
+        '<button class="btn-novo-jogo" onclick="confirmarNovoJogo()">Novo jogo</button>' +
+      '</div>';
+  }
+
   document.getElementById("main").innerHTML =
     '<div class="tela-intro">' +
       '<div class="intro-card">' +
         '<div class="intro-logo">⚽</div>' +
         '<h2>Manager FC</h2>' +
-        '<p class="intro-sub">Crie seu perfil para começar</p>' +
-        '<div class="form-group">' +
-          '<label>Seu nome</label>' +
-          '<input type="text" id="inp-nome" placeholder="Ex: Danilo" maxlength="30" />' +
-        '</div>' +
-        '<div class="form-group">' +
-          '<label>Nacionalidade</label>' +
-          '<select id="inp-nac">' +
-            '<option value="BR">🇧🇷 Brasileiro</option>' +
-            '<option value="PT">🇵🇹 Português</option>' +
-            '<option value="AR">🇦🇷 Argentino</option>' +
-            '<option value="ES">🇪🇸 Espanhol</option>' +
-            '<option value="IT">🇮🇹 Italiano</option>' +
-            '<option value="DE">🇩🇪 Alemão</option>' +
-            '<option value="FR">🇫🇷 Francês</option>' +
-            '<option value="EN">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglês</option>' +
-          '</select>' +
-        '</div>' +
-        '<button class="btn-primario" onclick="criarManager()">Criar perfil</button>' +
+        (info ? saveBlocoHTML :
+          '<p class="intro-sub">Crie seu perfil para começar</p>' +
+          '<div class="form-group">' +
+            '<label>Seu nome</label>' +
+            '<input type="text" id="inp-nome" placeholder="Ex: Danilo" maxlength="30" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label>Nacionalidade</label>' +
+            '<select id="inp-nac">' +
+              '<option value="BR">🇧🇷 Brasileiro</option>' +
+              '<option value="PT">🇵🇹 Português</option>' +
+              '<option value="AR">🇦🇷 Argentino</option>' +
+              '<option value="ES">🇪🇸 Espanhol</option>' +
+              '<option value="IT">🇮🇹 Italiano</option>' +
+              '<option value="DE">🇩🇪 Alemão</option>' +
+              '<option value="FR">🇫🇷 Francês</option>' +
+              '<option value="EN">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglês</option>' +
+            '</select>' +
+          '</div>' +
+          '<button class="btn-primario" onclick="criarManager()">Criar perfil</button>'
+        ) +
       '</div>' +
     '</div>';
+}
+
+function continuarJogo() {
+  inicializarFinancas();
+  var ok = carregarJogo();
+  if (!ok) { alert("Erro ao carregar o save. Iniciando novo jogo."); apagarSave(); location.reload(); return; }
+  document.getElementById("header-clube").textContent   = estado.meuClube.nome;
+  document.getElementById("header-manager").textContent = estado.manager.nome;
+  document.getElementById("header-tecnico").textContent = estado.meuTecnico.nome;
+  var el = document.getElementById("sidebar-manager-nome"); if (el) el.textContent = estado.manager.nome;
+  var ec = document.getElementById("sidebar-clube-nome");   if (ec) ec.textContent = estado.meuClube.nome;
+  var et = document.getElementById("sidebar-tecnico-nome"); if (et) et.textContent = estado.meuTecnico.nome;
+  var sb = document.getElementById("sidebar-info-block");   if (sb) sb.classList.remove("hidden");
+  mostrarNav();
+  renderDashboard();
+}
+
+function confirmarNovoJogo() {
+  if (confirm("Tem certeza? O jogo salvo será apagado.")) {
+    apagarSave();
+    location.reload();
+  }
 }
 
 function criarManager() {
@@ -3109,6 +3424,7 @@ function iniciarJogo() {
   if (sb) sb.classList.remove("hidden");
   mostrarNav();
   inicializarCalendario();
+  salvarJogo();
   renderDashboard();
 }
 
@@ -3121,40 +3437,109 @@ function navegarPara(aba) {
 }
 
 // ── Aba: Elenco ──
+var elencoOrdem = { col: 'posicao', asc: true };
+
 function renderElenco() {
   var clube   = estado.meuClube;
   var tecnico = estado.meuTecnico;
   var stats   = calcularForca(clube, tecnico);
   var ordemPos = { GOL: 0, LD: 1, ZAG: 2, LE: 3, VOL: 4, MEI: 5, ATA: 6 };
+
   var jogadores = clube.jogadores.slice().sort(function(a, b) {
-    return (ordemPos[a.posicao] - ordemPos[b.posicao]) || (b.overall - a.overall);
+    var col = elencoOrdem.col;
+    var va, vb;
+    if (col === 'posicao') { va = ordemPos[a.posicao] || 0; vb = ordemPos[b.posicao] || 0; }
+    else if (col === 'nome') { va = a.nome; vb = b.nome; }
+    else if (col === 'overall') { va = a.overall; vb = b.overall; }
+    else if (col === 'idade') { va = a.idade || 0; vb = b.idade || 0; }
+    else if (col === 'jogos') { va = (a.stats||{}).jogos||0; vb = (b.stats||{}).jogos||0; }
+    else if (col === 'gols') { va = (a.stats||{}).gols||0; vb = (b.stats||{}).gols||0; }
+    else if (col === 'assistencias') { va = (a.stats||{}).assistencias||0; vb = (b.stats||{}).assistencias||0; }
+    else if (col === 'nota') { va = (a.stats||{}).nota_media||0; vb = (b.stats||{}).nota_media||0; }
+    else if (col === 'contrato') { va = a.contrato_termino||0; vb = b.contrato_termino||0; }
+    else if (col === 'salario') { va = a.salario||0; vb = b.salario||0; }
+    else if (col === 'valor') { va = a.valor_mercado||0; vb = b.valor_mercado||0; }
+    else { va = 0; vb = 0; }
+    if (va < vb) return elencoOrdem.asc ? -1 : 1;
+    if (va > vb) return elencoOrdem.asc ? 1 : -1;
+    return ordemPos[a.posicao] - ordemPos[b.posicao];
   });
 
-  var html = '<div class="stats-grid">';
+  // Cards de força
+  var html = '<div class="stats-grid" style="margin-bottom:20px">';
   html += '<div class="stat-card"><div class="stat-valor" style="color:var(--accent)">' + stats.forca + '</div><div class="stat-label">Força c/ técnico</div></div>';
   var sinal = stats.bonusFormacao >= 0 ? '+' : '';
   var corBonus = stats.bonusFormacao >= 0 ? 'overall-alto' : 'overall-baixo';
   html += '<div class="stat-card"><div class="stat-valor ' + corBonus + '">' + sinal + stats.bonusFormacao + '</div><div class="stat-label">Encaixe ' + stats.formacao + '</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.gol) + '</div><div class="stat-label">GOL</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.ld)  + '</div><div class="stat-label">LD</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.zag) + '</div><div class="stat-label">ZAG</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.le)  + '</div><div class="stat-label">LE</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.vol) + '</div><div class="stat-label">VOL</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.mei) + '</div><div class="stat-label">MEI</div></div>';
-  html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats.ata) + '</div><div class="stat-label">ATA</div></div>';
-  html += '</div>';
-
-  html += '<p class="secao-titulo mt16">Elenco — ' + clube.nome + '</p>';
-  html += '<div class="lista-jogadores">';
-  jogadores.forEach(function(j) {
-    html += '<div class="item-jogador">';
-    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
-    html += '<span class="jogador-nome">' + j.nome + '</span>';
-    html += '<span class="overall-badge ' + overallClasse(j.overall) + '">' + j.overall + '</span>';
-    html += '</div>';
+  ['gol','ld','zag','le','vol','mei','ata'].forEach(function(s) {
+    html += '<div class="stat-card"><div class="stat-valor">' + Math.round(stats[s]) + '</div><div class="stat-label">' + s.toUpperCase() + '</div></div>';
   });
   html += '</div>';
+
+  // Tabela de elenco
+  html += '<div class="elenco-tabela-wrap">';
+  html += '<table class="elenco-tabela">';
+
+  // Header com ordenação
+  var cols = [
+    { key: 'posicao',     label: 'Pos' },
+    { key: 'nome',        label: 'Jogador' },
+    { key: 'overall',     label: 'OVR' },
+    { key: 'nota',        label: 'Nota' },
+    { key: 'jogos',       label: 'J' },
+    { key: 'gols',        label: 'G' },
+    { key: 'assistencias',label: 'A' },
+    { key: 'idade',       label: 'Idade' },
+    { key: 'contrato',    label: 'Contrato' },
+    { key: 'salario',     label: 'Salário' },
+    { key: 'valor',       label: 'Valor' }
+  ];
+
+  html += '<thead><tr>';
+  cols.forEach(function(c) {
+    var ativo = elencoOrdem.col === c.key;
+    var seta  = ativo ? (elencoOrdem.asc ? ' ↑' : ' ↓') : '';
+    html += '<th onclick="ordenarElenco(\'' + c.key + '\')" class="' + (ativo ? 'col-ativa' : '') + '">' + c.label + seta + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  var flags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
+
+  jogadores.forEach(function(j) {
+    var s    = j.stats || { jogos:0, gols:0, assistencias:0, nota_media:0 };
+    var nota = s.jogos > 0 ? s.nota_media.toFixed(1) : '-';
+    var flag = flags[j.nacionalidade] || '🌍';
+    var rodadasRestantes = (j.contrato_termino || 0) - estado.rodadaAtual;
+    var contratoLabel = rodadasRestantes > 0 ? 'Rod. ' + j.contrato_termino : '<span style="color:var(--red)">Vencido</span>';
+    var corContrato   = rodadasRestantes <= 5 ? 'color:var(--yellow)' : '';
+
+    html += '<tr>';
+    html += '<td><span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span></td>';
+    html += '<td class="col-nome"><span class="flag-jogador">' + flag + '</span>' + j.nome + '</td>';
+    html += '<td class="col-centro ' + overallClasse(j.overall) + '">' + j.overall + '</td>';
+    html += '<td class="col-centro">' + nota + '</td>';
+    html += '<td class="col-centro">' + s.jogos + '</td>';
+    html += '<td class="col-centro">' + s.gols + '</td>';
+    html += '<td class="col-centro">' + s.assistencias + '</td>';
+    html += '<td class="col-centro">' + (j.idade || '-') + '</td>';
+    html += '<td class="col-centro" style="' + corContrato + '">' + contratoLabel + '</td>';
+    html += '<td class="col-centro">' + formatarDinheiro(j.salario || 0) + '</td>';
+    html += '<td class="col-centro">' + formatarDinheiro(j.valor_mercado || 0) + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
   document.getElementById("main").innerHTML = html;
+}
+
+function ordenarElenco(col) {
+  if (elencoOrdem.col === col) {
+    elencoOrdem.asc = !elencoOrdem.asc;
+  } else {
+    elencoOrdem.col = col;
+    elencoOrdem.asc = col === 'nome';
+  }
+  renderElenco();
 }
 
 // ── Aba: Staff ──
@@ -3319,6 +3704,7 @@ function simularRodada(idx) {
 
   estado.rodadaAtual = idx + 1;
   processarMercadoRodada(idx);
+  salvarJogo();
   renderCampeonato();
   var proxima = document.getElementById("rodada-" + (idx + 1));
   if (proxima) proxima.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -3712,6 +4098,23 @@ function processarMercadoRodada(rodadaIdx) {
   // Receita de bilheteria
   processarReceitaRodada(rodadaIdx);
 }</script>
-  <script>inicializarFinancas();</script>
+  <script>
+    inicializarFinancas();
+    function salvarManual() {
+      var ok = salvarJogo();
+      var btn = document.getElementById("btn-salvar");
+      if (btn) {
+        btn.textContent = ok ? "✅ Salvo!" : "❌ Erro";
+        btn.classList.add("salvo");
+        setTimeout(function() { btn.textContent = "💾 Salvar jogo"; btn.classList.remove("salvo"); }, 2000);
+      }
+    }
+    var _origMostrarNav = mostrarNav;
+    mostrarNav = function() {
+      _origMostrarNav();
+      var btn = document.getElementById("btn-salvar");
+      if (btn) btn.classList.remove("hidden");
+    };
+  </script>
 </body>
 </html>
