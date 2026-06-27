@@ -1099,7 +1099,41 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 .proximo-ev-data { font-size: 11px; color: var(--text2); margin-top: 2px; }
 
 /* Baixas em largura total */
-.dash-card-full { grid-column: 1 / -1; }</style>
+.dash-card-full { grid-column: 1 / -1; }
+
+/* ── Grids do dashboard ── */
+.dash-grid-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dash-grid-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dash-card-full-row {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* Jogos em linha horizontal quando card é largo */
+.dash-card-full-row .jogos-lista {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+}
+
+.dash-card-full-row .jogos-secao-titulo {
+  grid-column: 1 / -1;
+}</style>
 </head>
 <body>
   <div id="app">
