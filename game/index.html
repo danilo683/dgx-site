@@ -3071,6 +3071,8 @@ function iniciarJogo() {
   if (ec) ec.textContent = estado.meuClube.nome;
   var et = document.getElementById("sidebar-tecnico-nome");
   if (et) et.textContent = estado.meuTecnico.nome;
+  var sb = document.getElementById("sidebar-info-block");
+  if (sb) sb.classList.remove("hidden");
   mostrarNav();
   inicializarCalendario();
   renderDashboard();
@@ -3676,14 +3678,6 @@ function processarMercadoRodada(rodadaIdx) {
   // Receita de bilheteria
   processarReceitaRodada(rodadaIdx);
 }</script>
-  <script>
-    inicializarFinancas();
-    var _origIniciarJogo = iniciarJogo;
-    function iniciarJogo() {
-      _origIniciarJogo();
-      var sb = document.getElementById("sidebar-info-block");
-      if (sb) sb.classList.remove("hidden");
-    }
-  </script>
+  <script>inicializarFinancas();</script>
 </body>
 </html>
