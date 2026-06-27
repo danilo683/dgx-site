@@ -905,7 +905,137 @@ main { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 }
 .noticia-dash:last-child { border-bottom: none; }
 .noticia-dash-texto { color: var(--text); }
-.noticia-dash-rodada { font-size: 11px; color: var(--text2); margin-top: 3px; }</style>
+.noticia-dash-rodada { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+/* ── Calendário visual ── */
+.cal-visual { display: flex; flex-direction: column; gap: 8px; }
+
+.cal-mes-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.cal-mes-nome { font-size: 13px; font-weight: 600; }
+.cal-mes-btn {
+  background: none; border: 1px solid var(--border); color: var(--text);
+  width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-mes-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.cal-dias-semana {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  text-align: center; font-size: 10px; color: var(--text2);
+  margin-bottom: 4px;
+}
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+
+.cal-dia {
+  aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; cursor: pointer;
+  font-size: 11px; position: relative; transition: background .1s;
+  padding: 2px 0;
+}
+.cal-dia:hover:not(.vazio) { background: var(--bg3); }
+.cal-dia.vazio { cursor: default; }
+.cal-dia.cal-dia-atual {
+  background: var(--accent); color: #fff; font-weight: 700;
+}
+.cal-dia.tem-evento:not(.cal-dia-atual) { background: rgba(79,142,247,.08); }
+
+.cal-dia-num { font-size: 11px; line-height: 1; }
+.cal-dots { display: flex; gap: 2px; margin-top: 2px; }
+.cal-ev-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+
+.cal-legenda {
+  display: flex; gap: 10px; font-size: 10px; color: var(--text2);
+  margin-top: 4px;
+}
+.cal-legenda span { display: flex; align-items: center; gap: 4px; }
+
+/* ── Tela de jogo ── */
+.tela-jogo {
+  max-width: 600px; margin: 0 auto; padding: 8px 0;
+}
+.jogo-screen-header {
+  text-align: center; margin-bottom: 24px;
+}
+.jogo-screen-rodada {
+  font-size: 13px; color: var(--text2); font-weight: 500;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+.jogo-confronto {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 20px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px 20px;
+}
+.jogo-time { text-align: center; flex: 1; }
+.jogo-escudo {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px; color: #fff;
+  margin: 0 auto 10px;
+}
+.jogo-time-nome { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.jogo-mando-tag { font-size: 11px; color: var(--accent); }
+.jogo-forca-tag { font-size: 11px; color: var(--text2); }
+.jogo-vs { font-size: 28px; font-weight: 700; color: var(--text2); flex-shrink: 0; }
+
+.jogo-prestats {
+  display: flex; justify-content: space-around;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 16px;
+}
+.prestat { text-align: center; }
+.prestat-val { font-size: 20px; font-weight: 700; }
+.prestat-label { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+.outros-jogos {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 20px;
+}
+.outros-jogos-titulo { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+.outro-jogo {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+}
+.outro-jogo:last-child { border-bottom: none; }
+.outro-time { flex: 1; }
+.outro-time:last-child { text-align: right; }
+.outro-vs { color: var(--text2); font-size: 11px; }
+
+.jogo-acoes { text-align: center; }
+.btn-simular-grande {
+  background: var(--accent); color: #fff; border: none;
+  padding: 14px 40px; border-radius: 12px; font-size: 16px;
+  font-weight: 700; cursor: pointer; transition: opacity .15s;
+  width: 100%;
+}
+.btn-simular-grande:hover { opacity: .85; }
+
+/* ── Tela de resultado ── */
+.tela-resultado { max-width: 600px; margin: 0 auto; }
+.resultado-titulo {
+  font-size: 16px; font-weight: 600; margin-bottom: 16px; text-align: center;
+}
+.resultados-lista { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+.resultado-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 8px;
+  background: var(--bg2); border: 1px solid var(--border); font-size: 13px;
+}
+.resultado-item.resultado-meu { border-color: var(--accent); }
+.res-time { flex: 1; font-size: 12px; }
+.res-time.direita { text-align: right; }
+.res-placar { font-weight: 700; font-size: 15px; min-width: 48px; text-align: center; }
+.resultado-tabela-titulo { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+
+/* ── Dashboard topbar ── */
+.dash-topbar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+}</style>
 </head>
 <body>
   <div id="app">
@@ -1971,63 +2101,100 @@ function gerarCalendario(clubes) {
   }
   return rodadas;
 }</script>
-  <script>// ── Tipos de evento ──
+  <script>// ── Configuração de datas ──
+var DATA_INICIO = new Date(2025, 3, 13); // 13 abril 2025
+
+function dataRodada(rodadaIdx) {
+  // Rodadas às quartas (3) e domingos (0), alternando
+  // Rodada 0 = domingo 13/abr, rodada 1 = quarta 16/abr...
+  var d = new Date(DATA_INICIO);
+  d.setDate(d.getDate() + rodadaIdx * 3 + Math.floor(rodadaIdx / 2));
+  return d;
+}
+
+function formatarData(d) {
+  var dias = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  var meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  return dias[d.getDay()] + " " + d.getDate() + "/" + meses[d.getMonth()];
+}
+
+function formatarDataCompleta(d) {
+  var meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  return d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear();
+}
+
+// ── Tipos de evento ──
 var TIPO_EVENTO = {
-  JOGO:              "jogo",
-  JANELA_ABRE:       "janela_abre",
-  JANELA_FECHA:      "janela_fecha",
-  FIM_CONTRATO:      "fim_contrato",
-  NOTICIA:           "noticia",
-  MENSAGEM:          "mensagem"
+  JOGO:          "jogo",
+  JANELA_ABRE:   "janela_abre",
+  JANELA_FECHA:  "janela_fecha",
+  FIM_CONTRATO:  "fim_contrato",
+  MENSAGEM:      "mensagem",
+  NOTICIA:       "noticia"
 };
 
-// ── Gerar lista de eventos da temporada ──
+// ── Gerar eventos da temporada ──
 function gerarEventos() {
   var eventos = [];
 
-  // Jogos (38 rodadas)
+  // Jogos
   estado.calendario.forEach(function(rodada, idx) {
+    var data = dataRodada(idx);
     eventos.push({
       id: "jogo_" + idx,
       tipo: TIPO_EVENTO.JOGO,
       rodada: idx,
+      data: data,
       titulo: "Rodada " + rodada.numero,
+      subtitulo: formatarData(data),
       icone: "⚽",
       processado: false
     });
   });
 
-  // Janelas de mercado
+  // Janelas
   JANELAS.forEach(function(j) {
+    var dataAbre  = dataRodada(j.inicio - 1);
+    var dataFecha = dataRodada(j.fim);
+    dataAbre.setDate(dataAbre.getDate() - 1);
+    dataFecha.setDate(dataFecha.getDate() + 1);
+
     eventos.push({
       id: "janela_abre_" + j.inicio,
       tipo: TIPO_EVENTO.JANELA_ABRE,
-      rodada: j.inicio - 0.5, // aparece antes da rodada
+      rodada: j.inicio - 0.5,
+      data: dataAbre,
       titulo: j.nome + " aberta",
-      descricao: "O mercado de transferências está aberto até a rodada " + j.fim,
+      subtitulo: formatarData(dataAbre),
+      descricao: "O mercado de transferências abre. Você tem até a rodada " + j.fim + " para negociar.",
       icone: "🟢",
       processado: false
     });
     eventos.push({
       id: "janela_fecha_" + j.fim,
       tipo: TIPO_EVENTO.JANELA_FECHA,
-      rodada: j.fim + 0.5, // aparece após a rodada
+      rodada: j.fim + 0.5,
+      data: dataFecha,
       titulo: j.nome + " encerrada",
+      subtitulo: formatarData(dataFecha),
       descricao: "A janela de transferências foi fechada.",
       icone: "🔴",
       processado: false
     });
   });
 
-  // Fim de contrato dos jogadores do meu clube
+  // Fim de contrato
   estado.meuClube.jogadores.forEach(function(j) {
-    if (j.contrato_termino <= 38) {
+    if (j.contrato_termino > 0 && j.contrato_termino <= 38) {
+      var dataAviso = dataRodada(Math.max(0, j.contrato_termino - 3));
       eventos.push({
         id: "contrato_" + j.id,
         tipo: TIPO_EVENTO.FIM_CONTRATO,
-        rodada: j.contrato_termino - 3, // avisa 3 rodadas antes
+        rodada: j.contrato_termino - 3,
+        data: dataAviso,
         titulo: "Contrato prestes a vencer",
-        descricao: j.nome + " (" + j.posicao + " " + j.overall + ") tem contrato até a rodada " + j.contrato_termino + ". Renove ou perca o jogador de graça.",
+        subtitulo: formatarData(dataAviso),
+        descricao: j.nome + " (" + j.posicao + " · " + j.overall + ") tem contrato até a rodada " + j.contrato_termino + ". Renove ou perca o jogador de graça.",
         icone: "📋",
         jogadorId: j.id,
         processado: false
@@ -2035,203 +2202,364 @@ function gerarEventos() {
     }
   });
 
-  // Mensagens iniciais do jogo
-  var mensagensIniciais = [
-    {
-      rodada: 0.1,
-      remetente: "Diretoria",
-      assunto: "Bem-vindo ao clube!",
-      texto: "Olá, manager! A diretoria está entusiasmada com sua chegada. Temos grandes expectativas para esta temporada. Conte com nosso apoio.",
-      icone: "✉️"
-    },
-    {
-      rodada: 0.2,
-      remetente: "Técnico",
-      assunto: "Plantel à disposição",
-      texto: "Olá! Já analisei o elenco. Temos bons jogadores mas precisamos ficar atentos ao mercado. Vamos juntos!",
-      icone: "✉️"
-    }
+  // Mensagens iniciais
+  var msgs = [
+    { rodada: -0.2, remetente: "Diretoria", titulo: "Bem-vindo ao clube!", texto: "Olá, manager! A diretoria está animada com sua chegada. Temos grandes expectativas para esta temporada. Conte com nosso apoio total." },
+    { rodada: -0.1, remetente: "Técnico", titulo: "Plantel à disposição", texto: "Bom dia! Já analisei o elenco. Temos jogadores de qualidade mas precisamos reforçar alguns setores no mercado. Juntos vamos longe!" }
   ];
-
-  mensagensIniciais.forEach(function(m, i) {
+  msgs.forEach(function(m, i) {
+    var d = new Date(DATA_INICIO);
+    d.setDate(d.getDate() - (2 - i));
     eventos.push({
-      id: "msg_inicial_" + i,
+      id: "msg_init_" + i,
       tipo: TIPO_EVENTO.MENSAGEM,
       rodada: m.rodada,
-      titulo: m.assunto,
+      data: d,
+      titulo: m.titulo,
+      subtitulo: formatarData(d),
       remetente: m.remetente,
       texto: m.texto,
-      icone: m.icone,
+      icone: "✉️",
       lida: false,
       processado: false
     });
   });
 
-  // Ordenar por rodada
-  eventos.sort(function(a, b) { return a.rodada - b.rodada; });
+  eventos.sort(function(a, b) {
+    if (a.data && b.data) return a.data - b.data;
+    return a.rodada - b.rodada;
+  });
   return eventos;
 }
 
-// ── Adicionar mensagem dinamicamente ──
-function adicionarMensagem(remetente, assunto, texto, rodada) {
-  if (!estado.eventos) return;
-  var msg = {
-    id: "msg_" + Date.now(),
-    tipo: TIPO_EVENTO.MENSAGEM,
-    rodada: rodada || estado.eventoAtual,
-    titulo: assunto,
-    remetente: remetente,
-    texto: texto,
-    icone: "✉️",
-    lida: false,
-    processado: false
-  };
-  estado.inbox = estado.inbox || [];
-  estado.inbox.push(msg);
+// ── Estado do calendário visual ──
+var calView = { mes: null, ano: null };
+
+function inicializarCalView() {
+  var ev = estado.eventos[estado.eventoAtual];
+  var d  = ev && ev.data ? new Date(ev.data) : new Date(DATA_INICIO);
+  calView.mes = d.getMonth();
+  calView.ano = d.getFullYear();
 }
 
-// ── Adicionar notícia dinamicamente ──
-function adicionarNoticia(texto, rodada) {
-  if (!estado.noticias) estado.noticias = [];
-  estado.noticias.push({
-    texto: texto,
-    rodada: rodada || estado.eventoAtual,
-    timestamp: Date.now()
-  });
-}
-
-// ── Processar evento ao chegar nele ──
+// ── Processar evento ──
 function processarEvento(evento) {
   if (evento.processado) return;
   evento.processado = true;
 
   switch (evento.tipo) {
-    case TIPO_EVENTO.JOGO:
-      simularRodada(evento.rodada);
-      // Mensagem após jogo do meu clube
-      var rodada = estado.calendario[evento.rodada];
-      var meuJogo = rodada && rodada.jogos.find(function(j) {
-        return j.mandanteId === estado.meuClube.id || j.visitanteId === estado.meuClube.id;
-      });
-      if (meuJogo) {
-        var resultado = estado.resultados[estado.resultados.length - 1];
-        var euMandante = meuJogo.mandanteId === estado.meuClube.id;
-        var meusGols = euMandante ? resultado.golsMandante : resultado.golsVisitante;
-        var delesGols = euMandante ? resultado.golsVisitante : resultado.golsMandante;
-        var adversario = CLUBES.find(function(c) {
-          return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
-        });
-        var placar = meusGols + " x " + delesGols;
-        var resultado_txt = meusGols > delesGols ? "Vitória" : meusGols < delesGols ? "Derrota" : "Empate";
-        adicionarMensagem(
-          "Imprensa",
-          resultado_txt + " por " + placar,
-          resultado_txt + " do " + estado.meuClube.nome + " contra o " + adversario.nome + " por " + placar + " na rodada " + (evento.rodada + 1) + ".",
-          evento.rodada
-        );
-      }
-      break;
-
-    case TIPO_EVENTO.JANELA_ABRE:
-      adicionarMensagem(
-        "Diretoria",
-        "Janela de transferências aberta",
-        evento.descricao + " Aproveite para reforçar o elenco.",
-        evento.rodada
-      );
-      adicionarNoticia("🟢 " + evento.titulo + " — mercado aberto para negociações.", evento.rodada);
-      break;
-
-    case TIPO_EVENTO.JANELA_FECHA:
-      adicionarNoticia("🔴 " + evento.titulo + " — mercado encerrado.", evento.rodada);
-      break;
-
-    case TIPO_EVENTO.FIM_CONTRATO:
-      adicionarMensagem(
-        "Departamento jurídico",
-        evento.titulo,
-        evento.descricao,
-        evento.rodada
-      );
-      break;
-
     case TIPO_EVENTO.MENSAGEM:
       estado.inbox = estado.inbox || [];
       estado.inbox.push(evento);
       break;
+
+    case TIPO_EVENTO.JANELA_ABRE:
+      estado.inbox = estado.inbox || [];
+      estado.inbox.push({
+        id: "msg_janela_" + Date.now(),
+        titulo: evento.titulo,
+        remetente: "Diretoria",
+        texto: evento.descricao,
+        lida: false
+      });
+      adicionarNoticia("🟢 " + evento.titulo, evento.rodada);
+      break;
+
+    case TIPO_EVENTO.JANELA_FECHA:
+      adicionarNoticia("🔴 " + evento.titulo, evento.rodada);
+      break;
+
+    case TIPO_EVENTO.FIM_CONTRATO:
+      estado.inbox = estado.inbox || [];
+      estado.inbox.push({
+        id: "msg_contrato_" + Date.now(),
+        titulo: evento.titulo,
+        remetente: "Departamento jurídico",
+        texto: evento.descricao,
+        lida: false
+      });
+      break;
+
+    case TIPO_EVENTO.JOGO:
+      // Não simula aqui — vai pra tela de jogo
+      estado.rodadaPendente = evento.rodada;
+      break;
   }
 }
 
-// ── Avançar para o próximo evento ──
+// ── Avançar / Voltar evento ──
 function avancarEvento() {
-  if (!estado.eventos || estado.eventos.length === 0) return;
-  if (estado.eventoAtual >= estado.eventos.length - 1) {
-    alert("Temporada encerrada!");
-    return;
+  if (!estado.eventos || estado.eventoAtual >= estado.eventos.length - 1) {
+    alert("Temporada encerrada!"); return;
   }
   estado.eventoAtual++;
-  var evento = estado.eventos[estado.eventoAtual];
-  processarEvento(evento);
-  renderDashboard();
+  var ev = estado.eventos[estado.eventoAtual];
+  processarEvento(ev);
+
+  if (ev.tipo === TIPO_EVENTO.JOGO) {
+    renderTelaJogo(ev.rodada);
+  } else {
+    atualizarCalView(ev);
+    renderDashboard();
+  }
 }
 
 function voltarEvento() {
-  if (!estado.eventos || estado.eventoAtual <= 0) return;
+  if (!estado.eventoAtual || estado.eventoAtual <= 0) return;
   estado.eventoAtual--;
+  var ev = estado.eventos[estado.eventoAtual];
+  atualizarCalView(ev);
   renderDashboard();
 }
 
-// ── Inicializar calendário ──
+function atualizarCalView(ev) {
+  if (ev && ev.data) {
+    calView.mes = ev.data.getMonth();
+    calView.ano = ev.data.getFullYear();
+  }
+}
+
+function irParaEvento(idx) {
+  while (estado.eventoAtual < idx) {
+    estado.eventoAtual++;
+    processarEvento(estado.eventos[estado.eventoAtual]);
+  }
+  var ev = estado.eventos[estado.eventoAtual];
+  atualizarCalView(ev);
+  renderDashboard();
+}
+
+// ── Inicializar ──
 function inicializarCalendario() {
   estado.eventoAtual = 0;
   estado.inbox       = [];
   estado.noticias    = [];
+  estado.rodadaPendente = null;
   estado.eventos     = gerarEventos();
-  // Processa primeiro evento automaticamente
+  inicializarCalView();
   processarEvento(estado.eventos[0]);
+}
+
+function adicionarNoticia(texto, rodada) {
+  estado.noticias = estado.noticias || [];
+  estado.noticias.push({ texto: texto, rodada: rodada });
 }</script>
   <script>// ════════════════════════════════════════
-// DASHBOARD — Tela principal
+// TELA DE JOGO — aparece quando chega numa rodada
+// ════════════════════════════════════════
+function renderTelaJogo(rodadaIdx) {
+  var rodada   = estado.calendario[rodadaIdx];
+  var meuId    = estado.meuClube.id;
+  var meuJogo  = rodada.jogos.find(function(j) {
+    return j.mandanteId === meuId || j.visitanteId === meuId;
+  });
+  var euMandante = meuJogo && meuJogo.mandanteId === meuId;
+  var adversario = meuJogo ? CLUBES.find(function(c) {
+    return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
+  }) : null;
+
+  var ev = estado.eventos[estado.eventoAtual];
+
+  var html = '<div class="tela-jogo">';
+
+  // Header da rodada
+  html += '<div class="jogo-screen-header">';
+  html += '<div class="jogo-screen-rodada">Rodada ' + rodada.numero + ' · ' + (ev && ev.subtitulo ? ev.subtitulo : '') + '</div>';
+  html += '</div>';
+
+  if (meuJogo && adversario) {
+    // Confronto principal
+    html += '<div class="jogo-confronto">';
+    html += '<div class="jogo-time">';
+    html += '<div class="jogo-escudo" style="background:' + estado.meuClube.cor + '">' + estado.meuClube.sigla + '</div>';
+    html += '<div class="jogo-time-nome">' + estado.meuClube.nome + '</div>';
+    html += '<div class="jogo-mando-tag">' + (euMandante ? '🏟 Mandante' : '✈ Visitante') + '</div>';
+    html += '</div>';
+    html += '<div class="jogo-vs">VS</div>';
+    html += '<div class="jogo-time">';
+    html += '<div class="jogo-escudo" style="background:' + adversario.cor + '">' + adversario.sigla + '</div>';
+    html += '<div class="jogo-time-nome">' + adversario.nome + '</div>';
+    html += '<div class="jogo-forca-tag">Força: ' + calcularForca(adversario).forca + '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Stats pré-jogo
+    var minhaForca = calcularForca(estado.meuClube, estado.meuTecnico);
+    var forcaAdv   = calcularForca(adversario);
+    html += '<div class="jogo-prestats">';
+    html += '<div class="prestat"><div class="prestat-val" style="color:var(--accent)">' + minhaForca.forca + '</div><div class="prestat-label">Sua força</div></div>';
+    html += '<div class="prestat"><div class="prestat-val">' + estado.meuTecnico.formacao + '</div><div class="prestat-label">Formação</div></div>';
+    html += '<div class="prestat"><div class="prestat-val" style="color:var(--text2)">' + forcaAdv.forca + '</div><div class="prestat-label">Força deles</div></div>';
+    html += '</div>';
+  }
+
+  // Outros jogos da rodada
+  html += '<div class="outros-jogos">';
+  html += '<div class="outros-jogos-titulo">Outros jogos da rodada</div>';
+  rodada.jogos.forEach(function(jogo) {
+    if (jogo.mandanteId === meuId || jogo.visitanteId === meuId) return;
+    var m = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
+    var v = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+    html += '<div class="outro-jogo">';
+    html += '<span class="outro-time">' + m.sigla + '</span>';
+    html += '<span class="outro-vs">vs</span>';
+    html += '<span class="outro-time">' + v.sigla + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Botão simular
+  html += '<div class="jogo-acoes">';
+  html += '<button class="btn-simular-grande" onclick="simularEVoltar(' + rodadaIdx + ')">▶ Simular Rodada</button>';
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function simularEVoltar(rodadaIdx) {
+  simularRodada(rodadaIdx);
+
+  // Resultado do meu jogo
+  var meuId = estado.meuClube.id;
+  var rodada = estado.calendario[rodadaIdx];
+  var meuJogo = rodada.jogos.find(function(j) {
+    return j.mandanteId === meuId || j.visitanteId === meuId;
+  });
+
+  if (meuJogo) {
+    var resultado = estado.resultados.find(function(r) {
+      return r.rodada === rodadaIdx &&
+        r.mandanteId === meuJogo.mandanteId &&
+        r.visitanteId === meuJogo.visitanteId;
+    });
+    if (resultado) {
+      var euMandante = meuJogo.mandanteId === meuId;
+      var meusG  = euMandante ? resultado.golsMandante : resultado.golsVisitante;
+      var delesG = euMandante ? resultado.golsVisitante : resultado.golsMandante;
+      var adv    = CLUBES.find(function(c) {
+        return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
+      });
+      var txt = meusG > delesG ? "Vitória" : meusG < delesG ? "Derrota" : "Empate";
+      adicionarNoticia(txt + " " + meusG + "x" + delesG + " contra o " + adv.nome + " (Rod. " + (rodadaIdx + 1) + ")", rodadaIdx);
+      estado.inbox = estado.inbox || [];
+      estado.inbox.push({
+        id: "res_" + rodadaIdx,
+        titulo: txt + " " + meusG + "x" + delesG + " · " + adv.nome,
+        remetente: "Imprensa",
+        texto: estado.meuClube.nome + " " + txt.toLowerCase() + " por " + meusG + " a " + delesG + " contra o " + adv.nome + " pela rodada " + (rodadaIdx + 1) + ".",
+        lida: false
+      });
+    }
+  }
+
+  renderResultadoRodada(rodadaIdx);
+}
+
+function renderResultadoRodada(rodadaIdx) {
+  var rodada  = estado.calendario[rodadaIdx];
+  var meuId   = estado.meuClube.id;
+  var tabela  = calcularTabela(CLUBES, estado.resultados);
+  var minhaPos = tabela.findIndex(function(t) { return t.id === meuId; });
+
+  var html = '<div class="tela-resultado">';
+  html += '<div class="resultado-titulo">Rodada ' + rodada.numero + ' — Resultados</div>';
+
+  // Resultado dos jogos
+  html += '<div class="resultados-lista">';
+  rodada.jogos.forEach(function(jogo) {
+    var resultado = estado.resultados.find(function(r) {
+      return r.rodada === rodadaIdx &&
+        r.mandanteId === jogo.mandanteId &&
+        r.visitanteId === jogo.visitanteId;
+    });
+    var m = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
+    var v = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+    var ehMeu = jogo.mandanteId === meuId || jogo.visitanteId === meuId;
+
+    html += '<div class="resultado-item' + (ehMeu ? ' resultado-meu' : '') + '">';
+    html += '<span class="res-time">' + m.nome + '</span>';
+    if (resultado) {
+      var euM   = jogo.mandanteId === meuId;
+      var meusG = euM ? resultado.golsMandante : resultado.golsVisitante;
+      var delesG= euM ? resultado.golsVisitante : resultado.golsMandante;
+      var cls   = ehMeu ? (meusG > delesG ? 'res-v' : meusG < delesG ? 'res-d' : 'res-e') : '';
+      html += '<span class="res-placar ' + cls + '">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</span>';
+    }
+    html += '<span class="res-time direita">' + v.nome + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Mini tabela pós-rodada
+  html += '<div class="resultado-tabela-titulo">Classificação</div>';
+  html += '<div class="mini-tabela">';
+  html += '<div class="mini-tab-header"><span>#</span><span>Clube</span><span>Pts</span><span>J</span><span>SG</span></div>';
+  var inicio = Math.max(0, minhaPos - 2);
+  var fim    = Math.min(tabela.length, minhaPos + 3);
+  tabela.slice(inicio, fim).forEach(function(t, i) {
+    var pos = inicio + i + 1;
+    var cls = t.id === meuId ? ' mini-tab-eu' : '';
+    html += '<div class="mini-tab-row' + cls + '">';
+    html += '<span class="mini-tab-pos">' + pos + '</span>';
+    html += '<span class="mini-tab-nome"><span class="escudo-mini" style="background:' + t.cor + '">' + t.sigla + '</span>' + t.nome + '</span>';
+    html += '<span class="mini-tab-pts">' + t.pts + '</span>';
+    html += '<span>' + t.j + '</span>';
+    html += '<span>' + (t.sg > 0 ? '+' + t.sg : t.sg) + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Botão voltar
+  html += '<div class="jogo-acoes" style="margin-top:20px">';
+  html += '<button class="btn-primario" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById("main").innerHTML = html;
+}
+
+function voltarAoDashboard() {
+  var ev = estado.eventos[estado.eventoAtual];
+  atualizarCalView(ev);
+  renderDashboard();
+}
+
+// ════════════════════════════════════════
+// DASHBOARD
 // ════════════════════════════════════════
 function renderDashboard() {
   var evento  = estado.eventos[estado.eventoAtual];
   var total   = estado.eventos.length;
   var progPct = Math.round((estado.eventoAtual / (total - 1)) * 100);
 
-  // ── Header do calendário ──
-  var html = '<div class="dash-header">';
+  var html = '<div class="dash-topbar">';
   html += '<button class="dash-nav-btn" onclick="voltarEvento()" ' + (estado.eventoAtual === 0 ? 'disabled' : '') + '>◀</button>';
   html += '<div class="dash-evento-info">';
   html += '<div class="dash-evento-icone">' + evento.icone + '</div>';
-  html += '<div>';
-  html += '<div class="dash-evento-titulo">' + evento.titulo + '</div>';
-  html += '<div class="dash-evento-sub">Evento ' + (estado.eventoAtual + 1) + ' de ' + total + '</div>';
+  html += '<div><div class="dash-evento-titulo">' + evento.titulo + '</div>';
+  html += '<div class="dash-evento-sub">' + (evento.subtitulo || '') + '</div></div>';
   html += '</div>';
+  html += '<button class="dash-nav-btn destaque" onclick="avancarEvento()">▶</button>';
   html += '</div>';
-  html += '<button class="dash-nav-btn destaque" onclick="avancarEvento()" ' + (estado.eventoAtual >= total - 1 ? 'disabled' : '') + '>▶</button>';
-  html += '</div>';
+  html += '<div class="temporada-progress"><div class="temporada-bar" style="width:' + progPct + '%"></div></div>';
 
-  // Barra de progresso da temporada
-  html += '<div class="temporada-progress">';
-  html += '<div class="temporada-bar" style="width:' + progPct + '%"></div>';
-  html += '</div>';
-
-  // ── Grid principal ──
   html += '<div class="dash-grid">';
 
-  // [1] Mini calendário
+  // [1] Calendário visual
   html += '<div class="dash-card">';
   html += '<div class="dash-card-titulo">📅 Calendário</div>';
-  html += renderMiniCalendario();
+  html += renderCalendarioVisual();
   html += '</div>';
 
   // [2] Inbox
+  var naoLidas = contarNaoLidas();
   html += '<div class="dash-card">';
-  html += '<div class="dash-card-titulo">✉️ Inbox <span class="inbox-badge">' + contarNaoLidas() + '</span></div>';
+  html += '<div class="dash-card-titulo">✉️ Inbox ' + (naoLidas > 0 ? '<span class="inbox-badge">' + naoLidas + '</span>' : '') + '</div>';
   html += renderInboxPreview();
   html += '</div>';
 
-  // [3] Próximos e últimos jogos
+  // [3] Jogos
   html += '<div class="dash-card">';
   html += '<div class="dash-card-titulo">⚽ Jogos</div>';
   html += renderJogosCard();
@@ -2243,7 +2571,7 @@ function renderDashboard() {
   html += renderMiniTabela();
   html += '</div>';
 
-  // [5] Suspensos / Machucados
+  // [5] Baixas
   html += '<div class="dash-card">';
   html += '<div class="dash-card-titulo">🏥 Baixas</div>';
   html += renderBaixas();
@@ -2255,56 +2583,137 @@ function renderDashboard() {
   html += renderNoticias();
   html += '</div>';
 
-  html += '</div>'; // dash-grid
-
+  html += '</div>';
   document.getElementById("main").innerHTML = html;
 }
 
-// ── Mini calendário (próximos 6 eventos) ──
-function renderMiniCalendario() {
-  var eventos = estado.eventos;
-  var atual   = estado.eventoAtual;
-  var html = '<div class="mini-cal">';
+// ── Calendário visual (estilo da imagem) ──
+function renderCalendarioVisual() {
+  var meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  var mes   = calView.mes;
+  var ano   = calView.ano;
+  var evAtual = estado.eventos[estado.eventoAtual];
 
-  var inicio = Math.max(0, atual - 1);
-  var fim    = Math.min(eventos.length, inicio + 7);
+  // Mapear eventos do mês atual
+  var eventosPorDia = {};
+  estado.eventos.forEach(function(ev) {
+    if (!ev.data) return;
+    var d = new Date(ev.data);
+    if (d.getMonth() === mes && d.getFullYear() === ano) {
+      var dia = d.getDate();
+      if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
+      eventosPorDia[dia].push(ev);
+    }
+  });
 
-  for (var i = inicio; i < fim; i++) {
-    var ev  = eventos[i];
-    var cls = i === atual ? ' cal-atual' : i < atual ? ' cal-passado' : '';
-    html += '<div class="cal-item' + cls + '" onclick="irParaEvento(' + i + ')">';
-    html += '<span class="cal-icone">' + ev.icone + '</span>';
-    html += '<span class="cal-titulo">' + ev.titulo + '</span>';
-    if (i === atual) html += '<span class="cal-agora">agora</span>';
+  var html = '<div class="cal-visual">';
+
+  // Header do mês
+  html += '<div class="cal-mes-header">';
+  html += '<button class="cal-mes-btn" onclick="mudarMes(-1)">‹</button>';
+  html += '<span class="cal-mes-nome">' + meses[mes] + ' ' + ano + '</span>';
+  html += '<button class="cal-mes-btn" onclick="mudarMes(1)">›</button>';
+  html += '</div>';
+
+  // Dias da semana
+  html += '<div class="cal-dias-semana">';
+  ["D","S","T","Q","Q","S","S"].forEach(function(d) {
+    html += '<span>' + d + '</span>';
+  });
+  html += '</div>';
+
+  // Grid dos dias
+  html += '<div class="cal-grid">';
+  var primeiroDia = new Date(ano, mes, 1).getDay();
+  var ultimoDia   = new Date(ano, mes + 1, 0).getDate();
+
+  // Células vazias antes do dia 1
+  for (var i = 0; i < primeiroDia; i++) {
+    html += '<div class="cal-dia vazio"></div>';
+  }
+
+  // Dias do mês
+  for (var dia = 1; dia <= ultimoDia; dia++) {
+    var evsDia  = eventosPorDia[dia] || [];
+    var ehHoje  = evAtual && evAtual.data &&
+                  new Date(evAtual.data).getDate() === dia &&
+                  new Date(evAtual.data).getMonth() === mes;
+    var temEv   = evsDia.length > 0;
+    var cls     = "cal-dia" + (ehHoje ? " cal-dia-atual" : "") + (temEv ? " tem-evento" : "");
+    var icons   = evsDia.map(function(e) {
+      return '<span class="cal-ev-dot" style="background:' + corEvento(e.tipo) + '"></span>';
+    }).join("");
+
+    html += '<div class="' + cls + '" onclick="irParaEventoDia(' + dia + ',' + mes + ',' + ano + ')">';
+    html += '<span class="cal-dia-num">' + dia + '</span>';
+    if (icons) html += '<div class="cal-dots">' + icons + '</div>';
     html += '</div>';
   }
 
+  html += '</div>'; // cal-grid
+
+  // Legenda
+  html += '<div class="cal-legenda">';
+  html += '<span><span class="cal-ev-dot" style="background:#4f8ef7"></span> Jogo</span>';
+  html += '<span><span class="cal-ev-dot" style="background:#2ecc71"></span> Janela</span>';
+  html += '<span><span class="cal-ev-dot" style="background:#e74c3c"></span> Contrato</span>';
   html += '</div>';
+
+  html += '</div>'; // cal-visual
   return html;
 }
 
+function corEvento(tipo) {
+  var cores = {
+    jogo: "#4f8ef7",
+    janela_abre: "#2ecc71",
+    janela_fecha: "#e74c3c",
+    fim_contrato: "#e74c3c",
+    mensagem: "#f1c40f",
+    noticia: "#9b59b6"
+  };
+  return cores[tipo] || "#888";
+}
+
+function mudarMes(delta) {
+  calView.mes += delta;
+  if (calView.mes < 0)  { calView.mes = 11; calView.ano--; }
+  if (calView.mes > 11) { calView.mes = 0;  calView.ano++; }
+  renderDashboard();
+}
+
+function irParaEventoDia(dia, mes, ano) {
+  var alvo = estado.eventos.findIndex(function(ev) {
+    if (!ev.data) return false;
+    var d = new Date(ev.data);
+    return d.getDate() === dia && d.getMonth() === mes && d.getFullYear() === ano;
+  });
+  if (alvo < 0) return;
+  irParaEvento(alvo);
+}
+
 function irParaEvento(idx) {
-  // Processa todos os eventos entre o atual e o destino
   while (estado.eventoAtual < idx) {
     estado.eventoAtual++;
     processarEvento(estado.eventos[estado.eventoAtual]);
   }
-  renderDashboard();
+  var ev = estado.eventos[estado.eventoAtual];
+  atualizarCalView(ev);
+  if (ev.tipo === TIPO_EVENTO.JOGO) {
+    renderTelaJogo(ev.rodada);
+  } else {
+    renderDashboard();
+  }
 }
 
 // ── Inbox preview ──
 function contarNaoLidas() {
-  var inbox = estado.inbox || [];
-  var nao = inbox.filter(function(m) { return !m.lida; }).length;
-  return nao;
+  return (estado.inbox || []).filter(function(m) { return !m.lida; }).length;
 }
 
 function renderInboxPreview() {
   var inbox = (estado.inbox || []).slice().reverse();
-  if (inbox.length === 0) {
-    return '<div class="dash-empty">Nenhuma mensagem ainda.</div>';
-  }
-
+  if (inbox.length === 0) return '<div class="dash-empty">Nenhuma mensagem ainda.</div>';
   var html = '<div class="inbox-lista">';
   inbox.slice(0, 5).forEach(function(msg, i) {
     var idx = (estado.inbox.length - 1) - i;
@@ -2314,9 +2723,7 @@ function renderInboxPreview() {
     html += '</div>';
   });
   html += '</div>';
-  if (inbox.length > 5) {
-    html += '<div class="dash-ver-mais" onclick="navegarPara(\'inbox\')">Ver todas (' + inbox.length + ')</div>';
-  }
+  if (inbox.length > 5) html += '<div class="dash-ver-mais">Ver todas (' + inbox.length + ')</div>';
   return html;
 }
 
@@ -2324,31 +2731,24 @@ function abrirMensagem(idx) {
   var msg = estado.inbox[idx];
   if (!msg) return;
   msg.lida = true;
-
   var overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML =
-    '<div class="modal">' +
-      '<div class="modal-header" style="text-align:left;padding:20px">' +
-        '<div style="font-size:11px;color:var(--text2);margin-bottom:4px">De: ' + (msg.remetente || 'Sistema') + '</div>' +
-        '<div style="font-size:16px;font-weight:600;margin-bottom:12px">' + msg.titulo + '</div>' +
-        '<div style="font-size:14px;line-height:1.6;color:var(--text2)">' + msg.texto + '</div>' +
-      '</div>' +
-      '<div class="modal-footer">' +
-        '<button class="btn-fechar" onclick="this.closest(\'.modal-overlay\').remove();renderDashboard()">Fechar</button>' +
-      '</div>' +
-    '</div>';
-  overlay.addEventListener("click", function(e) { if (e.target === overlay) { overlay.remove(); renderDashboard(); } });
+    '<div class="modal"><div class="modal-header" style="text-align:left;padding:20px">' +
+    '<div style="font-size:11px;color:var(--text2);margin-bottom:4px">De: ' + (msg.remetente || 'Sistema') + '</div>' +
+    '<div style="font-size:16px;font-weight:600;margin-bottom:12px">' + msg.titulo + '</div>' +
+    '<div style="font-size:14px;line-height:1.6;color:var(--text2)">' + msg.texto + '</div>' +
+    '</div><div class="modal-footer">' +
+    '<button class="btn-fechar" onclick="this.closest(\'.modal-overlay\').remove();renderDashboard()">Fechar</button>' +
+    '</div></div>';
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) { overlay.remove(); renderDashboard(); }});
   document.body.appendChild(overlay);
 }
 
-// ── Jogos: últimos 3 + próximos 3 ──
+// ── Jogos card ──
 function renderJogosCard() {
-  var meuId    = estado.meuClube.id;
-  var rodadaAtual = estado.rodadaAtual;
-  var cal      = estado.calendario;
-
-  // Pegar todos os jogos do meu clube em ordem
+  var meuId  = estado.meuClube.id;
+  var cal    = estado.calendario;
   var meusJogos = [];
   cal.forEach(function(rodada, idx) {
     rodada.jogos.forEach(function(jogo) {
@@ -2358,80 +2758,59 @@ function renderJogosCard() {
     });
   });
 
-  // Separar passados e futuros
-  var passados = meusJogos.filter(function(j) { return j.rodadaIdx < rodadaAtual; }).slice(-3);
-  var futuros  = meusJogos.filter(function(j) { return j.rodadaIdx >= rodadaAtual; }).slice(0, 3);
+  var passados = meusJogos.filter(function(j) { return j.rodadaIdx < estado.rodadaAtual; }).slice(-3);
+  var futuros  = meusJogos.filter(function(j) { return j.rodadaIdx >= estado.rodadaAtual; }).slice(0, 3);
 
   var html = '<div class="jogos-lista">';
-
-  // Últimos 3
   if (passados.length > 0) {
     html += '<div class="jogos-secao-titulo">Últimos jogos</div>';
     passados.forEach(function(item) {
-      var resultado = estado.resultados.find(function(r) {
-        return r.rodada === item.rodadaIdx &&
-               r.mandanteId === item.jogo.mandanteId &&
-               r.visitanteId === item.jogo.visitanteId;
+      var res = estado.resultados.find(function(r) {
+        return r.rodada === item.rodadaIdx && r.mandanteId === item.jogo.mandanteId && r.visitanteId === item.jogo.visitanteId;
       });
-      var adv = CLUBES.find(function(c) {
-        return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId);
-      });
-      var euMandante = item.jogo.mandanteId === meuId;
+      var adv = CLUBES.find(function(c) { return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId); });
+      var euM = item.jogo.mandanteId === meuId;
       html += '<div class="jogo-item">';
       html += '<span class="jogo-rodada">R' + item.rodadaNum + '</span>';
-      html += '<span class="jogo-mando">' + (euMandante ? 'C' : 'F') + '</span>';
+      html += '<span class="jogo-mando">' + (euM ? 'C' : 'F') + '</span>';
       html += '<span class="jogo-adv">' + adv.sigla + '</span>';
-      if (resultado) {
-        var meusG = euMandante ? resultado.golsMandante : resultado.golsVisitante;
-        var delesG = euMandante ? resultado.golsVisitante : resultado.golsMandante;
-        var cls = meusG > delesG ? 'res-v' : meusG < delesG ? 'res-d' : 'res-e';
-        html += '<span class="jogo-resultado ' + cls + '">' + meusG + '-' + delesG + '</span>';
+      if (res) {
+        var mg = euM ? res.golsMandante : res.golsVisitante;
+        var dg = euM ? res.golsVisitante : res.golsMandante;
+        html += '<span class="jogo-resultado ' + (mg > dg ? 'res-v' : mg < dg ? 'res-d' : 'res-e') + '">' + mg + '-' + dg + '</span>';
       }
       html += '</div>';
     });
   }
-
-  // Próximos 3
   if (futuros.length > 0) {
     html += '<div class="jogos-secao-titulo" style="margin-top:10px">Próximos jogos</div>';
     futuros.forEach(function(item) {
-      var adv = CLUBES.find(function(c) {
-        return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId);
-      });
-      var euMandante = item.jogo.mandanteId === meuId;
+      var adv = CLUBES.find(function(c) { return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId); });
+      var ev  = estado.eventos.find(function(e) { return e.tipo === "jogo" && e.rodada === item.rodadaIdx; });
       html += '<div class="jogo-item proximo">';
       html += '<span class="jogo-rodada">R' + item.rodadaNum + '</span>';
-      html += '<span class="jogo-mando">' + (euMandante ? 'C' : 'F') + '</span>';
+      html += '<span class="jogo-mando">' + (item.jogo.mandanteId === meuId ? 'C' : 'F') + '</span>';
       html += '<span class="jogo-adv">' + adv.sigla + '</span>';
-      html += '<span class="jogo-resultado pendente">vs</span>';
+      html += '<span class="jogo-resultado pendente">' + (ev && ev.subtitulo ? ev.subtitulo : 'vs') + '</span>';
       html += '</div>';
     });
   }
-
-  if (passados.length === 0 && futuros.length === 0) {
-    html += '<div class="dash-empty">Nenhum jogo encontrado.</div>';
-  }
-
+  if (!passados.length && !futuros.length) html += '<div class="dash-empty">Nenhum jogo.</div>';
   html += '</div>';
   return html;
 }
 
-// ── Mini tabela (você ±2) ──
+// ── Mini tabela ──
 function renderMiniTabela() {
-  var tabela = calcularTabela(CLUBES, estado.resultados);
-  var meuId  = estado.meuClube.id;
+  var tabela   = calcularTabela(CLUBES, estado.resultados);
+  var meuId    = estado.meuClube.id;
   var minhaPos = tabela.findIndex(function(t) { return t.id === meuId; });
-
-  var inicio = Math.max(0, minhaPos - 2);
-  var fim    = Math.min(tabela.length, minhaPos + 3);
-  var slice  = tabela.slice(inicio, fim);
+  var inicio   = Math.max(0, minhaPos - 2);
+  var fim      = Math.min(tabela.length, minhaPos + 3);
 
   var html = '<div class="mini-tabela">';
-  html += '<div class="mini-tab-header">';
-  html += '<span>#</span><span>Clube</span><span>Pts</span><span>J</span><span>SG</span>';
-  html += '</div>';
-
-  slice.forEach(function(t, i) {
+  html += '<div class="mini-tab-header"><span>#</span><span>Clube</span><span>Pts</span><span>J</span><span>SG</span></div>';
+  tabela.slice(inicio, fim).forEach(function(t, i) {
     var pos = inicio + i + 1;
     var cls = t.id === meuId ? ' mini-tab-eu' : '';
     html += '<div class="mini-tab-row' + cls + '">';
@@ -2442,49 +2821,30 @@ function renderMiniTabela() {
     html += '<span>' + (t.sg > 0 ? '+' + t.sg : t.sg) + '</span>';
     html += '</div>';
   });
-
   html += '</div>';
   html += '<div class="dash-ver-mais" onclick="navegarPara(\'tabela\')">Tabela completa</div>';
   return html;
 }
 
-// ── Baixas (suspensos e machucados) ──
+// ── Baixas ──
 function renderBaixas() {
-  // Por ora, gerar algumas baixas aleatórias baseadas nos jogadores
   if (!estado.baixas) {
     estado.baixas = [];
-    // Simula 0-2 machucados aleatórios no início
-    var jogadores = estado.meuClube.jogadores;
     var qtd = Math.floor(Math.random() * 2);
     for (var i = 0; i < qtd; i++) {
-      var j = jogadores[Math.floor(Math.random() * jogadores.length)];
-      estado.baixas.push({
-        jogadorId: j.id,
-        nome: j.nome,
-        posicao: j.posicao,
-        tipo: "machucado",
-        ate_rodada: estado.rodadaAtual + Math.floor(Math.random() * 4) + 1
-      });
+      var js = estado.meuClube.jogadores;
+      var j  = js[Math.floor(Math.random() * js.length)];
+      estado.baixas.push({ nome: j.nome, posicao: j.posicao, tipo: "machucado", ate_rodada: estado.rodadaAtual + Math.floor(Math.random() * 4) + 1 });
     }
   }
-
-  // Remover baixas que já passaram
   estado.baixas = estado.baixas.filter(function(b) { return b.ate_rodada > estado.rodadaAtual; });
-
-  if (estado.baixas.length === 0) {
-    return '<div class="dash-empty">Nenhuma baixa no momento. ✅</div>';
-  }
-
+  if (!estado.baixas.length) return '<div class="dash-empty">Nenhuma baixa. ✅</div>';
   var html = '<div class="baixas-lista">';
   estado.baixas.forEach(function(b) {
-    var icon = b.tipo === "machucado" ? "🏥" : "🟨";
-    var label = b.tipo === "machucado" ? "Machucado" : "Suspenso";
     html += '<div class="baixa-item">';
     html += '<span class="posicao-badge pos-' + b.posicao + '">' + b.posicao + '</span>';
-    html += '<div class="baixa-info">';
-    html += '<div class="baixa-nome">' + b.nome + '</div>';
-    html += '<div class="baixa-detalhe">' + icon + ' ' + label + ' · retorna rod. ' + b.ate_rodada + '</div>';
-    html += '</div>';
+    html += '<div class="baixa-info"><div class="baixa-nome">' + b.nome + '</div>';
+    html += '<div class="baixa-detalhe">' + (b.tipo === "machucado" ? "🏥 Machucado" : "🟨 Suspenso") + ' · retorna rod. ' + b.ate_rodada + '</div></div>';
     html += '</div>';
   });
   html += '</div>';
@@ -2493,21 +2853,13 @@ function renderBaixas() {
 
 // ── Notícias ──
 function renderNoticias() {
-  var noticias = (estado.noticias || []).slice().reverse();
-  var feed     = (estado.feedNoticias || []).slice().reverse();
-
-  // Mesclar as duas fontes
-  var todas = noticias.concat(feed.map(function(n) { return { texto: n.texto, rodada: n.rodada }; }));
-  todas.sort(function(a, b) { return (b.rodada || 0) - (a.rodada || 0); });
-
-  if (todas.length === 0) {
-    return '<div class="dash-empty">Nenhuma notícia ainda.</div>';
-  }
-
+  var n1 = (estado.noticias || []).slice().reverse();
+  var n2 = (estado.feedNoticias || []).map(function(n) { return { texto: n.texto, rodada: n.rodada }; }).reverse();
+  var todas = n1.concat(n2).sort(function(a, b) { return (b.rodada || 0) - (a.rodada || 0); });
+  if (!todas.length) return '<div class="dash-empty">Nenhuma notícia ainda.</div>';
   var html = '<div class="noticias-lista">';
   todas.slice(0, 6).forEach(function(n) {
-    html += '<div class="noticia-dash">';
-    html += '<div class="noticia-dash-texto">' + n.texto + '</div>';
+    html += '<div class="noticia-dash"><div class="noticia-dash-texto">' + n.texto + '</div>';
     if (n.rodada !== undefined) html += '<div class="noticia-dash-rodada">Rod. ' + Math.ceil(n.rodada) + '</div>';
     html += '</div>';
   });
