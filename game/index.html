@@ -928,7 +928,7 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 .baixa-detalhe { font-size: 11px; color: var(--text2); margin-top: 2px; }
 
 /* ── Notícias ── */
-.noticias-lista { display: flex; flex-direction: column; gap: 6px; }
+.noticias-lista { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
 .noticia-dash {
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
@@ -964,11 +964,11 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 
 .cal-dia {
   aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; cursor: pointer;
+  align-items: center; justify-content: center; cursor: default;
   font-size: 11px; position: relative; transition: background .1s;
   padding: 2px 0;
 }
-.cal-dia:hover:not(.vazio) { background: var(--bg3); }
+.cal-dia:hover:not(.vazio):not(.tem-evento) { background: none; }
 .cal-dia.vazio { cursor: default; }
 .cal-dia.cal-dia-atual {
   background: var(--accent); color: #fff; font-weight: 700;
@@ -1268,7 +1268,487 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 /* Cards da linha de baixo maiores */
 .dash-grid-top2 .dash-card {
   min-height: 200px;
-}</style>
+}
+
+/* ════════════════════════════════════
+   INBOX — tela estilo email
+════════════════════════════════════ */
+.inbox-screen {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 96px);
+}
+
+.inbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.inbox-header-titulo {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.inbox-count {
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 400;
+}
+
+.btn-marcar-lidas {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-marcar-lidas:hover { border-color: var(--accent); color: var(--accent); }
+
+.inbox-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  margin-top: 0;
+  gap: 0;
+}
+
+/* Lista de emails */
+.inbox-lista-email {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-email-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .1s;
+  border-left: 3px solid transparent;
+}
+.inbox-email-item:hover { background: var(--bg3); }
+.inbox-email-item.ativa { background: rgba(79,142,247,.1); border-left-color: var(--accent); }
+.inbox-email-item.nao-lida { border-left-color: var(--accent); }
+.inbox-email-item.nao-lida .inbox-email-assunto { font-weight: 700; color: var(--text); }
+
+.inbox-email-remetente {
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.inbox-email-assunto {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inbox-email-data {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 3px;
+}
+
+.inbox-vazio {
+  padding: 20px 16px;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* Conteúdo do email */
+.inbox-email-conteudo {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.inbox-selecione {
+  padding: 40px 32px;
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.email-view {
+  padding: 28px 32px;
+  max-width: 680px;
+}
+
+.email-view-assunto {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  line-height: 1.3;
+}
+
+.email-view-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.email-view-de {
+  font-size: 13px;
+  color: var(--text2);
+}
+.email-view-de strong { color: var(--text); }
+
+.email-view-data {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.email-view-separador {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 24px;
+}
+
+.email-view-corpo {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text2);
+  white-space: pre-wrap;
+}
+
+/* ════════════════════════════════════
+   TELA DE JOGO AO VIVO
+════════════════════════════════════ */
+.jogo-tela { max-width: 720px; margin: 0 auto; }
+
+.jogo-tela-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 12px;
+}
+
+.jogo-tela-rodada { font-size: 12px; color: var(--text2); }
+
+.jogo-tela-placar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jogo-tela-sigla {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+}
+
+.placar-numeros {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 4px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.jogo-tela-cronometro {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 48px;
+  text-align: right;
+}
+
+/* Stats ao vivo */
+.jogo-stats-vivos {
+  display: flex;
+  justify-content: space-around;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.stat-vivo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.stat-vivo span:first-child,
+.stat-vivo span:last-child {
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+}
+
+.stat-vivo span:nth-child(2) {
+  font-size: 11px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.stat-vivo span:first-child { color: var(--accent); }
+.stat-vivo span:last-child { color: var(--text2); }
+
+/* Campo tático */
+.campo-tatico {
+  margin-bottom: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.campo-svg { width: 100%; display: block; }
+
+/* Feed de lances */
+.lances-feed {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.lances-feed-titulo {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.lances-lista {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.lance-vazio {
+  padding: 16px 14px;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.lance-item {
+  display: flex;
+  gap: 10px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  animation: fadeInLance .3s ease;
+}
+
+.lance-item:last-child { border-bottom: none; }
+
+.lance-gol {
+  background: rgba(46,204,113,.08);
+  color: var(--green);
+  font-weight: 600;
+}
+
+.lance-intervalo {
+  background: rgba(79,142,247,.06);
+  color: var(--accent);
+  font-style: italic;
+  justify-content: center;
+}
+
+.lance-fim {
+  background: rgba(79,142,247,.12);
+  color: var(--accent);
+  font-weight: 700;
+  justify-content: center;
+}
+
+.lance-min {
+  color: var(--text2);
+  min-width: 30px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.lance-texto { flex: 1; }
+
+@keyframes fadeInLance {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tela resultado com notas */
+.resultado-tela { max-width: 600px; margin: 0 auto; }
+
+.resultado-placar-final {
+  text-align: center;
+  border: 2px solid;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+  background: var(--bg2);
+}
+
+.res-final-titulo { font-size: 22px; font-weight: 800; letter-spacing: 2px; margin-bottom: 8px; }
+.res-final-times  { font-size: 13px; color: var(--text2); margin: 4px 0; }
+.res-final-numeros{ font-size: 36px; font-weight: 800; letter-spacing: 6px; margin: 6px 0; }
+
+.notas-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.notas-grid { display: flex; flex-direction: column; gap: 6px; }
+
+.nota-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.nota-card-info { flex: 1; }
+.nota-card-nome { font-size: 13px; font-weight: 500; }
+.nota-card-stats { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+.nota-valor {
+  font-size: 20px;
+  font-weight: 800;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ── Layout dois painéis no jogo ── */
+.jogo-dois-paineis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.jogo-painel-campo { min-width: 0; }
+.jogo-painel-feed  {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 480px;
+}
+
+.jogo-painel-feed .lances-lista {
+  flex: 1;
+  max-height: none;
+  overflow-y: auto;
+}
+
+/* Lance substituição */
+.lance-sub {
+  background: rgba(155,89,182,.08);
+  color: #c39bd3;
+  font-style: italic;
+}
+
+/* Fadiga barra no resultado */
+.fadiga-barra-wrap {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+.fadiga-barra {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .3s;
+}
+
+/* ── Financeiro ── */
+.fin-tela { max-width: 900px; }
+.fin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.fin-caixa { font-size: 14px; color: var(--text2); }
+
+.fin-dre-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.fin-dre-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.fin-dre-card.receita  { border-color: rgba(46,204,113,.4); }
+.fin-dre-card.despesa  { border-color: rgba(231,76,60,.4); }
+.fin-dre-card.positivo { border-color: var(--green); }
+.fin-dre-card.negativo { border-color: var(--red); }
+.fin-dre-card.neutro   { border-color: var(--border); }
+
+.fin-dre-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.fin-dre-valor { font-size: 20px; font-weight: 700; }
+.fin-dre-card.receita .fin-dre-valor  { color: var(--green); }
+.fin-dre-card.despesa .fin-dre-valor  { color: var(--red); }
+.fin-dre-card.positivo .fin-dre-valor { color: var(--green); }
+.fin-dre-card.negativo .fin-dre-valor { color: var(--red); }
+
+.fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+.fin-secao { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.fin-secao-titulo { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+.receita-titulo { color: var(--green); }
+.despesa-titulo { color: var(--red); }
+
+.fin-linha { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.fin-linha:last-child { border-bottom: none; }
+.fin-linha-desc { color: var(--text2); }
+.fin-linha-val { font-weight: 600; }
+.receita-cor { color: var(--green); }
+.despesa-cor { color: var(--red); }
+
+.fin-historico { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.fin-tabela { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fin-tabela th { padding: 8px; text-align: left; font-size: 11px; color: var(--text2); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.fin-tabela td { padding: 8px; border-bottom: 1px solid var(--border); }
+.fin-tabela tr:last-child td { border-bottom: none; }
+.fin-tab-rod { color: var(--text2); width: 40px; }
+.fin-tab-val { text-align: right; font-weight: 600; }
+
+/* Botão ação jogador */
+.btn-acao-jogador {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all .15s;
+}
+.btn-acao-jogador:hover { border-color: var(--accent); color: var(--accent); }</style>
 </head>
 <body>
   <div id="app">
@@ -1283,10 +1763,12 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
       </div>
       <nav id="sidebar-nav" class="hidden">
         <button data-aba="dashboard">🏠 Dashboard</button>
+        <button data-aba="inbox">✉️ Inbox</button>
         <button data-aba="campeonato">📋 Campeonato</button>
         <button data-aba="tabela">📊 Tabela</button>
         <button data-aba="elenco">👥 Elenco</button>
         <button data-aba="mercado">💰 Mercado</button>
+        <button data-aba="financeiro">📑 Financeiro</button>
         <button data-aba="staff">🎽 Comissão</button>
       </nav>
       <button id="btn-salvar" class="sidebar-save-btn hidden" onclick="salvarManual()">💾 Salvar jogo</button>
@@ -2552,11 +3034,8 @@ function avancarEvento() {
 }
 
 function voltarEvento() {
-  if (!estado.eventoAtual || estado.eventoAtual <= 0) return;
-  estado.eventoAtual--;
-  var ev = estado.eventos[estado.eventoAtual];
-  atualizarCalView(ev);
-  renderDashboard();
+  // Bloqueado — eventos passados não podem ser revertidos
+  return;
 }
 
 function atualizarCalView(ev) {
@@ -2749,186 +3228,1054 @@ function infoSave() {
   } catch(e) { return null; }
 }</script>
   <script>// ════════════════════════════════════════
-// TELA DE JOGO — aparece quando chega numa rodada
+// MOTOR DE PARTIDA — escalação, lances, notas
 // ════════════════════════════════════════
-function renderTelaJogo(rodadaIdx) {
-  var rodada   = estado.calendario[rodadaIdx];
-  var meuId    = estado.meuClube.id;
-  var meuJogo  = rodada.jogos.find(function(j) {
-    return j.mandanteId === meuId || j.visitanteId === meuId;
+
+// Escalar 11 titulares conforme formação do técnico
+function escalarTime(clube, tecnico) {
+  var formacao = tecnico ? tecnico.formacao : "4-4-2";
+  var req = FORMACOES[formacao] ? FORMACOES[formacao].requisitos : { GOL:1,LD:1,ZAG:2,LE:1,VOL:2,MEI:2,ATA:2 };
+  var escalados = [];
+
+  Object.entries(req).forEach(function(entry) {
+    var pos = entry[0], qtd = entry[1];
+    var disponiveis = clube.jogadores
+      .filter(function(j) { return j.posicao === pos; })
+      .sort(function(a, b) { return b.overall - a.overall; })
+      .slice(0, qtd);
+    disponiveis.forEach(function(j) { escalados.push(j); });
   });
-  var euMandante = meuJogo && meuJogo.mandanteId === meuId;
-  var adversario = meuJogo ? CLUBES.find(function(c) {
-    return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
-  }) : null;
 
-  var ev = estado.eventos[estado.eventoAtual];
+  return escalados;
+}
 
-  var html = '<div class="tela-jogo">';
+// Posições no campo (0-1 relativo, por posição e índice)
+function posicaoCampo(posicao, idx, total, lado) {
+  // lado: "esq" = meu time (baixo), "dir" = adversário (cima)
+  var linhas = {
+    GOL: 0.08,
+    LD:  0.25, LE: 0.25, ZAG: 0.25,
+    VOL: 0.45,
+    MEI: 0.62,
+    ATA: 0.80
+  };
 
-  // Header da rodada
-  html += '<div class="jogo-screen-header">';
-  html += '<div class="jogo-screen-rodada">Rodada ' + rodada.numero + ' · ' + (ev && ev.subtitulo ? ev.subtitulo : '') + '</div>';
-  html += '</div>';
+  var y = linhas[posicao] || 0.5;
+  if (lado === "dir") y = 1 - y;
 
-  if (meuJogo && adversario) {
-    // Confronto principal
-    html += '<div class="jogo-confronto">';
-    html += '<div class="jogo-time">';
-    html += '<div class="jogo-escudo" style="background:' + estado.meuClube.cor + '">' + estado.meuClube.sigla + '</div>';
-    html += '<div class="jogo-time-nome">' + estado.meuClube.nome + '</div>';
-    html += '<div class="jogo-mando-tag">' + (euMandante ? '🏟 Mandante' : '✈ Visitante') + '</div>';
-    html += '</div>';
-    html += '<div class="jogo-vs">VS</div>';
-    html += '<div class="jogo-time">';
-    html += '<div class="jogo-escudo" style="background:' + adversario.cor + '">' + adversario.sigla + '</div>';
-    html += '<div class="jogo-time-nome">' + adversario.nome + '</div>';
-    html += '<div class="jogo-forca-tag">Força: ' + calcularForca(adversario).forca + '</div>';
-    html += '</div>';
-    html += '</div>';
-
-    // Stats pré-jogo
-    var minhaForca = calcularForca(estado.meuClube, estado.meuTecnico);
-    var forcaAdv   = calcularForca(adversario);
-    html += '<div class="jogo-prestats">';
-    html += '<div class="prestat"><div class="prestat-val" style="color:var(--accent)">' + minhaForca.forca + '</div><div class="prestat-label">Sua força</div></div>';
-    html += '<div class="prestat"><div class="prestat-val">' + estado.meuTecnico.formacao + '</div><div class="prestat-label">Formação</div></div>';
-    html += '<div class="prestat"><div class="prestat-val" style="color:var(--text2)">' + forcaAdv.forca + '</div><div class="prestat-label">Força deles</div></div>';
-    html += '</div>';
+  // Distribuir horizontalmente
+  var x;
+  if (total === 1) {
+    x = 0.5;
+  } else {
+    x = 0.15 + (idx / (total - 1)) * 0.70;
   }
 
-  // Outros jogos da rodada
-  html += '<div class="outros-jogos">';
-  html += '<div class="outros-jogos-titulo">Outros jogos da rodada</div>';
-  rodada.jogos.forEach(function(jogo) {
-    if (jogo.mandanteId === meuId || jogo.visitanteId === meuId) return;
-    var m = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
-    var v = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
-    html += '<div class="outro-jogo">';
-    html += '<span class="outro-time">' + m.sigla + '</span>';
-    html += '<span class="outro-vs">vs</span>';
-    html += '<span class="outro-time">' + v.sigla + '</span>';
-    html += '</div>';
+  return { x: x, y: y };
+}
+
+// Gerar lances da partida (retorna array ordenado por minuto)
+function gerarLancesPartida(mandante, visitante, tecM, tecV, golsM, golsV) {
+  var lances = [];
+  var usados = new Set();
+
+  function minUnico(min_base, spread) {
+    var m = min_base + Math.floor(Math.random() * (spread || 5));
+    m = Math.max(1, Math.min(90, m));
+    while (usados.has(m)) m = Math.min(90, m + 1);
+    usados.add(m);
+    return m;
+  }
+
+  var escM = escalarTime(mandante, tecM);
+  var escV = escalarTime(visitante, tecV);
+
+  var ataqM = escM.filter(function(j) { return j.posicao === "ATA" || j.posicao === "MEI"; });
+  var ataqV = escV.filter(function(j) { return j.posicao === "ATA" || j.posicao === "MEI"; });
+  var meiM  = escM.filter(function(j) { return j.posicao === "MEI" || j.posicao === "VOL"; });
+  var meiV  = escV.filter(function(j) { return j.posicao === "MEI" || j.posicao === "VOL"; });
+
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // Gols mandante
+  var minutosGolM = [];
+  for (var i = 0; i < golsM; i++) {
+    var minuto = minUnico(5 + Math.floor(Math.random() * 85), 3);
+    minutosGolM.push(minuto);
+    var marcador = rand(ataqM) || rand(escM);
+    var assistente = Math.random() > 0.35 ? rand(meiM.filter(function(j) { return j.id !== marcador.id; })) : null;
+
+    lances.push({
+      minuto: minuto,
+      tipo: "gol",
+      time: "mandante",
+      texto: "⚽ GOL! " + marcador.nome + " marca para o " + mandante.nome + (assistente ? " (assist: " + assistente.nome + ")" : ""),
+      jogadorId: marcador.id,
+      assistenteId: assistente ? assistente.id : null,
+      clube: mandante
+    });
+  }
+
+  // Gols visitante
+  for (var i = 0; i < golsV; i++) {
+    var minuto = minUnico(5 + Math.floor(Math.random() * 85), 3);
+    var marcador = rand(ataqV) || rand(escV);
+    var assistente = Math.random() > 0.35 ? rand(meiV.filter(function(j) { return j.id !== marcador.id; })) : null;
+
+    lances.push({
+      minuto: minuto,
+      tipo: "gol",
+      time: "visitante",
+      texto: "⚽ GOL! " + marcador.nome + " marca para o " + visitante.nome + (assistente ? " (assist: " + assistente.nome + ")" : ""),
+      jogadorId: marcador.id,
+      assistenteId: assistente ? assistente.id : null,
+      clube: visitante
+    });
+  }
+
+  // Lances extras (chutes, defesas, faltas)
+  var tiposExtra = [
+    { tipo: "chute",  textos: ["Chute de {j} para fora", "Finalização de {j} defendida pelo goleiro", "{j} tenta de longe, vai pra fora"] },
+    { tipo: "defesa", textos: ["Grande defesa! Goleiro salva chute de {j}", "Goleiro espalmou tentativa de {j}"] },
+    { tipo: "falta",  textos: ["Falta dura em {j}", "{j} sofre falta perigosa na intermediária", "Amarelo! Falta em {j}"] },
+    { tipo: "escanteio", textos: ["Escanteio para {nome}", "Cobrança de escanteio — ninguém alcança"] }
+  ];
+
+  var qtdExtra = 8 + Math.floor(Math.random() * 6);
+  for (var i = 0; i < qtdExtra; i++) {
+    var ehMandante = Math.random() > 0.5;
+    var esc = ehMandante ? escM : escV;
+    var clube = ehMandante ? mandante : visitante;
+    var j = rand(esc);
+    var tipo = tiposExtra[Math.floor(Math.random() * tiposExtra.length)];
+    var textosT = tipo.textos;
+    var texto = textosT[Math.floor(Math.random() * textosT.length)]
+      .replace("{j}", j.nome)
+      .replace("{nome}", clube.nome);
+
+    lances.push({
+      minuto: minUnico(1 + Math.floor(Math.random() * 89), 2),
+      tipo: tipo.tipo,
+      time: ehMandante ? "mandante" : "visitante",
+      texto: texto
+    });
+  }
+
+  // Intervalo
+  lances.push({ minuto: 45, tipo: "intervalo", texto: "⏸ Intervalo — " + mandante.nome + " " + golsM + " x " + golsV + " " + visitante.nome });
+
+  // Apito final
+  lances.push({ minuto: 90, tipo: "fim", texto: "⏱ Fim de jogo! " + mandante.nome + " " + golsM + " x " + golsV + " " + visitante.nome });
+
+  return lances.sort(function(a, b) { return a.minuto - b.minuto; });
+}
+
+// Calcular notas dos jogadores
+function calcularNotasJogadores(escalados, lancesPartida, clube, resultado, ehMandante) {
+  var notas = {};
+
+  escalados.forEach(function(j) {
+    // Base: overall normalizado entre 5.0 e 7.5
+    var base = 5.0 + (j.overall - 60) / 40 * 2.5;
+
+    // Variação aleatória ±1.0
+    var variacao = (Math.random() * 2 - 1) * 1.0;
+
+    // Bônus por resultado
+    var meusGols = ehMandante ? resultado.golsMandante : resultado.golsVisitante;
+    var delesGols = ehMandante ? resultado.golsVisitante : resultado.golsMandante;
+    var bonusResultado = meusGols > delesGols ? 0.5 : meusGols < delesGols ? -0.5 : 0;
+
+    // Bônus por gol
+    var bonusGol = 0;
+    lancesPartida.forEach(function(l) {
+      if (l.tipo === "gol" && l.jogadorId === j.id) bonusGol += 1.2;
+      if (l.tipo === "gol" && l.assistenteId === j.id) bonusGol += 0.7;
+    });
+
+    var nota = Math.max(3.0, Math.min(10.0, base + variacao + bonusResultado + bonusGol));
+    notas[j.id] = Math.round(nota * 10) / 10;
   });
+
+  return notas;
+}
+
+// Aplicar resultados da partida nos jogadores (stats persistentes)
+function aplicarResultadosJogadores(escalados, lancesPartida, notas) {
+  escalados.forEach(function(j) {
+    if (!j.stats) j.stats = { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 };
+
+    j.stats.jogos++;
+
+    // Contar gols e assistências
+    lancesPartida.forEach(function(l) {
+      if (l.tipo === "gol" && l.jogadorId === j.id) j.stats.gols++;
+      if (l.tipo === "gol" && l.assistenteId === j.id) j.stats.assistencias++;
+    });
+
+    // Atualizar média de notas
+    var nota = notas[j.id] || 6.0;
+    j.stats.nota_media = Math.round(
+      ((j.stats.nota_media * (j.stats.jogos - 1) + nota) / j.stats.jogos) * 10
+    ) / 10;
+
+    // Valorização/desvalorização baseada na nota
+    if (j.stats.jogos >= 3) {
+      var fator = (j.stats.nota_media - 6.5) / 10;
+      j.valor_mercado = Math.round(j.valor_mercado * (1 + fator * 0.05));
+      j.clausula_rescisoria = Math.round(j.valor_mercado * (j.overall >= 82 ? 2.5 : 2.0));
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// FADIGA E SUBSTITUIÇÕES
+// ════════════════════════════════════════
+
+// Calcular fadiga acumulada de um jogador (0-100)
+function getFadiga(jogador) {
+  return jogador.fadiga || 0;
+}
+
+// Aumentar fadiga durante a partida (por minuto jogado)
+function calcularFadigaPartida(jogador, minutosJogados) {
+  var fisico = 70; // base
+  // Jogadores com overall maior tendem a ter melhor físico
+  var resistencia = 0.5 + (jogador.overall - 60) / 80;
+  var ganho = (minutosJogados / 90) * (35 + Math.random() * 20) / resistencia;
+  return Math.min(100, (jogador.fadiga || 0) + ganho);
+}
+
+// Recuperar fadiga entre rodadas
+function recuperarFadigaElenco(clube) {
+  clube.jogadores.forEach(function(j) {
+    var fadiga = j.fadiga || 0;
+    // Recupera 30-45% entre rodadas
+    j.fadiga = Math.max(0, fadiga - (30 + Math.random() * 15));
+  });
+}
+
+// Penalidade de fadiga no overall efetivo
+function overallEfetivo(jogador) {
+  var fadiga = jogador.fadiga || 0;
+  if (fadiga < 70) return jogador.overall;
+  var penalidade = (fadiga - 70) / 30 * 10; // até -10 overall
+  return Math.max(40, jogador.overall - penalidade);
+}
+
+// Lógica do técnico para substituições
+// parada: 1, 2 ou 3
+// retorna array de { sai, entra, motivo }
+function tecnicoDecideSubstituicoes(escAtual, reservas, parada, subsRestantes, paradasRestantes) {
+  if (subsRestantes <= 0 || paradasRestantes <= 0) return [];
+
+  var substituicoes = [];
+  var maxNestaParada = parada === 1 ? 2 : Math.min(subsRestantes, 2); // 1a parada até 2, depois até o limite
+
+  // Ordenar por fadiga desc
+  var candidatos = escAtual.filter(function(j) {
+    return j.posicao !== "GOL"; // goleiro raramente sai
+  }).sort(function(a, b) {
+    return (b.fadiga || 0) - (a.fadiga || 0);
+  });
+
+  candidatos.forEach(function(saindo) {
+    if (substituicoes.length >= maxNestaParada) return;
+    if ((saindo.fadiga || 0) < 65) return; // só substitui se fadiga alta
+
+    // Achar reserva da mesma posição com menor fadiga
+    var entrando = reservas.filter(function(r) {
+      return r.posicao === saindo.posicao &&
+             !substituicoes.find(function(s) { return s.entra.id === r.id; });
+    }).sort(function(a, b) {
+      return (a.fadiga || 0) - (b.fadiga || 0);
+    })[0];
+
+    if (!entrando) return; // sem reserva disponível
+
+    substituicoes.push({
+      sai: saindo,
+      entra: entrando,
+      motivo: "Fadiga " + Math.round(saindo.fadiga || 0) + "%"
+    });
+  });
+
+  return substituicoes;
+}
+
+// Aplicar substituição no array de escalados
+function aplicarSubstituicao(escAtual, sub) {
+  var idx = escAtual.findIndex(function(j) { return j.id === sub.sai.id; });
+  if (idx >= 0) escAtual[idx] = sub.entra;
+  return escAtual;
+}</script>
+  <script>// ════════════════════════════════════════
+// TELA DE JOGO AO VIVO
+// ════════════════════════════════════════
+var jogoAtivo = null;
+
+function renderTelaJogo(rodadaIdx) {
+  var rodada      = estado.calendario[rodadaIdx];
+  var meuId       = estado.meuClube.id;
+  var meuTecnico  = estado.meuTecnico;
+  var meuJogo     = rodada.jogos.find(function(j) {
+    return j.mandanteId === meuId || j.visitanteId === meuId;
+  });
+  var euMandante  = meuJogo && meuJogo.mandanteId === meuId;
+  var meuClube    = estado.meuClube;
+  var adversario  = meuJogo ? CLUBES.find(function(c) {
+    return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
+  }) : null;
+  var tecAdv = adversario ? TECNICOS_DISPONIVEIS.find(function(t) { return t.id === adversario.tecnico_id; }) : null;
+
+  var mandante    = euMandante ? meuClube : adversario;
+  var visitante   = euMandante ? adversario : meuClube;
+  var tecMandante = euMandante ? meuTecnico : tecAdv;
+  var tecVisitante= euMandante ? tecAdv : meuTecnico;
+
+  var escMandante  = escalarTime(mandante,  tecMandante);
+  var escVisitante = escalarTime(visitante, tecVisitante);
+
+  // Todos os jogadores do clube (titulares + reservas)
+  var reservasMandante  = mandante.jogadores.filter(function(j) {
+    return !escMandante.find(function(e) { return e.id === j.id; });
+  });
+  var reservasVisitante = visitante.jogadores.filter(function(j) {
+    return !escVisitante.find(function(e) { return e.id === j.id; });
+  });
+
+  var fMandante  = calcularForca(mandante,  tecMandante);
+  var fVisitante = calcularForca(visitante, tecVisitante);
+  var ev = estado.eventos[estado.eventoAtual];
+
+  jogoAtivo = {
+    rodadaIdx: rodadaIdx,
+    euMandante: euMandante,
+    mandante: mandante, visitante: visitante,
+    tecMandante: tecMandante, tecVisitante: tecVisitante,
+    escMandante: escMandante.slice(),
+    escVisitante: escVisitante.slice(),
+    escInicial: escMandante.slice(), // para notas
+    reservasMandante: reservasMandante,
+    reservasVisitante: reservasVisitante,
+    lances: [], golsM: 0, golsV: 0,
+    chutesM: 0, chutesV: 0,
+    subsM: 0, subsV: 0, // contagem de substituições
+    paradasM: 0, paradasV: 0,
+    timer: null, minAtual: 0,
+    resultado: null
+  };
+
+  renderJogoHTML(fMandante, fVisitante, ev, rodada);
+}
+
+function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
+  var mandante = jogoAtivo.mandante;
+  var visitante = jogoAtivo.visitante;
+  var escM = jogoAtivo.escMandante;
+  var escV = jogoAtivo.escVisitante;
+  var tecM = jogoAtivo.tecMandante;
+  var tecV = jogoAtivo.tecVisitante;
+
+  var html = '<div class="jogo-tela">';
+
+  // Header com placar e cronômetro
+  html += '<div class="jogo-tela-header">';
+  html += '<div class="jogo-tela-rodada">Rodada ' + rodada.numero + ' · ' + (ev ? ev.subtitulo : '') + '</div>';
+  html += '<div class="jogo-tela-placar">';
+  html += '<span class="jogo-tela-sigla">' + mandante.sigla + '</span>';
+  html += '<span class="placar-numeros" id="placar-numeros">0 – 0</span>';
+  html += '<span class="jogo-tela-sigla">' + visitante.sigla + '</span>';
+  html += '</div>';
+  html += '<div class="jogo-tela-cronometro" id="cronometro">0\'</div>';
   html += '</div>';
 
-  // Botão simular
+  // Stats ao vivo
+  html += '<div class="jogo-stats-vivos">';
+  html += '<div class="stat-vivo"><span id="sv-chutes-m">0</span><span>Chutes</span><span id="sv-chutes-v">0</span></div>';
+  html += '<div class="stat-vivo"><span id="sv-posse-m">50%</span><span>Posse</span><span id="sv-posse-v">50%</span></div>';
+  html += '<div class="stat-vivo"><span id="sv-subs-m">0/5</span><span>Subs</span><span id="sv-subs-v">0/5</span></div>';
+  html += '</div>';
+
+  // Layout dois painéis: campo + feed
+  html += '<div class="jogo-dois-paineis">';
+
+  // Campo tático
+  html += '<div class="jogo-painel-campo">';
+  html += '<div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div>';
+  html += '</div>';
+
+  // Feed de lances
+  html += '<div class="jogo-painel-feed">';
+  html += '<div class="lances-feed-titulo">⚡ Lances</div>';
+  html += '<div class="lances-lista" id="lances-lista"><div class="lance-vazio">Aguardando início...</div></div>';
+  html += '</div>';
+
+  html += '</div>'; // jogo-dois-paineis
+
+  // Botão iniciar
   html += '<div class="jogo-acoes">';
-  html += '<button class="btn-simular-grande" onclick="simularEVoltar(' + rodadaIdx + ')">▶ Simular Rodada</button>';
+  html += '<button class="btn-simular-grande" id="btn-iniciar" onclick="iniciarPartidaAoVivo()">▶ Iniciar partida</button>';
+  html += '</div>';
   html += '</div>';
 
-  html += '</div>';
   document.getElementById("main").innerHTML = html;
 }
 
-function simularEVoltar(rodadaIdx) {
-  simularRodada(rodadaIdx);
+function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
+  var html = '<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg" class="campo-svg">';
 
-  // Resultado do meu jogo
-  var meuId = estado.meuClube.id;
-  var rodada = estado.calendario[rodadaIdx];
-  var meuJogo = rodada.jogos.find(function(j) {
-    return j.mandanteId === meuId || j.visitanteId === meuId;
-  });
+  // Fundo
+  html += '<rect width="360" height="480" fill="#1a3a1a" rx="8"/>';
+  // Linhas do campo
+  html += '<rect x="16" y="16" width="328" height="448" fill="none" stroke="#2d5a2d" stroke-width="1.5" rx="3"/>';
+  html += '<line x1="16" y1="240" x2="344" y2="240" stroke="#2d5a2d" stroke-width="1.2"/>';
+  html += '<circle cx="180" cy="240" r="36" fill="none" stroke="#2d5a2d" stroke-width="1.2"/>';
+  html += '<circle cx="180" cy="240" r="2.5" fill="#2d5a2d"/>';
+  html += '<rect x="96" y="16" width="168" height="52" fill="none" stroke="#2d5a2d" stroke-width="1.2"/>';
+  html += '<rect x="96" y="412" width="168" height="52" fill="none" stroke="#2d5a2d" stroke-width="1.2"/>';
+  html += '<rect x="130" y="16" width="100" height="24" fill="none" stroke="#2d5a2d" stroke-width="1"/>';
+  html += '<rect x="130" y="440" width="100" height="24" fill="none" stroke="#2d5a2d" stroke-width="1"/>';
 
-  if (meuJogo) {
-    var resultado = estado.resultados.find(function(r) {
-      return r.rodada === rodadaIdx &&
-        r.mandanteId === meuJogo.mandanteId &&
-        r.visitanteId === meuJogo.visitanteId;
+  // Agrupar por posição
+  function renderJogs(esc, lado, corCirculo) {
+    var porPos = {};
+    esc.forEach(function(j) {
+      if (!porPos[j.posicao]) porPos[j.posicao] = [];
+      porPos[j.posicao].push(j);
     });
-    if (resultado) {
-      var euMandante = meuJogo.mandanteId === meuId;
-      var meusG  = euMandante ? resultado.golsMandante : resultado.golsVisitante;
-      var delesG = euMandante ? resultado.golsVisitante : resultado.golsMandante;
-      var adv    = CLUBES.find(function(c) {
-        return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
+    Object.entries(porPos).forEach(function(entry) {
+      var pos = entry[0], jogs = entry[1];
+      jogs.forEach(function(j, idx) {
+        var p = posicaoCampo(pos, idx, jogs.length, lado);
+        var cx = Math.round(p.x * 360);
+        var cy = Math.round(p.y * 448) + 16;
+        var fadiga = Math.round(j.fadiga || 0);
+        var corFadiga = fadiga >= 75 ? "#e74c3c" : fadiga >= 50 ? "#f1c40f" : "#2ecc71";
+        var corCirculoFinal = j._substituido ? "#555" : corCirculo;
+
+        // Círculo jogador
+        html += '<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="' + corCirculoFinal + '" stroke="#fff" stroke-width="1.2" opacity="0.92"/>';
+        // Overall efetivo
+        var ovEf = Math.round(overallEfetivo(j));
+        html += '<text x="' + cx + '" y="' + (cy+4) + '" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">' + ovEf + '</text>';
+        // Nome
+        var nome = j.nome.split(" ")[0];
+        if (nome.length > 7) nome = nome.substring(0,6)+".";
+        html += '<text x="' + cx + '" y="' + (cy+22) + '" text-anchor="middle" fill="#ddd" font-size="7.5">' + nome + '</text>';
+        // Barra de fadiga (pequena, abaixo do nome)
+        var barW = 26;
+        var barFill = Math.round((fadiga/100)*barW);
+        html += '<rect x="' + (cx-13) + '" y="' + (cy+25) + '" width="' + barW + '" height="3" fill="#333" rx="1.5"/>';
+        html += '<rect x="' + (cx-13) + '" y="' + (cy+25) + '" width="' + barFill + '" height="3" fill="' + corFadiga + '" rx="1.5"/>';
       });
-      var txt = meusG > delesG ? "Vitória" : meusG < delesG ? "Derrota" : "Empate";
-      adicionarNoticia(txt + " " + meusG + "x" + delesG + " contra o " + adv.nome + " (Rod. " + (rodadaIdx + 1) + ")", rodadaIdx);
-      estado.inbox = estado.inbox || [];
-      estado.inbox.push({
-        id: "res_" + rodadaIdx,
-        titulo: txt + " " + meusG + "x" + delesG + " · " + adv.nome,
-        remetente: "Imprensa",
-        texto: estado.meuClube.nome + " " + txt.toLowerCase() + " por " + meusG + " a " + delesG + " contra o " + adv.nome + " pela rodada " + (rodadaIdx + 1) + ".",
-        lida: false
-      });
-    }
+    });
   }
 
-  renderResultadoRodada(rodadaIdx);
+  // Visitante em cima (lado "esq" = y baixo no campo = cima na tela)
+  renderJogs(escV, "esq", visitante.cor || "#555");
+  // Mandante em baixo
+  renderJogs(escM, "dir", mandante.cor  || "#1a6bc4");
+
+  // Labels
+  if (tecV) html += '<text x="180" y="12" text-anchor="middle" fill="#aaa" font-size="8">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
+  if (tecM) html += '<text x="180" y="476" text-anchor="middle" fill="#aaa" font-size="8">' + mandante.sigla + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
+
+  html += '</svg>';
+  return html;
 }
 
-function renderResultadoRodada(rodadaIdx) {
-  var rodada  = estado.calendario[rodadaIdx];
-  var meuId   = estado.meuClube.id;
-  var tabela  = calcularTabela(CLUBES, estado.resultados);
-  var minhaPos = tabela.findIndex(function(t) { return t.id === meuId; });
+function iniciarPartidaAoVivo() {
+  var btn = document.getElementById("btn-iniciar");
+  if (btn) { btn.disabled = true; btn.textContent = "⏱ Em andamento..."; }
 
-  var html = '<div class="tela-resultado">';
-  html += '<div class="resultado-titulo">Rodada ' + rodada.numero + ' — Resultados</div>';
+  // Simular resultado
+  var r = simularPartidaSimples(
+    jogoAtivo.mandante, jogoAtivo.visitante,
+    jogoAtivo.tecMandante, jogoAtivo.tecVisitante
+  );
+  jogoAtivo.resultado = r;
+  jogoAtivo.golsM = r.golsMandante;
+  jogoAtivo.golsV = r.golsVisitante;
 
-  // Resultado dos jogos
-  html += '<div class="resultados-lista">';
-  rodada.jogos.forEach(function(jogo) {
-    var resultado = estado.resultados.find(function(r) {
-      return r.rodada === rodadaIdx &&
-        r.mandanteId === jogo.mandanteId &&
-        r.visitanteId === jogo.visitanteId;
+  // Gerar lances
+  var lances = gerarLancesPartida(
+    jogoAtivo.mandante, jogoAtivo.visitante,
+    jogoAtivo.tecMandante, jogoAtivo.tecVisitante,
+    r.golsMandante, r.golsVisitante
+  );
+  jogoAtivo.lances = lances;
+
+  // Iniciar fadiga inicial dos titulares
+  jogoAtivo.escMandante.forEach(function(j) { j.fadiga = j.fadiga || 0; });
+  jogoAtivo.escVisitante.forEach(function(j) { j.fadiga = j.fadiga || 0; });
+
+  var golsExibidosM = 0, golsExibidosV = 0;
+  var lancesExibidos = 0;
+  var chutesM = 0, chutesV = 0;
+  var minAtual = 0;
+  var totalMs = 30000;
+  var intervalo = totalMs / 90;
+  // Paradas: 45, 60, 75
+  var paradasFeitas = { 45: false, 60: false, 75: false };
+
+  jogoAtivo.timer = setInterval(function() {
+    minAtual++;
+    jogoAtivo.minAtual = minAtual;
+
+    // Atualizar cronômetro
+    var cron = document.getElementById("cronometro");
+    if (cron) cron.textContent = minAtual + "'";
+
+    // Atualizar fadiga dos em campo
+    jogoAtivo.escMandante.forEach(function(j) {
+      j.fadiga = Math.min(100, (j.fadiga || 0) + (0.4 + Math.random() * 0.2) / (0.5 + (j.overall - 60) / 80));
     });
-    var m = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
-    var v = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
-    var ehMeu = jogo.mandanteId === meuId || jogo.visitanteId === meuId;
+    jogoAtivo.escVisitante.forEach(function(j) {
+      j.fadiga = Math.min(100, (j.fadiga || 0) + (0.4 + Math.random() * 0.2) / (0.5 + (j.overall - 60) / 80));
+    });
 
-    html += '<div class="resultado-item' + (ehMeu ? ' resultado-meu' : '') + '">';
-    html += '<span class="res-time">' + m.nome + '</span>';
-    if (resultado) {
-      var euM   = jogo.mandanteId === meuId;
-      var meusG = euM ? resultado.golsMandante : resultado.golsVisitante;
-      var delesG= euM ? resultado.golsVisitante : resultado.golsMandante;
-      var cls   = ehMeu ? (meusG > delesG ? 'res-v' : meusG < delesG ? 'res-d' : 'res-e') : '';
-      html += '<span class="res-placar ' + cls + '">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</span>';
+    // Paradas do técnico
+    [45, 60, 75].forEach(function(parada) {
+      if (minAtual === parada && !paradasFeitas[parada]) {
+        paradasFeitas[parada] = true;
+        var paradaNum = parada === 45 ? 1 : parada === 60 ? 2 : 3;
+
+        // Mandante
+        var subsM = tecnicoDecideSubstituicoes(
+          jogoAtivo.escMandante, jogoAtivo.reservasMandante,
+          paradaNum, 5 - jogoAtivo.subsM, 3 - jogoAtivo.paradasM
+        );
+        if (subsM.length > 0) {
+          jogoAtivo.paradasM++;
+          subsM.forEach(function(sub) {
+            if (jogoAtivo.subsM >= 5) return;
+            jogoAtivo.escMandante = aplicarSubstituicao(jogoAtivo.escMandante, sub);
+            jogoAtivo.subsM++;
+            adicionarLanceFeed({
+              minuto: parada,
+              tipo: "substituicao",
+              texto: "🔄 " + jogoAtivo.mandante.nome + ": entra " + sub.entra.nome + ", sai " + sub.sai.nome + " (" + sub.motivo + ")"
+            });
+          });
+        }
+
+        // Visitante
+        var subsV = tecnicoDecideSubstituicoes(
+          jogoAtivo.escVisitante, jogoAtivo.reservasVisitante,
+          paradaNum, 5 - jogoAtivo.subsV, 3 - jogoAtivo.paradasV
+        );
+        if (subsV.length > 0) {
+          jogoAtivo.paradasV++;
+          subsV.forEach(function(sub) {
+            if (jogoAtivo.subsV >= 5) return;
+            jogoAtivo.escVisitante = aplicarSubstituicao(jogoAtivo.escVisitante, sub);
+            jogoAtivo.subsV++;
+            adicionarLanceFeed({
+              minuto: parada,
+              tipo: "substituicao",
+              texto: "🔄 " + jogoAtivo.visitante.nome + ": entra " + sub.entra.nome + ", sai " + sub.sai.nome + " (" + sub.motivo + ")"
+            });
+          });
+        }
+
+        // Atualizar campo
+        var campoWrap = document.getElementById("campo-wrap");
+        if (campoWrap) {
+          campoWrap.innerHTML = renderCampoTatico(
+            jogoAtivo.escMandante, jogoAtivo.escVisitante,
+            jogoAtivo.mandante, jogoAtivo.visitante,
+            jogoAtivo.tecMandante, jogoAtivo.tecVisitante
+          );
+        }
+
+        // Atualizar contador de subs
+        var sm = document.getElementById("sv-subs-m");
+        var sv = document.getElementById("sv-subs-v");
+        if (sm) sm.textContent = jogoAtivo.subsM + "/5";
+        if (sv) sv.textContent = jogoAtivo.subsV + "/5";
+      }
+    });
+
+    // Exibir lances do minuto
+    while (lancesExibidos < lances.length && lances[lancesExibidos].minuto <= minAtual) {
+      var lance = lances[lancesExibidos];
+      adicionarLanceFeed(lance);
+
+      if (lance.tipo === "gol") {
+        if (lance.time === "mandante") golsExibidosM++;
+        else golsExibidosV++;
+        var pn = document.getElementById("placar-numeros");
+        if (pn) pn.textContent = golsExibidosM + " – " + golsExibidosV;
+      }
+      if (lance.tipo === "chute" || lance.tipo === "gol") {
+        if (lance.time === "mandante") chutesM++;
+        else chutesV++;
+        var sm2 = document.getElementById("sv-chutes-m");
+        var sv2 = document.getElementById("sv-chutes-v");
+        if (sm2) sm2.textContent = chutesM;
+        if (sv2) sv2.textContent = chutesV;
+      }
+      lancesExibidos++;
     }
-    html += '<span class="res-time direita">' + v.nome + '</span>';
-    html += '</div>';
+
+    // Posse
+    var fM = r.forcaMandante.forca;
+    var fV = r.forcaVisitante.forca;
+    var posseM = Math.max(30, Math.min(70, Math.round(50 + (fM-fV)*0.2 + (Math.random()*4-2))));
+    var spm = document.getElementById("sv-posse-m");
+    var spv = document.getElementById("sv-posse-v");
+    if (spm) spm.textContent = posseM + "%";
+    if (spv) spv.textContent = (100-posseM) + "%";
+
+    // Atualizar campo a cada 10 minutos (fadiga)
+    if (minAtual % 10 === 0) {
+      var cw = document.getElementById("campo-wrap");
+      if (cw) cw.innerHTML = renderCampoTatico(
+        jogoAtivo.escMandante, jogoAtivo.escVisitante,
+        jogoAtivo.mandante, jogoAtivo.visitante,
+        jogoAtivo.tecMandante, jogoAtivo.tecVisitante
+      );
+    }
+
+    if (minAtual >= 90) {
+      clearInterval(jogoAtivo.timer);
+      finalizarPartida();
+    }
+  }, intervalo);
+}
+
+function adicionarLanceFeed(lance) {
+  var lista = document.getElementById("lances-lista");
+  if (!lista) return;
+  var vazio = lista.querySelector(".lance-vazio");
+  if (vazio) lista.removeChild(vazio);
+  var div = document.createElement("div");
+  var cls = "lance-item";
+  if (lance.tipo === "gol")         cls += " lance-gol";
+  if (lance.tipo === "substituicao")cls += " lance-sub";
+  if (lance.tipo === "intervalo")   cls += " lance-intervalo";
+  if (lance.tipo === "fim")         cls += " lance-fim";
+  div.className = cls;
+  div.innerHTML = '<span class="lance-min">' + lance.minuto + '\'</span><span class="lance-texto">' + lance.texto + '</span>';
+  lista.appendChild(div);
+  lista.scrollTop = lista.scrollHeight;
+}
+
+function finalizarPartida() {
+  var r          = jogoAtivo.resultado;
+  var euMandante = jogoAtivo.euMandante;
+  var mandante   = jogoAtivo.mandante;
+  var visitante  = jogoAtivo.visitante;
+  var lances     = jogoAtivo.lances;
+  var meuClube   = estado.meuClube;
+  var meuEsc     = euMandante ? jogoAtivo.escMandante : jogoAtivo.escVisitante;
+  var escInicial = euMandante ? jogoAtivo.escMandante : jogoAtivo.escVisitante;
+
+  // Calcular notas
+  var notasM = calcularNotasJogadores(jogoAtivo.escMandante, lances, mandante, r, true);
+  var notasV = calcularNotasJogadores(jogoAtivo.escVisitante, lances, visitante, r, false);
+  var minhasNotas = euMandante ? notasM : notasV;
+
+  // Aplicar stats nos jogadores do meu time
+  aplicarResultadosJogadores(meuEsc, lances, minhasNotas);
+
+  // Atualizar fadiga real dos jogadores
+  meuClube.jogadores.forEach(function(j) {
+    var emCampo = meuEsc.find(function(e) { return e.id === j.id; });
+    if (emCampo) j.fadiga = emCampo.fadiga;
   });
+
+  // Salvar resultado
+  estado.resultados.push({
+    rodada: jogoAtivo.rodadaIdx,
+    mandanteId: mandante.id, visitanteId: visitante.id,
+    golsMandante: r.golsMandante, golsVisitante: r.golsVisitante,
+    eventos: lances.filter(function(l) { return l.tipo === "gol"; }).map(function(l) {
+      return { minuto: l.minuto, texto: l.texto };
+    }),
+    forcaMandante: r.forcaMandante, forcaVisitante: r.forcaVisitante
+  });
+
+  // Outros jogos da rodada
+  var cal = estado.calendario[jogoAtivo.rodadaIdx];
+  cal.jogos.forEach(function(jogo) {
+    if (jogo.mandanteId === mandante.id && jogo.visitanteId === visitante.id) return;
+    var m2 = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
+    var v2 = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+    var tM2 = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === m2.tecnico_id; });
+    var tV2 = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === v2.tecnico_id; });
+    var r2  = simularPartidaSimples(m2, v2, tM2, tV2);
+    estado.resultados.push({
+      rodada: jogoAtivo.rodadaIdx,
+      mandanteId: jogo.mandanteId, visitanteId: jogo.visitanteId,
+      golsMandante: r2.golsMandante, golsVisitante: r2.golsVisitante,
+      eventos: r2.eventos, forcaMandante: r2.forcaMandante, forcaVisitante: r2.forcaVisitante
+    });
+  });
+
+  estado.rodadaAtual = jogoAtivo.rodadaIdx + 1;
+  processarMercadoRodada(jogoAtivo.rodadaIdx);
+
+  // Notícias e inbox
+  var meusG = euMandante ? r.golsMandante : r.golsVisitante;
+  var delesG= euMandante ? r.golsVisitante : r.golsMandante;
+  var adv   = euMandante ? visitante : mandante;
+  var txt   = meusG > delesG ? "Vitória" : meusG < delesG ? "Derrota" : "Empate";
+  adicionarNoticia(txt + " " + meusG + "x" + delesG + " contra o " + adv.nome + " (Rod. " + (jogoAtivo.rodadaIdx+1) + ")", jogoAtivo.rodadaIdx);
+  estado.inbox = estado.inbox || [];
+  estado.inbox.push({
+    id: "res_" + jogoAtivo.rodadaIdx,
+    titulo: txt + " " + meusG + "x" + delesG + " · " + adv.nome,
+    remetente: "Imprensa",
+    texto: meuClube.nome + " " + txt.toLowerCase() + " por " + meusG + " a " + delesG + " contra " + adv.nome + " - Rodada " + (jogoAtivo.rodadaIdx+1),
+    lida: false
+  });
+
+  salvarJogo();
+  renderTelaResultadoComNotas(meuEsc, minhasNotas, r, euMandante);
+}
+
+function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
+  var mandante = jogoAtivo.mandante;
+  var visitante = jogoAtivo.visitante;
+  var meusG = euMandante ? resultado.golsMandante : resultado.golsVisitante;
+  var delesG= euMandante ? resultado.golsVisitante : resultado.golsMandante;
+  var diff  = meusG - delesG;
+  var cor   = diff > 0 ? "var(--green)" : diff < 0 ? "var(--red)" : "var(--yellow)";
+  var txt   = diff > 0 ? "VITÓRIA" : diff < 0 ? "DERROTA" : "EMPATE";
+  var ordemPos = { GOL:0, LD:1, ZAG:2, LE:3, VOL:4, MEI:5, ATA:6 };
+
+  var html = '<div class="resultado-tela">';
+
+  html += '<div class="resultado-placar-final" style="border-color:' + cor + '">';
+  html += '<div class="res-final-titulo" style="color:' + cor + '">' + txt + '</div>';
+  html += '<div class="res-final-times">' + mandante.nome + '</div>';
+  html += '<div class="res-final-numeros" style="color:' + cor + '">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</div>';
+  html += '<div class="res-final-times">' + visitante.nome + '</div>';
   html += '</div>';
 
-  // Mini tabela pós-rodada
-  html += '<div class="resultado-tabela-titulo">Classificação</div>';
-  html += '<div class="mini-tabela">';
-  html += '<div class="mini-tab-header"><span>#</span><span>Clube</span><span>Pts</span><span>J</span><span>SG</span></div>';
-  var inicio = Math.max(0, minhaPos - 2);
-  var fim    = Math.min(tabela.length, minhaPos + 3);
-  tabela.slice(inicio, fim).forEach(function(t, i) {
-    var pos = inicio + i + 1;
-    var cls = t.id === meuId ? ' mini-tab-eu' : '';
-    html += '<div class="mini-tab-row' + cls + '">';
-    html += '<span class="mini-tab-pos">' + pos + '</span>';
-    html += '<span class="mini-tab-nome"><span class="escudo-mini" style="background:' + t.cor + '">' + t.sigla + '</span>' + t.nome + '</span>';
-    html += '<span class="mini-tab-pts">' + t.pts + '</span>';
-    html += '<span>' + t.j + '</span>';
-    html += '<span>' + (t.sg > 0 ? '+' + t.sg : t.sg) + '</span>';
+  html += '<div class="notas-titulo">📋 Avaliação dos jogadores</div>';
+  html += '<div class="notas-grid">';
+
+  var jords = meuEsc.slice().sort(function(a,b) {
+    return (ordemPos[a.posicao]||0) - (ordemPos[b.posicao]||0);
+  });
+
+  jords.forEach(function(j) {
+    var nota     = notas[j.id] || 6.0;
+    var corNota  = nota >= 8 ? "var(--green)" : nota >= 6.5 ? "var(--yellow)" : "var(--red)";
+    var golsJ = 0, assJ = 0;
+    jogoAtivo.lances.forEach(function(l) {
+      if (l.tipo === "gol" && l.jogadorId === j.id) golsJ++;
+      if (l.tipo === "gol" && l.assistenteId === j.id) assJ++;
+    });
+    var fadigaFinal = Math.round(j.fadiga || 0);
+    var corFad = fadigaFinal >= 75 ? "var(--red)" : fadigaFinal >= 50 ? "var(--yellow)" : "var(--green)";
+
+    html += '<div class="nota-card">';
+    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
+    html += '<div class="nota-card-info">';
+    html += '<div class="nota-card-nome">' + j.nome;
+    if (golsJ > 0) html += ' ⚽'.repeat(golsJ);
+    if (assJ > 0)  html += ' 🎯'.repeat(assJ);
+    html += '</div>';
+    html += '<div class="nota-card-stats">';
+    html += 'Média: <strong>' + j.stats.nota_media + '</strong> · ' + j.stats.jogos + 'J · ' + j.stats.gols + 'G · ' + j.stats.assistencias + 'A';
+    html += ' · Fadiga: <span style="color:' + corFad + '">' + fadigaFinal + '%</span>';
+    html += '</div>';
+    // Barra fadiga
+    html += '<div class="fadiga-barra-wrap"><div class="fadiga-barra" style="width:' + fadigaFinal + '%;background:' + corFad + '"></div></div>';
+    html += '</div>';
+    html += '<div class="nota-valor" style="color:' + corNota + '">' + nota.toFixed(1) + '</div>';
     html += '</div>';
   });
-  html += '</div>';
 
-  // Botão voltar
+  html += '</div>';
   html += '<div class="jogo-acoes" style="margin-top:20px">';
   html += '<button class="btn-primario" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
   html += '</div>';
   html += '</div>';
 
   document.getElementById("main").innerHTML = html;
+}</script>
+  <script>// ════════════════════════════════════════
+// SISTEMA FINANCEIRO
+// ════════════════════════════════════════
+
+// Configuração das fontes de receita por porte do clube
+function configurarFinanceiroClube(clube) {
+  if (clube.financeiro) return; // já configurado
+
+  var tier = clube.budget >= 80000000 ? "grande" :
+             clube.budget >= 40000000 ? "medio"  : "pequeno";
+
+  var config = {
+    grande:  { socio: 3500000, bilheteria: 2500000, cotas_tv: 8000000, patrocinio_camisa: 5000000, patrocinio_esportivo: 2000000, licenciados: 800000, naming_rights: 1500000, aluguel_estadio: 600000 },
+    medio:   { socio: 1200000, bilheteria: 900000,  cotas_tv: 3500000, patrocinio_camisa: 1500000, patrocinio_esportivo: 700000,  licenciados: 250000, naming_rights: 400000,  aluguel_estadio: 200000 },
+    pequeno: { socio: 300000,  bilheteria: 250000,  cotas_tv: 800000,  patrocinio_camisa: 300000,  patrocinio_esportivo: 150000,  licenciados: 60000,  naming_rights: 80000,   aluguel_estadio: 50000  }
+  };
+
+  clube.financeiro = {
+    tier: tier,
+    receitas_config: config[tier],
+    historico: [],        // { rodada, tipo, descricao, valor }
+    folha_mensal: 0,      // calculado dinamicamente
+    resultado_acumulado: 0
+  };
 }
 
-function voltarAoDashboard() {
-  var ev = estado.eventos[estado.eventoAtual];
-  atualizarCalView(ev);
-  renderDashboard();
+function calcularFolha(clube) {
+  return clube.jogadores.reduce(function(s, j) { return s + (j.salario || 0); }, 0);
 }
 
+// Processar receitas de uma rodada
+function processarReceitasRodada(clube, rodadaIdx, jogosEmCasa) {
+  configurarFinanceiroClube(clube);
+  var cfg = clube.financeiro.receitas_config;
+  var total = 0;
+
+  // Receitas fixas mensais (divididas por ~4 rodadas)
+  var fixas = [
+    { tipo: "socio",              desc: "Sócio torcedor",           valor: Math.round(cfg.socio / 4) },
+    { tipo: "cotas_tv",           desc: "Cotas de TV",              valor: Math.round(cfg.cotas_tv / 4) },
+    { tipo: "patrocinio_camisa",  desc: "Patrocínio camisa",        valor: Math.round(cfg.patrocinio_camisa / 4) },
+    { tipo: "patrocinio_esportivo",desc:"Patrocínio esportivo",     valor: Math.round(cfg.patrocinio_esportivo / 4) },
+    { tipo: "licenciados",        desc: "Produtos licenciados",     valor: Math.round(cfg.licenciados / 4) },
+    { tipo: "naming_rights",      desc: "Naming rights estádio",    valor: Math.round(cfg.naming_rights / 4) }
+  ];
+
+  fixas.forEach(function(f) {
+    clube.budget += f.valor;
+    total += f.valor;
+    clube.financeiro.historico.push({ rodada: rodadaIdx, tipo: "receita", categoria: f.tipo, descricao: f.desc, valor: f.valor });
+  });
+
+  // Bilheteria só jogos em casa
+  if (jogosEmCasa > 0) {
+    var bilheteria = Math.round(cfg.bilheteria * jogosEmCasa * (0.8 + Math.random() * 0.4));
+    clube.budget += bilheteria;
+    total += bilheteria;
+    clube.financeiro.historico.push({ rodada: rodadaIdx, tipo: "receita", categoria: "bilheteria", descricao: "Bilheteria (jogo em casa)", valor: bilheteria });
+
+    // Aluguel ocasional para shows (20% de chance)
+    if (Math.random() < 0.2) {
+      var aluguel = Math.round(cfg.aluguel_estadio * (0.5 + Math.random()));
+      clube.budget += aluguel;
+      clube.financeiro.historico.push({ rodada: rodadaIdx, tipo: "receita", categoria: "aluguel_estadio", descricao: "Aluguel estádio (evento)", valor: aluguel });
+    }
+  }
+
+  // Folha salarial (despesa)
+  var folha = calcularFolha(clube);
+  clube.financeiro.folha_mensal = folha;
+  if (rodadaIdx % 4 === 0) { // paga mensalmente (a cada 4 rodadas)
+    clube.budget -= folha;
+    clube.financeiro.historico.push({ rodada: rodadaIdx, tipo: "despesa", categoria: "folha", descricao: "Folha salarial mensal", valor: -folha });
+  }
+
+  clube.financeiro.resultado_acumulado += total;
+}
+
+// Registrar transferência no histórico
+function registrarTransferenciaFinanceiro(clube, descricao, valor, tipo) {
+  configurarFinanceiroClube(clube);
+  clube.financeiro.historico.push({
+    rodada: estado.rodadaAtual,
+    tipo: tipo || (valor > 0 ? "receita" : "despesa"),
+    categoria: "transferencia",
+    descricao: descricao,
+    valor: valor
+  });
+}
+
+// ── Mecânicas de gestão de jogadores ──
+
+// Colocar jogador à venda
+function colocarAVenda(jogadorId, precoMinimo) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
+  j.a_venda = true;
+  j.preco_minimo = precoMinimo;
+  j.para_emprestimo = false;
+  adicionarNoticia("📢 " + j.nome + " está disponível para transferência por " + formatarDinheiro(precoMinimo), estado.rodadaAtual);
+}
+
+// Colocar para empréstimo
+function colocarParaEmprestimo(jogadorId, rodadas) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
+  j.para_emprestimo = true;
+  j.emprestimo_rodadas = rodadas;
+  j.a_venda = false;
+}
+
+// Dispensar jogador
+function dispensarJogador(jogadorId, acordoMutuo) {
+  var clube = estado.meuClube;
+  var j = clube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return false;
+
+  var custo = 0;
+  if (!acordoMutuo) {
+    // Rescisão unilateral: pagar % do salário restante
+    var rodadasRestantes = Math.max(0, (j.contrato_termino || 0) - estado.rodadaAtual);
+    custo = Math.round(j.salario * rodadasRestantes * 0.5);
+  }
+
+  if (custo > clube.budget) return { erro: "Sem budget para pagar rescisão de " + formatarDinheiro(custo) };
+
+  clube.budget -= custo;
+  if (custo > 0) registrarTransferenciaFinanceiro(clube, "Rescisão: " + j.nome, -custo, "despesa");
+
+  clube.jogadores = clube.jogadores.filter(function(x) { return x.id !== jogadorId; });
+  adicionarNoticia("📤 " + j.nome + " dispensado do " + clube.nome + (custo > 0 ? " por " + formatarDinheiro(custo) : " (acordo mútuo)"), estado.rodadaAtual);
+  return { ok: true, custo: custo };
+}
+
+// IA propõe comprar jogador do seu clube
+function simularPropostasIA() {
+  if (!estado.meuClube) return;
+  var meuClube = estado.meuClube;
+
+  // 30% de chance de receber proposta por rodada
+  if (Math.random() > 0.30) return;
+
+  // Escolher um jogador atraente (overall 75+)
+  var candidatos = meuClube.jogadores.filter(function(j) { return j.overall >= 75; });
+  if (candidatos.length === 0) return;
+
+  var alvo = candidatos[Math.floor(Math.random() * candidatos.length)];
+
+  // Clube que está oferecendo
+  var clubesIA = CLUBES.filter(function(c) { return c.id !== meuClube.id && c.budget >= alvo.valor_mercado * 0.8; });
+  if (clubesIA.length === 0) return;
+
+  var clubeOfertante = clubesIA[Math.floor(Math.random() * clubesIA.length)];
+  var oferta = Math.round(alvo.valor_mercado * (0.85 + Math.random() * 0.4));
+
+  // Criar mensagem no inbox
+  estado.inbox = estado.inbox || [];
+  estado.inbox.push({
+    id: "proposta_" + alvo.id + "_" + Date.now(),
+    titulo: "Proposta por " + alvo.nome,
+    remetente: clubeOfertante.nome,
+    texto: "O " + clubeOfertante.nome + " está interessado em contratar " + alvo.nome + " (" + alvo.posicao + " · " + alvo.overall + ") e oferece " + formatarDinheiro(oferta) + " pela transferência.",
+    lida: false,
+    tipo: "proposta_recebida",
+    jogadorId: alvo.id,
+    clubeOfertanteId: clubeOfertante.id,
+    valor: oferta
+  });
+
+  adicionarNoticia("📨 " + clubeOfertante.nome + " oferece " + formatarDinheiro(oferta) + " por " + alvo.nome, estado.rodadaAtual);
+}
+
+// ── TELA FINANCEIRO ──
+function renderFinanceiro() {
+  var clube = estado.meuClube;
+  configurarFinanceiroClube(clube);
+  var hist  = clube.financeiro.historico;
+  var folha = calcularFolha(clube);
+
+  // Agrupar receitas e despesas totais
+  var totalReceitas = hist.filter(function(h) { return h.tipo === "receita"; }).reduce(function(s,h) { return s + h.valor; }, 0);
+  var totalDespesas = hist.filter(function(h) { return h.tipo === "despesa"; }).reduce(function(s,h) { return s + Math.abs(h.valor); }, 0);
+  var resultado = totalReceitas - totalDespesas;
+
+  // Agrupar por categoria
+  var porCategoria = {};
+  hist.forEach(function(h) {
+    var k = h.categoria;
+    if (!porCategoria[k]) porCategoria[k] = { receita: 0, despesa: 0, desc: h.descricao };
+    if (h.tipo === "receita") porCategoria[k].receita += h.valor;
+    else porCategoria[k].despesa += Math.abs(h.valor);
+  });
+
+  var nomeCategoria = {
+    socio: "Sócio torcedor", bilheteria: "Bilheteria", cotas_tv: "Cotas de TV",
+    patrocinio_camisa: "Patrocínio camisa", patrocinio_esportivo: "Patrocínio esportivo",
+    licenciados: "Prod. licenciados", naming_rights: "Naming rights", aluguel_estadio: "Aluguel estádio",
+    folha: "Folha salarial", transferencia: "Transferências"
+  };
+
+  var html = '<div class="fin-tela">';
+
+  // Header
+  html += '<div class="fin-header">';
+  html += '<h2 class="secao-titulo" style="margin:0">💰 Financeiro — ' + clube.nome + '</h2>';
+  html += '<div class="fin-caixa">Caixa: <strong style="color:var(--green)">' + formatarDinheiro(clube.budget) + '</strong></div>';
+  html += '</div>';
+
+  // Cards DRE
+  html += '<div class="fin-dre-cards">';
+  html += '<div class="fin-dre-card receita"><div class="fin-dre-label">Total Receitas</div><div class="fin-dre-valor">' + formatarDinheiro(totalReceitas) + '</div></div>';
+  html += '<div class="fin-dre-card despesa"><div class="fin-dre-label">Total Despesas</div><div class="fin-dre-valor">' + formatarDinheiro(totalDespesas) + '</div></div>';
+  html += '<div class="fin-dre-card ' + (resultado >= 0 ? 'positivo' : 'negativo') + '"><div class="fin-dre-label">Resultado</div><div class="fin-dre-valor">' + (resultado >= 0 ? '+' : '') + formatarDinheiro(resultado) + '</div></div>';
+  html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">Folha mensal</div><div class="fin-dre-valor">' + formatarDinheiro(folha) + '</div></div>';
+  html += '</div>';
+
+  // DRE por categoria
+  html += '<div class="fin-grid">';
+
+  // Receitas
+  html += '<div class="fin-secao">';
+  html += '<div class="fin-secao-titulo receita-titulo">📈 Receitas</div>';
+  var cats = Object.entries(porCategoria).filter(function(e) { return e[1].receita > 0; })
+    .sort(function(a,b) { return b[1].receita - a[1].receita; });
+  cats.forEach(function(entry) {
+    var k = entry[0], v = entry[1];
+    html += '<div class="fin-linha">';
+    html += '<span class="fin-linha-desc">' + (nomeCategoria[k] || k) + '</span>';
+    html += '<span class="fin-linha-val receita-cor">' + formatarDinheiro(v.receita) + '</span>';
+    html += '</div>';
+  });
+  if (cats.length === 0) html += '<div class="dash-empty">Nenhuma receita registrada.</div>';
+  html += '</div>';
+
+  // Despesas
+  html += '<div class="fin-secao">';
+  html += '<div class="fin-secao-titulo despesa-titulo">📉 Despesas</div>';
+  var catsDes = Object.entries(porCategoria).filter(function(e) { return e[1].despesa > 0; })
+    .sort(function(a,b) { return b[1].despesa - a[1].despesa; });
+  catsDes.forEach(function(entry) {
+    var k = entry[0], v = entry[1];
+    html += '<div class="fin-linha">';
+    html += '<span class="fin-linha-desc">' + (nomeCategoria[k] || k) + '</span>';
+    html += '<span class="fin-linha-val despesa-cor">' + formatarDinheiro(v.despesa) + '</span>';
+    html += '</div>';
+  });
+  if (catsDes.length === 0) html += '<div class="dash-empty">Nenhuma despesa registrada.</div>';
+  html += '</div>';
+
+  html += '</div>'; // fin-grid
+
+  // Histórico recente
+  html += '<div class="fin-historico">';
+  html += '<div class="fin-secao-titulo" style="margin-bottom:10px">📋 Histórico recente</div>';
+  var recentes = hist.slice(-20).reverse();
+  if (recentes.length === 0) {
+    html += '<div class="dash-empty">Nenhum lançamento ainda.</div>';
+  } else {
+    html += '<table class="fin-tabela">';
+    html += '<thead><tr><th>Rod.</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>';
+    recentes.forEach(function(h) {
+      var cor = h.tipo === "receita" ? "receita-cor" : "despesa-cor";
+      var sinal = h.tipo === "receita" ? "+" : "-";
+      html += '<tr>';
+      html += '<td class="fin-tab-rod">' + (h.rodada + 1) + '</td>';
+      html += '<td>' + h.descricao + '</td>';
+      html += '<td class="' + cor + ' fin-tab-val">' + sinal + formatarDinheiro(Math.abs(h.valor)) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+  html += '</div>'; // fin-tela
+
+  document.getElementById("main").innerHTML = html;
+}</script>
+  <script>
 // ════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════
@@ -2938,7 +4285,7 @@ function renderDashboard() {
   var progPct = Math.round((estado.eventoAtual / (total - 1)) * 100);
 
   var html = '<div class="dash-topbar">';
-  html += '<button class="dash-nav-btn" onclick="voltarEvento()" ' + (estado.eventoAtual === 0 ? 'disabled' : '') + '>◀</button>';
+  html += '<button class="dash-nav-btn" style="visibility:hidden" disabled>◀</button>';
   html += '<div class="dash-evento-info">';
   html += '<div class="dash-evento-icone">' + evento.icone + '</div>';
   html += '<div><div class="dash-evento-titulo">' + evento.titulo + '</div>';
@@ -3029,7 +4376,7 @@ function renderCalendarioVisual() {
       return '<span class="cal-ev-dot" style="background:' + corEvento(e.tipo) + '"></span>';
     }).join("");
 
-    html += '<div class="' + cls + '" onclick="irParaEventoDia(' + dia + ',' + mes + ',' + ano + ')">';
+    html += '<div class="' + cls + '">';
     html += '<span class="cal-dia-num">' + dia + '</span>';
     if (icons) html += '<div class="cal-dots">' + icons + '</div>';
     html += '</div>';
@@ -3139,7 +4486,7 @@ function renderInboxPreview() {
     html += '</div>';
   });
   html += '</div>';
-  if (inbox.length > 5) html += '<div class="dash-ver-mais">Ver todas (' + inbox.length + ')</div>';
+  if (inbox.length > 5) html += '<div class="dash-ver-mais" onclick="navegarPara(\'inbox\')">Ver todas (' + inbox.length + ')</div>';
   return html;
 }
 
@@ -3432,7 +4779,7 @@ function navegarPara(aba) {
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { dashboard: renderDashboard, campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, staff: renderStaff };
+  var abas = { dashboard: renderDashboard, inbox: renderInbox, campeonato: renderCampeonato, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, staff: renderStaff };
   if (abas[aba]) abas[aba]();
 }
 
@@ -3492,7 +4839,8 @@ function renderElenco() {
     { key: 'idade',       label: 'Idade' },
     { key: 'contrato',    label: 'Contrato' },
     { key: 'salario',     label: 'Salário' },
-    { key: 'valor',       label: 'Valor' }
+    { key: 'valor',       label: 'Valor' },
+    { key: 'acoes',       label: '' }
   ];
 
   html += '<thead><tr>';
@@ -3704,6 +5052,12 @@ function simularRodada(idx) {
 
   estado.rodadaAtual = idx + 1;
   processarMercadoRodada(idx);
+  // Receitas da rodada para todos os clubes
+  CLUBES.forEach(function(c) {
+    var jogosEmCasa = estado.calendario[idx].jogos.filter(function(j) { return j.mandanteId === c.id; }).length;
+    processarReceitasRodada(c, idx, jogosEmCasa);
+  });
+  simularPropostasIA();
   salvarJogo();
   renderCampeonato();
   var proxima = document.getElementById("rodada-" + (idx + 1));
@@ -4097,6 +5451,233 @@ function processarMercadoRodada(rodadaIdx) {
 
   // Receita de bilheteria
   processarReceitaRodada(rodadaIdx);
+}
+
+// ════════════════════════════════════════
+// ABA — Inbox (estilo email)
+// ════════════════════════════════════════
+var inboxMsgSelecionada = null;
+
+function renderInbox() {
+  var inbox = (estado.inbox || []).slice().reverse();
+
+  var html = '<div class="inbox-screen">';
+
+  // Header
+  html += '<div class="inbox-header">';
+  html += '<div class="inbox-header-titulo">✉️ Inbox <span class="inbox-count">(' + inbox.length + ')</span></div>';
+  html += '<button class="btn-marcar-lidas" onclick="marcarTodasLidas()">✓ Marcar todas como lidas</button>';
+  html += '</div>';
+
+  html += '<div class="inbox-body">';
+
+  // Lista de mensagens
+  html += '<div class="inbox-lista-email" id="inbox-lista">';
+  if (inbox.length === 0) {
+    html += '<div class="inbox-vazio">Nenhuma mensagem.</div>';
+  } else {
+    inbox.forEach(function(msg, i) {
+      var idx = (estado.inbox.length - 1) - i;
+      var ativa = inboxMsgSelecionada === idx;
+      html += '<div class="inbox-email-item ' + (msg.lida ? '' : 'nao-lida') + (ativa ? ' ativa' : '') + '" onclick="selecionarMensagem(' + idx + ')">';
+      html += '<div class="inbox-email-remetente">' + (msg.remetente || 'Sistema') + '</div>';
+      html += '<div class="inbox-email-assunto">' + msg.titulo + '</div>';
+      if (msg.subtitulo) html += '<div class="inbox-email-data">' + msg.subtitulo + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  // Conteúdo da mensagem
+  html += '<div class="inbox-email-conteudo" id="inbox-conteudo">';
+  if (inboxMsgSelecionada !== null && estado.inbox[inboxMsgSelecionada]) {
+    html += renderConteudoEmail(estado.inbox[inboxMsgSelecionada]);
+  } else {
+    html += '<div class="inbox-selecione">← Selecione uma mensagem</div>';
+  }
+  html += '</div>';
+
+  html += '</div>'; // inbox-body
+  html += '</div>'; // inbox-screen
+
+  document.getElementById("main").innerHTML = html;
+}
+
+function renderConteudoEmail(msg) {
+  var html = '<div class="email-view">';
+  html += '<div class="email-view-assunto">' + msg.titulo + '</div>';
+  html += '<div class="email-view-meta">';
+  html += '<div class="email-view-de"><span>De:</span> <strong>' + (msg.remetente || 'Sistema') + '</strong></div>';
+  if (msg.subtitulo) html += '<div class="email-view-data">' + msg.subtitulo + '</div>';
+  html += '</div>';
+  html += '<div class="email-view-separador"></div>';
+  html += '<div class="email-view-corpo">' + (msg.texto || '') + '</div>';
+
+  // Botões aceitar/recusar para propostas recebidas
+  if (msg.tipo === "proposta_recebida" && !msg.respondida) {
+    html += '<div style="display:flex;gap:10px;margin-top:20px">';
+    html += '<button class="btn-primario" style="flex:1" onclick="responderProposta(\"' + msg.id + '\",true)">✅ Aceitar proposta</button>';
+    html += '<button class="btn-demitir" style="flex:1;margin-top:0" onclick="responderProposta(\"' + msg.id + '\",false)">❌ Recusar</button>';
+    html += '</div>';
+  } else if (msg.tipo === "proposta_recebida" && msg.respondida) {
+    html += '<div style="margin-top:16px;font-size:13px;color:var(--text2)">✓ Proposta já respondida.</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function selecionarMensagem(idx) {
+  var msg = estado.inbox[idx];
+  if (!msg) return;
+  msg.lida = true;
+  inboxMsgSelecionada = idx;
+
+  // Atualizar lista (remover nao-lida do item) e conteúdo sem re-render total
+  var lista = document.getElementById("inbox-lista");
+  var conteudo = document.getElementById("inbox-conteudo");
+
+  if (lista && conteudo) {
+    // Atualizar classes na lista
+    var items = lista.querySelectorAll(".inbox-email-item");
+    items.forEach(function(el) { el.classList.remove("ativa"); });
+    // Índice reverso na lista
+    var inbox = (estado.inbox || []).slice().reverse();
+    var idxLista = inbox.findIndex(function(m) { return m === msg; });
+    if (idxLista >= 0 && items[idxLista]) {
+      items[idxLista].classList.add("ativa");
+      items[idxLista].classList.remove("nao-lida");
+    }
+    conteudo.innerHTML = renderConteudoEmail(msg);
+  } else {
+    renderInbox();
+  }
+
+  // Atualizar badge do dashboard
+  salvarJogo();
+}
+
+function marcarTodasLidas() {
+  (estado.inbox || []).forEach(function(m) { m.lida = true; });
+  inboxMsgSelecionada = estado.inbox.length > 0 ? estado.inbox.length - 1 : null;
+  renderInbox();
+  salvarJogo();
+}
+
+// ════════════════════════════════════════
+// GESTÃO DE JOGADORES — ações no elenco
+// ════════════════════════════════════════
+function abrirAcoesJogador(jogadorId) {
+  var clube = estado.meuClube;
+  var j = clube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
+
+  var rodadasContrato = Math.max(0, (j.contrato_termino || 0) - estado.rodadaAtual);
+  var custoRescisao   = Math.round(j.salario * rodadasContrato * 0.5);
+
+  var overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+
+  var html = '<div class="modal">';
+  html += '<div class="modal-header" style="text-align:left;padding:20px">';
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+  html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
+  html += '<div><div style="font-size:16px;font-weight:600">' + j.nome + '</div>';
+  html += '<div style="font-size:12px;color:var(--text2)">Overall ' + j.overall + ' · Contrato até rod. ' + (j.contrato_termino||'?') + '</div></div>';
+  html += '<div class="' + overallClasse(j.overall) + '" style="font-size:22px;font-weight:700;margin-left:auto">' + j.overall + '</div>';
+  html += '</div>';
+
+  html += '<div class="proposta-info">';
+  html += '<div class="tstat"><span class="tstat-label">Valor de mercado</span><span class="tstat-val">' + formatarDinheiro(j.valor_mercado||0) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Salário mensal</span><span class="tstat-val">' + formatarDinheiro(j.salario||0) + '</span></div>';
+  html += '<div class="tstat"><span class="tstat-label">Status atual</span><span class="tstat-val">' + (j.a_venda ? '🏷 À venda' : j.para_emprestimo ? '🔄 Para empréstimo' : '✅ No elenco') + '</span></div>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="modal-eventos" style="padding:16px 20px;gap:8px;max-height:none">';
+
+  // Colocar à venda
+  html += '<div class="form-group">';
+  html += '<label>Colocar à venda — preço mínimo</label>';
+  html += '<input type="number" id="inp-preco-venda" value="' + (j.valor_mercado||0) + '" step="500000"/>';
+  html += '</div>';
+  html += '<button class="btn-primario" style="width:100%;margin-bottom:8px" onclick="confirmarVenda(\'' + j.id + '\')">🏷 Colocar à venda</button>';
+
+  // Empréstimo
+  html += '<div class="form-group">';
+  html += '<label>Empréstimo — duração (rodadas)</label>';
+  html += '<select id="inp-emprestimo-rodadas">';
+  html += '<option value="5">5 rodadas</option>';
+  html += '<option value="10">10 rodadas</option>';
+  html += '<option value="19">Restante da temporada</option>';
+  html += '</select>';
+  html += '</div>';
+  html += '<button class="btn-primario" style="width:100%;margin-bottom:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text)" onclick="confirmarEmprestimo(\'' + j.id + '\')">🔄 Colocar para empréstimo</button>';
+
+  // Dispensar
+  html += '<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:12px">';
+  html += '<button class="btn-demitir" onclick="confirmarDispensa(\'' + j.id + '\',true)">✂ Dispensar (acordo mútuo — sem custo)</button>';
+  if (custoRescisao > 0) {
+    html += '<button class="btn-demitir" style="margin-top:6px;border-color:#555;color:var(--text2)" onclick="confirmarDispensa(\'' + j.id + '\',false)">✂ Dispensar (rescisão unilateral — ' + formatarDinheiro(custoRescisao) + ')</button>';
+  }
+  html += '</div>';
+
+  html += '</div>';
+  html += '<div class="modal-footer"><button class="btn-fechar" onclick="this.closest(\'.modal-overlay\').remove()">Fechar</button></div>';
+  html += '</div>';
+
+  overlay.innerHTML = html;
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function confirmarVenda(jogadorId) {
+  var preco = parseInt(document.getElementById("inp-preco-venda").value);
+  if (!preco || preco <= 0) { alert("Digite um preço válido."); return; }
+  colocarAVenda(jogadorId, preco);
+  document.querySelector(".modal-overlay").remove();
+  renderElenco();
+}
+
+function confirmarEmprestimo(jogadorId) {
+  var rodadas = parseInt(document.getElementById("inp-emprestimo-rodadas").value);
+  colocarParaEmprestimo(jogadorId, rodadas);
+  document.querySelector(".modal-overlay").remove();
+  renderElenco();
+}
+
+function confirmarDispensa(jogadorId, acordoMutuo) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  var msg = acordoMutuo ? "Dispensar " + j.nome + " por acordo mútuo (sem custo)?" : "Pagar rescisão para dispensar " + j.nome + "?";
+  if (!confirm(msg)) return;
+  var result = dispensarJogador(jogadorId, acordoMutuo);
+  if (result && result.erro) { alert(result.erro); return; }
+  document.querySelector(".modal-overlay").remove();
+  salvarJogo();
+  renderElenco();
+}
+
+// Aceitar/recusar proposta recebida
+function responderProposta(msgId, aceitar) {
+  var msg = estado.inbox.find(function(m) { return m.id === msgId; });
+  if (!msg || msg.tipo !== "proposta_recebida") return;
+
+  if (aceitar) {
+    var jogador = estado.meuClube.jogadores.find(function(j) { return j.id === msg.jogadorId; });
+    var clubeComprador = CLUBES.find(function(c) { return c.id === msg.clubeOfertanteId; });
+    if (jogador && clubeComprador) {
+      executarTransferencia(jogador, estado.meuClube, clubeComprador, msg.valor);
+      registrarTransferenciaFinanceiro(estado.meuClube, "Venda: " + jogador.nome + " → " + clubeComprador.nome, msg.valor, "receita");
+      adicionarNoticia("✅ " + jogador.nome + " vendido ao " + clubeComprador.nome + " por " + formatarDinheiro(msg.valor), estado.rodadaAtual);
+    }
+  } else {
+    adicionarNoticia("❌ Proposta do " + (CLUBES.find(function(c){return c.id===msg.clubeOfertanteId;})||{}).nome + " por " + (estado.meuClube.jogadores.find(function(j){return j.id===msg.jogadorId;})||{}).nome + " recusada.", estado.rodadaAtual);
+  }
+
+  msg.respondida = true;
+  msg.lida = true;
+  salvarJogo();
+  renderInbox();
 }</script>
   <script>
     inicializarFinancas();
