@@ -5579,66 +5579,69 @@ function renderEstaduaisTela() {
   return html;
 }</script>
   <script>// ════════════════════════════════════════
-// SISTEMA PAULISTA COMPLETO
-// A1 → A2 → A3 → A4 → Bezinha (B1/sub-23)
-// + Copa Paulista
+// SISTEMA PAULISTA — Formatos 2026
+// A1: 16 times, 1 grupo, 8 rodadas, top8 → quartas/semi/final
+// A2: 16 times, 1 grupo, 15 rodadas, top8 → 2 grupos de 4 → semi → final
+// A3: 16 times, 1 grupo, 15 rodadas, top8 → quartas/semi/final
+// A4: 16 times, 1 grupo, 15 rodadas, top8 → quartas/semi/final
+// Bezinha: 24 times, 4 grupos de 6, 10 rodadas, top4 cada → oitavas → mata-mata
 // ════════════════════════════════════════
 
 var CLUBES_PAULISTA_A1 = [
-  { id:"pa1_01",nome:"Palmeiras",      sigla:"PAL",cor:"#006437" },
-  { id:"pa1_02",nome:"Corinthians",    sigla:"COR",cor:"#1a1a1a" },
-  { id:"pa1_03",nome:"São Paulo",      sigla:"SPF",cor:"#CC0000" },
-  { id:"pa1_04",nome:"Santos",         sigla:"SAN",cor:"#1a1a1a" },
-  { id:"pa1_05",nome:"RB Bragantino",  sigla:"RBB",cor:"#CC0000" },
-  { id:"pa1_06",nome:"Guarani",        sigla:"GUA",cor:"#006400" },
-  { id:"pa1_07",nome:"Ponte Preta",    sigla:"POP",cor:"#1a1a1a" },
-  { id:"pa1_08",nome:"Novorizontino",  sigla:"NOV",cor:"#1a1a1a" },
-  { id:"pa1_09",nome:"Mirassol",       sigla:"MIR",cor:"#FFD700" },
-  { id:"pa1_10",nome:"São Bernardo",   sigla:"SBC",cor:"#0033A0" },
-  { id:"pa1_11",nome:"Botafogo-SP",    sigla:"BSP",cor:"#CC0000" },
-  { id:"pa1_12",nome:"Ituano",         sigla:"ITU",cor:"#CC0000" },
-  { id:"pa1_13",nome:"Água Santa",     sigla:"AQS",cor:"#0033A0" },
-  { id:"pa1_14",nome:"Inter de Limeira",sigla:"ILM",cor:"#006400" },
-  { id:"pa1_15",nome:"Portuguesa",     sigla:"POR",cor:"#CC0000" },
-  { id:"pa1_16",nome:"Red Bull Campinas",sigla:"RBC",cor:"#CC0000" }
+  { id:"pa1_01",nome:"Palmeiras",         sigla:"PAL",cor:"#006437" },
+  { id:"pa1_02",nome:"Corinthians",       sigla:"COR",cor:"#1a1a1a" },
+  { id:"pa1_03",nome:"São Paulo",         sigla:"SPF",cor:"#CC0000" },
+  { id:"pa1_04",nome:"RB Bragantino",     sigla:"RBB",cor:"#CC0000" },
+  { id:"pa1_05",nome:"Novorizontino",     sigla:"NOV",cor:"#1a1a1a" },
+  { id:"pa1_06",nome:"Velo Clube",        sigla:"VEL",cor:"#CC0000" },
+  { id:"pa1_07",nome:"Guarani",           sigla:"GUA",cor:"#006400" },
+  { id:"pa1_08",nome:"Mirassol",          sigla:"MIR",cor:"#FFD700" },
+  { id:"pa1_09",nome:"Botafogo-SP",       sigla:"BSP",cor:"#CC0000" },
+  { id:"pa1_10",nome:"Inter de Limeira",  sigla:"ILM",cor:"#CC0000" },
+  { id:"pa1_11",nome:"Santos",            sigla:"SAN",cor:"#1a1a1a" },
+  { id:"pa1_12",nome:"São Bernardo FC",   sigla:"SBC",cor:"#0033A0" },
+  { id:"pa1_13",nome:"Portuguesa",        sigla:"POR",cor:"#CC0000" },
+  { id:"pa1_14",nome:"Ituano",            sigla:"ITU",cor:"#CC0000" },
+  { id:"pa1_15",nome:"Capivariano",       sigla:"CAP",cor:"#006400" },
+  { id:"pa1_16",nome:"Primavera",         sigla:"PRI",cor:"#CC0000" }
 ];
 
 var CLUBES_PAULISTA_A2 = [
-  { id:"pa2_01",nome:"Capivariano EC",  sigla:"CAP",cor:"#006400",cidade:"Capivari" },
-  { id:"pa2_02",nome:"Primavera",       sigla:"PRI",cor:"#CC0000",cidade:"Indaiatuba" },
-  { id:"pa2_03",nome:"Inter de Limeira",sigla:"ILM",cor:"#CC0000",cidade:"Limeira" },
-  { id:"pa2_04",nome:"XV de Piracicaba",sigla:"XVP",cor:"#006400",cidade:"Piracicaba" },
-  { id:"pa2_05",nome:"Ferroviária",     sigla:"FER",cor:"#CC0000",cidade:"Araraquara" },
-  { id:"pa2_06",nome:"Votuporanguense", sigla:"VOT",cor:"#CC0000",cidade:"Votuporanga" },
-  { id:"pa2_07",nome:"São José FC",     sigla:"SJO",cor:"#0033A0",cidade:"São José dos Campos" },
-  { id:"pa2_08",nome:"Taubaté",         sigla:"TAU",cor:"#0033A0",cidade:"Taubaté" },
-  { id:"pa2_09",nome:"Noroeste",        sigla:"NOR",cor:"#1a1a1a",cidade:"Bauru" },
-  { id:"pa2_10",nome:"Velo Clube",      sigla:"VEL",cor:"#CC0000",cidade:"Rio Claro" },
-  { id:"pa2_11",nome:"Comercial FC",    sigla:"COM",cor:"#CC0000",cidade:"Ribeirão Preto" },
-  { id:"pa2_12",nome:"Grêmio Novorizontino",sigla:"GNH",cor:"#FFD700",cidade:"Novo Horizonte" },
-  { id:"pa2_13",nome:"Atibaia EC",      sigla:"ATI",cor:"#006400",cidade:"Atibaia" },
-  { id:"pa2_14",nome:"Flamengo de Guarulhos",sigla:"FLG",cor:"#CC0000",cidade:"Guarulhos" },
-  { id:"pa2_15",nome:"Oeste FC",        sigla:"OES",cor:"#CC0000",cidade:"Itápolis" },
-  { id:"pa2_16",nome:"Bandeirante",     sigla:"BAN",cor:"#1a1a1a",cidade:"Birigüi" }
+  { id:"pa2_01",nome:"Portuguesa Santista",sigla:"POS",cor:"#CC0000" },
+  { id:"pa2_02",nome:"Rio Claro FC",       sigla:"RCL",cor:"#CC0000" },
+  { id:"pa2_03",nome:"Marília AC",         sigla:"MAR",cor:"#006400" },
+  { id:"pa2_04",nome:"Rio Branco",         sigla:"RIB",cor:"#006400" },
+  { id:"pa2_05",nome:"Desportivo Brasil",  sigla:"DBR",cor:"#0033A0" },
+  { id:"pa2_06",nome:"União São João",     sigla:"USJ",cor:"#006400" },
+  { id:"pa2_07",nome:"Catanduva FC",       sigla:"CAT",cor:"#CC0000" },
+  { id:"pa2_08",nome:"Itapirense",         sigla:"ITP",cor:"#CC0000" },
+  { id:"pa2_09",nome:"Rio Preto EC",       sigla:"RPE",cor:"#0033A0" },
+  { id:"pa2_10",nome:"União Suzano",       sigla:"UNS",cor:"#CC0000" },
+  { id:"pa2_11",nome:"XV de Jaú",          sigla:"XVJ",cor:"#006400" },
+  { id:"pa2_12",nome:"Francana",           sigla:"FRA",cor:"#006400" },
+  { id:"pa2_13",nome:"EC São Bernardo",    sigla:"SBF",cor:"#0033A0" },
+  { id:"pa2_14",nome:"Bandeirante",        sigla:"BAN",cor:"#1a1a1a" },
+  { id:"pa2_15",nome:"Sertãozinho FC",     sigla:"SRT",cor:"#CC0000" },
+  { id:"pa2_16",nome:"Monte Azul",         sigla:"MON",cor:"#006400" }
 ];
 
 var CLUBES_PAULISTA_A3 = [
-  { id:"pa3_01",nome:"Portuguesa Santista",sigla:"POS",cor:"#CC0000",cidade:"Santos" },
-  { id:"pa3_02",nome:"Rio Claro FC",     sigla:"RCL",cor:"#CC0000",cidade:"Rio Claro" },
-  { id:"pa3_03",nome:"Marília AC",       sigla:"MAR",cor:"#006400",cidade:"Marília" },
-  { id:"pa3_04",nome:"Rio Branco",       sigla:"RIB",cor:"#006400",cidade:"Americana" },
-  { id:"pa3_05",nome:"Desportivo Brasil",sigla:"DBR",cor:"#0033A0",cidade:"Porto Feliz" },
-  { id:"pa3_06",nome:"União São João",   sigla:"USJ",cor:"#006400",cidade:"Araras" },
-  { id:"pa3_07",nome:"Catanduva FC",     sigla:"CAT",cor:"#CC0000",cidade:"Catanduva" },
-  { id:"pa3_08",nome:"Itapirense",       sigla:"ITA",cor:"#CC0000",cidade:"Itapira" },
-  { id:"pa3_09",nome:"Rio Preto EC",     sigla:"RPE",cor:"#0033A0",cidade:"São José do Rio Preto" },
-  { id:"pa3_10",nome:"União Suzano",     sigla:"UNS",cor:"#CC0000",cidade:"Suzano" },
-  { id:"pa3_11",nome:"XV de Jaú",        sigla:"XVJ",cor:"#006400",cidade:"Jaú" },
-  { id:"pa3_12",nome:"Francana",         sigla:"FRA",cor:"#006400",cidade:"Franca" },
-  { id:"pa3_13",nome:"EC São Bernardo",  sigla:"SBF",cor:"#0033A0",cidade:"São Bernardo do Campo" },
-  { id:"pa3_14",nome:"Bandeirante",      sigla:"BAN",cor:"#1a1a1a",cidade:"Birigüi" },
-  { id:"pa3_15",nome:"Sertãozinho FC",   sigla:"SRT",cor:"#CC0000",cidade:"Sertãozinho" },
-  { id:"pa3_16",nome:"Monte Azul",       sigla:"MON",cor:"#006400",cidade:"Monte Azul Paulista" }
+  { id:"pa3_01",nome:"XV de Piracicaba",  sigla:"XVP",cor:"#006400" },
+  { id:"pa3_02",nome:"Ferroviária",       sigla:"FER",cor:"#CC0000" },
+  { id:"pa3_03",nome:"Votuporanguense",   sigla:"VOT",cor:"#CC0000" },
+  { id:"pa3_04",nome:"São José FC",       sigla:"SJO",cor:"#0033A0" },
+  { id:"pa3_05",nome:"Taubaté",           sigla:"TAU",cor:"#0033A0" },
+  { id:"pa3_06",nome:"Noroeste",          sigla:"NOR",cor:"#1a1a1a" },
+  { id:"pa3_07",nome:"Comercial FC",      sigla:"COM",cor:"#CC0000" },
+  { id:"pa3_08",nome:"Grêmio Novorizontino",sigla:"GNH",cor:"#FFD700" },
+  { id:"pa3_09",nome:"Atibaia EC",        sigla:"ATI",cor:"#006400" },
+  { id:"pa3_10",nome:"Flamengo Guarulhos",sigla:"FLG",cor:"#CC0000" },
+  { id:"pa3_11",nome:"Oeste FC",          sigla:"OES",cor:"#CC0000" },
+  { id:"pa3_12",nome:"Paulista FC",       sigla:"PAU",cor:"#CC0000" },
+  { id:"pa3_13",nome:"União Barbarense",  sigla:"UNB",cor:"#CC0000" },
+  { id:"pa3_14",nome:"Matonense",         sigla:"MAT",cor:"#0033A0" },
+  { id:"pa3_15",nome:"Jabaquara",         sigla:"JAB",cor:"#1a1a1a" },
+  { id:"pa3_16",nome:"Nacional AC",       sigla:"NAC",cor:"#0033A0" }
 ];
 
 var CLUBES_PAULISTA_A4 = [
@@ -5660,336 +5663,667 @@ var CLUBES_PAULISTA_A4 = [
   { id:"pa4_16",nome:"Audax Osasco",       sigla:"AUD",cor:"#CC0000",cidade:"Osasco" }
 ];
 
-var CLUBES_BEZINHA = [
-  { id:"pb1_01",nome:"Santos B",       sigla:"SNB",cor:"#1a1a1a" },
-  { id:"pb1_02",nome:"Palmeiras B",    sigla:"PLB",cor:"#006437" },
-  { id:"pb1_03",nome:"Corinthians B",  sigla:"CRB",cor:"#1a1a1a" },
-  { id:"pb1_04",nome:"São Paulo B",    sigla:"SPB",cor:"#CC0000" },
-  { id:"pb1_05",nome:"Atlético Cajazeirense",sigla:"ACJ",cor:"#FFD700" },
-  { id:"pb1_06",nome:"Náutico-SP",     sigla:"NAU",cor:"#CC0000" },
-  { id:"pb1_07",nome:"Jabaquara B",    sigla:"JAB",cor:"#1a1a1a" },
-  { id:"pb1_08",nome:"Ferroviária B",  sigla:"FRB",cor:"#CC0000" },
-  { id:"pb1_09",nome:"União São João", sigla:"USJ",cor:"#006400" },
-  { id:"pb1_10",nome:"Desportivo Brasil",sigla:"DBR",cor:"#0033A0" },
-  { id:"pb1_11",nome:"Grêmio Osasco",  sigla:"GOS",cor:"#006400" },
-  { id:"pb1_12",nome:"Itapirense",     sigla:"ITP",cor:"#CC0000" },
-  { id:"pb1_13",nome:"Angatubense",    sigla:"ANG",cor:"#006400" },
-  { id:"pb1_14",nome:"Araçoiabense",   sigla:"ARA",cor:"#0033A0" },
-  { id:"pb1_15",nome:"Ituveravense",   sigla:"ITU",cor:"#FFD700" },
-  { id:"pb1_16",nome:"Esportivo Boituva",sigla:"EBO",cor:"#CC0000" }
+// Bezinha 2026: 24 times, 4 grupos de 6 (regionalizados)
+var GRUPOS_BEZINHA = [
+  { letra:"A", clubes:[
+    { id:"pb1_01",nome:"Santos B",          sigla:"SNB",cor:"#1a1a1a" },
+    { id:"pb1_02",nome:"Portuguesa B",      sigla:"POB",cor:"#CC0000" },
+    { id:"pb1_03",nome:"São Bernardo B",    sigla:"SBB",cor:"#0033A0" },
+    { id:"pb1_04",nome:"Jabaquara B",       sigla:"JAB",cor:"#1a1a1a" },
+    { id:"pb1_05",nome:"Atibaia B",         sigla:"ATB",cor:"#006400" },
+    { id:"pb1_06",nome:"Desportivo Brasil B",sigla:"DBB",cor:"#0033A0" }
+  ]},
+  { letra:"B", clubes:[
+    { id:"pb1_07",nome:"Palmeiras B",       sigla:"PLB",cor:"#006437" },
+    { id:"pb1_08",nome:"Corinthians B",     sigla:"CRB",cor:"#1a1a1a" },
+    { id:"pb1_09",nome:"São Paulo B",       sigla:"SPB",cor:"#CC0000" },
+    { id:"pb1_10",nome:"Grêmio Osasco",     sigla:"GOS",cor:"#006400" },
+    { id:"pb1_11",nome:"União São João B",  sigla:"USB",cor:"#006400" },
+    { id:"pb1_12",nome:"Oeste B",           sigla:"OEB",cor:"#CC0000" }
+  ]},
+  { letra:"C", clubes:[
+    { id:"pb1_13",nome:"RB Bragantino B",   sigla:"RBB",cor:"#CC0000" },
+    { id:"pb1_14",nome:"Votuporanguense B", sigla:"VOB",cor:"#CC0000" },
+    { id:"pb1_15",nome:"Rio Preto B",       sigla:"RPB",cor:"#0033A0" },
+    { id:"pb1_16",nome:"Francana B",        sigla:"FRB",cor:"#006400" },
+    { id:"pb1_17",nome:"Catanduva B",       sigla:"CTB",cor:"#CC0000" },
+    { id:"pb1_18",nome:"Sertãozinho B",     sigla:"SRB",cor:"#CC0000" }
+  ]},
+  { letra:"D", clubes:[
+    { id:"pb1_19",nome:"Mauá FC",           sigla:"MAU",cor:"#FFD700" },
+    { id:"pb1_20",nome:"Grêmio Mauaense",   sigla:"GMA",cor:"#0033A0" },
+    { id:"pb1_21",nome:"Manthiqueira",      sigla:"MAN",cor:"#006400" },
+    { id:"pb1_22",nome:"Barcelona Esportivo",sigla:"BAR",cor:"#CC0000" },
+    { id:"pb1_23",nome:"Itaquaquecetuba AC",sigla:"ITA",cor:"#0033A0" },
+    { id:"pb1_24",nome:"União Mogi FC",     sigla:"UMO",cor:"#006400" }
+  ]}
 ];
 
 // Estado do sistema paulista
 var estadoPaulista = {
-  a1: { clubes:null, resultados:[], calendario:[], rodadaAtual:0, campeao:null },
-  a2: { clubes:null, resultados:[], calendario:[], rodadaAtual:0, campeao:null },
-  a3: { clubes:null, resultados:[], calendario:[], rodadaAtual:0, campeao:null },
-  a4: { clubes:null, resultados:[], calendario:[], rodadaAtual:0, campeao:null },
-  b1: { clubes:null, resultados:[], calendario:[], rodadaAtual:0, campeao:null },
-  copa: { clubes:null, resultados:[], jogos:[], campeao:null }
+  a1:   { clubes:null, faseAtual:"grupos", jogos:[], mataMataClubes:[], campeao:null, rebaixados:[] },
+  a2:   { clubes:null, faseAtual:"grupos", jogos:[], mataMataClubes:[], campeao:null, rebaixados:[] },
+  a3:   { clubes:null, faseAtual:"grupos", jogos:[], mataMataClubes:[], campeao:null, rebaixados:[] },
+  a4:   { clubes:null, faseAtual:"grupos", jogos:[], mataMataClubes:[], campeao:null, rebaixados:[] },
+  b1:   { grupos:GRUPOS_BEZINHA, jogos:[], mataMataClubes:[], campeao:null, faseAtual:"grupos" },
+  copa: { clubes:null, jogos:[], faseAtual:"oitavas", campeao:null }
 };
 
-function overallBasePaulista(nivel) {
-  var bases = { a1:73, a2:65, a3:58, a4:52, b1:45 };
-  return bases[nivel] || 50;
+// ── Utilitários ──
+function shuffleArr(arr) {
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
 }
 
-function prepararClubesPaulista(lista, nivel) {
-  var base = overallBasePaulista(nivel);
-  return lista.map(function(c) {
-    // Verificar se já existe no CLUBES (Série A nacional)
-    var existente = CLUBES.find(function(x){ return x.sigla===c.sigla && x.nome===c.nome; });
-    if (existente) return Object.assign({}, existente, { divisao_paulista: nivel });
-
-    return Object.assign({}, c, {
-      divisao_paulista: nivel,
-      jogadores: gerarJogadoresFicticios(c.id, base + Math.floor(Math.random()*8) - 4),
-      budget: Math.round(base/100 * 8000000 * (0.6+Math.random()*0.8)),
-      tecnico_id: "t" + String(Math.floor(Math.random()*20)+1).padStart(2,"0")
-    });
+function gerarJogadoresFicticios(clubeId, overallBase) {
+  var posicoes=["GOL","GOL","LD","LD","ZAG","ZAG","ZAG","LE","LE","VOL","VOL","VOL","MEI","MEI","MEI","ATA","ATA","ATA","ATA","MEI","VOL","ZAG","LD","LE"];
+  return posicoes.map(function(pos,i){
+    var ov=Math.max(40,Math.min(85,overallBase+Math.floor(Math.random()*10)-5));
+    return {id:clubeId+"_j"+i,nome:"Jogador "+(i+1),posicao:pos,overall:ov,
+      stats:{jogos:0,gols:0,assistencias:0,nota_media:0},
+      valor_mercado:Math.round(ov*8000),salario:Math.round(ov*300),
+      clausula_rescisoria:Math.round(ov*20000),contrato_termino:20+Math.floor(Math.random()*18),fadiga:0};
   });
 }
 
-function inicializarPaulista() {
-  estadoPaulista.a1.clubes = prepararClubesPaulista(CLUBES_PAULISTA_A1, "a1");
-  estadoPaulista.a2.clubes = prepararClubesPaulista(CLUBES_PAULISTA_A2, "a2");
-  estadoPaulista.a3.clubes = prepararClubesPaulista(CLUBES_PAULISTA_A3, "a3");
-  estadoPaulista.a4.clubes = prepararClubesPaulista(CLUBES_PAULISTA_A4, "a4");
-  estadoPaulista.b1.clubes = prepararClubesPaulista(CLUBES_BEZINHA, "b1");
-
-  // Gerar calendários
-  ["a1","a2","a3","a4","b1"].forEach(function(div) {
-    estadoPaulista[div].calendario = gerarCalendario(estadoPaulista[div].clubes);
-  });
-
-  // Copa Paulista: times A1 que não estão na Libertadores + times A2
-  var copaClubes = shuffle(
-    estadoPaulista.a1.clubes.slice(6).concat(estadoPaulista.a2.clubes.slice(0,8))
-  ).slice(0,16);
-  estadoPaulista.copa.clubes = copaClubes;
-  estadoPaulista.copa.jogos = gerarJogosCopaPaulista(copaClubes);
+function simularJPaulista(mId, vId, allClubes) {
+  var m=allClubes.find(function(c){return c.id===mId;});
+  var v=allClubes.find(function(c){return c.id===vId;});
+  if(!m||!v) return {gM:0,gV:0};
+  var fM=calcularForca(m).forca, fV=calcularForca(v).forca;
+  var diff=(fM-fV)/20;
+  var baseGols=1.5;
+  var gM=Math.max(0,Math.round(baseGols+diff+(Math.random()*3-1)));
+  var gV=Math.max(0,Math.round(baseGols-diff+(Math.random()*3-1)));
+  return {gM:gM,gV:gV};
 }
 
-function gerarJogosCopaPaulista(clubes) {
-  // Mata-mata direto: 16 → 8 → 4 → 2 → 1
-  var jogos = [];
-  var shuffled = shuffle(clubes.slice());
-  for (var i=0;i<shuffled.length;i+=2) {
-    if (i+1>=shuffled.length) break;
-    jogos.push({ fase:0, mandanteId:shuffled[i].id, visitanteId:shuffled[i+1].id, gM:null,gV:null,simulado:false });
+// Gerar todos os jogos de turno único (round robin)
+function gerarJogosGrupo(clubes, divKey) {
+  var jogos=[];
+  for(var i=0;i<clubes.length;i++){
+    for(var j=i+1;j<clubes.length;j++){
+      jogos.push({div:divKey,fase:"grupos",mId:clubes[i].id,vId:clubes[j].id,gM:null,gV:null,ok:false,rodada:i+j});
+    }
   }
   return jogos;
 }
 
-function simularRodadaPaulista(rodadaIdx) {
-  var meuId = estado.meuClube.id;
-  ["a1","a2","a3","a4","b1"].forEach(function(div) {
-    var est = estadoPaulista[div];
-    if (!est.clubes || rodadaIdx >= est.calendario.length) return;
-    var rodada = est.calendario[rodadaIdx];
-    rodada.jogos.forEach(function(jogo) {
-      var m = est.clubes.find(function(c){return c.id===jogo.mandanteId;});
-      var v = est.clubes.find(function(c){return c.id===jogo.visitanteId;});
-      if (!m||!v) return;
-      var r = simularJogoTorneio(m,v);
-      est.resultados.push({ rodada:rodadaIdx, mandanteId:jogo.mandanteId, visitanteId:jogo.visitanteId, golsMandante:r.gM, golsVisitante:r.gV });
-      if (jogo.mandanteId===meuId||jogo.visitanteId===meuId) {
-        var euM=jogo.mandanteId===meuId;
-        adicionarNoticia("🏅 Paulistão " + div.toUpperCase() + " · " + m.sigla + " " + r.gM + "x" + r.gV + " " + v.sigla, rodadaIdx);
-      }
+// Calcular pontuação de um grupo
+function calcPts(jogos, clubeIds) {
+  var pts={};
+  clubeIds.forEach(function(id){pts[id]={p:0,j:0,v:0,e:0,d:0,gp:0,gc:0};});
+  jogos.filter(function(j){return j.ok;}).forEach(function(j){
+    if(!pts[j.mId]||!pts[j.vId]) return;
+    pts[j.mId].j++; pts[j.vId].j++;
+    pts[j.mId].gp+=j.gM; pts[j.mId].gc+=j.gV;
+    pts[j.vId].gp+=j.gV; pts[j.vId].gc+=j.gM;
+    if(j.gM>j.gV){pts[j.mId].p+=3;pts[j.mId].v++; pts[j.vId].d++;}
+    else if(j.gM<j.gV){pts[j.vId].p+=3;pts[j.vId].v++;pts[j.mId].d++;}
+    else{pts[j.mId].p++;pts[j.mId].e++;pts[j.vId].p++;pts[j.vId].e++;}
+  });
+  return pts;
+}
+
+function rankear(ids, pts) {
+  return ids.slice().sort(function(a,b){
+    var pa=pts[a]||{p:0,gp:0,gc:0,v:0}, pb=pts[b]||{p:0,gp:0,gc:0,v:0};
+    return (pb.p-pa.p)||(pb.v-pa.v)||((pb.gp-pb.gc)-(pa.gp-pa.gc))||(pb.gp-pa.gp);
+  });
+}
+
+// ── Inicialização ──
+function inicializarPaulista() {
+  function prepDiv(lista, nivel, overallBase) {
+    return lista.map(function(c){
+      return Object.assign({},c,{
+        divisao_paulista:nivel,
+        jogadores:gerarJogadoresFicticios(c.id, overallBase+Math.floor(Math.random()*8)-4),
+        budget:Math.round(overallBase/100*8000000*(0.6+Math.random()*0.8)),
+        tecnico_id:"t"+String(Math.floor(Math.random()*20)+1).padStart(2,"0")
+      });
     });
-    est.rodadaAtual = rodadaIdx + 1;
+  }
+
+  estadoPaulista.a1.clubes = prepDiv(CLUBES_PAULISTA_A1,"a1",74);
+  estadoPaulista.a2.clubes = prepDiv(CLUBES_PAULISTA_A2,"a2",66);
+  estadoPaulista.a3.clubes = prepDiv(CLUBES_PAULISTA_A3,"a3",60);
+  estadoPaulista.a4.clubes = prepDiv(CLUBES_PAULISTA_A4,"a4",54);
+
+  // Bezinha: preparar clubes de todos os grupos
+  GRUPOS_BEZINHA.forEach(function(g){
+    g.clubes = g.clubes.map(function(c){
+      return Object.assign({},c,{
+        divisao_paulista:"b1",
+        jogadores:gerarJogadoresFicticios(c.id, 46+Math.floor(Math.random()*8)-4),
+        budget:500000, tecnico_id:"t01"
+      });
+    });
   });
 
-  // Copa Paulista: simular jogos pendentes
-  var pendente = estadoPaulista.copa.jogos.find(function(j){return !j.simulado;});
-  if (pendente && rodadaIdx >= 10) {
-    var m=estadoPaulista.copa.clubes.find(function(c){return c.id===pendente.mandanteId;});
-    var v=estadoPaulista.copa.clubes.find(function(c){return c.id===pendente.visitanteId;});
-    if (m&&v) {
-      var r=simularJogoTorneio(m,v);
-      pendente.gM=r.gM; pendente.gV=r.gV; pendente.simulado=true;
-      adicionarNoticia("☕ Copa Paulista · "+m.sigla+" "+r.gM+"x"+r.gV+" "+v.sigla, rodadaIdx);
+  // Gerar jogos de fase de grupos
+  ["a1","a2","a3","a4"].forEach(function(div){
+    var est=estadoPaulista[div];
+    est.jogos = gerarJogosGrupo(est.clubes, div);
+    est.faseAtual = "grupos";
+  });
+
+  // Bezinha: gerar jogos por grupo (turno+returno = 10 rodadas para 6 times)
+  GRUPOS_BEZINHA.forEach(function(g){
+    var ids=g.clubes.map(function(c){return c.id;});
+    for(var i=0;i<ids.length;i++){
+      for(var j=i+1;j<ids.length;j++){
+        estadoPaulista.b1.jogos.push({div:"b1",grupo:g.letra,fase:"grupos",mId:ids[i],vId:ids[j],gM:null,gV:null,ok:false});
+        estadoPaulista.b1.jogos.push({div:"b1",grupo:g.letra,fase:"grupos",mId:ids[j],vId:ids[i],gM:null,gV:null,ok:false});
+      }
+    }
+  });
+  estadoPaulista.b1.faseAtual = "grupos";
+
+  // Copa Paulista: top 8 da A1 + 8 da A2 (não em Libertadores)
+  var copaClubes = shuffleArr(estadoPaulista.a1.clubes.slice(0,8).concat(estadoPaulista.a2.clubes.slice(0,8)));
+  estadoPaulista.copa.clubes = copaClubes;
+  gerarJogosCopaPaulista();
+}
+
+function gerarJogosCopaPaulista() {
+  var c=estadoPaulista.copa.clubes;
+  estadoPaulista.copa.jogos = [];
+  for(var i=0;i<c.length;i+=2){
+    if(i+1>=c.length) break;
+    estadoPaulista.copa.jogos.push({fase:"oitavas",mId:c[i].id,vId:c[i+1].id,gM:null,gV:null,ok:false});
+  }
+}
+
+// Todos os clubes de uma divisão (flat)
+function clubesPaulista(div) {
+  if(div==="b1") return GRUPOS_BEZINHA.reduce(function(acc,g){return acc.concat(g.clubes);}, []);
+  return estadoPaulista[div].clubes||[];
+}
+
+function clubePaulistaPorId(id) {
+  var divs=["a1","a2","a3","a4"];
+  for(var i=0;i<divs.length;i++){
+    var c=(estadoPaulista[divs[i]].clubes||[]).find(function(x){return x.id===id;});
+    if(c) return c;
+  }
+  for(var j=0;j<GRUPOS_BEZINHA.length;j++){
+    var c2=GRUPOS_BEZINHA[j].clubes.find(function(x){return x.id===id;});
+    if(c2) return c2;
+  }
+  return null;
+}
+
+// ── Simular jogos por evento ──
+function simularEventoPaulista(rodadaIdx) {
+  var meuId = estado.meuClube.id;
+
+  ["a1","a2","a3","a4"].forEach(function(div){
+    var est=estadoPaulista[div];
+    if(!est.clubes) return;
+
+    if(est.faseAtual==="grupos"){
+      // Simular até 2 jogos de grupo por evento
+      var pendentes=est.jogos.filter(function(j){return j.fase==="grupos"&&!j.ok;}).slice(0,2);
+      pendentes.forEach(function(jogo){
+        var r=simularJPaulista(jogo.mId,jogo.vId,est.clubes);
+        jogo.gM=r.gM; jogo.gV=r.gV; jogo.ok=true;
+        var ehMeu=jogo.mId===meuId||jogo.vId===meuId;
+        if(ehMeu){
+          var m=est.clubes.find(function(c){return c.id===jogo.mId;});
+          var v=est.clubes.find(function(c){return c.id===jogo.vId;});
+          adicionarNoticia("🏅 Paulistão "+div.toUpperCase()+" · "+(m?m.sigla:"?")+' '+r.gM+"x"+r.gV+" "+(v?v.sigla:"?"), rodadaIdx);
+        }
+      });
+      // Verificar se grupos terminaram → gerar mata-mata
+      var restantes=est.jogos.filter(function(j){return j.fase==="grupos"&&!j.ok;});
+      if(restantes.length===0) gerarMataMata(div);
+    } else {
+      // Simular 1 jogo de mata-mata por evento
+      var pend=est.jogos.find(function(j){return j.fase!=="grupos"&&!j.ok;});
+      if(pend){
+        var r=simularJPaulista(pend.mId,pend.vId,est.clubes);
+        pend.gM=r.gM; pend.gV=r.gV; pend.ok=true;
+        verificarFasePaulista(div);
+      }
+    }
+  });
+
+  // Bezinha
+  if(estadoPaulista.b1.faseAtual==="grupos"){
+    GRUPOS_BEZINHA.forEach(function(g){
+      var pend=estadoPaulista.b1.jogos.find(function(j){return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;});
+      if(pend){
+        var todos=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
+        var r=simularJPaulista(pend.mId,pend.vId,todos);
+        pend.gM=r.gM; pend.gV=r.gV; pend.ok=true;
+      }
+    });
+    var restB=estadoPaulista.b1.jogos.filter(function(j){return j.fase==="grupos"&&!j.ok;});
+    if(restB.length===0) gerarMataMataB1();
+  } else {
+    var pendB=estadoPaulista.b1.jogos.find(function(j){return j.fase!=="grupos"&&!j.ok;});
+    if(pendB){
+      var todos=GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+      var r=simularJPaulista(pendB.mId,pendB.vId,todos);
+      pendB.gM=r.gM; pendB.gV=r.gV; pendB.ok=true;
+      verificarFaseB1();
+    }
+  }
+
+  // Copa Paulista
+  var pendCopa=estadoPaulista.copa.jogos.find(function(j){return !j.ok;});
+  if(pendCopa && rodadaIdx>=15){
+    var m=estadoPaulista.copa.clubes.find(function(c){return c.id===pendCopa.mId;});
+    var v=estadoPaulista.copa.clubes.find(function(c){return c.id===pendCopa.vId;});
+    if(m&&v){
+      var r=simularJPaulista(pendCopa.mId,pendCopa.vId,estadoPaulista.copa.clubes);
+      pendCopa.gM=r.gM; pendCopa.gV=r.gV; pendCopa.ok=true;
+      verificarFaseCopa();
     }
   }
 }
 
-// Promoção/rebaixamento paulista ao fim da temporada
+// ── Gerar mata-mata após fase de grupos ──
+// A1/A3/A4: top 8 → quartas → semi → final (mata-mata simples)
+// A2: top 8 → 2 grupos de 4 (turno+returno) → semi → final
+function gerarMataMata(div) {
+  var est=estadoPaulista[div];
+  var ids=est.clubes.map(function(c){return c.id;});
+  var pts=calcPts(est.jogos,ids);
+  var ranked=rankear(ids,pts);
+  var top8=ranked.slice(0,8);
+  est.rebaixados=ranked.slice(14);
+  est.mataMataClubes=top8;
+
+  if(div==="a2"){
+    // 2 grupos de 4: turno+returno
+    var g1=top8.slice(0,4), g2=top8.slice(4,8);
+    [g1,g2].forEach(function(g){
+      for(var i=0;i<g.length;i++){
+        for(var j=i+1;j<g.length;j++){
+          est.jogos.push({div:div,fase:"semifase",mId:g[i],vId:g[j],gM:null,gV:null,ok:false});
+          est.jogos.push({div:div,fase:"semifase",mId:g[j],vId:g[i],gM:null,gV:null,ok:false});
+        }
+      }
+    });
+    est.faseAtual="semifase";
+  } else {
+    // quartas: 1x8, 2x7, 3x6, 4x5 (jogo único)
+    var pares=[[0,7],[1,6],[2,5],[3,4]];
+    pares.forEach(function(p){
+      est.jogos.push({div:div,fase:"quartas",mId:top8[p[0]],vId:top8[p[1]],gM:null,gV:null,ok:false});
+    });
+    est.faseAtual="quartas";
+  }
+  adicionarNoticia("🏅 Paulistão "+div.toUpperCase()+": mata-mata definido!", estado.rodadaAtual);
+}
+
+function verificarFasePaulista(div) {
+  var est=estadoPaulista[div];
+
+  if(div==="a2" && est.faseAtual==="semifase"){
+    var pendentes=est.jogos.filter(function(j){return j.fase==="semifase"&&!j.ok;});
+    if(pendentes.length===0){
+      // Calcular top 2 de cada grupo (4 times total)
+      var g1=est.mataMataClubes.slice(0,4), g2=est.mataMataClubes.slice(4,8);
+      var pts1=calcPts(est.jogos.filter(function(j){return j.fase==="semifase"&&(g1.indexOf(j.mId)>=0);}), g1);
+      var pts2=calcPts(est.jogos.filter(function(j){return j.fase==="semifase"&&(g2.indexOf(j.mId)>=0);}), g2);
+      var top1=rankear(g1,pts1).slice(0,2);
+      var top2=rankear(g2,pts2).slice(0,2);
+      // Semi: 1G1 x 2G2, 2G1 x 1G2
+      est.jogos.push({div:div,fase:"semi",mId:top1[0],vId:top2[1],gM:null,gV:null,ok:false});
+      est.jogos.push({div:div,fase:"semi",mId:top2[0],vId:top1[1],gM:null,gV:null,ok:false});
+      est.faseAtual="semi";
+    }
+    return;
+  }
+
+  var faseMap={quartas:"semi",semi:"final"};
+  var fase=est.faseAtual;
+  var jogFase=est.jogos.filter(function(j){return j.fase===fase&&!j.ok;});
+  if(jogFase.length>0) return;
+
+  var vencedores=est.jogos.filter(function(j){return j.fase===fase&&j.ok;}).map(function(j){
+    if(j.gM>j.gV) return j.mId;
+    if(j.gM<j.gV) return j.vId;
+    return Math.random()>0.5?j.mId:j.vId; // pênaltis
+  });
+
+  if(fase==="final"){
+    est.campeao=vencedores[0];
+    var camp=est.clubes.find(function(c){return c.id===vencedores[0];});
+    adicionarNoticia("🏅 "+(camp?camp.nome:"?")+" CAMPEÃO do Paulistão "+div.toUpperCase()+"!", estado.rodadaAtual);
+    if(est.campeao===estado.meuClube.id){
+      estado.manager.titulos=(estado.manager.titulos||0)+1;
+      estado.inbox.push({id:"titulo_paul_"+div+"_"+Date.now(),titulo:"🏅 CAMPEÃO DO PAULISTÃO "+div.toUpperCase()+"!",remetente:"FPF",texto:"Parabéns! Título paulista conquistado!",lida:false});
+    }
+    est.faseAtual="fim";
+    return;
+  }
+
+  var proxFase=faseMap[fase];
+  est.faseAtual=proxFase;
+  if(proxFase==="semi"){
+    est.jogos.push({div:div,fase:"semi",mId:vencedores[0],vId:vencedores[3],gM:null,gV:null,ok:false});
+    est.jogos.push({div:div,fase:"semi",mId:vencedores[1],vId:vencedores[2],gM:null,gV:null,ok:false});
+  } else if(proxFase==="final"){
+    est.jogos.push({div:div,fase:"final",mId:vencedores[0],vId:vencedores[1],gM:null,gV:null,ok:false});
+  }
+}
+
+function gerarMataMataB1() {
+  var todos=GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+  var classificados=[];
+  GRUPOS_BEZINHA.forEach(function(g){
+    var ids=g.clubes.map(function(c){return c.id;});
+    var jogosGrupo=estadoPaulista.b1.jogos.filter(function(j){return j.grupo===g.letra&&j.fase==="grupos";});
+    var pts=calcPts(jogosGrupo,ids);
+    var top4=rankear(ids,pts).slice(0,4);
+    classificados=classificados.concat(top4);
+  });
+  estadoPaulista.b1.mataMataClubes=classificados;
+  var sorteados=shuffleArr(classificados);
+  for(var i=0;i<sorteados.length;i+=2){
+    if(i+1>=sorteados.length) break;
+    estadoPaulista.b1.jogos.push({div:"b1",fase:"oitavas",mId:sorteados[i],vId:sorteados[i+1],gM:null,gV:null,ok:false});
+  }
+  estadoPaulista.b1.faseAtual="oitavas";
+  adicionarNoticia("🏅 Bezinha: oitavas de final definidas!", estado.rodadaAtual);
+}
+
+function verificarFaseB1() {
+  var faseMap={oitavas:"quartas",quartas:"semi",semi:"final"};
+  var fase=estadoPaulista.b1.faseAtual;
+  var todos=GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+  var pendentes=estadoPaulista.b1.jogos.filter(function(j){return j.fase===fase&&!j.ok;});
+  if(pendentes.length>0) return;
+
+  var vencedores=estadoPaulista.b1.jogos.filter(function(j){return j.fase===fase&&j.ok;}).map(function(j){
+    if(j.gM>j.gV) return j.mId;
+    if(j.gM<j.gV) return j.vId;
+    return Math.random()>0.5?j.mId:j.vId;
+  });
+
+  if(fase==="final"){
+    estadoPaulista.b1.campeao=vencedores[0];
+    var camp=todos.find(function(c){return c.id===vencedores[0];});
+    adicionarNoticia("🏅 "+(camp?camp.nome:"?")+" CAMPEÃO da Bezinha!", estado.rodadaAtual);
+    estadoPaulista.b1.faseAtual="fim";
+    return;
+  }
+
+  var proxFase=faseMap[fase];
+  estadoPaulista.b1.faseAtual=proxFase;
+  var sorteados=shuffleArr(vencedores);
+  for(var i=0;i<sorteados.length;i+=2){
+    if(i+1>=sorteados.length) break;
+    estadoPaulista.b1.jogos.push({div:"b1",fase:proxFase,mId:sorteados[i],vId:sorteados[i+1],gM:null,gV:null,ok:false});
+  }
+}
+
+function verificarFaseCopa() {
+  var faseMap={oitavas:"quartas",quartas:"semi",semi:"final"};
+  var fase=estadoPaulista.copa.faseAtual;
+  var pendentes=estadoPaulista.copa.jogos.filter(function(j){return j.fase===fase&&!j.ok;});
+  if(pendentes.length>0) return;
+
+  var vencedores=estadoPaulista.copa.jogos.filter(function(j){return j.fase===fase&&j.ok;}).map(function(j){
+    if(j.gM>j.gV) return j.mId; if(j.gM<j.gV) return j.vId;
+    return Math.random()>0.5?j.mId:j.vId;
+  });
+
+  if(fase==="final"){
+    estadoPaulista.copa.campeao=vencedores[0];
+    var camp=estadoPaulista.copa.clubes.find(function(c){return c.id===vencedores[0];});
+    adicionarNoticia("☕ "+(camp?camp.nome:"?")+" CAMPEÃO da Copa Paulista!", estado.rodadaAtual);
+    if(estadoPaulista.copa.campeao===estado.meuClube.id){
+      estado.manager.titulos=(estado.manager.titulos||0)+1;
+      estado.inbox.push({id:"copa_paul_"+Date.now(),titulo:"☕ CAMPEÃO DA COPA PAULISTA!",remetente:"FPF",texto:"Seu clube conquistou a Copa Paulista!",lida:false});
+    }
+    return;
+  }
+  var proxFase=faseMap[fase];
+  estadoPaulista.copa.faseAtual=proxFase;
+  for(var i=0;i<vencedores.length;i+=2){
+    if(i+1>=vencedores.length) break;
+    estadoPaulista.copa.jogos.push({fase:proxFase,mId:vencedores[i],vId:vencedores[i+1],gM:null,gV:null,ok:false});
+  }
+}
+
+// ── Promoção/Rebaixamento ao fim da temporada ──
 function processarPromocaoRebaixamentoPaulista() {
-  var niveis = ["a1","a2","a3","a4","b1"];
-  var qtd = 4; // 4 sobem e 4 descem
-
-  for (var i=0; i<niveis.length; i++) {
-    var divAtual = niveis[i];
-    var divAbaixo = niveis[i+1];
-    var est = estadoPaulista[divAtual];
-    if (!est.clubes || est.clubes.length===0) continue;
-
-    var tabela = calcularTabela(est.clubes, est.resultados);
+  var niveis=["a1","a2","a3","a4"];
+  for(var i=0;i<niveis.length;i++){
+    var divAtual=niveis[i], divAbaixo=niveis[i+1];
+    var est=estadoPaulista[divAtual];
+    if(!est.clubes||est.clubes.length<2) continue;
 
     // Campeão
-    if (tabela.length > 0) {
-      est.campeao = tabela[0].id;
-      var camp = est.clubes.find(function(c){return c.id===tabela[0].id;});
-      adicionarNoticia("🏅 " + (camp?camp.nome:"?") + " é CAMPEÃO do Paulistão " + divAtual.toUpperCase() + "!", estado.rodadaAtual);
+    if(!est.campeao){
+      var camp=est.clubes[0];
+      adicionarNoticia("🏅 Temporada do Paulistão "+divAtual.toUpperCase()+" encerrada.", estado.rodadaAtual);
     }
 
-    if (!divAbaixo) continue;
-    var estAbaixo = estadoPaulista[divAbaixo];
-    if (!estAbaixo.clubes) continue;
+    if(!divAbaixo) continue;
+    var estAbaixo=estadoPaulista[divAbaixo];
+    if(!estAbaixo) continue;
 
-    var tabelaAbaixo = calcularTabela(estAbaixo.clubes, estAbaixo.resultados);
+    // Promovidos (top 2 do abaixo sobem) e rebaixados (últimos 2 do atual descem)
+    var idsAtual=est.clubes.map(function(c){return c.id;});
+    var ptsAtual=calcPts(est.jogos.filter(function(j){return j.fase==="grupos";}),idsAtual);
+    var rankAtual=rankear(idsAtual,ptsAtual);
+    var rebaixadosAtual=rankAtual.slice(-2);
 
-    // Rebaixados (últimos 4 da divisão atual)
-    var rebaixados = tabela.slice(-qtd);
-    // Promovidos (primeiros 4 da divisão abaixo)
-    var promovidos = tabelaAbaixo.slice(0, qtd);
-
-    rebaixados.forEach(function(t) {
-      var clube = est.clubes.find(function(c){return c.id===t.id;});
-      if (clube) {
-        clube.divisao_paulista = divAbaixo;
-        estAbaixo.clubes.push(clube);
-        est.clubes = est.clubes.filter(function(c){return c.id!==clube.id;});
-        adicionarNoticia("⬇ " + clube.nome + " rebaixado para o Paulistão " + divAbaixo.toUpperCase(), estado.rodadaAtual);
+    rebaixadosAtual.forEach(function(id){
+      var clube=est.clubes.find(function(c){return c.id===id;});
+      if(clube){
+        clube.divisao_paulista=divAbaixo;
+        if(estAbaixo.clubes) estAbaixo.clubes.push(clube);
+        est.clubes=est.clubes.filter(function(c){return c.id!==id;});
+        adicionarNoticia("⬇ "+clube.nome+" rebaixado para o Paulistão "+divAbaixo.toUpperCase(), estado.rodadaAtual);
       }
     });
 
-    promovidos.forEach(function(t) {
-      var clube = estAbaixo.clubes.find(function(c){return c.id===t.id;});
-      if (clube) {
-        clube.divisao_paulista = divAtual;
-        est.clubes.push(clube);
-        estAbaixo.clubes = estAbaixo.clubes.filter(function(c){return c.id!==clube.id;});
-        adicionarNoticia("⬆ " + clube.nome + " promovido para o Paulistão " + divAtual.toUpperCase(), estado.rodadaAtual);
-      }
-    });
+    if(estAbaixo.clubes && estAbaixo.clubes.length>=2){
+      var idsAbaixo=estAbaixo.clubes.map(function(c){return c.id;});
+      var ptsAbaixo=calcPts(estAbaixo.jogos.filter(function(j){return j.fase==="grupos";}),idsAbaixo);
+      var rankAbaixo=rankear(idsAbaixo,ptsAbaixo);
+      var promovidos=rankAbaixo.slice(0,2);
+      promovidos.forEach(function(id){
+        var clube=estAbaixo.clubes.find(function(c){return c.id===id;});
+        if(clube){
+          clube.divisao_paulista=divAtual;
+          est.clubes.push(clube);
+          estAbaixo.clubes=estAbaixo.clubes.filter(function(c){return c.id!==id;});
+          adicionarNoticia("⬆ "+clube.nome+" promovido para o Paulistão "+divAtual.toUpperCase(), estado.rodadaAtual);
+        }
+      });
+    }
 
-    // Regenerar calendários após movimentação
-    est.resultados = [];
-    estAbaixo.resultados = [];
-    est.rodadaAtual = 0;
-    estAbaixo.rodadaAtual = 0;
-    if (est.clubes.length >= 2) est.calendario = gerarCalendario(est.clubes);
-    if (estAbaixo.clubes.length >= 2) estAbaixo.calendario = gerarCalendario(estAbaixo.clubes);
+    // Reset para nova temporada
+    est.jogos=[]; est.faseAtual="grupos"; est.campeao=null;
+    if(est.clubes.length>=2) est.jogos=gerarJogosGrupo(est.clubes,divAtual);
+    if(estAbaixo.clubes && estAbaixo.clubes.length>=2){
+      estAbaixo.jogos=gerarJogosGrupo(estAbaixo.clubes,divAbaixo);
+      estAbaixo.faseAtual="grupos"; estAbaixo.campeao=null;
+    }
   }
+}
 
-  // Copa Paulista: campeão
-  var ultimoJogo = estadoPaulista.copa.jogos.filter(function(j){return j.simulado;}).pop();
-  if (ultimoJogo) {
-    var campId = ultimoJogo.gM>ultimoJogo.gV ? ultimoJogo.mandanteId : ultimoJogo.visitanteId;
-    estadoPaulista.copa.campeao = campId;
-    var campClube = estadoPaulista.copa.clubes.find(function(c){return c.id===campId;});
-    if (campClube) adicionarNoticia("☕ " + campClube.nome + " é CAMPEÃO da Copa Paulista!", estado.rodadaAtual);
-  }
+// Calcular valor de um clube paulista para tela de seleção
+function valorClubePaulista(clube) {
+  var bases={a1:12000000,a2:3500000,a3:800000,a4:200000,b1:50000};
+  var div=clube.divisao_paulista||"a4";
+  var base=bases[div]||200000;
+  var mediaOvr=clube.jogadores?clube.jogadores.reduce(function(s,j){return s+j.overall;},0)/clube.jogadores.length:55;
+  return Math.round(base*(0.7+(mediaOvr-50)/60));
 }
 
 // ── TELA PAULISTÃO ──
 function renderPaulistao() {
-  var aba = window._paulistaAba || "a1";
-  var html = '<div class="torneios-tela">';
-
-  html += '<div class="divisoes-tabs" style="flex-wrap:wrap">';
-  [
-    {k:"a1", label:"🏆 A1"},
-    {k:"a2", label:"A2"},
-    {k:"a3", label:"A3"},
-    {k:"a4", label:"A4"},
-    {k:"b1", label:"Bezinha (B1)"},
-    {k:"copa", label:"☕ Copa Paulista"}
-  ].forEach(function(t) {
-    html += '<button class="div-tab' + (aba===t.k?" ativo":"") + '" onclick="mudarPaulistaAba(\'' + t.k + '\')">' + t.label + '</button>';
+  var aba=window._paulistaAba||"a1";
+  var html='<div class="torneios-tela">';
+  html+='<div class="divisoes-tabs" style="flex-wrap:wrap">';
+  [{k:"a1",label:"🏆 A1"},{k:"a2",label:"A2"},{k:"a3",label:"A3"},
+   {k:"a4",label:"A4"},{k:"b1",label:"Bezinha"},{k:"copa",label:"☕ Copa Paulista"}
+  ].forEach(function(t){
+    html+='<button class="div-tab'+(aba===t.k?" ativo":"")+'" onclick="mudarPaulistaAba(\''+t.k+'\')">'+t.label+'</button>';
   });
-  html += '</div>';
-
-  if (aba === "copa") {
-    html += renderCopaPaulistaTela();
-  } else {
-    html += renderDivisaoPaulistaTela(aba);
-  }
-
-  html += '</div>';
-  document.getElementById("main").innerHTML = html;
+  html+='</div>';
+  if(aba==="copa") html+=renderCopaPaulistaTela();
+  else if(aba==="b1") html+=renderBezinhaTela();
+  else html+=renderDivisaoPaulistaTela(aba);
+  html+='</div>';
+  document.getElementById("main").innerHTML=html;
 }
 
-function mudarPaulistaAba(aba) { window._paulistaAba=aba; renderPaulistao(); }
+function mudarPaulistaAba(aba){window._paulistaAba=aba;renderPaulistao();}
 
 function renderDivisaoPaulistaTela(div) {
-  var est = estadoPaulista[div];
-  var nomes = { a1:"Paulistão A1", a2:"Paulistão A2", a3:"Paulistão A3", a4:"Paulistão A4", b1:"Bezinha (Sub-23)" };
-  var meuId = estado.meuClube.id;
+  var est=estadoPaulista[div];
+  var nomes={a1:"Paulistão A1",a2:"Paulistão A2",a3:"Paulistão A3",a4:"Paulistão A4"};
+  var meuId=estado.meuClube.id;
+  if(!est.clubes||est.clubes.length===0) return '<div class="dash-empty">Aguardando inicialização...</div>';
 
-  if (!est.clubes || est.clubes.length===0) return '<div class="dash-empty">Aguardando inicialização...</div>';
+  var ids=est.clubes.map(function(c){return c.id;});
+  var pts=calcPts(est.jogos.filter(function(j){return j.fase==="grupos";}),ids);
+  var ranked=rankear(ids,pts);
+  var html='<div class="divisoes-grid">';
 
-  var tabela = calcularTabela(est.clubes, est.resultados);
-  var html = '<div class="divisoes-grid">';
-
-  // Tabela
-  html += '<div class="div-tabela-wrap">';
-  if (est.campeao) {
-    var camp = est.clubes.find(function(c){return c.id===est.campeao;});
-    html += '<div class="torneio-campeao" style="font-size:14px;margin-bottom:10px">🏅 Campeão: ' + (camp?camp.nome:"?") + '</div>';
+  // Tabela fase de grupos
+  html+='<div class="div-tabela-wrap">';
+  if(est.campeao){
+    var camp=est.clubes.find(function(c){return c.id===est.campeao;});
+    html+='<div class="torneio-campeao" style="font-size:14px;margin-bottom:10px">🏅 Campeão: '+(camp?camp.nome:"?")+'</div>';
   }
-  html += '<div class="fin-secao-titulo">' + nomes[div] + ' — Classificação</div>';
-  html += '<table class="elenco-tabela"><thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead><tbody>';
-  tabela.forEach(function(t,i) {
+  html+='<div class="fin-secao-titulo">'+nomes[div]+' — '+(est.faseAtual==="grupos"?"Fase de Grupos":"Mata-mata")+'</div>';
+  html+='<table class="elenco-tabela"><thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead><tbody>';
+  ranked.forEach(function(id,i){
+    var t=pts[id]||{p:0,j:0,v:0,e:0,d:0,gp:0,gc:0};
+    var c=est.clubes.find(function(x){return x.id===id;});
     var pos=i+1;
-    var cls=t.id===meuId?" mini-tab-eu":"";
-    var corPos=pos<=4?"color:var(--green)":pos>tabela.length-4?"color:var(--red)":"";
-    html += '<tr class="' + cls + '"><td class="td-pos" style="' + corPos + '">' + pos + '</td>';
-    html += '<td><span class="escudo-mini" style="background:' + t.cor + '">' + t.sigla + '</span>' + t.nome + '</td>';
-    html += '<td class="td-pts">' + t.pts + '</td><td>' + t.j + '</td><td>' + t.v + '</td><td>' + t.e + '</td><td>' + t.d + '</td><td>' + t.gp + '</td><td>' + t.gc + '</td>';
-    html += '<td>' + (t.sg>0?"+"+t.sg:t.sg) + '</td></tr>';
+    var cls=id===meuId?" mini-tab-eu":"";
+    var corPos=pos<=8?"color:var(--green)":pos>est.clubes.length-2?"color:var(--red)":"";
+    html+='<tr class="'+cls+'"><td class="td-pos" style="'+corPos+'">'+pos+'</td>';
+    html+='<td><span class="escudo-mini" style="background:'+(c?c.cor:"#555")+'">'+(c?c.sigla:"?")+
+          '</span>'+(c?c.nome:"?")+'</td>';
+    html+='<td class="td-pts">'+t.p+'</td><td>'+t.j+'</td><td>'+t.v+'</td><td>'+t.e+'</td><td>'+t.d+'</td><td>'+t.gp+'</td><td>'+t.gc+'</td>';
+    html+='<td>'+((t.gp-t.gc)>0?"+"+(t.gp-t.gc):(t.gp-t.gc))+'</td></tr>';
   });
-  html += '</tbody></table>';
-  html += '<div style="font-size:11px;color:var(--text2);margin-top:6px">🟢 Top 4 = promoção · 🔴 Últimos 4 = rebaixamento</div>';
-  if (div==="b1") html += '<div style="font-size:11px;color:var(--accent);margin-top:4px">★ Restrito a jogadores sub-23</div>';
-  html += '</div>';
+  html+='</tbody></table>';
+  html+='<div style="font-size:11px;color:var(--text2);margin-top:6px">🟢 Top 8 = mata-mata · 🔴 Últimos 2 = rebaixamento</div>';
+  html+='</div>';
 
-  // Últimos resultados
-  html += '<div class="div-resultados">';
-  html += '<div class="fin-secao-titulo">Rodada ' + est.rodadaAtual + ' — Últimos resultados</div>';
-  if (est.rodadaAtual===0) {
-    html += '<div class="dash-empty">Nenhuma rodada simulada ainda.</div>';
-  } else {
-    var ult = est.rodadaAtual-1;
-    var rodada = est.calendario[ult];
-    if (rodada) {
-      rodada.jogos.forEach(function(jogo) {
-        var res=est.resultados.find(function(r){return r.rodada===ult&&r.mandanteId===jogo.mandanteId&&r.visitanteId===jogo.visitanteId;});
-        var m=est.clubes.find(function(c){return c.id===jogo.mandanteId;});
-        var v=est.clubes.find(function(c){return c.id===jogo.visitanteId;});
-        if(!m||!v) return;
-        var ehMeu=jogo.mandanteId===meuId||jogo.visitanteId===meuId;
-        html += '<div class="resultado-item' + (ehMeu?" resultado-meu":"") + '" style="font-size:12px">';
-        html += '<span class="res-time">' + m.nome + '</span>';
-        html += res ? '<span class="res-placar">' + res.golsMandante + ' – ' + res.golsVisitante + '</span>' : '<span class="res-placar" style="color:var(--text2)">vs</span>';
-        html += '<span class="res-time direita">' + v.nome + '</span></div>';
-      });
-    }
-  }
-  html += '</div></div>';
-  return html;
-}
-
-function renderCopaPaulistaTela() {
-  var copa = estadoPaulista.copa;
-  var meuId = estado.meuClube.id;
-  var html = '<div class="torneio-conteudo">';
-
-  if (copa.campeao) {
-    var camp = copa.clubes.find(function(c){return c.id===copa.campeao;});
-    html += '<div class="torneio-campeao">☕ CAMPEÃO DA COPA PAULISTA: ' + (camp?camp.nome:"?") + '</div>';
-  }
-
-  var fases = ["Oitavas","Quartas","Semifinal","Final"];
-  var jogosPorFase = {};
-  copa.jogos.forEach(function(j) {
-    if (!jogosPorFase[j.fase]) jogosPorFase[j.fase]=[];
-    jogosPorFase[j.fase].push(j);
-  });
-
-  html += '<div class="torneio-fases">';
-  Object.entries(jogosPorFase).forEach(function(entry) {
-    var fi=parseInt(entry[0]), jogos=entry[1];
-    html += '<div class="torneio-fase">';
-    html += '<div class="torneio-fase-titulo">' + (fases[fi]||"Fase "+(fi+1)) + '</div>';
-    jogos.forEach(function(j) {
-      var m=copa.clubes.find(function(c){return c.id===j.mandanteId;});
-      var v=copa.clubes.find(function(c){return c.id===j.visitanteId;});
-      if(!m||!v) return;
-      var ehMeu=j.mandanteId===meuId||j.visitanteId===meuId;
-      html += '<div class="torneio-jogo' + (ehMeu?" torneio-meu":"") + '">';
-      html += '<span class="torneio-time">' + m.sigla + '</span>';
-      html += j.simulado ? '<span class="torneio-placar">' + j.gM + '-' + j.gV + '</span>' : '<span class="torneio-placar pendente">vs</span>';
-      html += '<span class="torneio-time right">' + v.sigla + '</span>';
-      html += '</div>';
+  // Mata-mata
+  html+='<div class="div-resultados">';
+  html+='<div class="fin-secao-titulo">Mata-mata</div>';
+  var fases=["quartas","semifase","semi","final"];
+  var temMata=false;
+  fases.forEach(function(f){
+    var jogsFase=est.jogos.filter(function(j){return j.fase===f;});
+    if(jogsFase.length===0) return;
+    temMata=true;
+    html+='<div class="torneio-fase-titulo" style="margin-top:8px">'+
+      {quartas:"Quartas",semifase:"2ª Fase",semi:"Semifinal",final:"Final"}[f]+'</div>';
+    jogsFase.forEach(function(j){
+      var m=est.clubes.find(function(c){return c.id===j.mId;});
+      var v=est.clubes.find(function(c){return c.id===j.vId;});
+      var ehMeu=j.mId===meuId||j.vId===meuId;
+      html+='<div class="torneio-jogo'+(ehMeu?" torneio-meu":"")+'">'+
+        '<span class="torneio-time">'+(m?m.sigla:"?")+'</span>'+
+        (j.ok?'<span class="torneio-placar">'+j.gM+'-'+j.gV+'</span>':
+               '<span class="torneio-placar pendente">vs</span>')+
+        '<span class="torneio-time right">'+(v?v.sigla:"?")+'</span></div>';
     });
-    html += '</div>';
   });
-  html += '</div></div>';
+  if(!temMata) html+='<div class="dash-empty" style="padding:12px">Mata-mata ainda não iniciado.</div>';
+  html+='</div></div>';
   return html;
 }
 
-// Função para calcular valor de um clube paulista
-function valorClubePaulista(clube) {
-  var baseNivel = { a1:15000000, a2:5000000, a3:1500000, a4:500000, b1:150000 };
-  var div = clube.divisao_paulista || "a3";
-  var base = baseNivel[div] || 500000;
-  var mediaOvr = clube.jogadores ? clube.jogadores.reduce(function(s,j){return s+j.overall;},0)/clube.jogadores.length : 60;
-  return Math.round(base * (0.7 + (mediaOvr-55)/50));
+function renderBezinhaTela() {
+  var meuId=estado.meuClube.id;
+  var todos=GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+  var html='<div class="torneio-conteudo">';
+
+  if(estadoPaulista.b1.campeao){
+    var camp=todos.find(function(c){return c.id===estadoPaulista.b1.campeao;});
+    html+='<div class="torneio-campeao">🏅 CAMPEÃO: '+(camp?camp.nome:"?")+'</div>';
+  }
+  html+='<div class="lib-grupos" style="grid-template-columns:repeat(2,1fr)">';
+  GRUPOS_BEZINHA.forEach(function(g){
+    var ids=g.clubes.map(function(c){return c.id;});
+    var jogosG=estadoPaulista.b1.jogos.filter(function(j){return j.grupo===g.letra&&j.fase==="grupos";});
+    var pts=calcPts(jogosG,ids);
+    var ranked=rankear(ids,pts);
+    html+='<div class="lib-grupo"><div class="lib-grupo-titulo">Grupo '+g.letra+'</div>';
+    ranked.forEach(function(id,i){
+      var c=g.clubes.find(function(x){return x.id===id;});
+      var p=pts[id]||{p:0,j:0};
+      var cls=id===meuId?" lib-eu":"";
+      var prom=i<4?" lib-prom":"";
+      html+='<div class="lib-clube-row'+cls+prom+'">'+
+        '<span class="lib-pos">'+(i+1)+'</span>'+
+        '<span class="lib-nome">'+(c?c.sigla:"?")+'</span>'+
+        '<span class="lib-pts">'+p.p+'</span>'+
+        '<span class="lib-j">'+p.j+'</span></div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Mata-mata bezinha
+  var fases=["oitavas","quartas","semi","final"];
+  fases.forEach(function(f){
+    var jogsFase=estadoPaulista.b1.jogos.filter(function(j){return j.fase===f;});
+    if(jogsFase.length===0) return;
+    html+='<div class="torneio-fase" style="margin-top:12px"><div class="torneio-fase-titulo">'+
+      {oitavas:"Oitavas",quartas:"Quartas",semi:"Semifinal",final:"Final"}[f]+'</div>';
+    jogsFase.forEach(function(j){
+      var m=todos.find(function(c){return c.id===j.mId;});
+      var v=todos.find(function(c){return c.id===j.vId;});
+      var ehMeu=j.mId===meuId||j.vId===meuId;
+      html+='<div class="torneio-jogo'+(ehMeu?" torneio-meu":"")+'">'+
+        '<span class="torneio-time">'+(m?m.sigla:"?")+'</span>'+
+        (j.ok?'<span class="torneio-placar">'+j.gM+'-'+j.gV+'</span>':
+               '<span class="torneio-placar pendente">vs</span>')+
+        '<span class="torneio-time right">'+(v?v.sigla:"?")+'</span></div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  return html;
 }
 
-// Buscar clube paulista por id
-function clubePaulistaPorId(id) {
-  var divs = ["a1","a2","a3","a4","b1"];
-  for (var i=0;i<divs.length;i++) {
-    var est = estadoPaulista[divs[i]];
-    if (!est.clubes) continue;
-    var c = est.clubes.find(function(x){return x.id===id;});
-    if (c) return c;
+function renderCopaPaulistaTela(){
+  var copa=estadoPaulista.copa;
+  var meuId=estado.meuClube.id;
+  var html='<div class="torneio-conteudo">';
+  if(copa.campeao){
+    var camp=copa.clubes.find(function(c){return c.id===copa.campeao;});
+    html+='<div class="torneio-campeao">☕ CAMPEÃO: '+(camp?camp.nome:"?")+'</div>';
   }
-  return null;
+  var fases=["oitavas","quartas","semi","final"];
+  fases.forEach(function(f){
+    var jogsFase=copa.jogos.filter(function(j){return j.fase===f;});
+    if(jogsFase.length===0) return;
+    html+='<div class="torneio-fase"><div class="torneio-fase-titulo">'+{oitavas:"Oitavas",quartas:"Quartas",semi:"Semifinal",final:"Final"}[f]+'</div>';
+    jogsFase.forEach(function(j){
+      var m=copa.clubes.find(function(c){return c.id===j.mId;});
+      var v=copa.clubes.find(function(c){return c.id===j.vId;});
+      var ehMeu=j.mId===meuId||j.vId===meuId;
+      html+='<div class="torneio-jogo'+(ehMeu?" torneio-meu":"")+'">'+
+        '<span class="torneio-time">'+(m?m.sigla:"?")+'</span>'+
+        (j.ok?'<span class="torneio-placar">'+j.gM+'-'+j.gV+'</span>':
+               '<span class="torneio-placar pendente">vs</span>')+
+        '<span class="torneio-time right">'+(v?v.sigla:"?")+'</span></div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  return html;
 }</script>
   <script>// ════════════════════════════════════════
 // MENU MANAGER
@@ -7027,6 +7361,7 @@ function simularRodada(idx) {
   estado.rodadaAtual = idx + 1;
   simularRodadaDivisoes(idx);
   if (idx === 37) { processarPromocaoRebaixamento(); processarPromocaoRebaixamentoPaulista(); }
+
   processarMercadoRodada(idx);
   // Receitas da rodada para todos os clubes
   CLUBES.forEach(function(c) {
