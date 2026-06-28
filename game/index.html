@@ -6656,24 +6656,98 @@ function criarManager() {
 }
 
 // ── Tela 2: Selecionar clube ──
+var _abaSelecao = "serieA";
+
+function calcularValorClube(clube) {
+  var ehA = CLUBES.find(function(c){return c.id===clube.id;});
+  var ehB = (estadoDivisoes.b.clubes||[]).find(function(c){return c.id===clube.id;});
+  var ehC = (estadoDivisoes.c.clubes||[]).find(function(c){return c.id===clube.id;});
+  var base = ehA ? 150000000 : ehB ? 25000000 : ehC ? 5000000 : 800000;
+  var forca = calcularForca(clube).forca;
+  return Math.round(base * (0.5 + (forca - 60) / 80));
+}
+
 function renderSelecionarClube() {
   ocultarNav();
+  var budget = estado.manager.budget || 1000000;
+  var aba    = _abaSelecao;
+
+  var todasAbas = [
+    { k:"serieA",    label:"Série A",      clubes: CLUBES },
+    { k:"serieB",    label:"Série B",      clubes: estadoDivisoes.b.clubes||[] },
+    { k:"serieC",    label:"Série C",      clubes: estadoDivisoes.c.clubes||[] },
+    { k:"serieD",    label:"Série D",      clubes: estadoDivisoes.d.clubes||[] },
+    { k:"paulistaA1",label:"Paulistão A1", clubes: estadoPaulista.a1.clubes||[] },
+    { k:"paulistaA2",label:"Paulistão A2", clubes: estadoPaulista.a2.clubes||[] },
+    { k:"paulistaA3",label:"Paulistão A3", clubes: estadoPaulista.a3.clubes||[] },
+    { k:"paulistaA4",label:"Paulistão A4", clubes: estadoPaulista.a4.clubes||[] },
+    { k:"bezinha",   label:"Bezinha",      clubes: estadoPaulista.b1.clubes||[] }
+  ];
+
+  var tabAtual   = todasAbas.find(function(t){return t.k===aba;}) || todasAbas[0];
+  var clubesAba  = tabAtual.clubes.filter(function(c){
+    return calcularValorClube(c) <= budget;
+  });
+
   var html = '<div class="tela-selecao">';
   html += '<h2>Olá, <strong>' + estado.manager.nome + '</strong> — escolha seu clube</h2>';
-  html += '<p class="sub">Você será o manager. Escolha com sabedoria.</p>';
-  html += '<div class="grid-clubes">';
-  CLUBES.forEach(function(c) {
-    var f = calcularForca(c);
-    var tec = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === c.tecnico_id; });
-    html += '<div class="card-clube" onclick="selecionarClube(\'' + c.id + '\')">';
-    html += '<div class="escudo" style="background:' + c.cor + '">' + c.sigla + '</div>';
-    html += '<div class="nome">' + c.nome + '</div>';
-    html += '<div class="forca">Força: <strong>' + f.forca + '</strong></div>';
-    html += '<div class="forca" style="font-size:11px;margin-top:2px">' + (tec ? tec.nome : '') + '</div>';
-    html += '</div>';
+  html += '<p class="sub">Orçamento: <strong style="color:var(--green)">' + formatarDinheiro(budget) + '</strong> · Só clubes dentro do seu budget aparecem.</p>';
+
+  html += '<div class="selecao-tabs">';
+  todasAbas.forEach(function(t) {
+    html += '<button class="div-tab' + (aba===t.k?" ativo":"") + '" onclick="mudarAbaSelecao(\'' + t.k + '\')">' + t.label + '</button>';
   });
-  html += '</div></div>';
+  html += '</div>';
+
+  if (clubesAba.length === 0) {
+    html += '<div class="selecao-sem-budget">';
+    html += '<div style="font-size:40px;margin-bottom:12px">💸</div>';
+    html += '<div style="font-size:16px;font-weight:600;margin-bottom:8px">Budget insuficiente</div>';
+    html += '<div style="font-size:13px;color:var(--text2)">Nenhum clube desta divisão cabe no orçamento de ' + formatarDinheiro(budget) + '.</div>';
+    html += '</div>';
+  } else {
+    html += '<div class="grid-clubes">';
+    clubesAba.forEach(function(c) {
+      var f   = calcularForca(c);
+      var tec = TECNICOS_DISPONIVEIS.find(function(t){return t.id===c.tecnico_id;});
+      var val = calcularValorClube(c);
+      html += '<div class="card-clube" onclick="comprarClube(\'' + c.id + '\',\'' + aba + '\')">';
+      html += '<div class="escudo" style="background:' + c.cor + '">' + c.sigla + '</div>';
+      html += '<div class="nome">' + c.nome + '</div>';
+      html += '<div class="forca">Força: <strong>' + f.forca + '</strong></div>';
+      html += '<div class="forca" style="font-size:11px;margin-top:2px">' + (tec ? tec.nome : 'Sem técnico') + '</div>';
+      html += '<div class="card-clube-valor">' + formatarDinheiro(val) + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
   document.getElementById("main").innerHTML = html;
+}
+
+function mudarAbaSelecao(aba) { _abaSelecao = aba; renderSelecionarClube(); }
+
+function comprarClube(id, aba) {
+  var mapa = {
+    serieA: CLUBES,
+    serieB: estadoDivisoes.b.clubes||[],
+    serieC: estadoDivisoes.c.clubes||[],
+    serieD: estadoDivisoes.d.clubes||[],
+    paulistaA1: estadoPaulista.a1.clubes||[],
+    paulistaA2: estadoPaulista.a2.clubes||[],
+    paulistaA3: estadoPaulista.a3.clubes||[],
+    paulistaA4: estadoPaulista.a4.clubes||[],
+    bezinha:    estadoPaulista.b1.clubes||[]
+  };
+  var lista = mapa[aba] || CLUBES;
+  var clube = lista.find(function(c){return c.id===id;});
+  if (!clube) { alert("Clube não encontrado."); return; }
+  var val    = calcularValorClube(clube);
+  var budget = estado.manager.budget || 0;
+  if (val > budget) { alert("Budget insuficiente!"); return; }
+  if (!confirm("Comprar " + clube.nome + " por " + formatarDinheiro(val) + "?\nSaldo restante: " + formatarDinheiro(budget - val))) return;
+  estado.manager.budget = budget - val;
+  selecionarClube(id, lista);
 }
 
 function selecionarClube(id, lista) {
@@ -7755,11 +7829,10 @@ function confirmarEmprestimo(jogadorId) {
 }</script>
   <script>
     inicializarFinancas();
-    function atualizarSaldo() {
-      var s = estado.meuClube ? formatarDinheiro(estado.meuClube.budget) : '';
-      var e1=document.getElementById("header-saldo");
-      var e2=document.getElementById("sidebar-saldo");
-      if(e1)e1.textContent=s; if(e2)e2.textContent=s;
+    function atualizarSaldo(){
+      var s=estado.meuClube?formatarDinheiro(estado.meuClube.budget):'';
+      var e1=document.getElementById("header-saldo"),e2=document.getElementById("sidebar-saldo");
+      if(e1)e1.textContent=s;if(e2)e2.textContent=s;
     }
     setInterval(atualizarSaldo,2000);
     function salvarManual(){
