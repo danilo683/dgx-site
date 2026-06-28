@@ -2065,7 +2065,36 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
   border: 1px solid var(--border);
   border-radius: 14px;
   color: var(--text);
-}</style>
+}
+
+/* ── Hub de Torneios ── */
+.torneios-hub { display: flex; flex-direction: column; gap: 0; }
+
+.hub-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.hub-tab {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.hub-tab:hover { border-color: var(--accent); color: var(--text); }
+.hub-tab.ativo { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+
+.hub-conteudo { min-height: 200px; }</style>
 </head>
 <body>
   <div id="app">
@@ -2083,11 +2112,7 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
         <button data-aba="dashboard">🏠 Dashboard</button>
         <button data-aba="inbox">✉️ Inbox</button>
         <div class="sidebar-sep">COMPETIÇÕES</div>
-        <button data-aba="campeonato">📋 Brasileirão</button>
-        <button data-aba="divisoes">🏆 Divisões BR</button>
-        <button data-aba="torneios">🌎 Torneios</button>
-        <button data-aba="paulistao">🏅 Paulistão</button>
-        <button data-aba="tabela">📊 Tabela</button>
+        <button data-aba="torneios">🏆 Torneios</button>
         <div class="sidebar-sep">CLUBE</div>
         <button data-aba="elenco">👥 Elenco</button>
         <button data-aba="mercado">💰 Mercado</button>
@@ -6996,6 +7021,9 @@ function criarManager() {
 var _abaSelecao = "serieA";
 
 function calcularValorClube(clube) {
+  // Paulistas têm seu próprio cálculo
+  if (clube.divisao_paulista) return valorClubePaulista(clube);
+  // Nacionais por divisão
   var ehA = CLUBES.find(function(c){return c.id===clube.id;});
   var ehB = (estadoDivisoes.b.clubes||[]).find(function(c){return c.id===clube.id;});
   var ehC = (estadoDivisoes.c.clubes||[]).find(function(c){return c.id===clube.id;});
@@ -7018,7 +7046,7 @@ function renderSelecionarClube() {
     { k:"paulistaA2",label:"Paulistão A2", clubes: estadoPaulista.a2.clubes||[] },
     { k:"paulistaA3",label:"Paulistão A3", clubes: estadoPaulista.a3.clubes||[] },
     { k:"paulistaA4",label:"Paulistão A4", clubes: estadoPaulista.a4.clubes||[] },
-    { k:"bezinha",   label:"Bezinha",      clubes: estadoPaulista.b1.clubes||[] }
+    { k:"bezinha",   label:"Bezinha",      clubes: (function(){ return GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);},[]); })() }
   ];
 
   var tabAtual   = todasAbas.find(function(t){return t.k===aba;}) || todasAbas[0];
@@ -7075,7 +7103,7 @@ function comprarClube(id, aba) {
     paulistaA2: estadoPaulista.a2.clubes||[],
     paulistaA3: estadoPaulista.a3.clubes||[],
     paulistaA4: estadoPaulista.a4.clubes||[],
-    bezinha:    estadoPaulista.b1.clubes||[]
+    bezinha:    GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, [])
   };
   var lista = mapa[aba] || CLUBES;
   var clube = lista.find(function(c){return c.id===id;});
@@ -7092,6 +7120,10 @@ function selecionarClube(id, lista) {
   var fonte = lista || CLUBES;
   var clube = fonte.find(function(c){return c.id===id;});
   if (!clube) clube = CLUBES.find(function(c){return c.id===id;});
+  if (!clube) clube = clubePaulistaPorId(id);
+  if (!clube && estadoDivisoes.b.clubes) clube = estadoDivisoes.b.clubes.find(function(c){return c.id===id;});
+  if (!clube && estadoDivisoes.c.clubes) clube = estadoDivisoes.c.clubes.find(function(c){return c.id===id;});
+  if (!clube && estadoDivisoes.d.clubes) clube = estadoDivisoes.d.clubes.find(function(c){return c.id===id;});
   estado.meuClube   = clube;
   estado.calendario = gerarCalendario(CLUBES);
   estado.rodadaAtual = 0;
@@ -7130,7 +7162,7 @@ function navegarPara(aba) {
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { dashboard: renderDashboard, inbox: renderInbox, campeonato: renderCampeonato, divisoes: renderDivisoes, torneios: renderTorneios, paulistao: renderPaulistao, tabela: renderTabela, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
+  var abas = { dashboard: renderDashboard, inbox: renderInbox, torneios: renderTorneiosHub, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
   if (abas[aba]) abas[aba]();
 }
 
@@ -8165,6 +8197,174 @@ function confirmarEmprestimo(jogadorId) {
   colocarParaEmprestimo(jogadorId, rodadas);
   salvarJogo();
   abrirFichaJogador(jogadorId);
+}
+
+// ════════════════════════════════════════
+// HUB DE TORNEIOS — tela unificada
+// ════════════════════════════════════════
+var _torneioHubAba = "brasileirao";
+
+function renderTorneiosHub() {
+  var meuClube = estado.meuClube;
+
+  // Detectar em quais competições meu clube participa
+  var competicoes = [];
+
+  // Sempre: Brasileirão / divisão nacional
+  var divisaoNacional = "A";
+  var ehSerieB = estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){return c.id===meuClube.id;});
+  var ehSerieC = estadoDivisoes.c.clubes && estadoDivisoes.c.clubes.find(function(c){return c.id===meuClube.id;});
+  var ehSerieD = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){return c.id===meuClube.id;});
+  if (ehSerieB) divisaoNacional = "B";
+  else if (ehSerieC) divisaoNacional = "C";
+  else if (ehSerieD) divisaoNacional = "D";
+
+  competicoes.push({ k:"brasileirao", label:"🇧🇷 Brasileirão Série "+divisaoNacional, render: renderBrasileirao });
+
+  // Divisões nacionais (tabela geral)
+  competicoes.push({ k:"divisoes", label:"📊 Todas as Divisões", render: renderDivisoes });
+
+  // Copa do Brasil
+  if (estadoTorneios.copaBrasil) {
+    competicoes.push({ k:"copabrasil", label:"🏆 Copa do Brasil", render: renderCopaBrasilHub });
+  }
+
+  // Libertadores
+  if (estadoTorneios.libertadores) {
+    var estouNaLib = estadoTorneios.libertadores.grupos.some(function(g){
+      return g.clubes.indexOf(meuClube.id) >= 0;
+    });
+    if (estouNaLib || true) { // sempre mostrar
+      competicoes.push({ k:"libertadores", label:"🌎 Libertadores", render: renderLibertadoresHub });
+    }
+  }
+
+  // Mundial
+  if (estadoTorneios.mundial) {
+    competicoes.push({ k:"mundial", label:"🌍 Mundial", render: renderMundialHub });
+  }
+
+  // Paulistão — detectar divisão
+  var divsPaulista = ["a1","a2","a3","a4"];
+  var minhaDivPaulista = null;
+  divsPaulista.forEach(function(div){
+    var est = estadoPaulista[div];
+    if (est.clubes && est.clubes.find(function(c){return c.id===meuClube.id;})) minhaDivPaulista = div;
+  });
+  var naBeziha = GRUPOS_BEZINHA.some(function(g){ return g.clubes.find(function(c){return c.id===meuClube.id;}); });
+
+  if (minhaDivPaulista) {
+    competicoes.push({ k:"paulistao", label:"🏅 Paulistão "+minhaDivPaulista.toUpperCase(), render: function(){ return renderDivisaoPaulistaTela(minhaDivPaulista); } });
+  }
+  if (naBeziha) {
+    competicoes.push({ k:"bezinha", label:"🏅 Bezinha", render: renderBezinhaTela });
+  }
+
+  // Copa Paulista
+  if (estadoPaulista.copa.clubes) {
+    competicoes.push({ k:"copapaulista", label:"☕ Copa Paulista", render: renderCopaPaulistaTela });
+  }
+
+  // Demais divisões paulistas (para acompanhar)
+  competicoes.push({ k:"todas_paulista", label:"🏅 Todas Paulistas", render: renderTodasPaulistas });
+
+  // Estaduais
+  if (estadoTorneios.estaduais) {
+    competicoes.push({ k:"estaduais", label:"🗺 Estaduais", render: function(){ return renderEstaduaisTela(); } });
+  }
+
+  var aba = _torneioHubAba;
+  var comp = competicoes.find(function(c){return c.k===aba;}) || competicoes[0];
+
+  var html = '<div class="torneios-hub">';
+
+  // Tabs de navegação
+  html += '<div class="hub-tabs">';
+  competicoes.forEach(function(c) {
+    html += '<button class="hub-tab'+(aba===c.k?" ativo":"")+'" onclick="mudarTorneioHub(\''+c.k+'\')">' + c.label + '</button>';
+  });
+  html += '</div>';
+
+  // Conteúdo da aba selecionada
+  html += '<div class="hub-conteudo">';
+  var conteudo = comp.render();
+  if (typeof conteudo === "string") html += conteudo;
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function mudarTorneioHub(aba) { _torneioHubAba = aba; renderTorneiosHub(); }
+
+// Wrappers que retornam HTML em vez de fazer innerHTML direto
+function renderBrasileirao() {
+  var meuId = estado.meuClube.id;
+  var ehB = estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){return c.id===meuId;});
+  var ehC = estadoDivisoes.c.clubes && estadoDivisoes.c.clubes.find(function(c){return c.id===meuId;});
+  var ehD = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){return c.id===meuId;});
+
+  var clubes, resultados, rodada;
+  if (ehB) { clubes=estadoDivisoes.b.clubes; resultados=estadoDivisoes.b.resultados; rodada=estadoDivisoes.b.rodadaAtual; }
+  else if (ehC) { clubes=estadoDivisoes.c.clubes; resultados=estadoDivisoes.c.resultados; rodada=estadoDivisoes.c.rodadaAtual; }
+  else if (ehD) { clubes=estadoDivisoes.d.clubes; resultados=estadoDivisoes.d.resultados; rodada=estadoDivisoes.d.rodadaAtual; }
+  else { clubes=CLUBES; resultados=estado.resultados; rodada=estado.rodadaAtual; }
+
+  var tabela = calcularTabela(clubes, resultados);
+  var html = '<div class="divisoes-grid">';
+
+  // Tabela
+  html += '<div class="div-tabela-wrap">';
+  html += '<div class="fin-secao-titulo">Classificação — Rodada ' + rodada + '</div>';
+  html += '<table class="elenco-tabela"><thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead><tbody>';
+  tabela.forEach(function(t,i) {
+    var pos=i+1;
+    var cls=t.id===meuId?" mini-tab-eu":"";
+    var corPos=pos<=4?"color:var(--green)":pos>tabela.length-4?"color:var(--red)":"";
+    html+='<tr class="'+cls+'"><td class="td-pos" style="'+corPos+'">'+pos+'</td>';
+    html+='<td><span class="escudo-mini" style="background:'+t.cor+'">'+t.sigla+'</span>'+t.nome+'</td>';
+    html+='<td class="td-pts">'+t.pts+'</td><td>'+t.j+'</td><td>'+t.v+'</td><td>'+t.e+'</td><td>'+t.d+'</td>';
+    html+='<td>'+(t.sg>0?"+"+t.sg:t.sg)+'</td></tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // Próximos e últimos jogos
+  html += '<div class="div-resultados">';
+  html += '<div class="fin-secao-titulo">Jogos do meu clube</div>';
+  var meusJogos = resultados.filter(function(r){return r.mandanteId===meuId||r.visitanteId===meuId;}).slice(-5);
+  if (meusJogos.length===0) html += '<div class="dash-empty">Nenhum jogo ainda.</div>';
+  meusJogos.forEach(function(r){
+    var m=clubes.find(function(c){return c.id===r.mandanteId;})||{sigla:"?"};
+    var v=clubes.find(function(c){return c.id===r.visitanteId;})||{sigla:"?"};
+    var euM=r.mandanteId===meuId;
+    var mg=euM?r.golsMandante:r.golsVisitante;
+    var dg=euM?r.golsVisitante:r.golsMandante;
+    var cor=mg>dg?"var(--green)":mg<dg?"var(--red)":"var(--yellow)";
+    html+='<div class="resultado-item"><span class="res-time">'+m.sigla+'</span>';
+    html+='<span class="res-placar" style="color:'+cor+'">'+r.golsMandante+' – '+r.golsVisitante+'</span>';
+    html+='<span class="res-time direita">'+v.sigla+'</span></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderCopaBrasilHub() { return renderCopaBrasilTela(); }
+function renderLibertadoresHub() { return renderLibertadoresTela(); }
+function renderMundialHub() { return renderMundialTela(); }
+
+function renderTodasPaulistas() {
+  var aba = window._paulistaAba || "a1";
+  var html = '<div class="divisoes-tabs" style="flex-wrap:wrap;margin-bottom:12px">';
+  [{k:"a1",label:"A1"},{k:"a2",label:"A2"},{k:"a3",label:"A3"},
+   {k:"a4",label:"A4"},{k:"b1",label:"Bezinha"},{k:"copa",label:"Copa Paulista"}
+  ].forEach(function(t){
+    html+='<button class="div-tab'+(aba===t.k?" ativo":"")+'" onclick="mudarPaulistaAba(\''+t.k+'\');renderTorneiosHub()">'+t.label+'</button>';
+  });
+  html += '</div>';
+  if (aba==="copa") html += renderCopaPaulistaTela();
+  else if (aba==="b1") html += renderBezinhaTela();
+  else html += renderDivisaoPaulistaTela(aba);
+  return html;
 }</script>
   <script>
     inicializarFinancas();
