@@ -7318,7 +7318,14 @@ function iniciarJogo() {
   if (!estadoPaulista.a1.clubes) inicializarPaulista();
   inicializarTorneios();
   salvarJogo();
-  renderDashboard();
+
+  // Forçar navegação para o dashboard
+  try {
+    navegarPara("dashboard");
+  } catch(e) {
+    console.error("Erro ao abrir dashboard:", e);
+    document.getElementById("main").innerHTML = "<div style='padding:40px;color:var(--text2)'>Erro ao carregar. Clique em Dashboard na sidebar.</div>";
+  }
 }
 
 function navegarPara(aba) {
