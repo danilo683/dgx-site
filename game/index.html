@@ -7270,18 +7270,19 @@ function selecionarClube(id, lista) {
   if (!clube && estadoDivisoes.d.clubes) clube = estadoDivisoes.d.clubes.find(function(c){return c.id===id;});
   if (!clube) { alert("Clube não encontrado!"); return; }
 
-  estado.meuClube    = clube;
-  estado.rodadaAtual = 0;
-  estado.resultados  = [];
+  estado.meuClube     = clube;
+  estado.rodadaAtual  = 0;
+  estado.resultados   = [];
+  estado.calendario   = []; // limpar antes de gerar
   estado.minhaDivisao = detectarDivisaoClube(id);
 
   // Gerar calendário correto conforme divisão
-  var clubesCal = clubesParaCalendario(estado.minhaDivisao);
+  var divCal = estado.minhaDivisao;
+  var clubesCal = clubesParaCalendario(divCal);
   if (clubesCal.length >= 2) {
     estado.calendario = gerarCalendario(clubesCal);
   } else {
-    // Clube paulistano: criar eventos baseados no Paulistão
-    estado.calendario = gerarCalendarioPaulista(estado.minhaDivisao.replace("paulista_",""));
+    estado.calendario = gerarCalendarioPaulista(divCal.replace("paulista_",""));
   }
 
   var tec_id = estado.meuClube.tecnico_id;
@@ -7294,19 +7295,25 @@ function iniciarJogo() {
   document.getElementById("header-clube").textContent   = estado.meuClube.nome;
   document.getElementById("header-manager").textContent = estado.manager.nome;
   document.getElementById("header-tecnico").textContent = estado.meuTecnico.nome;
-  // Preenche sidebar
-  var el = document.getElementById("sidebar-manager-nome");
-  if (el) el.textContent = estado.manager.nome;
-  var ec = document.getElementById("sidebar-clube-nome");
-  if (ec) ec.textContent = estado.meuClube.nome;
-  var et = document.getElementById("sidebar-tecnico-nome");
-  if (et) et.textContent = estado.meuTecnico.nome;
-  var sb = document.getElementById("sidebar-info-block");
-  if (sb) sb.classList.remove("hidden");
+  var el = document.getElementById("sidebar-manager-nome"); if (el) el.textContent = estado.manager.nome;
+  var ec = document.getElementById("sidebar-clube-nome");   if (ec) ec.textContent = estado.meuClube.nome;
+  var et = document.getElementById("sidebar-tecnico-nome"); if (et) et.textContent = estado.meuTecnico.nome;
+  var sb = document.getElementById("sidebar-info-block");   if (sb) sb.classList.remove("hidden");
   mostrarNav();
+
+  // Se calendário já foi gerado por selecionarClube (paulistas), só inicializar os eventos
+  // Caso contrário (Série A/B/C/D), gerar calendário agora
+  if (!estado.calendario || estado.calendario.length === 0) {
+    var div = estado.minhaDivisao || "serieA";
+    var clubesCal = clubesParaCalendario(div);
+    if (clubesCal.length >= 2) {
+      estado.calendario = gerarCalendario(clubesCal);
+    } else {
+      estado.calendario = gerarCalendarioPaulista(div.replace("paulista_",""));
+    }
+  }
   inicializarCalendario();
-  // Divisões já inicializadas no criarManager
-  // Só inicializar se ainda não foram (ex: ao continuar jogo salvo)
+
   if (!estadoDivisoes.b.clubes) inicializarDivisoes();
   if (!estadoPaulista.a1.clubes) inicializarPaulista();
   inicializarTorneios();
