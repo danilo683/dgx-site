@@ -2092,7 +2092,19 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 .hub-tab:hover { border-color: var(--accent); color: var(--text); }
 .hub-tab.ativo { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
 
-.hub-conteudo { min-height: 200px; }</style>
+.hub-conteudo { min-height: 200px; }
+
+/* ── Mercado livres ── */
+.mercado-livre { border-left: 3px solid var(--green); }
+.badge-livre {
+  font-size: 10px; background: rgba(46,204,113,.2);
+  color: var(--green); padding: 1px 6px; border-radius: 10px;
+  font-weight: 600; margin-left: 6px;
+}
+
+/* ── Badge status elenco ── */
+.badge-venda { font-size:10px;background:rgba(241,196,15,.2);color:var(--yellow);padding:1px 6px;border-radius:10px;font-weight:600; }
+.badge-emprestimo { font-size:10px;background:rgba(79,142,247,.2);color:var(--accent);padding:1px 6px;border-radius:10px;font-weight:600; }</style>
 </head>
 <body>
 <div id="app">
@@ -2734,7 +2746,59 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
       { id: "p500", nome: "Sandry",            posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   }
-];</script><script>const TECNICOS_DISPONIVEIS = [
+];</script><script>// ════════════════════════════════════════
+// NOMES FICTÍCIOS — jogadores e técnicos
+// ════════════════════════════════════════
+var PRENOMES_BR = ["Carlos","Lucas","Felipe","Rafael","Rodrigo","André","Thiago","Bruno","Gustavo","Diego","Mateus","João","Gabriel","Pedro","Eduardo","Leandro","Marcelo","Victor","Paulo","Renato","Alessandro","Cleber","Fabio","Henrique","Igor","Julio","Kaique","Léo","Murilo","Nathan","Osvaldo","Preto","Queops","Ruan","Samuel","Tarcísio","Ulisses","Vagner","Willian","Xande","Yago","Zé","Alan","Beto","Caio","Davi","Elvis","Fábio","Gilberto","Hugo"];
+var PRENOMES_ARG = ["Nicolás","Matías","Sebastián","Ezequiel","Facundo","Lisandro","Rodrigo","Emiliano","Alejandro","Pablo","Cristian","Federico","Leandro","Ramiro","Santiago","Germán","Maximiliano","Gastón","Exequiel","Gonzalo"];
+var PRENOMES_URU = ["Sebastián","Rodrigo","Matías","Diego","Nicolás","Edinson","Fernando","Cristhian","Jonathan","Facundo","Agustín","Nahitan","Gastón","Giorgian","Néstor"];
+var PRENOMES_COL = ["James","Miguel","Juan","Carlos","Andrés","Radamel","Luis","Cucho","Rafael","Edér","Fredy","Yairo","Jhon","Edwin","Wilson"];
+
+var SOBRENOMES_BR = ["Silva","Santos","Oliveira","Souza","Lima","Ferreira","Costa","Rodrigues","Almeida","Nascimento","Carvalho","Araújo","Ribeiro","Martins","Pereira","Barbosa","Gomes","Mendes","Cardoso","Cavalcante","Teixeira","Cunha","Moreira","Ramos","Freitas","Nunes","Lopes","Azevedo","Fonseca","Monteiro","Pinto","Castro","Reis","Cruz","Vieira","Andrade","Correia","Dias","Moura","Pires","Sá","Macedo","Tavares","Duarte","Melo","Guimarães","Rocha","Batista","Xavier","Marques"];
+var SOBRENOMES_ARG = ["González","Rodríguez","López","Martínez","García","Fernández","Romero","Sosa","Torres","Ruiz","Acosta","Medina","Suárez","Molina","Herrera","Moreno","Díaz","Pérez","Gutiérrez","Vargas"];
+var SOBRENOMES_URU = ["García","Rodríguez","González","López","Martínez","Núñez","Pérez","Hernández","Castro","Álvarez","Torres","Díaz","Suárez","Cabrera","Ríos"];
+
+var TECNICOS_NOMES = [
+  "Tite","Dorival Júnior","Abel Ferreira","Renato Gaúcho","Artur Jorge","Eduardo Coudet",
+  "Rogério Ceni","Cuca","Mano Menezes","Lisca","Enderson Moreira","Léo Condé",
+  "António Oliveira","Fábio Carille","Vojvoda","Zubeldía","Luxemburgo","Felipão",
+  "Carlinhos Amorim","Marcelo Cabo","Celso Roth","Maurício Barbieri","Pintado",
+  "Claudinho","Sandro Forner","Toninho Cecílio","Mauro Fernández","Roberto Cavalo",
+  "Flávio Araújo","Márcio Fernandes","Gilson Kleina","Hemerson Maria","Pachequinho",
+  "Douglas Ferreira","Ranielle Ribeiro","Cauan de Almeida","Rodrigo Santana",
+  "Wagner Lopes","Ruy Scarpino","Allan Aal"
+];
+
+var _nomesSeed = 42;
+function _rand(max) { _nomesSeed = (_nomesSeed * 1664525 + 1013904223) & 0xffffffff; return Math.abs(_nomesSeed) % max; }
+
+function gerarNomeJogador(nacionalidade) {
+  var nac = nacionalidade || "BR";
+  var prenomes = nac === "AR" ? PRENOMES_ARG : nac === "UY" ? PRENOMES_URU : nac === "CO" ? PRENOMES_COL : PRENOMES_BR;
+  var sobrenomes = nac === "AR" ? SOBRENOMES_ARG : nac === "UY" ? SOBRENOMES_URU : SOBRENOMES_BR;
+  var pre = prenomes[_rand(prenomes.length)];
+  var sob = sobrenomes[_rand(sobrenomes.length)];
+  return pre + " " + sob;
+}
+
+function gerarNomeTecnico(idx) {
+  return TECNICOS_NOMES[idx % TECNICOS_NOMES.length];
+}
+
+// Definir nomes aleatórios para jogadores fictícios
+function aplicarNomesFicticios(jogadores, seed) {
+  var savedSeed = _nomesSeed;
+  _nomesSeed = seed || 12345;
+  jogadores.forEach(function(j) {
+    if (j.nome && j.nome.startsWith("Jogador ")) {
+      var nacs = ["BR","BR","BR","BR","AR","UY","CO","BR","BR","BR"];
+      j.nacionalidade = j.nacionalidade || nacs[_rand(10)];
+      j.nome = gerarNomeJogador(j.nacionalidade);
+      j.idade = j.idade || (18 + _rand(17));
+    }
+  });
+  _nomesSeed = savedSeed;
+}</script><script>const TECNICOS_DISPONIVEIS = [
   // Elite (80+)
   { id: "t01", nome: "Abel Ferreira",    overall: 88, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
   { id: "t02", nome: "Tite",             overall: 85, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
@@ -2788,7 +2852,34 @@ const FORMACOES = {
     requisitos: { GOL: 1, LD: 1, ZAG: 3, LE: 1, VOL: 2, MEI: 1, ATA: 2 },
     pesos:      { GOL: 0.15, LD: 0.12, ZAG: 0.25, LE: 0.12, VOL: 0.13, MEI: 0.08, ATA: 0.15 }
   }
-};</script><script>// ── Janelas de transferência do Brasileirão ──
+};
+
+// Técnicos adicionais para times das divisões inferiores
+var TECNICOS_EXTRAS = [
+  { id:"t21",nome:"Márcio Fernandes",  formacao:"4-4-2",estilo:"Defensivo",  overall:62,nacionalidade:"BR" },
+  { id:"t22",nome:"Gilson Kleina",     formacao:"4-3-3",estilo:"Pressão Alta",overall:63,nacionalidade:"BR" },
+  { id:"t23",nome:"Hemerson Maria",    formacao:"3-5-2",estilo:"Posse de Bola",overall:61,nacionalidade:"BR" },
+  { id:"t24",nome:"Pachequinho",       formacao:"4-2-3-1",estilo:"Contra-ataque",overall:60,nacionalidade:"BR" },
+  { id:"t25",nome:"Claudinho Rezende", formacao:"4-4-2",estilo:"Equilibrado", overall:59,nacionalidade:"BR" },
+  { id:"t26",nome:"Wagner Lopes",      formacao:"3-4-3",estilo:"Ofensivo",    overall:63,nacionalidade:"BR" },
+  { id:"t27",nome:"Ranielle Ribeiro",  formacao:"4-3-3",estilo:"Pressão Alta",overall:58,nacionalidade:"BR" },
+  { id:"t28",nome:"Rodrigo Santana",   formacao:"4-4-2",estilo:"Defensivo",   overall:62,nacionalidade:"BR" },
+  { id:"t29",nome:"Allan Aal",         formacao:"4-2-3-1",estilo:"Equilibrado",overall:60,nacionalidade:"BR" },
+  { id:"t30",nome:"Cauan de Almeida",  formacao:"4-3-3",estilo:"Pressão Alta",overall:61,nacionalidade:"BR" },
+  { id:"t31",nome:"Flávio Araújo",     formacao:"4-4-2",estilo:"Contra-ataque",overall:63,nacionalidade:"BR" },
+  { id:"t32",nome:"Roberto Cavalo",    formacao:"3-5-2",estilo:"Posse de Bola",overall:59,nacionalidade:"BR" },
+  { id:"t33",nome:"Sandro Forner",     formacao:"4-3-3",estilo:"Ofensivo",    overall:60,nacionalidade:"BR" },
+  { id:"t34",nome:"Toninho Cecílio",   formacao:"4-4-2",estilo:"Defensivo",   overall:58,nacionalidade:"BR" },
+  { id:"t35",nome:"Mauro Fernández",   formacao:"4-2-3-1",estilo:"Pressão Alta",overall:62,nacionalidade:"AR" },
+  { id:"t36",nome:"Carlos Rabello",    formacao:"3-4-3",estilo:"Ofensivo",    overall:60,nacionalidade:"BR" },
+  { id:"t37",nome:"Sérgio Soares",     formacao:"4-4-2",estilo:"Equilibrado", overall:63,nacionalidade:"BR" },
+  { id:"t38",nome:"Daniel Paulista",   formacao:"4-3-3",estilo:"Pressão Alta",overall:61,nacionalidade:"BR" },
+  { id:"t39",nome:"Marquinhos Santos", formacao:"4-2-3-1",estilo:"Defensivo", overall:62,nacionalidade:"BR" },
+  { id:"t40",nome:"Ruy Scarpino",      formacao:"3-5-2",estilo:"Contra-ataque",overall:59,nacionalidade:"BR" }
+];
+
+// Mesclar com os técnicos disponíveis
+TECNICOS_DISPONIVEIS = TECNICOS_DISPONIVEIS.concat(TECNICOS_EXTRAS);</script><script>// ── Janelas de transferência do Brasileirão ──
 const JANELAS = [
   { nome: "Janela de verão",   inicio: 1,  fim: 6  },
   { nome: "Janela de inverno", inicio: 19, fim: 23 }
@@ -2978,6 +3069,91 @@ function processarReceitaRodada(rodadaIdx) {
     else if (pos < 4) clube.budget += 200000;
     else if (pos < 8) clube.budget += 100000;
   });
+}
+
+// ════════════════════════════════════════
+// JOGADORES SEM CLUBE — mercado livre
+// ════════════════════════════════════════
+var _jogadoresLivres = null;
+
+function gerarJogadoresLivres() {
+  if (_jogadoresLivres) return _jogadoresLivres;
+  var posicoes = ["GOL","LD","ZAG","ZAG","LE","VOL","VOL","MEI","MEI","ATA","ATA","ATA","GOL","ZAG","VOL","MEI","ATA","LD","LE","MEI"];
+  var nacs = ["BR","BR","BR","AR","UY","BR","BR","BR","CO","BR","PT","AR","BR","BR","BR","BR","UY","BR","BR","BR"];
+  _jogadoresLivres = posicoes.map(function(pos, i) {
+    var nac = nacs[i];
+    var ov  = 55 + Math.floor(Math.random() * 25);
+    var nome = gerarNomeJogador(nac);
+    return {
+      id: "livre_" + i,
+      nome: nome,
+      posicao: pos,
+      overall: ov,
+      nacionalidade: nac,
+      idade: 18 + Math.floor(Math.random() * 15),
+      clube_id: null,
+      stats: { jogos:0, gols:0, assistencias:0, nota_media:0 },
+      valor_mercado: Math.round(ov * 12000),
+      salario: Math.round(ov * 350),
+      clausula_rescisoria: 0, // sem multa!
+      contrato_termino: 0,
+      fadiga: 0,
+      livre: true // flag de jogador sem clube
+    };
+  });
+  return _jogadoresLivres;
+}
+
+function renderMercadoLivres(filtroPos) {
+  var jogadores = gerarJogadoresLivres();
+  if (filtroPos && filtroPos !== "TODOS") {
+    jogadores = jogadores.filter(function(j){ return j.posicao === filtroPos; });
+  }
+  var flags = { BR:"🇧🇷",AR:"🇦🇷",UY:"🇺🇾",CL:"🇨🇱",CO:"🇨🇴",PT:"🇵🇹" };
+  var html = "";
+  jogadores.forEach(function(j) {
+    var flag = flags[j.nacionalidade] || "🌍";
+    html += '<div class="mercado-item mercado-livre">';
+    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
+    html += '<div class="mercado-info">';
+    html += '<div class="mercado-nome">' + flag + " " + j.nome + ' <span class="badge-livre">Livre</span></div>';
+    html += '<div class="mercado-detalhe">OVR ' + j.overall + ' · ' + j.idade + ' anos · Sem multa rescisória</div>';
+    html += '</div>';
+    html += '<div class="mercado-valores">';
+    html += '<div class="mercado-vm">R$ ' + (j.valor_mercado/1000000).toFixed(1) + 'M</div>';
+    html += '<div class="mercado-sal">' + formatarDinheiro(j.salario) + '/mês</div>';
+    html += '</div>';
+    html += '<button class="btn-primario" style="padding:6px 12px;font-size:12px" onclick="negociarLivre(\'' + j.id + '\')">Contratar</button>';
+    html += '</div>';
+  });
+  return html || '<div class="dash-empty">Nenhum jogador livre nesta posição.</div>';
+}
+
+function negociarLivre(id) {
+  var jogadores = gerarJogadoresLivres();
+  var j = jogadores.find(function(x){ return x.id === id; });
+  if (!j) return;
+  var clube = estado.meuClube;
+
+  // Verificar budget para salário
+  if (clube.budget < j.salario * 4) {
+    alert("Budget insuficiente para bancar o salário de " + formatarDinheiro(j.salario) + "/mês.");
+    return;
+  }
+
+  if (!confirm("Contratar " + j.nome + " por " + formatarDinheiro(j.salario) + "/mês?\n(Sem custo de transferência — jogador livre)")) return;
+
+  // Adicionar ao elenco
+  j.clube_id = clube.id;
+  j.contrato_termino = estado.rodadaAtual + 19;
+  clube.jogadores.push(j);
+
+  // Remover da lista de livres
+  _jogadoresLivres = _jogadoresLivres.filter(function(x){ return x.id !== id; });
+
+  adicionarNoticia("✅ " + j.nome + " contratado como jogador livre pelo " + clube.nome, estado.rodadaAtual);
+  salvarJogo();
+  navegarPara("mercado");
 }</script><script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
 function calcularEncaixe(clube, formacao) {
   const req = FORMACOES[formacao].requisitos;
@@ -3605,24 +3781,42 @@ function escalarTime(clube, tecnico) {
 
 // Posições no campo (0-1 relativo, por posição e índice)
 function posicaoCampo(posicao, idx, total, lado) {
-  // lado: "esq" = meu time (baixo), "dir" = adversário (cima)
-  var linhas = {
-    GOL: 0.08,
-    LD:  0.25, LE: 0.25, ZAG: 0.25,
-    VOL: 0.45,
-    MEI: 0.62,
-    ATA: 0.80
+  // Cada time ocupa sua metade do campo:
+  // Mandante (lado "dir") = metade de BAIXO (y de 0.52 a 0.97)
+  // Visitante (lado "esq") = metade de CIMA  (y de 0.03 a 0.48)
+
+  // Posições relativas dentro da própria metade (0 = linha de fundo, 1 = meio-campo)
+  var linhasPropria = {
+    GOL: 0.05,   // goleiro perto do fundo
+    LD:  0.22, LE: 0.22, ZAG: 0.22,  // defesa
+    VOL: 0.42,                          // volantes
+    MEI: 0.60,                          // meias
+    ATA: 0.80                           // atacantes perto do meio
   };
 
-  var y = linhas[posicao] || 0.5;
-  if (lado === "dir") y = 1 - y;
+  var rel = linhasPropria[posicao] !== undefined ? linhasPropria[posicao] : 0.4;
 
-  // Distribuir horizontalmente
+  var y;
+  if (lado === "dir") {
+    // Mandante: metade baixa — fundo em 0.97, meio-campo em 0.52
+    y = 0.97 - rel * 0.45;
+  } else {
+    // Visitante: metade alta — fundo em 0.03, meio-campo em 0.48
+    y = 0.03 + rel * 0.45;
+  }
+
+  // Distribuir horizontalmente com margem nas bordas
   var x;
   if (total === 1) {
     x = 0.5;
+  } else if (total === 2) {
+    x = idx === 0 ? 0.30 : 0.70;
+  } else if (total === 3) {
+    x = 0.20 + idx * 0.30;
+  } else if (total === 4) {
+    x = 0.15 + idx * 0.233;
   } else {
-    x = 0.15 + (idx / (total - 1)) * 0.70;
+    x = 0.12 + (idx / (total - 1)) * 0.76;
   }
 
   return { x: x, y: y };
@@ -3975,19 +4169,33 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
 }
 
 function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
-  var html = '<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg" class="campo-svg">';
+  var html = '<svg viewBox="0 0 360 500" xmlns="http://www.w3.org/2000/svg" class="campo-svg">';
 
-  // Fundo
-  html += '<rect width="360" height="480" fill="#1a3a1a" rx="8"/>';
-  // Linhas do campo
-  html += '<rect x="16" y="16" width="328" height="448" fill="none" stroke="#2d5a2d" stroke-width="1.5" rx="3"/>';
-  html += '<line x1="16" y1="240" x2="344" y2="240" stroke="#2d5a2d" stroke-width="1.2"/>';
-  html += '<circle cx="180" cy="240" r="36" fill="none" stroke="#2d5a2d" stroke-width="1.2"/>';
-  html += '<circle cx="180" cy="240" r="2.5" fill="#2d5a2d"/>';
-  html += '<rect x="96" y="16" width="168" height="52" fill="none" stroke="#2d5a2d" stroke-width="1.2"/>';
-  html += '<rect x="96" y="412" width="168" height="52" fill="none" stroke="#2d5a2d" stroke-width="1.2"/>';
-  html += '<rect x="130" y="16" width="100" height="24" fill="none" stroke="#2d5a2d" stroke-width="1"/>';
-  html += '<rect x="130" y="440" width="100" height="24" fill="none" stroke="#2d5a2d" stroke-width="1"/>';
+  // Fundo gramado
+  html += '<rect width="360" height="500" fill="#1a3a1a" rx="8"/>';
+  // Faixas alternadas do gramado
+  for (var fi=0;fi<8;fi++) {
+    if(fi%2===0) html += '<rect x="16" y="'+(16+fi*58.5)+'" width="328" height="58.5" fill="rgba(0,0,0,0.08)"/>';
+  }
+  // Borda do campo
+  html += '<rect x="16" y="16" width="328" height="468" fill="none" stroke="#3a7a3a" stroke-width="2" rx="3"/>';
+  // Linha do meio-campo (bem visível)
+  html += '<line x1="16" y1="250" x2="344" y2="250" stroke="#3a7a3a" stroke-width="2"/>';
+  // Círculo central
+  html += '<circle cx="180" cy="250" r="40" fill="none" stroke="#3a7a3a" stroke-width="1.5"/>';
+  html += '<circle cx="180" cy="250" r="3" fill="#3a7a3a"/>';
+  // Área visitante (cima)
+  html += '<rect x="96" y="16" width="168" height="56" fill="none" stroke="#3a7a3a" stroke-width="1.5"/>';
+  html += '<rect x="132" y="16" width="96" height="24" fill="none" stroke="#3a7a3a" stroke-width="1"/>';
+  // Área mandante (baixo)
+  html += '<rect x="96" y="428" width="168" height="56" fill="none" stroke="#3a7a3a" stroke-width="1.5"/>';
+  html += '<rect x="132" y="460" width="96" height="24" fill="none" stroke="#3a7a3a" stroke-width="1"/>';
+  // Ponto de pênalti
+  html += '<circle cx="180" cy="50" r="2.5" fill="#3a7a3a"/>';
+  html += '<circle cx="180" cy="450" r="2.5" fill="#3a7a3a"/>';
+  // Label metades
+  html += '<text x="340" y="140" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="9" transform="rotate(-90,340,140)">VISITANTE</text>';
+  html += '<text x="340" y="390" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="9" transform="rotate(-90,340,390)">MANDANTE</text>';
 
   // Agrupar por posição
   function renderJogs(esc, lado, corCirculo) {
@@ -4001,7 +4209,7 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
       jogs.forEach(function(j, idx) {
         var p = posicaoCampo(pos, idx, jogs.length, lado);
         var cx = Math.round(p.x * 360);
-        var cy = Math.round(p.y * 448) + 16;
+        var cy = Math.round(p.y * 468) + 16;
         var fadiga = Math.round(j.fadiga || 0);
         var corFadiga = fadiga >= 75 ? "#e74c3c" : fadiga >= 50 ? "#f1c40f" : "#2ecc71";
         var corCirculoFinal = j._substituido ? "#555" : corCirculo;
@@ -4030,8 +4238,8 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   renderJogs(escM, "dir", mandante.cor  || "#1a6bc4");
 
   // Labels
-  if (tecV) html += '<text x="180" y="12" text-anchor="middle" fill="#aaa" font-size="8">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
-  if (tecM) html += '<text x="180" y="476" text-anchor="middle" fill="#aaa" font-size="8">' + mandante.sigla + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
+  if (tecV) html += '<text x="180" y="12" text-anchor="middle" fill="#9be" font-size="9" font-weight="600">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
+  if (tecM) html += '<text x="180" y="496" text-anchor="middle" fill="#fb9" font-size="9" font-weight="600">' + mandante.sigla + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
 
   html += '</svg>';
   return html;
@@ -4707,14 +4915,16 @@ var estadoDivisoes = {
 };
 
 function inicializarDivisoes() {
-  // Copiar clubes e gerar overalls baseados no nível
+  var _tecIdx = 0;
   function prepararClubes(lista, overallBase, spread) {
     return lista.map(function(c) {
       var overall = overallBase - Math.floor(Math.random() * spread);
+      var jogadores = gerarJogadoresFicticios(c.id, overall);
+      aplicarNomesFicticios(jogadores, c.id.charCodeAt(0)*997 + c.id.charCodeAt(1)*31);
       return Object.assign({}, c, {
-        jogadores: gerarJogadoresFicticios(c.id, overall),
+        jogadores: jogadores,
         budget: Math.round((overallBase / 100) * 15000000 * (0.7 + Math.random() * 0.6)),
-        tecnico_id: "t" + (String(Math.floor(Math.random() * 20) + 1)).padStart(2,"0")
+        tecnico_id: "t" + (String((_tecIdx++ % 40) + 1)).padStart(2,"0")
       });
     });
   }
@@ -5797,13 +6007,16 @@ function rankear(ids, pts) {
 
 // ── Inicialização ──
 function inicializarPaulista() {
+  var _ptIdx = 0;
   function prepDiv(lista, nivel, overallBase) {
     return lista.map(function(c){
+      var jogs = gerarJogadoresFicticios(c.id, overallBase+Math.floor(Math.random()*8)-4);
+      aplicarNomesFicticios(jogs, c.id.charCodeAt(2)*997 + overallBase*31);
       return Object.assign({},c,{
         divisao_paulista:nivel,
-        jogadores:gerarJogadoresFicticios(c.id, overallBase+Math.floor(Math.random()*8)-4),
+        jogadores:jogs,
         budget:Math.round(overallBase/100*8000000*(0.6+Math.random()*0.8)),
-        tecnico_id:"t"+String(Math.floor(Math.random()*20)+1).padStart(2,"0")
+        tecnico_id:"t"+String((_ptIdx++%40)+1).padStart(2,"0")
       });
     });
   }
@@ -5816,10 +6029,13 @@ function inicializarPaulista() {
   // Bezinha: preparar clubes de todos os grupos
   GRUPOS_BEZINHA.forEach(function(g){
     g.clubes = g.clubes.map(function(c){
+      var jogs=gerarJogadoresFicticios(c.id, 46+Math.floor(Math.random()*8)-4);
+      aplicarNomesFicticios(jogs, c.id.charCodeAt(3)*997 + 46*31);
       return Object.assign({},c,{
         divisao_paulista:"b1",
-        jogadores:gerarJogadoresFicticios(c.id, 46+Math.floor(Math.random()*8)-4),
-        budget:500000, tecnico_id:"t01"
+        jogadores:jogs,
+        budget:500000,
+        tecnico_id:"t"+String((Math.floor(Math.random()*40)+1)).padStart(2,"0")
       });
     });
   });
@@ -7264,13 +7480,16 @@ function detectarDivisaoClube(id) {
   if ((estadoDivisoes.b.clubes||[]).find(function(c){return c.id===id;})) return "serieB";
   if ((estadoDivisoes.c.clubes||[]).find(function(c){return c.id===id;})) return "serieC";
   if ((estadoDivisoes.d.clubes||[]).find(function(c){return c.id===id;})) return "serieD";
-  // Paulistão
+  // Paulistão divisões A1-A4
   var divsPaul = ["a1","a2","a3","a4"];
   for (var i=0;i<divsPaul.length;i++){
     var est=estadoPaulista[divsPaul[i]];
-    if(est.clubes&&est.clubes.find(function(c){return c.id===id;})) return "paulista_"+divsPaul[i];
+    if(est&&est.clubes&&est.clubes.find(function(c){return c.id===id;})) return "paulista_"+divsPaul[i];
   }
-  if(GRUPOS_BEZINHA.some(function(g){return g.clubes.find(function(c){return c.id===id;});})) return "paulista_b1";
+  // Bezinha — verificar em todos os grupos
+  for (var g=0;g<GRUPOS_BEZINHA.length;g++){
+    if(GRUPOS_BEZINHA[g].clubes.find(function(c){return c.id===id;})) return "paulista_b1";
+  }
   return "serieA";
 }
 
@@ -7701,7 +7920,64 @@ function mostrarNav() {
 // ════════════════════════════════════════
 // ABA — Mercado de Transferências
 // ════════════════════════════════════════
+var _mercadoAba = "disponiveis";
+
 function renderMercado() {
+  var aba = _mercadoAba;
+  var html = '<div class="mercado-tela">';
+  html += '<div class="divisoes-tabs" style="margin-bottom:16px">';
+  var t1='<button class="div-tab'+(aba==="disponiveis"?" ativo":"")+'" onclick="mudarMercadoAba(\'disponiveis\')">🏪 Disponíveis</button>';
+  var t2='<button class="div-tab'+(aba==="livres"?" ativo":"")+'" onclick="mudarMercadoAba(\'livres\')">🆓 Jogadores Livres</button>';
+  var t3='<button class="div-tab'+(aba==="meus"?" ativo":"")+'" onclick="mudarMercadoAba(\'meus\')">📤 Meu Elenco</button>';
+  html += t1+t2+t3;
+  html += '</div>';
+
+  if (aba === "livres") {
+    html += '<h3 style="margin-bottom:12px;font-size:14px">Jogadores sem clube — sem multa rescisória</h3>';
+    html += renderMercadoLivres();
+    html += '</div>';
+    document.getElementById("main").innerHTML = html;
+    return;
+  }
+  if (aba === "meus") {
+    html += renderMercadoMeus();
+    html += '</div>';
+    document.getElementById("main").innerHTML = html;
+    return;
+  }
+  // aba disponiveis — continua no código original abaixo
+  html += renderMercadoDisponiveis();
+  html += '</div>';
+  document.getElementById("main").innerHTML = html;
+}
+
+function mudarMercadoAba(aba) { _mercadoAba = aba; renderMercado(); }
+
+function renderMercadoMeus() {
+  var clube = estado.meuClube;
+  var html = '<div class="lista-mercado">';
+  var jogadoresVenda = clube.jogadores.filter(function(j){ return j.a_venda || j.para_emprestimo; });
+  if (jogadoresVenda.length === 0) return '<div class="dash-empty">Nenhum jogador seu está à venda ou para empréstimo. Acesse o Elenco para configurar.</div>';
+  jogadoresVenda.forEach(function(j) {
+    var status = j.a_venda ? "🏷 À venda — " + formatarDinheiro(j.preco_minimo||j.valor_mercado) : "🔄 Empréstimo";
+    html += '<div class="mercado-item">';
+    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
+    html += '<div class="mercado-info"><div class="mercado-nome">' + j.nome + '</div>';
+    html += '<div class="mercado-detalhe">OVR ' + j.overall + ' · ' + status + '</div></div>';
+    html += '<div class="mercado-valores"><div class="mercado-vm">' + formatarDinheiro(j.valor_mercado) + '</div></div>';
+    html += '<button class="btn-demitir" style="padding:6px 12px;font-size:12px;margin-top:0" onclick="retirarVenda(\'' + j.id + '\')">Retirar</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function retirarVenda(id) {
+  var j = estado.meuClube.jogadores.find(function(x){ return x.id===id; });
+  if (j) { j.a_venda=false; j.para_emprestimo=false; salvarJogo(); renderMercado(); }
+}
+
+function renderMercadoDisponiveis() {
   var rodada  = estado.rodadaAtual;
   var janela  = janelaAberta(rodada);
   var meuClube = estado.meuClube;
@@ -8557,6 +8833,21 @@ function renderTodasPaulistas() {
   else if (aba==="b1") html += renderBezinhaTela();
   else html += renderDivisaoPaulistaTela(aba);
   return html;
+}
+
+// Voltar ao dashboard após partida
+function voltarAoDashboard() {
+  // Para times paulistas, marcar jogo como simulado
+  if (estado._jogoAtivoPaulista && jogoAtivo && jogoAtivo.resultado) {
+    var info = estado._jogoAtivoPaulista;
+    info.jogo.gM = jogoAtivo.resultado.golsMandante;
+    info.jogo.gV = jogoAtivo.resultado.golsVisitante;
+    info.jogo.ok = true;
+    estado._jogoAtivoPaulista = null;
+    simularEventoPaulista(info.rodadaIdx);
+  }
+  jogoAtivo = null;
+  navegarPara("dashboard");
 }</script>
 <script>
 inicializarFinancas();
