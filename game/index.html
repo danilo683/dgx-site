@@ -7323,8 +7323,7 @@ function iniciarJogo() {
   try {
     navegarPara("dashboard");
   } catch(e) {
-    console.error("Erro ao abrir dashboard:", e);
-    document.getElementById("main").innerHTML = "<div style='padding:40px;color:var(--text2)'>Erro ao carregar. Clique em Dashboard na sidebar.</div>";
+    document.getElementById("main").innerHTML = "<div style='padding:40px;color:red;font-size:14px'><strong>ERRO:</strong> " + e.message + "<br><pre style='font-size:11px;margin-top:8px'>" + e.stack + "</pre></div>";
   }
 }
 
