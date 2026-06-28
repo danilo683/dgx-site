@@ -6349,6 +6349,126 @@ function renderCopaPaulistaTela(){
   });
   html+='</div>';
   return html;
+}
+
+// ════════════════════════════════════════
+// CALENDÁRIO PARA TIMES PAULISTAS
+// Gera eventos de jogo baseados nos jogos do Paulistão
+// ════════════════════════════════════════
+function gerarCalendarioPaulista(div) {
+  var est = div === "b1" ? estadoPaulista.b1 : estadoPaulista[div];
+  if (!est) return gerarCalendario(CLUBES); // fallback
+
+  // Montar um calendário de rodadas sintético
+  // cada "rodada" tem 1 jogo do meu clube + jogos dos outros
+  var meuId = estado.meuClube ? estado.meuClube.id : null;
+  var todosClubes = div === "b1"
+    ? GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, [])
+    : (estadoPaulista[div].clubes || []);
+
+  // Agrupar jogos por "rodada virtual" — meus jogos primeiro
+  var meusJogos = est.jogos.filter(function(j){
+    return j.mId === meuId || j.vId === meuId;
+  });
+  var outrosJogos = est.jogos.filter(function(j){
+    return j.mId !== meuId && j.vId !== meuId;
+  });
+
+  var rodadas = [];
+  var maxRod = Math.max(meusJogos.length, Math.ceil(outrosJogos.length / Math.max(todosClubes.length/2 - 1, 1)));
+
+  for (var i = 0; i < Math.max(meusJogos.length, 20); i++) {
+    var jogosRodada = [];
+
+    // Meu jogo desta rodada
+    if (meusJogos[i]) {
+      jogosRodada.push({ mandanteId: meusJogos[i].mId, visitanteId: meusJogos[i].vId, _paulistaIdx: i });
+    }
+
+    // Alguns jogos dos outros (para simular junto)
+    var porRodada = Math.floor(outrosJogos.length / Math.max(meusJogos.length, 1));
+    var inicio = i * porRodada;
+    var fim = Math.min(inicio + porRodada, outrosJogos.length);
+    for (var j = inicio; j < fim; j++) {
+      jogosRodada.push({ mandanteId: outrosJogos[j].mId, visitanteId: outrosJogos[j].vId, _paulistaIdx: null });
+    }
+
+    rodadas.push({ numero: i + 1, jogos: jogosRodada, _div: div, _paulista: true });
+  }
+
+  return rodadas;
+}
+
+// ── Tela de jogo para times paulistas ──
+function renderTelaJogoPaulista(rodadaIdx, div) {
+  var est = div === "b1" ? estadoPaulista.b1 : estadoPaulista[div];
+  var meuId = estado.meuClube.id;
+  var todosClubes = div === "b1"
+    ? GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, [])
+    : (estadoPaulista[div].clubes || []);
+
+  // Achar próximo jogo do meu clube não simulado
+  var meuJogo = est.jogos.find(function(j){
+    return (j.mId===meuId||j.vId===meuId) && !j.ok;
+  });
+
+  if (!meuJogo) {
+    // Sem mais jogos — simular evento e voltar ao dashboard
+    simularEventoPaulista(rodadaIdx);
+    renderDashboard();
+    return;
+  }
+
+  var mandante = todosClubes.find(function(c){return c.id===meuJogo.mId;});
+  var visitante = todosClubes.find(function(c){return c.id===meuJogo.vId;});
+  if (!mandante || !visitante) { renderDashboard(); return; }
+
+  // Injetar no jogoAtivo e chamar tela de jogo normal
+  // Precisamos criar um contexto compatível com renderTelaJogo
+  estado._jogoAtivoPaulista = { jogo: meuJogo, div: div, rodadaIdx: rodadaIdx };
+
+  // Substituir temporariamente meuClube no calendário para a tela de jogo
+  var rodadaFake = {
+    numero: rodadaIdx + 1,
+    jogos: [{ mandanteId: meuJogo.mId, visitanteId: meuJogo.vId }]
+  };
+  if (!estado.calendario[rodadaIdx]) estado.calendario[rodadaIdx] = rodadaFake;
+  else estado.calendario[rodadaIdx].jogos = [{ mandanteId: meuJogo.mId, visitanteId: meuJogo.vId }];
+
+  // Garantir que o clube adversário está acessível globalmente
+  var _origClubes = window._clubesPaulistaTemp;
+  window._clubesPaulistaTemp = todosClubes;
+
+  // Monkey-patch CLUBES temporariamente para renderTelaJogo encontrar os times
+  var _clubesOrig = CLUBES.slice();
+  todosClubes.forEach(function(c){
+    if (!CLUBES.find(function(x){return x.id===c.id;})) CLUBES.push(c);
+  });
+
+  renderTelaJogo(rodadaIdx);
+
+  // Restaurar CLUBES
+  CLUBES.splice(0, CLUBES.length);
+  _clubesOrig.forEach(function(c){CLUBES.push(c);});
+}
+
+// Finalizar jogo paulista após tela ao vivo
+var _origFinalizarPartida = null;
+function hookFinalizarPartidaPaulista() {
+  if (!estado._jogoAtivoPaulista) return false;
+  var info = estado._jogoAtivoPaulista;
+  var jogo = info.jogo;
+  var div  = info.div;
+  var est  = div==="b1"?estadoPaulista.b1:estadoPaulista[div];
+
+  // Marcar jogo como simulado com resultado real
+  jogo.gM  = jogoAtivo ? jogoAtivo.resultado.golsMandante : 0;
+  jogo.gV  = jogoAtivo ? jogoAtivo.resultado.golsVisitante : 0;
+  jogo.ok  = true;
+
+  estado._jogoAtivoPaulista = null;
+  simularEventoPaulista(info.rodadaIdx);
+  return true;
 }</script>
   <script>// ════════════════════════════════════════
 // MENU MANAGER
@@ -7116,6 +7236,30 @@ function comprarClube(id, aba) {
   selecionarClube(id, lista);
 }
 
+function detectarDivisaoClube(id) {
+  if (CLUBES.find(function(c){return c.id===id;})) return "serieA";
+  if ((estadoDivisoes.b.clubes||[]).find(function(c){return c.id===id;})) return "serieB";
+  if ((estadoDivisoes.c.clubes||[]).find(function(c){return c.id===id;})) return "serieC";
+  if ((estadoDivisoes.d.clubes||[]).find(function(c){return c.id===id;})) return "serieD";
+  // Paulistão
+  var divsPaul = ["a1","a2","a3","a4"];
+  for (var i=0;i<divsPaul.length;i++){
+    var est=estadoPaulista[divsPaul[i]];
+    if(est.clubes&&est.clubes.find(function(c){return c.id===id;})) return "paulista_"+divsPaul[i];
+  }
+  if(GRUPOS_BEZINHA.some(function(g){return g.clubes.find(function(c){return c.id===id;});})) return "paulista_b1";
+  return "serieA";
+}
+
+function clubesParaCalendario(divisao) {
+  if (divisao==="serieA") return CLUBES;
+  if (divisao==="serieB") return estadoDivisoes.b.clubes||CLUBES;
+  if (divisao==="serieC") return estadoDivisoes.c.clubes||CLUBES;
+  if (divisao==="serieD") return estadoDivisoes.d.clubes||CLUBES;
+  // Paulistas não têm calendário nacional — retorna lista vazia (calendário será gerido pelo paulista.js)
+  return [];
+}
+
 function selecionarClube(id, lista) {
   var fonte = lista || CLUBES;
   var clube = fonte.find(function(c){return c.id===id;});
@@ -7124,12 +7268,24 @@ function selecionarClube(id, lista) {
   if (!clube && estadoDivisoes.b.clubes) clube = estadoDivisoes.b.clubes.find(function(c){return c.id===id;});
   if (!clube && estadoDivisoes.c.clubes) clube = estadoDivisoes.c.clubes.find(function(c){return c.id===id;});
   if (!clube && estadoDivisoes.d.clubes) clube = estadoDivisoes.d.clubes.find(function(c){return c.id===id;});
-  estado.meuClube   = clube;
-  estado.calendario = gerarCalendario(CLUBES);
+  if (!clube) { alert("Clube não encontrado!"); return; }
+
+  estado.meuClube    = clube;
   estado.rodadaAtual = 0;
   estado.resultados  = [];
+  estado.minhaDivisao = detectarDivisaoClube(id);
+
+  // Gerar calendário correto conforme divisão
+  var clubesCal = clubesParaCalendario(estado.minhaDivisao);
+  if (clubesCal.length >= 2) {
+    estado.calendario = gerarCalendario(clubesCal);
+  } else {
+    // Clube paulistano: criar eventos baseados no Paulistão
+    estado.calendario = gerarCalendarioPaulista(estado.minhaDivisao.replace("paulista_",""));
+  }
+
   var tec_id = estado.meuClube.tecnico_id;
-  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === tec_id; }) || TECNICOS_DISPONIVEIS[0];
+  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){return t.id===tec_id;}) || TECNICOS_DISPONIVEIS[0];
   iniciarJogo();
 }
 
