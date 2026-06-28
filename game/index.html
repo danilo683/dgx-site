@@ -6645,6 +6645,13 @@ function criarManager() {
   var nac  = document.getElementById("inp-nac").value;
   if (!nome) { alert("Digite seu nome!"); return; }
   estado.manager = { nome: nome, nacionalidade: nac, reputacao: 50, titulos: 0, budget: 1000000 };
+
+  // Inicializar divisões ANTES de mostrar a tela de seleção
+  // para que os clubes estejam disponíveis nas abas
+  inicializarFinancas();
+  inicializarDivisoes();
+  inicializarPaulista();
+
   renderSelecionarClube();
 }
 
@@ -6698,8 +6705,10 @@ function iniciarJogo() {
   if (sb) sb.classList.remove("hidden");
   mostrarNav();
   inicializarCalendario();
-  inicializarDivisoes();
-  inicializarPaulista();
+  // Divisões já inicializadas no criarManager
+  // Só inicializar se ainda não foram (ex: ao continuar jogo salvo)
+  if (!estadoDivisoes.b.clubes) inicializarDivisoes();
+  if (!estadoPaulista.a1.clubes) inicializarPaulista();
   inicializarTorneios();
   salvarJogo();
   renderDashboard();
