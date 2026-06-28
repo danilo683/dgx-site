@@ -6622,6 +6622,9 @@ function continuarJogo() {
   inicializarFinancas();
   var ok = carregarJogo();
   if (!ok) { alert("Erro ao carregar o save. Iniciando novo jogo."); apagarSave(); location.reload(); return; }
+  // Garantir divisões inicializadas
+  if (!estadoDivisoes.b.clubes) inicializarDivisoes();
+  if (!estadoPaulista.a1.clubes) inicializarPaulista();
   document.getElementById("header-clube").textContent   = estado.meuClube.nome;
   document.getElementById("header-manager").textContent = estado.manager.nome;
   document.getElementById("header-tecnico").textContent = estado.meuTecnico.nome;
@@ -6644,7 +6647,7 @@ function criarManager() {
   var nome = document.getElementById("inp-nome").value.trim();
   var nac  = document.getElementById("inp-nac").value;
   if (!nome) { alert("Digite seu nome!"); return; }
-  estado.manager = { nome: nome, nacionalidade: nac, reputacao: 50, titulos: 0, budget: 1000000 };
+  estado.manager = { nome: nome, nacionalidade: nac, reputacao: 50, titulos: 0, budget: 5000000 };
 
   // Inicializar divisões ANTES de mostrar a tela de seleção
   // para que os clubes estejam disponíveis nas abas
@@ -6685,7 +6688,8 @@ function renderSelecionarClube() {
   ];
 
   var tabAtual   = todasAbas.find(function(t){return t.k===aba;}) || todasAbas[0];
-  var clubesAba  = tabAtual.clubes.filter(function(c){
+  var todosClubesAba = tabAtual.clubes;
+  var clubesAba  = todosClubesAba.filter(function(c){
     return calcularValorClube(c) <= budget;
   });
 
