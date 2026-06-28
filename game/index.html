@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manager FC</title>
-  <style>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manager FC</title><style>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --bg: #0f1117;
@@ -2097,47 +2095,45 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 .hub-conteudo { min-height: 200px; }</style>
 </head>
 <body>
-  <div id="app">
-    <div id="sidebar">
-      <div id="sidebar-logo">
-        <h1>⚽ Manager FC</h1>
-        <div id="sidebar-info-block" class="sidebar-info hidden">
-          <div class="sidebar-info-item"><strong id="sidebar-manager-nome"></strong>Manager</div>
-          <div class="sidebar-info-item"><strong id="sidebar-clube-nome"></strong>Clube</div>
-          <div class="sidebar-info-item"><strong id="sidebar-tecnico-nome"></strong>Técnico</div>
-          <div class="sidebar-info-item" style="margin-top:6px"><span class="header-saldo" id="sidebar-saldo"></span></div>
-        </div>
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-logo"><h1>⚽ Manager FC</h1>
+      <div id="sidebar-info-block" class="sidebar-info hidden">
+        <div class="sidebar-info-item"><strong id="sidebar-manager-nome"></strong>Manager</div>
+        <div class="sidebar-info-item"><strong id="sidebar-clube-nome"></strong>Clube</div>
+        <div class="sidebar-info-item"><strong id="sidebar-tecnico-nome"></strong>Técnico</div>
+        <div class="sidebar-info-item" style="margin-top:6px"><span class="header-saldo" id="sidebar-saldo"></span></div>
       </div>
-      <nav id="sidebar-nav" class="hidden">
-        <button data-aba="dashboard">🏠 Dashboard</button>
-        <button data-aba="inbox">✉️ Inbox</button>
-        <div class="sidebar-sep">COMPETIÇÕES</div>
-        <button data-aba="torneios">🏆 Torneios</button>
-        <div class="sidebar-sep">CLUBE</div>
-        <button data-aba="elenco">👥 Elenco</button>
-        <button data-aba="mercado">💰 Mercado</button>
-        <button data-aba="financeiro">📑 Financeiro</button>
-        <div class="sidebar-sep">GESTÃO</div>
-        <button data-aba="manager">👤 Manager</button>
-        <button data-aba="staff">🎽 Staff</button>
-        <button data-aba="infraestrutura">🏗 Infraestrutura</button>
-      </nav>
-      <button id="btn-salvar" class="sidebar-save-btn hidden" onclick="salvarManual()">💾 Salvar jogo</button>
     </div>
-    <div id="conteudo">
-      <header>
-        <span></span>
-        <div id="header-info" class="hidden header-info-group">
-          <span>Manager: <strong id="header-manager"></strong></span>
-          <span>Clube: <strong id="header-clube"></strong></span>
-          <span>Técnico: <strong id="header-tecnico"></strong></span>
-          <span class="header-saldo" id="header-saldo"></span>
-        </div>
-      </header>
-      <main id="main"></main>
-    </div>
+    <nav id="sidebar-nav" class="hidden">
+      <button data-aba="dashboard">🏠 Dashboard</button>
+      <button data-aba="inbox">✉️ Inbox</button>
+      <div class="sidebar-sep">COMPETIÇÕES</div>
+      <button data-aba="torneios">🏆 Torneios</button>
+      <div class="sidebar-sep">CLUBE</div>
+      <button data-aba="elenco">👥 Elenco</button>
+      <button data-aba="mercado">💰 Mercado</button>
+      <button data-aba="financeiro">📑 Financeiro</button>
+      <div class="sidebar-sep">GESTÃO</div>
+      <button data-aba="manager">👤 Manager</button>
+      <button data-aba="staff">🎽 Staff</button>
+      <button data-aba="infraestrutura">🏗 Infraestrutura</button>
+    </nav>
+    <button id="btn-salvar" class="sidebar-save-btn hidden" onclick="salvarManual()">💾 Salvar jogo</button>
   </div>
-  <script>const CLUBES = [
+  <div id="conteudo">
+    <header><span></span>
+      <div id="header-info" class="hidden header-info-group">
+        <span>Manager: <strong id="header-manager"></strong></span>
+        <span>Clube: <strong id="header-clube"></strong></span>
+        <span>Técnico: <strong id="header-tecnico"></strong></span>
+        <span class="header-saldo" id="header-saldo"></span>
+      </div>
+    </header>
+    <main id="main"></main>
+  </div>
+</div>
+<script>const CLUBES = [
   {
     id: "flamengo", tecnico_id: "t05", nome: "Flamengo", sigla: "FLA", cor: "#E8000D",
     jogadores: [
@@ -2738,8 +2734,7 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
       { id: "p500", nome: "Sandry",            posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   }
-];</script>
-  <script>const TECNICOS_DISPONIVEIS = [
+];</script><script>const TECNICOS_DISPONIVEIS = [
   // Elite (80+)
   { id: "t01", nome: "Abel Ferreira",    overall: 88, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
   { id: "t02", nome: "Tite",             overall: 85, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
@@ -2793,8 +2788,7 @@ const FORMACOES = {
     requisitos: { GOL: 1, LD: 1, ZAG: 3, LE: 1, VOL: 2, MEI: 1, ATA: 2 },
     pesos:      { GOL: 0.15, LD: 0.12, ZAG: 0.25, LE: 0.12, VOL: 0.13, MEI: 0.08, ATA: 0.15 }
   }
-};</script>
-  <script>// ── Janelas de transferência do Brasileirão ──
+};</script><script>// ── Janelas de transferência do Brasileirão ──
 const JANELAS = [
   { nome: "Janela de verão",   inicio: 1,  fim: 6  },
   { nome: "Janela de inverno", inicio: 19, fim: 23 }
@@ -2984,8 +2978,7 @@ function processarReceitaRodada(rodadaIdx) {
     else if (pos < 4) clube.budget += 200000;
     else if (pos < 8) clube.budget += 100000;
   });
-}</script>
-  <script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
+}</script><script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
 function calcularEncaixe(clube, formacao) {
   const req = FORMACOES[formacao].requisitos;
   let totalReq = 0, totalAtendido = 0;
@@ -3181,7 +3174,7 @@ function gerarCalendario(clubes) {
   }
   return rodadas;
 }</script>
-  <script>// ── Configuração de datas ──
+<script>// ── Configuração de datas ──
 var DATA_INICIO = new Date(2025, 3, 13); // 13 abril 2025
 
 function dataRodada(rodadaIdx) {
@@ -3377,11 +3370,22 @@ function avancarEvento() {
   processarEvento(ev);
 
   salvarJogo();
-  if (ev.tipo === TIPO_EVENTO.JOGO) {
-    renderTelaJogo(ev.rodada);
-  } else {
-    atualizarCalView(ev);
-    renderDashboard();
+  try {
+    if (ev.tipo === TIPO_EVENTO.JOGO) {
+      if (estado.minhaDivisao && estado.minhaDivisao.indexOf("paulista") === 0) {
+        var _div = estado.minhaDivisao.replace("paulista_","");
+        renderTelaJogoPaulista(ev.rodada, _div);
+      } else {
+        renderTelaJogo(ev.rodada);
+      }
+    } else {
+      atualizarCalView(ev);
+      renderDashboard();
+    }
+  } catch(e) {
+    document.getElementById("main").innerHTML =
+      "<div style='padding:40px;color:red;font-size:13px'><strong>ERRO avancarEvento:</strong> " + e.message +
+      "<br><pre style='font-size:10px;margin-top:8px'>" + e.stack + "</pre></div>";
   }
 }
 
@@ -3421,8 +3425,7 @@ function inicializarCalendario() {
 function adicionarNoticia(texto, rodada) {
   estado.noticias = estado.noticias || [];
   estado.noticias.push({ texto: texto, rodada: rodada });
-}</script>
-  <script>// ════════════════════════════════════════
+}</script><script>// ════════════════════════════════════════
 // SISTEMA DE SAVE — localStorage
 // ════════════════════════════════════════
 var SAVE_KEY = "managerfc_save";
@@ -3578,8 +3581,7 @@ function infoSave() {
       timestamp: save.timestamp ? formatarTimestamp(save.timestamp) : "?"
     };
   } catch(e) { return null; }
-}</script>
-  <script>// ════════════════════════════════════════
+}</script><script>// ════════════════════════════════════════
 // MOTOR DE PARTIDA — escalação, lances, notas
 // ════════════════════════════════════════
 
@@ -3860,8 +3862,7 @@ function aplicarSubstituicao(escAtual, sub) {
   var idx = escAtual.findIndex(function(j) { return j.id === sub.sai.id; });
   if (idx >= 0) escAtual[idx] = sub.entra;
   return escAtual;
-}</script>
-  <script>// ════════════════════════════════════════
+}</script><script>// ════════════════════════════════════════
 // TELA DE JOGO AO VIVO
 // ════════════════════════════════════════
 var jogoAtivo = null;
@@ -3875,9 +3876,8 @@ function renderTelaJogo(rodadaIdx) {
   });
   var euMandante  = meuJogo && meuJogo.mandanteId === meuId;
   var meuClube    = estado.meuClube;
-  var adversario  = meuJogo ? CLUBES.find(function(c) {
-    return c.id === (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId);
-  }) : null;
+  var advId = meuJogo ? (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId) : null;
+  var adversario = advId ? buscarClubePorId(advId) : null;
   var tecAdv = adversario ? TECNICOS_DISPONIVEIS.find(function(t) { return t.id === adversario.tecnico_id; }) : null;
 
   var mandante    = euMandante ? meuClube : adversario;
@@ -4351,7 +4351,7 @@ function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
 
   document.getElementById("main").innerHTML = html;
 }</script>
-  <script>// ════════════════════════════════════════
+<script>// ════════════════════════════════════════
 // SISTEMA FINANCEIRO
 // ════════════════════════════════════════
 
@@ -4626,8 +4626,7 @@ function renderFinanceiro() {
   html += '</div>'; // fin-tela
 
   document.getElementById("main").innerHTML = html;
-}</script>
-  <script>// ════════════════════════════════════════
+}</script><script>// ════════════════════════════════════════
 // DIVISÕES — Série B, C e D
 // ════════════════════════════════════════
 
@@ -4915,8 +4914,7 @@ function renderDivisoes() {
 function mudarDivisao(div) {
   window._divAtiva = div;
   renderDivisoes();
-}</script>
-  <script>// ════════════════════════════════════════
+}</script><script>// ════════════════════════════════════════
 // SISTEMA DE TORNEIOS
 // ════════════════════════════════════════
 
@@ -5602,8 +5600,7 @@ function renderEstaduaisTela() {
   });
   html += '</div></div>';
   return html;
-}</script>
-  <script>// ════════════════════════════════════════
+}</script><script>// ════════════════════════════════════════
 // SISTEMA PAULISTA — Formatos 2026
 // A1: 16 times, 1 grupo, 8 rodadas, top8 → quartas/semi/final
 // A2: 16 times, 1 grupo, 15 rodadas, top8 → 2 grupos de 4 → semi → final
@@ -6405,51 +6402,36 @@ function renderTelaJogoPaulista(rodadaIdx, div) {
   var meuId = estado.meuClube.id;
   var todosClubes = div === "b1"
     ? GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, [])
-    : (estadoPaulista[div].clubes || []);
+    : (estadoPaulista[div] ? estadoPaulista[div].clubes || [] : []);
 
   // Achar próximo jogo do meu clube não simulado
-  var meuJogo = est.jogos.find(function(j){
+  var meuJogo = est ? est.jogos.find(function(j){
     return (j.mId===meuId||j.vId===meuId) && !j.ok;
-  });
+  }) : null;
 
   if (!meuJogo) {
     // Sem mais jogos — simular evento e voltar ao dashboard
     simularEventoPaulista(rodadaIdx);
+    estado.rodadaAtual++;
     renderDashboard();
     return;
   }
 
-  var mandante = todosClubes.find(function(c){return c.id===meuJogo.mId;});
-  var visitante = todosClubes.find(function(c){return c.id===meuJogo.vId;});
-  if (!mandante || !visitante) { renderDashboard(); return; }
+  // Garantir que os clubes estão no calendário correto
+  if (!estado.calendario[rodadaIdx]) {
+    estado.calendario[rodadaIdx] = { numero: rodadaIdx+1, jogos: [] };
+  }
+  // Atualizar jogo desta rodada no calendário
+  estado.calendario[rodadaIdx].jogos = [{ mandanteId: meuJogo.mId, visitanteId: meuJogo.vId }];
 
-  // Injetar no jogoAtivo e chamar tela de jogo normal
-  // Precisamos criar um contexto compatível com renderTelaJogo
-  estado._jogoAtivoPaulista = { jogo: meuJogo, div: div, rodadaIdx: rodadaIdx };
-
-  // Substituir temporariamente meuClube no calendário para a tela de jogo
-  var rodadaFake = {
-    numero: rodadaIdx + 1,
-    jogos: [{ mandanteId: meuJogo.mId, visitanteId: meuJogo.vId }]
-  };
-  if (!estado.calendario[rodadaIdx]) estado.calendario[rodadaIdx] = rodadaFake;
-  else estado.calendario[rodadaIdx].jogos = [{ mandanteId: meuJogo.mId, visitanteId: meuJogo.vId }];
-
-  // Garantir que o clube adversário está acessível globalmente
-  var _origClubes = window._clubesPaulistaTemp;
-  window._clubesPaulistaTemp = todosClubes;
-
-  // Monkey-patch CLUBES temporariamente para renderTelaJogo encontrar os times
-  var _clubesOrig = CLUBES.slice();
+  // Adicionar clubes paulistas temporariamente ao CLUBES global
+  // para que renderTelaJogo os encontre
   todosClubes.forEach(function(c){
     if (!CLUBES.find(function(x){return x.id===c.id;})) CLUBES.push(c);
   });
 
+  estado._jogoAtivoPaulista = { jogo: meuJogo, div: div, rodadaIdx: rodadaIdx };
   renderTelaJogo(rodadaIdx);
-
-  // Restaurar CLUBES
-  CLUBES.splice(0, CLUBES.length);
-  _clubesOrig.forEach(function(c){CLUBES.push(c);});
 }
 
 // Finalizar jogo paulista após tela ao vivo
@@ -6470,7 +6452,7 @@ function hookFinalizarPartidaPaulista() {
   simularEventoPaulista(info.rodadaIdx);
   return true;
 }</script>
-  <script>// ════════════════════════════════════════
+<script>// ════════════════════════════════════════
 // MENU MANAGER
 // ════════════════════════════════════════
 function renderManager() {
@@ -6677,8 +6659,7 @@ function melhorarInfraestrutura(key, custo) {
   adicionarNoticia("🏗 " + clube.nome + " melhorou a infraestrutura do clube.", estado.rodadaAtual);
   salvarJogo();
   renderInfraestrutura();
-}</script>
-  <script>
+}</script><script>
 // ════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════
@@ -7074,8 +7055,7 @@ function renderNoticias() {
   });
   html += '</div>';
   return html;
-}</script>
-  <script>const estado = {
+}</script><script>const estado = {
   manager: null,
   meuClube: null,
   meuTecnico: null,
@@ -8578,22 +8558,11 @@ function renderTodasPaulistas() {
   else html += renderDivisaoPaulistaTela(aba);
   return html;
 }</script>
-  <script>
-    inicializarFinancas();
-    function atualizarSaldo(){
-      var s=estado.meuClube?formatarDinheiro(estado.meuClube.budget):'';
-      var e1=document.getElementById("header-saldo"),e2=document.getElementById("sidebar-saldo");
-      if(e1)e1.textContent=s;if(e2)e2.textContent=s;
-    }
-    setInterval(atualizarSaldo,2000);
-    function salvarManual(){
-      atualizarSaldo();
-      var ok=salvarJogo();
-      var btn=document.getElementById("btn-salvar");
-      if(btn){btn.textContent=ok?"✅ Salvo!":"❌ Erro";btn.classList.add("salvo");setTimeout(function(){btn.textContent="💾 Salvar jogo";btn.classList.remove("salvo");},2000);}
-    }
-    var _origMostrarNav=mostrarNav;
-    mostrarNav=function(){_origMostrarNav();var btn=document.getElementById("btn-salvar");if(btn)btn.classList.remove("hidden");atualizarSaldo();};
-  </script>
-</body>
-</html>
+<script>
+inicializarFinancas();
+function atualizarSaldo(){var s=estado.meuClube?formatarDinheiro(estado.meuClube.budget):'';var e1=document.getElementById("header-saldo"),e2=document.getElementById("sidebar-saldo");if(e1)e1.textContent=s;if(e2)e2.textContent=s;}
+setInterval(atualizarSaldo,2000);
+function salvarManual(){atualizarSaldo();var ok=salvarJogo();var btn=document.getElementById("btn-salvar");if(btn){btn.textContent=ok?"✅ Salvo!":"❌ Erro";btn.classList.add("salvo");setTimeout(function(){btn.textContent="💾 Salvar jogo";btn.classList.remove("salvo");},2000);}}
+var _origMostrarNav=mostrarNav;mostrarNav=function(){_origMostrarNav();var btn=document.getElementById("btn-salvar");if(btn)btn.classList.remove("hidden");atualizarSaldo();};
+</script>
+</body></html>
