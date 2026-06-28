@@ -6682,6 +6682,27 @@ function melhorarInfraestrutura(key, custo) {
 // ════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════
+// Busca clube em todas as fontes disponíveis
+function buscarClubePorId(id) {
+  var c = CLUBES.find(function(x){return x.id===id;});
+  if (c) return c;
+  if (estadoDivisoes.b.clubes) { c = estadoDivisoes.b.clubes.find(function(x){return x.id===id;}); if(c) return c; }
+  if (estadoDivisoes.c.clubes) { c = estadoDivisoes.c.clubes.find(function(x){return x.id===id;}); if(c) return c; }
+  if (estadoDivisoes.d.clubes) { c = estadoDivisoes.d.clubes.find(function(x){return x.id===id;}); if(c) return c; }
+  // Paulistão divisões
+  var divsPaul = ["a1","a2","a3","a4"];
+  for (var i=0;i<divsPaul.length;i++) {
+    var est = estadoPaulista[divsPaul[i]];
+    if (est && est.clubes) { c = est.clubes.find(function(x){return x.id===id;}); if(c) return c; }
+  }
+  // Bezinha grupos
+  for (var g=0;g<GRUPOS_BEZINHA.length;g++) {
+    c = GRUPOS_BEZINHA[g].clubes.find(function(x){return x.id===id;});
+    if (c) return c;
+  }
+  return { sigla:"?", nome:"Desconhecido", cor:"#555" };
+}
+
 function renderDashboard() {
   var evento  = estado.eventos[estado.eventoAtual];
   var total   = estado.eventos.length;
@@ -6934,7 +6955,7 @@ function renderJogosCard() {
       var res = estado.resultados.find(function(r) {
         return r.rodada === item.rodadaIdx && r.mandanteId === item.jogo.mandanteId && r.visitanteId === item.jogo.visitanteId;
       });
-      var adv = CLUBES.find(function(c) { return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId); });
+      var adv = buscarClubePorId(item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId);
       var euM = item.jogo.mandanteId === meuId;
       html += '<div class="jogo-item">';
       html += '<span class="jogo-rodada">R' + item.rodadaNum + '</span>';
@@ -6951,7 +6972,7 @@ function renderJogosCard() {
   if (futuros.length > 0) {
     html += '<div class="jogos-secao-titulo" style="margin-top:10px">Próximos jogos</div>';
     futuros.forEach(function(item) {
-      var adv = CLUBES.find(function(c) { return c.id === (item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId); });
+      var adv = buscarClubePorId(item.jogo.mandanteId === meuId ? item.jogo.visitanteId : item.jogo.mandanteId);
       var ev  = estado.eventos.find(function(e) { return e.tipo === "jogo" && e.rodada === item.rodadaIdx; });
       html += '<div class="jogo-item proximo">';
       html += '<span class="jogo-rodada">R' + item.rodadaNum + '</span>';
@@ -6968,7 +6989,29 @@ function renderJogosCard() {
 
 // ── Mini tabela ──
 function renderMiniTabela() {
-  var tabela   = calcularTabela(CLUBES, estado.resultados);
+  // detectar divisão para mini tabela
+  var _clubesMT = CLUBES, _resultsMT = estado.resultados;
+  if (estado.minhaDivisao && estado.minhaDivisao.indexOf("paulista") === 0) {
+    var _div = estado.minhaDivisao.replace("paulista_","");
+    if (_div === "b1") {
+      _clubesMT = GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+      _resultsMT = estadoPaulista.b1.jogos.filter(function(j){return j.ok;}).map(function(j){
+        return { mandanteId:j.mId, visitanteId:j.vId, golsMandante:j.gM, golsVisitante:j.gV };
+      });
+    } else if (estadoPaulista[_div] && estadoPaulista[_div].clubes) {
+      _clubesMT = estadoPaulista[_div].clubes;
+      _resultsMT = estadoPaulista[_div].jogos.filter(function(j){return j.ok;}).map(function(j){
+        return { mandanteId:j.mId, visitanteId:j.vId, golsMandante:j.gM, golsVisitante:j.gV };
+      });
+    }
+  } else if (estado.minhaDivisao === "serieB" && estadoDivisoes.b.clubes) {
+    _clubesMT = estadoDivisoes.b.clubes; _resultsMT = estadoDivisoes.b.resultados;
+  } else if (estado.minhaDivisao === "serieC" && estadoDivisoes.c.clubes) {
+    _clubesMT = estadoDivisoes.c.clubes; _resultsMT = estadoDivisoes.c.resultados;
+  } else if (estado.minhaDivisao === "serieD" && estadoDivisoes.d.clubes) {
+    _clubesMT = estadoDivisoes.d.clubes; _resultsMT = estadoDivisoes.d.resultados;
+  }
+  var tabela   = calcularTabela(_clubesMT, _resultsMT);
   var meuId    = estado.meuClube.id;
   var minhaPos = tabela.findIndex(function(t) { return t.id === meuId; });
   var inicio   = Math.max(0, minhaPos - 2);
