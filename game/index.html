@@ -2104,7 +2104,58 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 
 /* ── Badge status elenco ── */
 .badge-venda { font-size:10px;background:rgba(241,196,15,.2);color:var(--yellow);padding:1px 6px;border-radius:10px;font-weight:600; }
-.badge-emprestimo { font-size:10px;background:rgba(79,142,247,.2);color:var(--accent);padding:1px 6px;border-radius:10px;font-weight:600; }</style>
+.badge-emprestimo { font-size:10px;background:rgba(79,142,247,.2);color:var(--accent);padding:1px 6px;border-radius:10px;font-weight:600; }
+
+/* ── Partida pausada ── */
+.partida-pausada-banner {
+  background: linear-gradient(135deg, rgba(79,142,247,.2), rgba(79,142,247,.05));
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background .15s;
+}
+.partida-pausada-banner:hover { background: rgba(79,142,247,.25); }
+
+.btn-retomar {
+  margin-left: auto;
+  background: var(--accent);
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ── Artilheiros ── */
+.artilheiros-lista { display:flex;flex-direction:column;gap:6px; }
+.artilheiro-item {
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;font-size:13px;
+}
+.art-pos { font-size:12px;color:var(--text2);min-width:18px;font-weight:700; }
+.art-info { flex:1; }
+.art-nome { font-weight:600; }
+.art-clube { font-size:11px;color:var(--text2); }
+.art-stats { display:flex;gap:8px; }
+.art-gols { color:var(--green);font-weight:700; }
+.art-assists { color:var(--accent);font-weight:600; }
+
+/* ── Torneio destaque ── */
+.hub-tab.meu-torneio {
+  border-color: var(--yellow) !important;
+  color: var(--yellow) !important;
+}
+.hub-tab.meu-torneio.ativo {
+  background: var(--yellow) !important;
+  color: #1a1a1a !important;
+}</style>
 </head>
 <body>
 <div id="app">
@@ -3808,15 +3859,16 @@ function posicaoCampo(posicao, idx, total, lado, linhaY) {
   return { x: x, y: y };
 }
 
-// Retorna as linhas de uma formação: { posicao: linhaY }
-// linhaY: 0=fundo, 1=meio-campo
+// Retorna as linhas de uma formação
+// linhaY: 0 = linha de fundo do próprio time, 1 = linha do meio-campo
+// Cada posição ocupa SUA linha — posições iguais ficam na mesma linha horizontal
 function linhasFormacao(formacao) {
   var f = {
-    "4-4-2":   { GOL:0.04, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.50, MEI:0.50, ATA:0.82 },
-    "4-3-3":   { GOL:0.04, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.48, MEI:0.72, ATA:0.92 },
-    "4-2-3-1": { GOL:0.04, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.42, MEI:0.65, ATA:0.90 },
-    "3-5-2":   { GOL:0.04, ZAG:0.22, LD:0.42, VOL:0.42, LE:0.42, MEI:0.68, ATA:0.90 },
-    "5-3-2":   { GOL:0.04, LD:0.18, ZAG:0.18, LE:0.18, VOL:0.48, MEI:0.72, ATA:0.92 }
+    "4-4-2":   { GOL:0.04, ZAG:0.24, LD:0.24, LE:0.24, VOL:0.52, MEI:0.52, ATA:0.82 },
+    "4-3-3":   { GOL:0.04, ZAG:0.24, LD:0.24, LE:0.24, VOL:0.52, MEI:0.76, ATA:0.92 },
+    "4-2-3-1": { GOL:0.04, ZAG:0.24, LD:0.24, LE:0.24, VOL:0.44, MEI:0.68, ATA:0.90 },
+    "3-5-2":   { GOL:0.04, ZAG:0.24, LD:0.52, LE:0.52, VOL:0.52, MEI:0.74, ATA:0.90 },
+    "5-3-2":   { GOL:0.04, ZAG:0.22, LD:0.22, LE:0.22, VOL:0.52, MEI:0.74, ATA:0.92 }
   };
   return f[formacao] || f["4-4-2"];
 }
@@ -4168,33 +4220,31 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
 }
 
 function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
-  var html = '<svg viewBox="0 0 360 500" xmlns="http://www.w3.org/2000/svg" class="campo-svg">';
+  var html = '<svg viewBox="0 0 360 520" xmlns="http://www.w3.org/2000/svg" class="campo-svg">';
 
-  // Fundo gramado
-  html += '<rect width="360" height="500" fill="#1a3a1a" rx="8"/>';
-  // Faixas alternadas do gramado
-  for (var fi=0;fi<8;fi++) {
-    if(fi%2===0) html += '<rect x="16" y="'+(16+fi*58.5)+'" width="328" height="58.5" fill="rgba(0,0,0,0.08)"/>';
+  // Fundo gramado com faixas
+  html += '<rect width="360" height="520" fill="#1a3a1a" rx="8"/>';
+  for (var fi=0;fi<9;fi++){
+    if(fi%2===0) html+='<rect x="18" y="'+(18+fi*53.8)+'" width="324" height="53.8" fill="rgba(0,0,0,0.07)"/>';
   }
-  // Borda do campo
-  html += '<rect x="16" y="16" width="328" height="468" fill="none" stroke="#3a7a3a" stroke-width="2" rx="3"/>';
-  // Linha do meio-campo (bem visível)
-  html += '<line x1="16" y1="250" x2="344" y2="250" stroke="#3a7a3a" stroke-width="2"/>';
+  // Borda
+  html += '<rect x="18" y="18" width="324" height="484" fill="none" stroke="#3d8a3d" stroke-width="2" rx="2"/>';
+  // Linha do meio (y=260 = centro do campo)
+  html += '<line x1="18" y1="260" x2="342" y2="260" stroke="#3d8a3d" stroke-width="2.5"/>';
   // Círculo central
-  html += '<circle cx="180" cy="250" r="40" fill="none" stroke="#3a7a3a" stroke-width="1.5"/>';
-  html += '<circle cx="180" cy="250" r="3" fill="#3a7a3a"/>';
-  // Área visitante (cima)
-  html += '<rect x="96" y="16" width="168" height="56" fill="none" stroke="#3a7a3a" stroke-width="1.5"/>';
-  html += '<rect x="132" y="16" width="96" height="24" fill="none" stroke="#3a7a3a" stroke-width="1"/>';
-  // Área mandante (baixo)
-  html += '<rect x="96" y="428" width="168" height="56" fill="none" stroke="#3a7a3a" stroke-width="1.5"/>';
-  html += '<rect x="132" y="460" width="96" height="24" fill="none" stroke="#3a7a3a" stroke-width="1"/>';
-  // Ponto de pênalti
-  html += '<circle cx="180" cy="50" r="2.5" fill="#3a7a3a"/>';
-  html += '<circle cx="180" cy="450" r="2.5" fill="#3a7a3a"/>';
-  // Label metades
-  html += '<text x="340" y="140" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="9" transform="rotate(-90,340,140)">VISITANTE</text>';
-  html += '<text x="340" y="390" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="9" transform="rotate(-90,340,390)">MANDANTE</text>';
+  html += '<circle cx="180" cy="260" r="42" fill="none" stroke="#3d8a3d" stroke-width="1.5"/>';
+  html += '<circle cx="180" cy="260" r="3.5" fill="#3d8a3d"/>';
+  // Área grande visitante (cima)
+  html += '<rect x="90" y="18" width="180" height="60" fill="none" stroke="#3d8a3d" stroke-width="1.5"/>';
+  // Área pequena visitante
+  html += '<rect x="126" y="18" width="108" height="26" fill="none" stroke="#3d8a3d" stroke-width="1"/>';
+  // Área grande mandante (baixo)
+  html += '<rect x="90" y="442" width="180" height="60" fill="none" stroke="#3d8a3d" stroke-width="1.5"/>';
+  // Área pequena mandante
+  html += '<rect x="126" y="476" width="108" height="26" fill="none" stroke="#3d8a3d" stroke-width="1"/>';
+  // Pontos de pênalti
+  html += '<circle cx="180" cy="56" r="2.5" fill="#3d8a3d"/>';
+  html += '<circle cx="180" cy="464" r="2.5" fill="#3d8a3d"/>';
 
   // Renderizar jogadores usando linhas da formação
   function renderJogs(esc, lado, corCirculo, formacao) {
@@ -4210,8 +4260,8 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
       var linhaY = linhas[pos] !== undefined ? linhas[pos] : 0.5;
       jogs.forEach(function(j, idx) {
         var p = posicaoCampo(pos, idx, jogs.length, lado, linhaY);
-        var cx = Math.round(p.x * 360);
-        var cy = Math.round(p.y * 468) + 16;
+        var cx = Math.round(18 + p.x * 324);
+        var cy = Math.round(18 + p.y * 484);
         var fadiga = Math.round(j.fadiga || 0);
         var corFadiga = fadiga >= 75 ? "#e74c3c" : fadiga >= 50 ? "#f1c40f" : "#2ecc71";
         var corFinal = j._substituido ? "#555" : corCirculo;
@@ -4237,8 +4287,8 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   renderJogs(escM, "dir", mandante.cor  || "#e67e22", formM);
 
   // Labels
-  if (tecV) html += '<text x="180" y="12" text-anchor="middle" fill="#9be" font-size="9" font-weight="600">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
-  if (tecM) html += '<text x="180" y="496" text-anchor="middle" fill="#fb9" font-size="9" font-weight="600">' + mandante.sigla + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
+  if (tecV) html += '<text x="180" y="13" text-anchor="middle" fill="#9be" font-size="9" font-weight="600">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
+  if (tecM) html += '<text x="180" y="515" text-anchor="middle" fill="#fb9" font-size="9" font-weight="600">' + mandante.sigla + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
 
   html += '</svg>';
   return html;
@@ -4277,6 +4327,12 @@ function iniciarPartidaAoVivo() {
   var intervalo = totalMs / 90;
   // Paradas: 45, 60, 75
   var paradasFeitas = { 45: false, 60: false, 75: false };
+
+  jogoAtivo.idxLance = 0;
+  jogoAtivo.golsExibidosM = 0;
+  jogoAtivo.golsExibidosV = 0;
+  jogoAtivo.lancesExibidos = [];
+  jogoAtivo.paradasFeitas = { 45:false, 60:false, 75:false };
 
   jogoAtivo.timer = setInterval(function() {
     minAtual++;
@@ -4557,6 +4613,183 @@ function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
   html += '</div>';
 
   document.getElementById("main").innerHTML = html;
+}
+
+// ── Controle de partida ao vivo ──
+var _partidaPausada = false;
+
+function pausarPartida() {
+  if (jogoAtivo && jogoAtivo.timer) {
+    clearInterval(jogoAtivo.timer);
+    jogoAtivo.timer = null;
+    _partidaPausada = true;
+  }
+}
+
+function voltarParaPartida() {
+  if (!jogoAtivo) return;
+  // Remontar a tela de jogo
+  renderTelaJogoAtivo();
+  if (_partidaPausada) {
+    retomarPartidaTimer();
+    _partidaPausada = false;
+  }
+}
+
+function renderTelaJogoAtivo() {
+  // Reconstruir a tela do jogo com estado atual
+  var mandante  = jogoAtivo.mandante;
+  var visitante = jogoAtivo.visitante;
+  var tecM = jogoAtivo.tecMandante;
+  var tecV = jogoAtivo.tecVisitante;
+  var escM = jogoAtivo.escMandante;
+  var escV = jogoAtivo.escVisitante;
+  var rodadaIdx = jogoAtivo.rodadaIdx;
+  var ev = estado.eventos ? estado.eventos[estado.eventoAtual] : null;
+
+  var html = '<div class="jogo-tela">';
+  html += '<div class="jogo-tela-header">';
+  html += '<div class="jogo-tela-rodada">Rodada ' + (rodadaIdx+1) + (ev?' · '+ev.subtitulo:'') + '</div>';
+  html += '<div class="jogo-tela-placar">';
+  html += '<span class="jogo-tela-sigla">' + mandante.sigla + '</span>';
+  html += '<span class="placar-numeros" id="placar-numeros">' + jogoAtivo.golsExibidosM + ' – ' + jogoAtivo.golsExibidosV + '</span>';
+  html += '<span class="jogo-tela-sigla">' + visitante.sigla + '</span>';
+  html += '</div>';
+  html += '<div class="jogo-tela-cronometro" id="cronometro">' + jogoAtivo.minAtual + "'" + '</div>';
+  html += '</div>';
+
+  html += '<div class="jogo-stats-vivos">';
+  html += '<div class="stat-vivo"><span id="sv-chutes-m">' + (jogoAtivo.chutesM||0) + '</span><span>Chutes</span><span id="sv-chutes-v">' + (jogoAtivo.chutesV||0) + '</span></div>';
+  html += '<div class="stat-vivo"><span id="sv-posse-m">50%</span><span>Posse</span><span id="sv-posse-v">50%</span></div>';
+  html += '<div class="stat-vivo"><span id="sv-subs-m">' + (jogoAtivo.subsM||0) + '/5</span><span>Subs</span><span id="sv-subs-v">' + (jogoAtivo.subsV||0) + '/5</span></div>';
+  html += '</div>';
+
+  html += '<div class="jogo-dois-paineis">';
+  html += '<div class="jogo-painel-campo"><div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div></div>';
+  html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
+  html += '<div class="lances-lista" id="lances-lista">';
+  // Relançar lances já exibidos
+  if (jogoAtivo.lancesExibidos && jogoAtivo.lancesExibidos.length > 0) {
+    jogoAtivo.lancesExibidos.forEach(function(lance) {
+      var cls = "lance-item";
+      if (lance.tipo==="gol") cls+=" lance-gol";
+      if (lance.tipo==="substituicao") cls+=" lance-sub";
+      if (lance.tipo==="intervalo") cls+=" lance-intervalo";
+      if (lance.tipo==="fim") cls+=" lance-fim";
+      html += '<div class="' + cls + '"><span class="lance-min">' + lance.minuto + "'</span><span class='lance-texto'>" + lance.texto + '</span></div>';
+    });
+  } else {
+    html += '<div class="lance-vazio">Aguardando lances...</div>';
+  }
+  html += '</div></div></div>';
+  html += '</div>';
+
+  html += '<div class="jogo-acoes" style="gap:10px">';
+  if (_partidaPausada) {
+    html += '<button class="btn-simular-grande" onclick="voltarParaPartida()" style="background:var(--green)">▶ Retomar partida</button>';
+  } else {
+    html += '<button class="btn-simular-grande" disabled style="opacity:.6">⏱ Em andamento...</button>';
+  }
+  html += '</div></div>';
+
+  document.getElementById("main").innerHTML = html;
+  if (!_partidaPausada) retomarPartidaTimer();
+}
+
+function retomarPartidaTimer() {
+  if (!jogoAtivo || jogoAtivo.timer) return;
+  var totalMs = 30000;
+  var minRestante = 90 - jogoAtivo.minAtual;
+  var intervalo = totalMs / 90;
+
+  jogoAtivo.timer = setInterval(function() {
+    jogoAtivo.minAtual++;
+    var minAtual = jogoAtivo.minAtual;
+
+    var cron = document.getElementById("cronometro");
+    if (cron) cron.textContent = minAtual + "'";
+
+    // Fadiga
+    jogoAtivo.escMandante.forEach(function(j){ j.fadiga = Math.min(100,(j.fadiga||0)+(0.4+Math.random()*0.2)/(0.5+(j.overall-60)/80)); });
+    jogoAtivo.escVisitante.forEach(function(j){ j.fadiga = Math.min(100,(j.fadiga||0)+(0.4+Math.random()*0.2)/(0.5+(j.overall-60)/80)); });
+
+    // Paradas do técnico (45, 60, 75)
+    [45,60,75].forEach(function(parada) {
+      if (minAtual===parada && !jogoAtivo.paradasFeitas[parada]) {
+        jogoAtivo.paradasFeitas[parada]=true;
+        var paradaNum = parada===45?1:parada===60?2:3;
+        _processarParada(parada, paradaNum);
+      }
+    });
+
+    // Lances
+    while (jogoAtivo.idxLance < jogoAtivo.lances.length && jogoAtivo.lances[jogoAtivo.idxLance].minuto <= minAtual) {
+      var lance = jogoAtivo.lances[jogoAtivo.idxLance];
+      jogoAtivo.lancesExibidos = jogoAtivo.lancesExibidos || [];
+      jogoAtivo.lancesExibidos.push(lance);
+      adicionarLanceFeed(lance);
+      if (lance.tipo==="gol") {
+        if (lance.time==="mandante") jogoAtivo.golsExibidosM++;
+        else jogoAtivo.golsExibidosV++;
+        var pn=document.getElementById("placar-numeros");
+        if(pn) pn.textContent=jogoAtivo.golsExibidosM+" – "+jogoAtivo.golsExibidosV;
+      }
+      if (lance.tipo==="chute"||lance.tipo==="gol") {
+        if(lance.time==="mandante") jogoAtivo.chutesM=(jogoAtivo.chutesM||0)+1;
+        else jogoAtivo.chutesV=(jogoAtivo.chutesV||0)+1;
+        var sm=document.getElementById("sv-chutes-m"),sv=document.getElementById("sv-chutes-v");
+        if(sm) sm.textContent=jogoAtivo.chutesM; if(sv) sv.textContent=jogoAtivo.chutesV;
+      }
+      jogoAtivo.idxLance++;
+    }
+
+    // Posse
+    var fM=jogoAtivo.resultado.forcaMandante.forca,fV=jogoAtivo.resultado.forcaVisitante.forca;
+    var posseM=Math.max(30,Math.min(70,Math.round(50+(fM-fV)*0.2+(Math.random()*4-2))));
+    var spm=document.getElementById("sv-posse-m"),spv=document.getElementById("sv-posse-v");
+    if(spm) spm.textContent=posseM+"%"; if(spv) spv.textContent=(100-posseM)+"%";
+
+    if(minAtual%10===0){var cw=document.getElementById("campo-wrap");if(cw)cw.innerHTML=renderCampoTatico(jogoAtivo.escMandante,jogoAtivo.escVisitante,jogoAtivo.mandante,jogoAtivo.visitante,jogoAtivo.tecMandante,jogoAtivo.tecVisitante);}
+
+    if (minAtual >= 90) {
+      clearInterval(jogoAtivo.timer);
+      jogoAtivo.timer = null;
+      finalizarPartida();
+    }
+  }, intervalo);
+}
+
+function _processarParada(parada, paradaNum) {
+  var subsM = tecnicoDecideSubstituicoes(jogoAtivo.escMandante,jogoAtivo.reservasMandante,paradaNum,5-jogoAtivo.subsM,3-jogoAtivo.paradasM);
+  if(subsM.length>0){
+    jogoAtivo.paradasM++;
+    subsM.forEach(function(sub){
+      if(jogoAtivo.subsM>=5) return;
+      jogoAtivo.escMandante=aplicarSubstituicao(jogoAtivo.escMandante,sub);
+      jogoAtivo.subsM++;
+      var lance={minuto:parada,tipo:"substituicao",texto:"🔄 "+jogoAtivo.mandante.nome+": entra "+sub.entra.nome+", sai "+sub.sai.nome+" ("+sub.motivo+")"};
+      jogoAtivo.lancesExibidos=jogoAtivo.lancesExibidos||[];
+      jogoAtivo.lancesExibidos.push(lance);
+      adicionarLanceFeed(lance);
+    });
+    var sm=document.getElementById("sv-subs-m"); if(sm) sm.textContent=jogoAtivo.subsM+"/5";
+  }
+  var subsV = tecnicoDecideSubstituicoes(jogoAtivo.escVisitante,jogoAtivo.reservasVisitante,paradaNum,5-jogoAtivo.subsV,3-jogoAtivo.paradasV);
+  if(subsV.length>0){
+    jogoAtivo.paradasV++;
+    subsV.forEach(function(sub){
+      if(jogoAtivo.subsV>=5) return;
+      jogoAtivo.escVisitante=aplicarSubstituicao(jogoAtivo.escVisitante,sub);
+      jogoAtivo.subsV++;
+      var lance={minuto:parada,tipo:"substituicao",texto:"🔄 "+jogoAtivo.visitante.nome+": entra "+sub.entra.nome+", sai "+sub.sai.nome+" ("+sub.motivo+")"};
+      jogoAtivo.lancesExibidos=jogoAtivo.lancesExibidos||[];
+      jogoAtivo.lancesExibidos.push(lance);
+      adicionarLanceFeed(lance);
+    });
+    var sv=document.getElementById("sv-subs-v"); if(sv) sv.textContent=jogoAtivo.subsV+"/5";
+  }
+  var cw=document.getElementById("campo-wrap");
+  if(cw) cw.innerHTML=renderCampoTatico(jogoAtivo.escMandante,jogoAtivo.escVisitante,jogoAtivo.mandante,jogoAtivo.visitante,jogoAtivo.tecMandante,jogoAtivo.tecVisitante);
 }</script>
 <script>// ════════════════════════════════════════
 // SISTEMA FINANCEIRO
@@ -7569,6 +7802,11 @@ function iniciarJogo() {
 }
 
 function navegarPara(aba) {
+  // Se há partida em andamento e tentando sair da tela de jogo, pausar
+  if (jogoAtivo && jogoAtivo.timer && aba !== "jogo") {
+    pausarPartida();
+  }
+
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
@@ -8677,23 +8915,34 @@ function renderTorneiosHub() {
   // Detectar em quais competições meu clube participa
   var competicoes = [];
 
-  // Sempre: Brasileirão / divisão nacional
-  var divisaoNacional = "A";
-  var ehSerieB = estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){return c.id===meuClube.id;});
-  var ehSerieC = estadoDivisoes.c.clubes && estadoDivisoes.c.clubes.find(function(c){return c.id===meuClube.id;});
-  var ehSerieD = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){return c.id===meuClube.id;});
-  if (ehSerieB) divisaoNacional = "B";
-  else if (ehSerieC) divisaoNacional = "C";
-  else if (ehSerieD) divisaoNacional = "D";
-
-  competicoes.push({ k:"brasileirao", label:"🇧🇷 Brasileirão Série "+divisaoNacional, render: renderBrasileirao });
+  // Primeira aba: campeonato principal do clube
+  var div = estado.minhaDivisao || "serieA";
+  var labelPrincipal, renderPrincipal;
+  if (div === "paulista_b1") {
+    labelPrincipal = "🏅 Bezinha"; renderPrincipal = function(){ return renderBezinhaTela(); };
+  } else if (div.indexOf("paulista_") === 0) {
+    var _pd = div.replace("paulista_","").toUpperCase();
+    labelPrincipal = "🏅 Paulistão "+_pd; renderPrincipal = function(){ return renderDivisaoPaulistaTela(div.replace("paulista_","")); };
+  } else {
+    var divisaoNacional = "A";
+    var ehSerieB = estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){return c.id===meuClube.id;});
+    var ehSerieC = estadoDivisoes.c.clubes && estadoDivisoes.c.clubes.find(function(c){return c.id===meuClube.id;});
+    var ehSerieD = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){return c.id===meuClube.id;});
+    if (ehSerieB) divisaoNacional = "B";
+    else if (ehSerieC) divisaoNacional = "C";
+    else if (ehSerieD) divisaoNacional = "D";
+    labelPrincipal = "🇧🇷 Brasileirão Série "+divisaoNacional;
+    renderPrincipal = renderBrasileirao;
+  }
+  competicoes.push({ k:"brasileirao", label: labelPrincipal, render: renderPrincipal });
 
   // Divisões nacionais (tabela geral)
   competicoes.push({ k:"divisoes", label:"📊 Todas as Divisões", render: renderDivisoes });
 
   // Copa do Brasil
   if (estadoTorneios.copaBrasil) {
-    competicoes.push({ k:"copabrasil", label:"🏆 Copa do Brasil", render: renderCopaBrasilHub });
+    var nasCopaBR = estadoTorneios.copaBrasil.participantes.indexOf(meuClube.id) >= 0 && !estadoTorneios.copaBrasil.eliminados.includes(meuClube.id);
+    competicoes.push({ k:"copabrasil", label:"🏆 Copa do Brasil", render: renderCopaBrasilHub, destaque: nasCopaBR });
   }
 
   // Libertadores
@@ -8701,9 +8950,7 @@ function renderTorneiosHub() {
     var estouNaLib = estadoTorneios.libertadores.grupos.some(function(g){
       return g.clubes.indexOf(meuClube.id) >= 0;
     });
-    if (estouNaLib || true) { // sempre mostrar
-      competicoes.push({ k:"libertadores", label:"🌎 Libertadores", render: renderLibertadoresHub });
-    }
+    competicoes.push({ k:"libertadores", label:"🌎 Libertadores", render: renderLibertadoresHub, destaque: estouNaLib });
   }
 
   // Mundial
@@ -8721,10 +8968,10 @@ function renderTorneiosHub() {
   var naBeziha = GRUPOS_BEZINHA.some(function(g){ return g.clubes.find(function(c){return c.id===meuClube.id;}); });
 
   if (minhaDivPaulista) {
-    competicoes.push({ k:"paulistao", label:"🏅 Paulistão "+minhaDivPaulista.toUpperCase(), render: function(){ return renderDivisaoPaulistaTela(minhaDivPaulista); } });
+    competicoes.push({ k:"paulistao", label:"🏅 Paulistão "+minhaDivPaulista.toUpperCase(), render: function(){ return renderDivisaoPaulistaTela(minhaDivPaulista); }, destaque: true });
   }
   if (naBeziha) {
-    competicoes.push({ k:"bezinha", label:"🏅 Bezinha", render: renderBezinhaTela });
+    competicoes.push({ k:"bezinha", label:"🏅 Bezinha", render: renderBezinhaTela, destaque: true });
   }
 
   // Copa Paulista
@@ -8767,6 +9014,15 @@ function mudarTorneioHub(aba) { _torneioHubAba = aba; renderTorneiosHub(); }
 // Wrappers que retornam HTML em vez de fazer innerHTML direto
 function renderBrasileirao() {
   var meuId = estado.meuClube.id;
+  var div = estado.minhaDivisao || "serieA";
+
+  // Times paulistas não jogam Brasileirão — redirecionar para seu torneio
+  if (div.indexOf("paulista") === 0) {
+    var pdiv = div.replace("paulista_","");
+    if (pdiv === "b1") return renderBezinhaTela();
+    return renderDivisaoPaulistaTela(pdiv);
+  }
+
   var ehB = estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){return c.id===meuId;});
   var ehC = estadoDivisoes.c.clubes && estadoDivisoes.c.clubes.find(function(c){return c.id===meuId;});
   var ehD = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){return c.id===meuId;});
@@ -8811,7 +9067,18 @@ function renderBrasileirao() {
     html+='<span class="res-placar" style="color:'+cor+'">'+r.golsMandante+' – '+r.golsVisitante+'</span>';
     html+='<span class="res-time direita">'+v.sigla+'</span></div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+
+  // Artilheiros
+  html += '<div class="div-resultados" style="grid-column:1/-1;margin-top:16px">';
+  html += '<div class="fin-secao-titulo">⚽ Artilheiros</div>';
+  var lancesArt = [];
+  resultados.forEach(function(r){ if(r.eventos) r.eventos.forEach(function(e){ lancesArt.push(e); }); });
+  var artTop = calcularArtilheiros(lancesArt, clubes);
+  html += renderArtilheiros(artTop, "Artilheiros", 8);
+  html += '</div>';
+
+  html += '</div>';
   return html;
 }
 
@@ -8847,6 +9114,65 @@ function voltarAoDashboard() {
   }
   jogoAtivo = null;
   navegarPara("dashboard");
+}
+
+// ════════════════════════════════════════
+// ARTILHEIROS E ASSISTÊNCIAS
+// ════════════════════════════════════════
+function calcularArtilheiros(lances, clubes) {
+  var stats = {}; // { jogadorId: { nome, clube, gols, assists } }
+  
+  lances.forEach(function(l) {
+    if (l.tipo !== "gol") return;
+    
+    // Gol
+    if (l.jogadorId) {
+      if (!stats[l.jogadorId]) {
+        var j = null;
+        clubes.forEach(function(c){ if(c.jogadores) { var jj=c.jogadores.find(function(x){return x.id===l.jogadorId;}); if(jj){j=jj; j._clube=c.nome; j._sigla=c.sigla;} } });
+        if (j) stats[l.jogadorId] = { nome:j.nome, clube:j._clube, sigla:j._sigla||"?", gols:0, assists:0 };
+      }
+      if (stats[l.jogadorId]) stats[l.jogadorId].gols++;
+    }
+    
+    // Assistência
+    if (l.assistenteId) {
+      if (!stats[l.assistenteId]) {
+        var j2 = null;
+        clubes.forEach(function(c){ if(c.jogadores) { var jj=c.jogadores.find(function(x){return x.id===l.assistenteId;}); if(jj){j2=jj; j2._clube=c.nome; j2._sigla=c.sigla;} } });
+        if (j2) stats[l.assistenteId] = { nome:j2.nome, clube:j2._clube, sigla:j2._sigla||"?", gols:0, assists:0 };
+      }
+      if (stats[l.assistenteId]) stats[l.assistenteId].assists++;
+    }
+  });
+  
+  return Object.values(stats).sort(function(a,b){ return (b.gols-a.gols)||(b.assists-a.assists); });
+}
+
+function renderArtilheiros(artilheiros, titulo, max) {
+  var top = artilheiros.slice(0, max||10);
+  if (top.length === 0) return '<div class="dash-empty">Sem dados ainda.</div>';
+  
+  var html = '<div class="artilheiros-lista">';
+  top.forEach(function(a, i) {
+    html += '<div class="artilheiro-item">';
+    html += '<span class="art-pos">'+(i+1)+'</span>';
+    html += '<div class="art-info"><div class="art-nome">'+a.nome+'</div><div class="art-clube">'+a.clube+'</div></div>';
+    html += '<div class="art-stats">';
+    html += '<span class="art-gols">⚽ '+a.gols+'</span>';
+    if (a.assists > 0) html += '<span class="art-assists">🎯 '+a.assists+'</span>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function getLancesResultados(resultados) {
+  var lances = [];
+  resultados.forEach(function(r){
+    if (r.eventos) r.eventos.forEach(function(e){ lances.push(e); });
+  });
+  return lances;
 }</script>
 <script>
 inicializarFinancas();
