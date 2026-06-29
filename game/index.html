@@ -4253,32 +4253,48 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   html += '<circle cx="180" cy="56" r="2.5" fill="#3d8a3d"/>';
   html += '<circle cx="180" cy="464" r="2.5" fill="#3d8a3d"/>';
 
-  // Agrupar jogadores por linha visual conforme formação
-  function agruparPorLinhas(esc, formacao) {
-    // Retorna array de linhas: [{linhaY, jogadores:[]}]
-    var linhas = linhasFormacao(formacao);
-    var grupos = {}; // linhaY -> jogadores
-
-    esc.forEach(function(j) {
-      var ly = linhas[j.posicao] !== undefined ? linhas[j.posicao] : 0.5;
-      // Arredondar para evitar linhas quase iguais
-      var key = Math.round(ly * 100);
-      if (!grupos[key]) grupos[key] = { linhaY: ly, jogadores: [] };
-      grupos[key].jogadores.push(j);
-    });
-
-    return Object.values(grupos).sort(function(a,b){ return a.linhaY - b.linhaY; });
+  // Definir linhas fixas por formação (array de arrays de posições)
+  function linhasFixasPorFormacao(formacao) {
+    var map = {
+      "4-4-2":   [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","VOL","MEI","MEI"],["ATA","ATA"]],
+      "4-3-3":   [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","VOL","MEI"],["ATA","ATA","ATA"]],
+      "4-2-3-1": [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","VOL"],["MEI","MEI","MEI"],["ATA"]],
+      "3-5-2":   [["GOL"],["ZAG","ZAG","ZAG"],["LD","VOL","VOL","LE"],["MEI","MEI"],["ATA","ATA"]],
+      "5-3-2":   [["GOL"],["LD","ZAG","ZAG","ZAG","LE"],["VOL","VOL","MEI"],["ATA","ATA"]]
+    };
+    return map[formacao] || map["4-4-2"];
   }
 
   function renderJogs(esc, lado, corCirculo, formacao) {
-    var linhasVisuais = agruparPorLinhas(esc, formacao);
+    var linhasFixas = linhasFixasPorFormacao(formacao);
+    // yPositions para cada linha dentro da metade (0=fundo, 1=meio)
+    var yPos = [0.05, 0.27, 0.52, 0.75, 0.90];
 
-    linhasVisuais.forEach(function(linha) {
-      var jogs = linha.jogadores;
-      var linhaY = linha.linhaY;
-      var total = jogs.length;
+    // Mapear jogadores por posição
+    var disponiveis = {};
+    esc.forEach(function(j) {
+      if (!disponiveis[j.posicao]) disponiveis[j.posicao] = [];
+      disponiveis[j.posicao].push(j);
+    });
+    // Contadores de uso
+    var usados = {};
 
-      jogs.forEach(function(j, idx) {
+    linhasFixas.forEach(function(linhaPos, linhaIdx) {
+      var linhaY = yPos[linhaIdx] || 0.5;
+      var jogsDaLinha = [];
+
+      linhaPos.forEach(function(pos) {
+        if (!usados[pos]) usados[pos] = 0;
+        var arr = disponiveis[pos] || [];
+        if (usados[pos] < arr.length) {
+          jogsDaLinha.push(arr[usados[pos]]);
+          usados[pos]++;
+        }
+      });
+
+      // Distribuir horizontalmente
+      var total = jogsDaLinha.length;
+      jogsDaLinha.forEach(function(j, idx) {
         var p = posicaoCampo(j.posicao, idx, total, lado, linhaY);
         var cx = Math.round(18 + p.x * 324);
         var cy = Math.round(18 + p.y * 484);
@@ -6354,8 +6370,9 @@ function simularEventoPaulista(rodadaIdx) {
     if(!est.clubes) return;
 
     if(est.faseAtual==="grupos"){
-      // Simular até 2 jogos de grupo por evento
-      var pendentes=est.jogos.filter(function(j){return j.fase==="grupos"&&!j.ok;}).slice(0,2);
+      // Simular jogos de grupo (todos os clubes jogam 1 partida por evento)
+      var numPorEvento = Math.ceil(est.clubes.length / 2); // 1 rodada completa
+      var pendentes=est.jogos.filter(function(j){return j.fase==="grupos"&&!j.ok;}).slice(0, numPorEvento);
       pendentes.forEach(function(jogo){
         var r=simularJPaulista(jogo.mId,jogo.vId,est.clubes);
         jogo.gM=r.gM; jogo.gV=r.gV; jogo.ok=true;
@@ -6380,13 +6397,14 @@ function simularEventoPaulista(rodadaIdx) {
     }
   });
 
-  // Bezinha
+  // Bezinha — simular 1 jogo por grupo por evento (mantém ritmo)
   if(estadoPaulista.b1.faseAtual==="grupos"){
+    var todosB1=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
     GRUPOS_BEZINHA.forEach(function(g){
+      // Simular 1 jogo pendente por grupo por evento
       var pend=estadoPaulista.b1.jogos.find(function(j){return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;});
       if(pend){
-        var todos=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
-        var r=simularJPaulista(pend.mId,pend.vId,todos);
+        var r=simularJPaulista(pend.mId,pend.vId,todosB1);
         pend.gM=r.gM; pend.gV=r.gV; pend.ok=true;
       }
     });
