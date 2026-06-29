@@ -4681,6 +4681,45 @@ function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
   });
 
   html += '</div>';
+  // Resultados da rodada do meu torneio
+  html += '<div class="notas-titulo" style="margin-top:20px">📋 Outros resultados da rodada</div>';
+  html += '<div class="resultado-outros">';
+  var div = estado.minhaDivisao || "serieA";
+  var outrosResultados = [];
+  if (div.indexOf("paulista") === 0) {
+    var pdiv = div.replace("paulista_","");
+    var est2 = pdiv==="b1" ? estadoPaulista.b1 : estadoPaulista[pdiv];
+    if (est2) {
+      var todos2 = pdiv==="b1"
+        ? GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, [])
+        : est2.clubes || [];
+      var ultJogos = est2.jogos.filter(function(j){return j.ok;}).slice(-8);
+      ultJogos.forEach(function(j) {
+        var m2=todos2.find(function(c){return c.id===j.mId;})||{sigla:"?"};
+        var v2=todos2.find(function(c){return c.id===j.vId;})||{sigla:"?"};
+        var ehMeu2=j.mId===meuId||j.vId===meuId;
+        if (!ehMeu2) {
+          html+='<div class="resultado-item"><span class="res-time">'+m2.sigla+'</span>';
+          html+='<span class="res-placar">'+j.gM+' – '+j.gV+'</span>';
+          html+='<span class="res-time direita">'+v2.sigla+'</span></div>';
+        }
+      });
+    }
+  } else {
+    // Nacional: últimos resultados da rodada
+    var ult8 = estado.resultados.slice(-8);
+    ult8.forEach(function(r) {
+      var m3=buscarClubePorId(r.mandanteId)||{sigla:"?"};
+      var v3=buscarClubePorId(r.visitanteId)||{sigla:"?"};
+      if (r.mandanteId!==meuId&&r.visitanteId!==meuId) {
+        html+='<div class="resultado-item"><span class="res-time">'+m3.sigla+'</span>';
+        html+='<span class="res-placar">'+r.golsMandante+' – '+r.golsVisitante+'</span>';
+        html+='<span class="res-time direita">'+v3.sigla+'</span></div>';
+      }
+    });
+  }
+  html += '</div>';
+
   html += '<div class="jogo-acoes" style="margin-top:20px">';
   html += '<button class="btn-primario" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
   html += '</div>';
@@ -6435,43 +6474,14 @@ function simularEventoPaulista(rodadaIdx) {
     }
   });
 
-  // Bezinha — simular 1 RODADA COMPLETA por evento
-  // (todos os grupos avançam juntos, cada time joga 1 jogo por evento)
+  // Bezinha — simular exatamente 1 jogo por grupo por evento
+  // Cada grupo avança 1 jogo por vez = todos sincronizados
   if(estadoPaulista.b1.faseAtual==="grupos"){
     var todosB1=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
     GRUPOS_BEZINHA.forEach(function(g){
-      // Simular jogos suficientes para que todos do grupo tenham o mesmo nº de jogos
-      var jogosGrupo = estadoPaulista.b1.jogos.filter(function(j){return j.grupo===g.letra&&j.fase==="grupos";});
-      // Calcular jogos já feitos por clube
-      var jogosPorClube = {};
-      g.clubes.forEach(function(c){ jogosPorClube[c.id]=0; });
-      jogosGrupo.filter(function(j){return j.ok;}).forEach(function(j){
-        jogosPorClube[j.mId]=(jogosPorClube[j.mId]||0)+1;
-        jogosPorClube[j.vId]=(jogosPorClube[j.vId]||0)+1;
+      var pend=estadoPaulista.b1.jogos.find(function(j){
+        return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;
       });
-      var minJogos = Math.min.apply(null, Object.values(jogosPorClube));
-      var maxJogos = Math.max.apply(null, Object.values(jogosPorClube));
-
-      // Simular jogos até todos terem mesmo número
-      var tentativas = 0;
-      while(maxJogos > minJogos && tentativas < 10) {
-        // Achar clube com menos jogos e simular o próximo jogo dele
-        var clubeMenos = Object.keys(jogosPorClube).find(function(id){ return jogosPorClube[id]===minJogos; });
-        var jogo = jogosGrupo.find(function(j){
-          return !j.ok && (j.mId===clubeMenos||j.vId===clubeMenos);
-        });
-        if (!jogo) break;
-        var r=simularJPaulista(jogo.mId,jogo.vId,todosB1);
-        jogo.gM=r.gM; jogo.gV=r.gV; jogo.ok=true;
-        jogosPorClube[jogo.mId]=(jogosPorClube[jogo.mId]||0)+1;
-        jogosPorClube[jogo.vId]=(jogosPorClube[jogo.vId]||0)+1;
-        minJogos = Math.min.apply(null, Object.values(jogosPorClube));
-        maxJogos = Math.max.apply(null, Object.values(jogosPorClube));
-        tentativas++;
-      }
-
-      // Simular mais 1 jogo para avançar o torneio
-      var pend=estadoPaulista.b1.jogos.find(function(j){return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;});
       if(pend){
         var r=simularJPaulista(pend.mId,pend.vId,todosB1);
         pend.gM=r.gM; pend.gV=r.gV; pend.ok=true;
@@ -9077,7 +9087,8 @@ function renderTorneiosHub() {
   if (minhaDivPaulista) {
     competicoes.push({ k:"paulistao", label:"🏅 Paulistão "+minhaDivPaulista.toUpperCase(), render: function(){ return renderDivisaoPaulistaTela(minhaDivPaulista); }, destaque: true });
   }
-  if (naBeziha) {
+  if (naBeziha && div !== "paulista_b1") {
+    // Só adicionar se não é a aba principal (já foi adicionada como primeira aba)
     competicoes.push({ k:"bezinha", label:"🏅 Bezinha", render: renderBezinhaTela, destaque: true });
   }
 
