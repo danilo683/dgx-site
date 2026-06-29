@@ -4361,12 +4361,19 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
 
   // Definir linhas fixas por formação (array de arrays de posições)
   function linhasFixasPorFormacao(formacao) {
+    // Cada linha = posições que ficam JUNTAS horizontalmente
+    // Ordem das linhas: do fundo (goleiro) até o meio-campo
     var map = {
-      "4-4-2":   [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","VOL","MEI","MEI"],["ATA","ATA"]],
-      "4-3-3":   [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","VOL","MEI"],["ATA","ATA","ATA"]],
+      // 4-4-2: GOL / 4 def / 2vol+2mei / 2ata
+      "4-4-2":   [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","MEI","MEI","VOL"],["ATA","ATA"]],
+      // 4-3-3: GOL / 4 def / 3 meios (vol+vol+mei) / 3 ata
+      "4-3-3":   [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","MEI","VOL"],["ATA","ATA","ATA"]],
+      // 4-2-3-1: GOL / 4 def / 2 vol centrais / 3 mei / 1 ata
       "4-2-3-1": [["GOL"],["LD","ZAG","ZAG","LE"],["VOL","VOL"],["MEI","MEI","MEI"],["ATA"]],
-      "3-5-2":   [["GOL"],["ZAG","ZAG","ZAG"],["LD","VOL","VOL","LE"],["MEI","MEI"],["ATA","ATA"]],
-      "5-3-2":   [["GOL"],["LD","ZAG","ZAG","ZAG","LE"],["VOL","VOL","MEI"],["ATA","ATA"]]
+      // 3-5-2: GOL / 3 zag / ld+vol+mei+vol+le / 2 ata
+      "3-5-2":   [["GOL"],["ZAG","ZAG","ZAG"],["LD","VOL","MEI","VOL","LE"],["ATA","ATA"]],
+      // 5-3-2: GOL / 5 def / vol+mei+vol / 2 ata
+      "5-3-2":   [["GOL"],["LD","ZAG","ZAG","ZAG","LE"],["VOL","MEI","VOL"],["ATA","ATA"]]
     };
     return map[formacao] || map["4-4-2"];
   }
@@ -8023,13 +8030,13 @@ var elencoOrdem = { col: 'posicao', asc: true };
 
 // Cores de fundo por posição (rgba para não sobrescrever hover)
 var COR_LINHA_POS = {
-  GOL: 'rgba(139,92,246,0.12)',   // roxo
-  LD:  'rgba(74,222,128,0.10)',   // verde claro
-  LE:  'rgba(74,222,128,0.10)',
-  ZAG: 'rgba(34,197,94,0.15)',    // verde mais forte
-  VOL: 'rgba(253,224,71,0.10)',   // amarelo claro
-  MEI: 'rgba(234,179,8,0.14)',    // amarelo escuro
-  ATA: 'rgba(239,68,68,0.12)'    // vermelho
+  GOL: 'rgba(139,92,246,0.25)',   // roxo
+  LD:  'rgba(74,222,128,0.18)',   // verde claro
+  LE:  'rgba(74,222,128,0.18)',
+  ZAG: 'rgba(34,197,94,0.25)',    // verde forte
+  VOL: 'rgba(253,224,71,0.20)',   // amarelo claro
+  MEI: 'rgba(234,179,8,0.25)',    // amarelo escuro
+  ATA: 'rgba(239,68,68,0.22)'    // vermelho
 };
 
 var COR_BORDA_POS = {
@@ -9154,7 +9161,10 @@ function renderTorneiosHub() {
   var meuClube = estado.meuClube;
   var meuId    = meuClube.id;
   var div      = estado.minhaDivisao || "serieA";
-  var aba      = _torneioHubAba || "nacional";
+  // Reset se aba antiga não existe mais
+  var abasValidas = ["nacional","internacional","estadual"];
+  if (!_torneioHubAba || abasValidas.indexOf(_torneioHubAba) < 0) _torneioHubAba = "nacional";
+  var aba      = _torneioHubAba;
 
   // Detectar divisão principal do clube
   var labelPrincipal, renderPrincipal;
