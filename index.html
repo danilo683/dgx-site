@@ -2193,7 +2193,25 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 }
 .bezinha-tabela tbody tr:last-child td { border-bottom: none; }
 .bezinha-tabela tbody tr:hover { background: var(--bg3); }
-.bezinha-tabela tbody tr.mini-tab-eu { background: rgba(79,142,247,.08); }</style>
+.bezinha-tabela tbody tr.mini-tab-eu { background: rgba(79,142,247,.08); }
+
+/* ── Rodada resultados (pós-jogo) ── */
+.rodada-resultados { display:flex;flex-direction:column;gap:4px;margin-top:8px; }
+.rodada-jogo {
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;font-size:12px;
+}
+.rodada-jogo.resultado-meu { border-color:var(--accent);background:rgba(79,142,247,.08); }
+.rj-time { flex:1;display:flex;align-items:center;gap:6px;color:var(--text2); }
+.rj-time.direita { justify-content:flex-end; }
+.rj-placar { font-size:14px;font-weight:700;min-width:48px;text-align:center; }
+
+/* ── Adversário nos próximos eventos ── */
+.evento-adv {
+  font-size:11px;color:var(--accent);margin-top:3px;
+  display:flex;align-items:center;gap:5px;
+}</style>
 </head>
 <body>
 <div id="app">
@@ -4306,7 +4324,18 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   function renderJogs(esc, lado, corCirculo, formacao) {
     var linhasFixas = linhasFixasPorFormacao(formacao);
     // yPositions para cada linha dentro da metade (0=fundo, 1=meio)
-    var yPos = [0.05, 0.27, 0.52, 0.75, 0.90];
+    // yPos: posição de cada linha dentro da metade (0=fundo, 1=meio-campo)
+    // Calculado dinamicamente com base no número de linhas da formação
+    var nLinhas = linhasFixas.length;
+    var yPos = [];
+    var starts = { 1:0.05, 2:0.05, 3:0.05, 4:0.05, 5:0.04 };
+    var ends   = { 1:0.05, 2:0.88, 3:0.88, 4:0.90, 5:0.92 };
+    var start = starts[nLinhas] || 0.05;
+    var end   = ends[nLinhas]   || 0.90;
+    for (var li=0; li<nLinhas; li++) {
+      if (nLinhas === 1) { yPos.push(0.05); }
+      else { yPos.push(start + li * (end-start)/(nLinhas-1)); }
+    }
 
     // Mapear jogadores por posição
     var disponiveis = {};
@@ -4682,10 +4711,9 @@ function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
 
   html += '</div>';
   // Resultados da rodada do meu torneio
-  html += '<div class="notas-titulo" style="margin-top:20px">📋 Outros resultados da rodada</div>';
-  html += '<div class="resultado-outros">';
+  html += '<div class="notas-titulo" style="margin-top:20px">📋 Rodada — Todos os resultados</div>';
+  html += '<div class="rodada-resultados">';
   var div = estado.minhaDivisao || "serieA";
-  var outrosResultados = [];
   if (div.indexOf("paulista") === 0) {
     var pdiv = div.replace("paulista_","");
     var est2 = pdiv==="b1" ? estadoPaulista.b1 : estadoPaulista[pdiv];
@@ -4693,29 +4721,34 @@ function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
       var todos2 = pdiv==="b1"
         ? GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, [])
         : est2.clubes || [];
-      var ultJogos = est2.jogos.filter(function(j){return j.ok;}).slice(-8);
+      // Últimos jogos simulados (da rodada atual)
+      var ultJogos = est2.jogos.filter(function(j){return j.ok;}).slice(-12);
       ultJogos.forEach(function(j) {
-        var m2=todos2.find(function(c){return c.id===j.mId;})||{sigla:"?"};
-        var v2=todos2.find(function(c){return c.id===j.vId;})||{sigla:"?"};
+        var m2=todos2.find(function(c){return c.id===j.mId;})||{nome:"?",cor:"#555",sigla:"?"};
+        var v2=todos2.find(function(c){return c.id===j.vId;})||{nome:"?",cor:"#555",sigla:"?"};
         var ehMeu2=j.mId===meuId||j.vId===meuId;
-        if (!ehMeu2) {
-          html+='<div class="resultado-item"><span class="res-time">'+m2.sigla+'</span>';
-          html+='<span class="res-placar">'+j.gM+' – '+j.gV+'</span>';
-          html+='<span class="res-time direita">'+v2.sigla+'</span></div>';
-        }
+        var cls = ehMeu2 ? " resultado-meu" : "";
+        html+='<div class="rodada-jogo'+cls+'">';
+        html+='<span class="rj-time"><span class="escudo-mini" style="background:'+(m2.cor||"#555")+'">'+m2.sigla+'</span>'+m2.nome+'</span>';
+        var corP=j.gM>j.gV?"var(--green)":j.gM<j.gV?"var(--red)":"var(--yellow)";
+        html+='<span class="rj-placar" style="color:'+corP+'">'+j.gM+' – '+j.gV+'</span>';
+        html+='<span class="rj-time direita">'+v2.nome+'<span class="escudo-mini" style="background:'+(v2.cor||"#555")+'">'+v2.sigla+'</span></span>';
+        html+='</div>';
       });
     }
   } else {
-    // Nacional: últimos resultados da rodada
-    var ult8 = estado.resultados.slice(-8);
+    var ult8 = estado.resultados.slice(-10);
     ult8.forEach(function(r) {
-      var m3=buscarClubePorId(r.mandanteId)||{sigla:"?"};
-      var v3=buscarClubePorId(r.visitanteId)||{sigla:"?"};
-      if (r.mandanteId!==meuId&&r.visitanteId!==meuId) {
-        html+='<div class="resultado-item"><span class="res-time">'+m3.sigla+'</span>';
-        html+='<span class="res-placar">'+r.golsMandante+' – '+r.golsVisitante+'</span>';
-        html+='<span class="res-time direita">'+v3.sigla+'</span></div>';
-      }
+      var m3=buscarClubePorId(r.mandanteId)||{nome:"?",cor:"#555",sigla:"?"};
+      var v3=buscarClubePorId(r.visitanteId)||{nome:"?",cor:"#555",sigla:"?"};
+      var ehMeu3=r.mandanteId===meuId||r.visitanteId===meuId;
+      var cls3=ehMeu3?" resultado-meu":"";
+      var corP=r.golsMandante>r.golsVisitante?"var(--green)":r.golsMandante<r.golsVisitante?"var(--red)":"var(--yellow)";
+      html+='<div class="rodada-jogo'+cls3+'">';
+      html+='<span class="rj-time"><span class="escudo-mini" style="background:'+(m3.cor||"#555")+'">'+m3.sigla+'</span>'+m3.nome+'</span>';
+      html+='<span class="rj-placar" style="color:'+corP+'">'+r.golsMandante+' – '+r.golsVisitante+'</span>';
+      html+='<span class="rj-time direita">'+v3.nome+'<span class="escudo-mini" style="background:'+(v3.cor||"#555")+'">'+v3.sigla+'</span></span>';
+      html+='</div>';
     });
   }
   html += '</div>';
@@ -6786,7 +6819,9 @@ function renderDivisaoPaulistaTela(div) {
     html+='<div class="torneio-campeao" style="font-size:14px;margin-bottom:10px">🏅 Campeão: '+(camp?camp.nome:"?")+'</div>';
   }
   html+='<div class="fin-secao-titulo">'+nomes[div]+' — '+(est.faseAtual==="grupos"?"Fase de Grupos":"Mata-mata")+'</div>';
-  html+='<table class="elenco-tabela"><thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th></tr></thead><tbody>';
+  html+='<table class="elenco-tabela"><thead><tr>';
+  html+='<th style="width:28px">#</th><th>Clube</th><th>Pontos</th><th>Jogos</th><th>Vitórias</th><th>Empates</th><th>Derrotas</th><th>Gols Pró</th><th>Gols Contra</th><th>Saldo</th>';
+  html+='</tr></thead><tbody>';
   ranked.forEach(function(id,i){
     var t=pts[id]||{p:0,j:0,v:0,e:0,d:0,gp:0,gc:0};
     var c=est.clubes.find(function(x){return x.id===id;});
@@ -7919,11 +7954,13 @@ function iniciarJogo() {
 }
 
 function navegarPara(aba) {
-  // Se há partida em andamento e tentando sair da tela de jogo, pausar
-  if (jogoAtivo && jogoAtivo.timer && aba !== "jogo") {
+  // Se há partida em andamento (timer rodando), pausar ao sair
+  if (jogoAtivo && jogoAtivo.timer) {
     pausarPartida();
   }
 
+  // Se há partida pausada e não está indo pro dashboard, mostrar aviso
+  // e ir mesmo assim (já está pausada)
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
