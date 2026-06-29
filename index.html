@@ -8933,20 +8933,9 @@ function abrirAcoesJogador(jogadorId) {
   document.body.appendChild(overlay);
 }
 
-function confirmarVenda(jogadorId) {
-  var preco = parseInt(document.getElementById("inp-preco-venda").value);
-  if (!preco || preco <= 0) { alert("Digite um preço válido."); return; }
-  colocarAVenda(jogadorId, preco);
-  document.querySelector(".modal-overlay").remove();
-  renderElenco();
-}
 
-function confirmarEmprestimo(jogadorId) {
-  var rodadas = parseInt(document.getElementById("inp-emprestimo-rodadas").value);
-  colocarParaEmprestimo(jogadorId, rodadas);
-  document.querySelector(".modal-overlay").remove();
-  renderElenco();
-}
+
+
 
 function confirmarDispensa(jogadorId, acordoMutuo) {
   var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
