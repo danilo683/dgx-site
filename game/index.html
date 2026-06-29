@@ -2155,7 +2155,45 @@ main { flex: 1; padding: 24px; max-width: 860px; width: 100%; }
 .hub-tab.meu-torneio.ativo {
   background: var(--yellow) !important;
   color: #1a1a1a !important;
-}</style>
+}
+
+/* ── Bezinha grupos ── */
+.bezinha-grupo {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.bezinha-grupo-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.bezinha-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.bezinha-tabela thead th {
+  padding: 5px 8px;
+  text-align: left;
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.bezinha-tabela tbody td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.bezinha-tabela tbody tr:last-child td { border-bottom: none; }
+.bezinha-tabela tbody tr:hover { background: var(--bg3); }
+.bezinha-tabela tbody tr.mini-tab-eu { background: rgba(79,142,247,.08); }</style>
 </head>
 <body>
 <div id="app">
@@ -6397,11 +6435,42 @@ function simularEventoPaulista(rodadaIdx) {
     }
   });
 
-  // Bezinha — simular 1 jogo por grupo por evento (mantém ritmo)
+  // Bezinha — simular 1 RODADA COMPLETA por evento
+  // (todos os grupos avançam juntos, cada time joga 1 jogo por evento)
   if(estadoPaulista.b1.faseAtual==="grupos"){
     var todosB1=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
     GRUPOS_BEZINHA.forEach(function(g){
-      // Simular 1 jogo pendente por grupo por evento
+      // Simular jogos suficientes para que todos do grupo tenham o mesmo nº de jogos
+      var jogosGrupo = estadoPaulista.b1.jogos.filter(function(j){return j.grupo===g.letra&&j.fase==="grupos";});
+      // Calcular jogos já feitos por clube
+      var jogosPorClube = {};
+      g.clubes.forEach(function(c){ jogosPorClube[c.id]=0; });
+      jogosGrupo.filter(function(j){return j.ok;}).forEach(function(j){
+        jogosPorClube[j.mId]=(jogosPorClube[j.mId]||0)+1;
+        jogosPorClube[j.vId]=(jogosPorClube[j.vId]||0)+1;
+      });
+      var minJogos = Math.min.apply(null, Object.values(jogosPorClube));
+      var maxJogos = Math.max.apply(null, Object.values(jogosPorClube));
+
+      // Simular jogos até todos terem mesmo número
+      var tentativas = 0;
+      while(maxJogos > minJogos && tentativas < 10) {
+        // Achar clube com menos jogos e simular o próximo jogo dele
+        var clubeMenos = Object.keys(jogosPorClube).find(function(id){ return jogosPorClube[id]===minJogos; });
+        var jogo = jogosGrupo.find(function(j){
+          return !j.ok && (j.mId===clubeMenos||j.vId===clubeMenos);
+        });
+        if (!jogo) break;
+        var r=simularJPaulista(jogo.mId,jogo.vId,todosB1);
+        jogo.gM=r.gM; jogo.gV=r.gV; jogo.ok=true;
+        jogosPorClube[jogo.mId]=(jogosPorClube[jogo.mId]||0)+1;
+        jogosPorClube[jogo.vId]=(jogosPorClube[jogo.vId]||0)+1;
+        minJogos = Math.min.apply(null, Object.values(jogosPorClube));
+        maxJogos = Math.max.apply(null, Object.values(jogosPorClube));
+        tentativas++;
+      }
+
+      // Simular mais 1 jogo para avançar o torneio
       var pend=estadoPaulista.b1.jogos.find(function(j){return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;});
       if(pend){
         var r=simularJPaulista(pend.mId,pend.vId,todosB1);
