@@ -3863,12 +3863,19 @@ function posicaoCampo(posicao, idx, total, lado, linhaY) {
 // linhaY: 0 = linha de fundo do próprio time, 1 = linha do meio-campo
 // Cada posição ocupa SUA linha — posições iguais ficam na mesma linha horizontal
 function linhasFormacao(formacao) {
+  // Cada valor é linhaY dentro da metade do time (0=fundo, 1=meio-campo)
+  // Posições com MESMO valor ficam na MESMA linha horizontal
   var f = {
-    "4-4-2":   { GOL:0.04, ZAG:0.24, LD:0.24, LE:0.24, VOL:0.52, MEI:0.52, ATA:0.82 },
-    "4-3-3":   { GOL:0.04, ZAG:0.24, LD:0.24, LE:0.24, VOL:0.52, MEI:0.76, ATA:0.92 },
-    "4-2-3-1": { GOL:0.04, ZAG:0.24, LD:0.24, LE:0.24, VOL:0.44, MEI:0.68, ATA:0.90 },
-    "3-5-2":   { GOL:0.04, ZAG:0.24, LD:0.52, LE:0.52, VOL:0.52, MEI:0.74, ATA:0.90 },
-    "5-3-2":   { GOL:0.04, ZAG:0.22, LD:0.22, LE:0.22, VOL:0.52, MEI:0.74, ATA:0.92 }
+    //         GOL   LD    ZAG   LE    VOL   MEI   ATA
+    "4-4-2":  { GOL:0.05, LD:0.25, ZAG:0.25, LE:0.25, VOL:0.55, MEI:0.55, ATA:0.85 },
+    // 4-3-3: defesa(4) + meio(3 todos na mesma linha) + ataque(3)
+    "4-3-3":  { GOL:0.05, LD:0.25, ZAG:0.25, LE:0.25, VOL:0.58, MEI:0.58, ATA:0.88 },
+    // 4-2-3-1: 4 def + 2 vol + 3 mei + 1 ata
+    "4-2-3-1":{ GOL:0.05, LD:0.25, ZAG:0.25, LE:0.25, VOL:0.45, MEI:0.68, ATA:0.90 },
+    // 3-5-2: 3 zag + ld+vol+vol+le na mesma linha + 2 mei + 2 ata
+    "3-5-2":  { GOL:0.05, ZAG:0.25, LD:0.55, VOL:0.55, LE:0.55, MEI:0.75, ATA:0.90 },
+    // 5-3-2: 5 def + 3 mei(VOL+MEI) + 2 ata
+    "5-3-2":  { GOL:0.05, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.58, MEI:0.58, ATA:0.88 }
   };
   return f[formacao] || f["4-4-2"];
 }
@@ -4246,20 +4253,33 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   html += '<circle cx="180" cy="56" r="2.5" fill="#3d8a3d"/>';
   html += '<circle cx="180" cy="464" r="2.5" fill="#3d8a3d"/>';
 
-  // Renderizar jogadores usando linhas da formação
-  function renderJogs(esc, lado, corCirculo, formacao) {
+  // Agrupar jogadores por linha visual conforme formação
+  function agruparPorLinhas(esc, formacao) {
+    // Retorna array de linhas: [{linhaY, jogadores:[]}]
     var linhas = linhasFormacao(formacao);
-    var porPos = {};
+    var grupos = {}; // linhaY -> jogadores
+
     esc.forEach(function(j) {
-      if (!porPos[j.posicao]) porPos[j.posicao] = [];
-      porPos[j.posicao].push(j);
+      var ly = linhas[j.posicao] !== undefined ? linhas[j.posicao] : 0.5;
+      // Arredondar para evitar linhas quase iguais
+      var key = Math.round(ly * 100);
+      if (!grupos[key]) grupos[key] = { linhaY: ly, jogadores: [] };
+      grupos[key].jogadores.push(j);
     });
 
-    Object.entries(porPos).forEach(function(entry) {
-      var pos = entry[0], jogs = entry[1];
-      var linhaY = linhas[pos] !== undefined ? linhas[pos] : 0.5;
+    return Object.values(grupos).sort(function(a,b){ return a.linhaY - b.linhaY; });
+  }
+
+  function renderJogs(esc, lado, corCirculo, formacao) {
+    var linhasVisuais = agruparPorLinhas(esc, formacao);
+
+    linhasVisuais.forEach(function(linha) {
+      var jogs = linha.jogadores;
+      var linhaY = linha.linhaY;
+      var total = jogs.length;
+
       jogs.forEach(function(j, idx) {
-        var p = posicaoCampo(pos, idx, jogs.length, lado, linhaY);
+        var p = posicaoCampo(j.posicao, idx, total, lado, linhaY);
         var cx = Math.round(18 + p.x * 324);
         var cy = Math.round(18 + p.y * 484);
         var fadiga = Math.round(j.fadiga || 0);
