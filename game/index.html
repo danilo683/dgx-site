@@ -3780,46 +3780,45 @@ function escalarTime(clube, tecnico) {
 }
 
 // Posições no campo (0-1 relativo, por posição e índice)
-function posicaoCampo(posicao, idx, total, lado) {
-  // Cada time ocupa sua metade do campo:
-  // Mandante (lado "dir") = metade de BAIXO (y de 0.52 a 0.97)
-  // Visitante (lado "esq") = metade de CIMA  (y de 0.03 a 0.48)
+// Posicionar jogador no campo
+// Recebe: posicao, idx (índice na linha), total (qtd na mesma linha), lado, linhaY (0-1 relativo à metade)
+function posicaoCampo(posicao, idx, total, lado, linhaY) {
 
-  // Posições relativas dentro da própria metade (0 = linha de fundo, 1 = meio-campo)
-  var linhasPropria = {
-    GOL: 0.05,   // goleiro perto do fundo
-    LD:  0.22, LE: 0.22, ZAG: 0.22,  // defesa
-    VOL: 0.42,                          // volantes
-    MEI: 0.60,                          // meias
-    ATA: 0.80                           // atacantes perto do meio
-  };
-
-  var rel = linhasPropria[posicao] !== undefined ? linhasPropria[posicao] : 0.4;
+  // linhaY: posição relativa DENTRO da metade do time (0=fundo, 1=meio-campo)
+  // Cada formação define isso via renderCampoTatico
 
   var y;
   if (lado === "dir") {
-    // Mandante: metade baixa — fundo em 0.97, meio-campo em 0.52
-    y = 0.97 - rel * 0.45;
+    // Mandante: metade baixa (y 0.53 → 0.97)
+    y = 0.97 - (linhaY || 0.1) * 0.44;
   } else {
-    // Visitante: metade alta — fundo em 0.03, meio-campo em 0.48
-    y = 0.03 + rel * 0.45;
+    // Visitante: metade alta (y 0.03 → 0.47)
+    y = 0.03 + (linhaY || 0.1) * 0.44;
   }
 
-  // Distribuir horizontalmente com margem nas bordas
+  // Distribuição horizontal uniforme com margem
+  var margem = 0.10;
   var x;
   if (total === 1) {
-    x = 0.5;
-  } else if (total === 2) {
-    x = idx === 0 ? 0.30 : 0.70;
-  } else if (total === 3) {
-    x = 0.20 + idx * 0.30;
-  } else if (total === 4) {
-    x = 0.15 + idx * 0.233;
+    x = 0.50;
   } else {
-    x = 0.12 + (idx / (total - 1)) * 0.76;
+    x = margem + idx * ((1 - 2*margem) / (total - 1));
   }
 
   return { x: x, y: y };
+}
+
+// Retorna as linhas de uma formação: { posicao: linhaY }
+// linhaY: 0=fundo, 1=meio-campo
+function linhasFormacao(formacao) {
+  var f = {
+    "4-4-2":   { GOL:0.04, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.50, MEI:0.50, ATA:0.82 },
+    "4-3-3":   { GOL:0.04, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.48, MEI:0.72, ATA:0.92 },
+    "4-2-3-1": { GOL:0.04, LD:0.22, ZAG:0.22, LE:0.22, VOL:0.42, MEI:0.65, ATA:0.90 },
+    "3-5-2":   { GOL:0.04, ZAG:0.22, LD:0.42, VOL:0.42, LE:0.42, MEI:0.68, ATA:0.90 },
+    "5-3-2":   { GOL:0.04, LD:0.18, ZAG:0.18, LE:0.18, VOL:0.48, MEI:0.72, ATA:0.92 }
+  };
+  return f[formacao] || f["4-4-2"];
 }
 
 // Gerar lances da partida (retorna array ordenado por minuto)
@@ -4197,33 +4196,32 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   html += '<text x="340" y="140" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="9" transform="rotate(-90,340,140)">VISITANTE</text>';
   html += '<text x="340" y="390" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="9" transform="rotate(-90,340,390)">MANDANTE</text>';
 
-  // Agrupar por posição
-  function renderJogs(esc, lado, corCirculo) {
+  // Renderizar jogadores usando linhas da formação
+  function renderJogs(esc, lado, corCirculo, formacao) {
+    var linhas = linhasFormacao(formacao);
     var porPos = {};
     esc.forEach(function(j) {
       if (!porPos[j.posicao]) porPos[j.posicao] = [];
       porPos[j.posicao].push(j);
     });
+
     Object.entries(porPos).forEach(function(entry) {
       var pos = entry[0], jogs = entry[1];
+      var linhaY = linhas[pos] !== undefined ? linhas[pos] : 0.5;
       jogs.forEach(function(j, idx) {
-        var p = posicaoCampo(pos, idx, jogs.length, lado);
+        var p = posicaoCampo(pos, idx, jogs.length, lado, linhaY);
         var cx = Math.round(p.x * 360);
         var cy = Math.round(p.y * 468) + 16;
         var fadiga = Math.round(j.fadiga || 0);
         var corFadiga = fadiga >= 75 ? "#e74c3c" : fadiga >= 50 ? "#f1c40f" : "#2ecc71";
-        var corCirculoFinal = j._substituido ? "#555" : corCirculo;
+        var corFinal = j._substituido ? "#555" : corCirculo;
 
-        // Círculo jogador
-        html += '<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="' + corCirculoFinal + '" stroke="#fff" stroke-width="1.2" opacity="0.92"/>';
-        // Overall efetivo
+        html += '<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="' + corFinal + '" stroke="#fff" stroke-width="1.5" opacity="0.95"/>';
         var ovEf = Math.round(overallEfetivo(j));
         html += '<text x="' + cx + '" y="' + (cy+4) + '" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">' + ovEf + '</text>';
-        // Nome
         var nome = j.nome.split(" ")[0];
-        if (nome.length > 7) nome = nome.substring(0,6)+".";
-        html += '<text x="' + cx + '" y="' + (cy+22) + '" text-anchor="middle" fill="#ddd" font-size="7.5">' + nome + '</text>';
-        // Barra de fadiga (pequena, abaixo do nome)
+        if (nome.length > 8) nome = nome.substring(0,7)+".";
+        html += '<text x="' + cx + '" y="' + (cy+22) + '" text-anchor="middle" fill="#eee" font-size="7.5">' + nome + '</text>';
         var barW = 26;
         var barFill = Math.round((fadiga/100)*barW);
         html += '<rect x="' + (cx-13) + '" y="' + (cy+25) + '" width="' + barW + '" height="3" fill="#333" rx="1.5"/>';
@@ -4232,10 +4230,11 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
     });
   }
 
-  // Visitante em cima (lado "esq" = y baixo no campo = cima na tela)
-  renderJogs(escV, "esq", visitante.cor || "#555");
-  // Mandante em baixo
-  renderJogs(escM, "dir", mandante.cor  || "#1a6bc4");
+  var formV = tecV ? tecV.formacao : "4-4-2";
+  var formM = tecM ? tecM.formacao : "4-4-2";
+
+  renderJogs(escV, "esq", visitante.cor || "#2980b9", formV);
+  renderJogs(escM, "dir", mandante.cor  || "#e67e22", formM);
 
   // Labels
   if (tecV) html += '<text x="180" y="12" text-anchor="middle" fill="#9be" font-size="9" font-weight="600">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
