@@ -2267,6 +2267,18 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 /* Pos2 badge menor */
 .posicao-badge + .posicao-badge {
   margin-left: 3px;
+}
+
+/* ── Status ativo na ficha ── */
+.ficha-status-ativo {
+  background: rgba(46,204,113,.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
 }</style>
 </head>
 <body>
@@ -3201,17 +3213,57 @@ function simularMercadoIA() {
     });
     if (candidatos.length === 0) continue;
 
-    var jogador = candidatos[Math.floor(Math.random() * candidatos.length)];
-    var valor   = Math.round(jogador.valor_mercado * (0.9 + Math.random() * 0.3));
-    var result  = avaliarProposta(jogador, vendedor, valor);
+    // Priorizar jogadores marcados como à venda (3x mais chance de serem escolhidos)
+    var pool = [];
+    candidatos.forEach(function(j) {
+      var peso = j.a_venda ? 4 : 1;
+      for (var p = 0; p < peso; p++) pool.push(j);
+    });
 
-    if (result.aceita) {
+    var jogador = pool[Math.floor(Math.random() * pool.length)];
+    // Jogadores à venda aceitam ofertas mais próximas (ou abaixo) do valor mínimo
+    var multiplicador = jogador.a_venda
+      ? (0.75 + Math.random() * 0.35)
+      : (0.9 + Math.random() * 0.3);
+    var valorBase = jogador.a_venda && jogador.preco_minimo ? jogador.preco_minimo : jogador.valor_mercado;
+    var valor = Math.round(valorBase * multiplicador);
+    var result = avaliarProposta(jogador, vendedor, valor);
+
+    // Jogadores à venda têm chance extra de aceitar mesmo se a avaliação normal recusaria
+    var aceita = result.aceita || (jogador.a_venda && Math.random() < 0.4);
+
+    if (aceita) {
       executarTransferencia(jogador, vendedor, comprador, valor);
       noticias.push({
         tipo: "transferencia",
         texto: jogador.nome + " (" + jogador.overall + ") saiu do " + vendedor.nome + " para o " + comprador.nome + " por " + formatarDinheiro(valor)
       });
     }
+  }
+
+  // Empréstimos: jogadores marcados para_emprestimo têm chance de sair temporariamente
+  for (var k = 0; k < CLUBES.length; k++) {
+    var clubeOrigem = CLUBES[k];
+    var emprestaveis = clubeOrigem.jogadores.filter(function(j) { return j.para_emprestimo; });
+    emprestaveis.forEach(function(j) {
+      if (Math.random() > 0.15) return; // 15% de chance por evento de janela
+      var idxDestino = Math.floor(Math.random() * CLUBES.length);
+      var destino = CLUBES[idxDestino];
+      if (destino.id === clubeOrigem.id) return;
+      if (destino.budget < j.salario * 4) return;
+      // Mover temporariamente (simplificado: registra como emprestado)
+      j._emprestado_para = destino.id;
+      j._clube_origem_emprestimo = clubeOrigem.id;
+      noticias.push({
+        tipo: "emprestimo",
+        texto: j.nome + " (" + j.overall + ") foi emprestado do " + clubeOrigem.nome + " para o " + destino.nome
+      });
+      // Remove temporariamente do elenco de origem, adiciona no destino
+      clubeOrigem.jogadores = clubeOrigem.jogadores.filter(function(x){ return x.id !== j.id; });
+      j.para_emprestimo = false;
+      j.a_venda = false;
+      destino.jogadores.push(j);
+    });
   }
 
   return noticias;
@@ -3959,8 +4011,10 @@ function posicaoCampo(posicao, idx, total, lado, linhaY) {
     y = 0.03 + (linhaY || 0.1) * 0.44;
   }
 
-  // Distribuição horizontal uniforme com margem
-  var margem = 0.10;
+  // Distribuição horizontal — margem maior quando há poucos jogadores na linha,
+  // para evitar que fiquem espremidos nas pontas (ex: 2 atacantes centralizados)
+  var margens = { 1: 0.50, 2: 0.28, 3: 0.18, 4: 0.10, 5: 0.08 };
+  var margem  = margens[total] !== undefined ? margens[total] : 0.10;
   var x;
   if (total === 1) {
     x = 0.50;
@@ -5092,23 +5146,37 @@ function registrarTransferenciaFinanceiro(clube, descricao, valor, tipo) {
 
 // ── Mecânicas de gestão de jogadores ──
 
-// Colocar jogador à venda
+// Colocar jogador à venda (pode coexistir com empréstimo)
 function colocarAVenda(jogadorId, precoMinimo) {
   var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
   if (!j) return;
   j.a_venda = true;
   j.preco_minimo = precoMinimo;
-  j.para_emprestimo = false;
   adicionarNoticia("📢 " + j.nome + " está disponível para transferência por " + formatarDinheiro(precoMinimo), estado.rodadaAtual);
 }
 
-// Colocar para empréstimo
+// Colocar para empréstimo (pode coexistir com venda)
 function colocarParaEmprestimo(jogadorId, rodadas) {
   var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
   if (!j) return;
   j.para_emprestimo = true;
   j.emprestimo_rodadas = rodadas;
+}
+
+// Retirar jogador da venda
+function retirarDaVenda(jogadorId) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
   j.a_venda = false;
+  j.preco_minimo = null;
+}
+
+// Retirar jogador do empréstimo
+function retirarDoEmprestimo(jogadorId) {
+  var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
+  if (!j) return;
+  j.para_emprestimo = false;
+  j.emprestimo_rodadas = null;
 }
 
 // Dispensar jogador
@@ -9055,25 +9123,39 @@ function abrirFichaJogador(jogadorId) {
   // Colocar à venda
   html += '<div class="ficha-acao-bloco">';
   html += '<div class="ficha-acao-titulo">🏷 Colocar à venda</div>';
-  html += '<div class="ficha-acao-form">';
-  html += '<div class="form-group"><label>Preço mínimo</label>';
-  html += '<input type="number" id="inp-preco-venda" value="' + (j.valor_mercado||0) + '" step="500000"/></div>';
-  html += '<button class="btn-primario" style="width:100%" onclick="confirmarVenda(\'' + j.id + '\')">📢 Anunciar venda</button>';
-  if (j.a_venda) html += '<div style="font-size:12px;color:var(--yellow);margin-top:6px">⚠ Já está à venda</div>';
-  html += '</div></div>';
+  if (j.a_venda) {
+    html += '<div class="ficha-status-ativo">💰 À venda por ' + formatarDinheiro(j.preco_minimo||j.valor_mercado) + '</div>';
+    html += '<button class="btn-demitir" style="width:100%;margin-top:8px" onclick="retirarVendaFicha(\'' + j.id + '\')">Retirar da venda</button>';
+  } else {
+    html += '<div class="ficha-acao-form">';
+    html += '<div class="form-group"><label>Preço mínimo</label>';
+    html += '<input type="number" id="inp-preco-venda" value="' + (j.valor_mercado||0) + '" step="500000"/></div>';
+    html += '<button class="btn-primario" style="width:100%" onclick="confirmarVenda(\'' + j.id + '\')">📢 Anunciar venda</button>';
+    html += '</div>';
+  }
+  html += '</div>';
 
   // Empréstimo
   html += '<div class="ficha-acao-bloco">';
   html += '<div class="ficha-acao-titulo">🔄 Empréstimo</div>';
-  html += '<div class="ficha-acao-form">';
-  html += '<div class="form-group"><label>Duração</label>';
-  html += '<select id="inp-emprestimo-rodadas">';
-  html += '<option value="5">5 rodadas</option>';
-  html += '<option value="10">10 rodadas</option>';
-  html += '<option value="19">Resto da temporada</option>';
-  html += '</select></div>';
-  html += '<button class="btn-primario" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text)" onclick="confirmarEmprestimo(\'' + j.id + '\')">🔄 Colocar para empréstimo</button>';
-  html += '</div></div>';
+  if (j.para_emprestimo) {
+    html += '<div class="ficha-status-ativo">🔄 Disponível para empréstimo</div>';
+    html += '<button class="btn-demitir" style="width:100%;margin-top:8px" onclick="retirarEmprestimoFicha(\'' + j.id + '\')">Retirar do empréstimo</button>';
+  } else {
+    html += '<div class="ficha-acao-form">';
+    html += '<div class="form-group"><label>Duração</label>';
+    html += '<select id="inp-emprestimo-rodadas">';
+    html += '<option value="5">5 rodadas</option>';
+    html += '<option value="10">10 rodadas</option>';
+    html += '<option value="19">Resto da temporada</option>';
+    html += '</select></div>';
+    html += '<button class="btn-primario" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text)" onclick="confirmarEmprestimo(\'' + j.id + '\')">🔄 Colocar para empréstimo</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  if (j.a_venda || j.para_emprestimo) {
+    html += '<div style="grid-column:1/-1;font-size:11px;color:var(--accent);background:rgba(79,142,247,.08);border:1px solid var(--accent);border-radius:8px;padding:8px 12px">⚡ Jogadores marcados têm maior chance de receber propostas de outros clubes durante a janela.</div>';
+  }
 
   // Dispensar
   html += '<div class="ficha-acao-bloco">';
@@ -9119,6 +9201,18 @@ function renovarContrato(jogadorId) {
   }
 }
 
+function retirarVendaFicha(jogadorId) {
+  retirarDaVenda(jogadorId);
+  salvarJogo();
+  abrirFichaJogador(jogadorId);
+}
+
+function retirarEmprestimoFicha(jogadorId) {
+  retirarDoEmprestimo(jogadorId);
+  salvarJogo();
+  abrirFichaJogador(jogadorId);
+}
+
 function confirmarDispensaFicha(jogadorId, acordoMutuo) {
   var j = estado.meuClube.jogadores.find(function(x) { return x.id === jogadorId; });
   if (!confirm("Dispensar " + j.nome + "?")) return;
@@ -9159,15 +9253,18 @@ function renderTorneiosHub() {
   // Reset se aba antiga não existe mais
   var abasValidas = ["nacional","internacional","estadual"];
   if (!_torneioHubAba || abasValidas.indexOf(_torneioHubAba) < 0) _torneioHubAba = "nacional";
+  // Times paulistas (Bezinha ou Paulistão) abrem direto na aba Estadual
+  if (div.indexOf("paulista_") === 0 && _torneioHubAba === "nacional" && !window._torneioHubVisitadoNacional) {
+    _torneioHubAba = "estadual";
+  }
+  window._torneioHubVisitadoNacional = true;
   var aba      = _torneioHubAba;
 
-  // Detectar divisão principal do clube
+  // Detectar divisão principal do clube (só relevante para times NACIONAIS)
   var labelPrincipal, renderPrincipal;
-  if (div === "paulista_b1") {
-    labelPrincipal = "🏅 Bezinha"; renderPrincipal = function(){ return renderBezinhaTela(); };
-  } else if (div.indexOf("paulista_") === 0) {
-    var _pd = div.replace("paulista_","").toUpperCase();
-    labelPrincipal = "🏅 Paulistão "+_pd; renderPrincipal = function(){ return renderDivisaoPaulistaTela(div.replace("paulista_","")); };
+  if (div.indexOf("paulista_") === 0) {
+    // Times paulistas não têm aba "serie" no Nacional — usar fallback simples
+    labelPrincipal = "🇧🇷 Série A"; renderPrincipal = renderBrasileirao;
   } else {
     var divisaoNacional = "A";
     if (estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){return c.id===meuId;})) divisaoNacional="B";
@@ -9217,18 +9314,19 @@ function mudarTorneioHub(aba) { _torneioHubAba=aba; renderTorneiosHub(); }
 
 // ── NACIONAL ──
 function renderNacionalHub(meuId, labelPrincipal, renderPrincipal, nasCopaBR, div) {
-  var subaba = window._subabaNacional || "serie";
+  var ehTimePaulista = div.indexOf("paulista_") === 0;
+  var subaba = window._subabaNacional || (ehTimePaulista ? "serieA" : "serie");
+  if (ehTimePaulista && subaba === "serie") subaba = "serieA";
   var html = '<div class="hub-sub-tabs">';
 
-  // Sub-abas: divisão do clube + todas as séries + Copa do Brasil
-  var subs = [
-    { k:"serie",  label: labelPrincipal, destaque: true },
-    { k:"serieA", label:"Série A" },
-    { k:"serieB", label:"Série B" },
-    { k:"serieC", label:"Série C" },
-    { k:"serieD", label:"Série D" },
-    { k:"copa",   label:"🏆 Copa do Brasil", destaque: nasCopaBR }
-  ];
+  // Sub-abas: divisão do clube (só se NÃO for paulista) + todas as séries + Copa do Brasil
+  var subs = [];
+  if (!ehTimePaulista) subs.push({ k:"serie",  label: labelPrincipal, destaque: true });
+  subs.push({ k:"serieA", label:"Série A" });
+  subs.push({ k:"serieB", label:"Série B" });
+  subs.push({ k:"serieC", label:"Série C" });
+  subs.push({ k:"serieD", label:"Série D" });
+  subs.push({ k:"copa",   label:"🏆 Copa do Brasil", destaque: nasCopaBR });
 
   subs.forEach(function(s) {
     var cls = "hub-sub-tab"+(subaba===s.k?" ativo":"")+(s.destaque?" meu-torneio":"");
