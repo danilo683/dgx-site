@@ -2279,7 +2279,82 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   font-size: 13px;
   font-weight: 600;
   text-align: center;
-}</style>
+}
+
+/* ── Mercado: jogador disponível (à venda/empréstimo) ── */
+.item-mercado-disponivel { border-left: 3px solid var(--yellow); }
+
+/* ── Financeiro dívidas ── */
+.fin-alerta-divida {
+  background: rgba(239,68,68,.1);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 12px;
+}
+.fin-divida-acao {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.fin-divida-acao input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 14px;
+  width: 100%;
+}
+
+/* ── Sistema de Receitas ── */
+.receita-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.receita-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.receita-card-header { display:flex;gap:12px;align-items:flex-start; }
+.receita-icon { font-size:24px;line-height:1; }
+.receita-titulo { font-weight:700;font-size:14px; }
+.receita-desc { font-size:11px;color:var(--text2); }
+.receita-valores { display:flex;gap:16px; }
+.receita-val-item { display:flex;flex-direction:column;gap:2px; }
+.receita-val-label { font-size:10px;color:var(--text2);text-transform:uppercase; }
+.receita-val { font-size:14px;font-weight:700;color:var(--accent); }
+.receita-anual { color:var(--green); }
+.receita-info { font-size:11px;color:var(--text2);background:var(--bg3);border-radius:6px;padding:8px 10px;border-left:2px solid var(--accent); }
+.receita-total {
+  background: var(--bg2);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size:14px;
+  font-weight:600;
+}
+
+/* Barra de confiança */
+.conf-bar-wrap {
+  height: 8px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.conf-bar { height:100%;border-radius:4px;transition:width .4s; }</style>
 </head>
 <body>
 <div id="app">
@@ -2301,6 +2376,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
       <button data-aba="elenco">👥 Elenco</button>
       <button data-aba="mercado">💰 Mercado</button>
       <button data-aba="financeiro">📑 Financeiro</button>
+      <button data-aba="receitas">📈 Receitas</button>
       <div class="sidebar-sep">GESTÃO</div>
       <button data-aba="manager">👤 Manager</button>
       <button data-aba="staff">🎽 Staff</button>
@@ -3097,24 +3173,50 @@ function calcularContratoTermino(overall) {
 }
 
 // ── Inicializar dados financeiros nos jogadores e clubes ──
-function inicializarFinancas() {
-  var budgets = {
-    flamengo: 95000000,    palmeiras: 90000000,
-    corinthians: 60000000, saopulo: 58000000,
-    atleticomg: 55000000,  internacional: 45000000,
-    gremio: 42000000,      botafogo: 48000000,
-    bahia: 28000000,       fortaleza: 30000000,
-    cruzeiro: 25000000,    fluminense: 32000000,
-    vasco: 28000000,       atleticopr: 38000000,
-    rbbragantino: 22000000,cuiaba: 10000000,
-    juventude: 8000000,    goias: 9000000,
-    coritiba: 7000000,     santos: 14000000
-  };
+// Perfis financeiros: nem todo clube "grande" tem caixa saudável,
+// e clubes "pequenos" às vezes têm caixa boa por causa de vendas recentes
+var PERFIS_FINANCEIROS = {
+  flamengo:     { caixa: 35000000, dividas: -180000000 },  // marca grande, dívida histórica alta
+  palmeiras:    { caixa: 60000000, dividas: -20000000  },  // gestão equilibrada
+  corinthians:  { caixa: 8000000,  dividas: -250000000 },  // dívida gigante, caixa apertado
+  saopulo:      { caixa: 15000000, dividas: -90000000  },
+  atleticomg:   { caixa: 12000000, dividas: -130000000 },
+  internacional:{ caixa: 25000000, dividas: -40000000  },
+  gremio:       { caixa: 10000000, dividas: -100000000 },
+  botafogo:     { caixa: 40000000, dividas: -15000000  },  // dono forte, sem dívida grande
+  bahia:        { caixa: 30000000, dividas: -10000000  },  // boas vendas recentes
+  fortaleza:    { caixa: 20000000, dividas: -5000000   },
+  cruzeiro:     { caixa: 18000000, dividas: -60000000  },
+  fluminense:   { caixa: 14000000, dividas: -70000000  },
+  vasco:        { caixa: 9000000,  dividas: -85000000  },
+  atleticopr:   { caixa: 22000000, dividas: -35000000  },
+  rbbragantino: { caixa: 28000000, dividas: -2000000   },  // investimento estrangeiro
+  cuiaba:       { caixa: 6000000,  dividas: -1000000   },
+  juventude:    { caixa: 4000000,  dividas: -500000    },
+  goias:        { caixa: 5000000,  dividas: -8000000   },
+  coritiba:     { caixa: 3500000,  dividas: -12000000  },
+  santos:       { caixa: 7000000,  dividas: -95000000  }   // dívida histórica grande, caixa baixo
+};
 
+function gerarPerfilFinanceiroGenerico(overallMedioBase) {
+  // Para clubes sem perfil definido (divisões B/C/D, paulistas): gerar variação aleatória
+  var caixa = Math.round(overallMedioBase * 50000 * (0.5 + Math.random()*1.2));
+  var temDividaGrande = Math.random() < 0.3;
+  var dividas = temDividaGrande
+    ? -Math.round(caixa * (1.5 + Math.random()*2))
+    : -Math.round(caixa * (0.1 + Math.random()*0.4));
+  return { caixa: caixa, dividas: dividas };
+}
+
+function inicializarFinancas() {
   CLUBES.forEach(function(clube) {
-    clube.budget = budgets[clube.id] || 10000000;
-    clube.receita_rodada = clube.budget >= 80000000 ? 2500000 :
-                           clube.budget >= 40000000 ? 1500000 : 700000;
+    var perfil = PERFIS_FINANCEIROS[clube.id] || gerarPerfilFinanceiroGenerico(75);
+    clube.caixa   = perfil.caixa;
+    clube.dividas = perfil.dividas; // valor negativo
+    clube.budget  = clube.caixa; // budget = caixa disponível (compatibilidade)
+
+    clube.receita_rodada = clube.caixa >= 30000000 ? 2500000 :
+                           clube.caixa >= 15000000 ? 1500000 : 700000;
 
     clube.jogadores.forEach(function(j) {
       if (!j.valor_mercado) {
@@ -3126,6 +3228,26 @@ function inicializarFinancas() {
       }
     });
   });
+}
+
+// Valor de mercado do clube = soma do valor de mercado de todos os jogadores
+function calcularValorMercadoClube(clube) {
+  if (!clube.jogadores) return 0;
+  return clube.jogadores.reduce(function(s, j) { return s + (j.valor_mercado || 0); }, 0);
+}
+
+// Patrimônio líquido = caixa + valor de mercado + dívidas (dívidas já é negativo)
+function calcularPatrimonioLiquido(clube) {
+  return (clube.caixa || clube.budget || 0) + calcularValorMercadoClube(clube) + (clube.dividas || 0);
+}
+
+// Pagar parcela de dívida (reduz dívida e caixa simultaneamente)
+function pagarParcelaDivida(clube, valor) {
+  if (!clube.dividas) return;
+  var pagamento = Math.min(valor, Math.abs(clube.dividas));
+  clube.caixa = (clube.caixa || clube.budget || 0) - pagamento;
+  clube.budget = clube.caixa;
+  clube.dividas = (clube.dividas || 0) + pagamento; // se aproxima de 0
 }
 
 // ── Formatar moeda ──
@@ -3192,8 +3314,57 @@ function executarTransferencia(jogador, clubeOrigem, clubeDestino, valor) {
   return jogador;
 }
 
+// ── IA: clubes decidem quais jogadores colocar à venda/empréstimo ──
+function _avaliarClubeParaVendas(clube) {
+  if (!clube.jogadores || clube.jogadores.length === 0) return;
+  if (clube.id === estado.meuClube.id) return; // não mexe no clube do usuário
+
+  var folhaSalarial = clube.jogadores.reduce(function(s,j){ return s + (j.salario||0); }, 0);
+  var caixaBaixo = (clube.budget||0) < folhaSalarial * 3;
+  var elencoGrande = clube.jogadores.length > 24;
+  var overallMedio = clube.jogadores.reduce(function(s,x){return s+x.overall;},0) / clube.jogadores.length;
+
+  clube.jogadores.forEach(function(j) {
+    if (j.a_venda || j.para_emprestimo) return;
+
+    var motivos = [];
+    var salarioMedio = folhaSalarial / clube.jogadores.length;
+
+    if (caixaBaixo && j.salario > salarioMedio * 1.3) motivos.push('caixa');
+    if (elencoGrande && j.overall < overallMedio - 8) motivos.push('reserva');
+
+    var fimDeCarreira = (j.idade || 25) >= 32 && j.overall < overallMedio - 3;
+
+    if (motivos.length > 0 && Math.random() < 0.12) {
+      if (fimDeCarreira || (motivos.indexOf('reserva') >= 0 && Math.random() < 0.4)) {
+        j.para_emprestimo = true;
+        j.emprestimo_rodadas = 19;
+      } else {
+        j.a_venda = true;
+        j.preco_minimo = Math.round((j.valor_mercado||0) * (0.75 + Math.random()*0.25));
+      }
+    }
+  });
+}
+
+function iaDecidirVendasEmprestimos() {
+  // Série A
+  CLUBES.forEach(_avaliarClubeParaVendas);
+  // Séries B, C, D
+  (estadoDivisoes.b.clubes||[]).forEach(_avaliarClubeParaVendas);
+  (estadoDivisoes.c.clubes||[]).forEach(_avaliarClubeParaVendas);
+  (estadoDivisoes.d.clubes||[]).forEach(_avaliarClubeParaVendas);
+  // Paulistão A1-A4
+  ["a1","a2","a3","a4"].forEach(function(d){
+    (estadoPaulista[d] && estadoPaulista[d].clubes || []).forEach(_avaliarClubeParaVendas);
+  });
+  // Bezinha
+  GRUPOS_BEZINHA.forEach(function(g){ g.clubes.forEach(_avaliarClubeParaVendas); });
+}
+
 // ── IA: transferências entre clubes durante a janela ──
 function simularMercadoIA() {
+
   var noticias = [];
   var tentativas = 8;
 
@@ -3204,12 +3375,12 @@ function simularMercadoIA() {
 
     var vendedor  = CLUBES[idxVendedor];
     var comprador = CLUBES[idxComprador];
-    if (comprador.budget < 500000) continue;
+    if ((comprador.caixa||comprador.budget||0) < 500000) continue;
     if (vendedor.jogadores.length < 18) continue;
 
     // Escolhe um jogador que o comprador possa pagar
     var candidatos = vendedor.jogadores.filter(function(j) {
-      return j.valor_mercado <= comprador.budget * 0.4;
+      return j.valor_mercado <= (comprador.caixa||comprador.budget||0) * 0.4;
     });
     if (candidatos.length === 0) continue;
 
@@ -3250,7 +3421,7 @@ function simularMercadoIA() {
       var idxDestino = Math.floor(Math.random() * CLUBES.length);
       var destino = CLUBES[idxDestino];
       if (destino.id === clubeOrigem.id) return;
-      if (destino.budget < j.salario * 4) return;
+      if ((destino.caixa||destino.budget||0) < j.salario * 4) return;
       // Mover temporariamente (simplificado: registra como emprestado)
       j._emprestado_para = destino.id;
       j._clube_origem_emprestimo = clubeOrigem.id;
@@ -3275,14 +3446,14 @@ function processarReceitaRodada(rodadaIdx) {
     // Bilheteria dos jogos em casa
     var jogosEmCasa = estado.calendario[rodadaIdx] ?
       estado.calendario[rodadaIdx].jogos.filter(function(j) { return j.mandanteId === clube.id; }).length : 0;
-    clube.budget += jogosEmCasa * clube.receita_rodada;
+    clube.caixa = (clube.caixa||clube.budget||0) + jogosEmCasa * clube.receita_rodada;
+    clube.budget = clube.caixa;
 
     // Bônus por colocação (pequeno, por rodada)
     var tabela = calcularTabela(CLUBES, estado.resultados);
     var pos = tabela.findIndex(function(t) { return t.id === clube.id; });
-    if (pos === 0) clube.budget += 500000;
-    else if (pos < 4) clube.budget += 200000;
-    else if (pos < 8) clube.budget += 100000;
+    var bonus = pos===0?500000:pos<4?200000:pos<8?100000:0;
+    if (bonus > 0) { clube.caixa = (clube.caixa||clube.budget||0)+bonus; clube.budget=clube.caixa; }
   });
 }
 
@@ -3351,7 +3522,7 @@ function negociarLivre(id) {
   var clube = estado.meuClube;
 
   // Verificar budget para salário
-  if (clube.budget < j.salario * 4) {
+  if ((clube.caixa||clube.budget||0) < j.salario * 4) {
     alert("Budget insuficiente para bancar o salário de " + formatarDinheiro(j.salario) + "/mês.");
     return;
   }
@@ -4353,9 +4524,9 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   html += '<div class="jogo-tela-header">';
   html += '<div class="jogo-tela-rodada">Rodada ' + rodada.numero + ' · ' + (ev ? ev.subtitulo : '') + '</div>';
   html += '<div class="jogo-tela-placar">';
-  html += '<span class="jogo-tela-sigla">' + mandante.sigla + '</span>';
+  html += '<span class="jogo-tela-nome">' + mandante.nome + '</span>';
   html += '<span class="placar-numeros" id="placar-numeros">0 – 0</span>';
-  html += '<span class="jogo-tela-sigla">' + visitante.sigla + '</span>';
+  html += '<span class="jogo-tela-nome">' + visitante.nome + '</span>';
   html += '</div>';
   html += '<div class="jogo-tela-cronometro" id="cronometro">0\'</div>';
   html += '</div>';
@@ -4507,8 +4678,8 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
   renderJogs(escM, "dir", mandante.cor  || "#e67e22", formM);
 
   // Labels
-  if (tecV) html += '<text x="180" y="13" text-anchor="middle" fill="#9be" font-size="9" font-weight="600">' + visitante.sigla + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
-  if (tecM) html += '<text x="180" y="515" text-anchor="middle" fill="#fb9" font-size="9" font-weight="600">' + mandante.sigla + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
+  if (tecV) html += '<text x="180" y="13" text-anchor="middle" fill="#9be" font-size="9" font-weight="600">' + visitante.nome + ' · ' + (tecV ? tecV.formacao : '') + '</text>';
+  if (tecM) html += '<text x="180" y="515" text-anchor="middle" fill="#fb9" font-size="9" font-weight="600">' + mandante.nome + ' · ' + (tecM ? tecM.formacao : '') + '</text>';
 
   html += '</svg>';
   return html;
@@ -4914,9 +5085,9 @@ function renderTelaJogoAtivo() {
   html += '<div class="jogo-tela-header">';
   html += '<div class="jogo-tela-rodada">Rodada ' + (rodadaIdx+1) + (ev?' · '+ev.subtitulo:'') + '</div>';
   html += '<div class="jogo-tela-placar">';
-  html += '<span class="jogo-tela-sigla">' + mandante.sigla + '</span>';
+  html += '<span class="jogo-tela-nome">' + mandante.nome + '</span>';
   html += '<span class="placar-numeros" id="placar-numeros">' + jogoAtivo.golsExibidosM + ' – ' + jogoAtivo.golsExibidosV + '</span>';
-  html += '<span class="jogo-tela-sigla">' + visitante.sigla + '</span>';
+  html += '<span class="jogo-tela-nome">' + visitante.nome + '</span>';
   html += '</div>';
   html += '<div class="jogo-tela-cronometro" id="cronometro">' + jogoAtivo.minAtual + "'" + '</div>';
   html += '</div>';
@@ -5273,16 +5444,44 @@ function renderFinanceiro() {
   // Header
   html += '<div class="fin-header">';
   html += '<h2 class="secao-titulo" style="margin:0">💰 Financeiro — ' + clube.nome + '</h2>';
-  html += '<div class="fin-caixa">Caixa: <strong style="color:var(--green)">' + formatarDinheiro(clube.budget) + '</strong></div>';
+  html += '<div class="fin-caixa">Caixa: <strong style="color:var(--green)">' + formatarDinheiro(clube.caixa||clube.budget) + '</strong></div>';
   html += '</div>';
 
-  // Cards DRE
+  // Cards de patrimônio (Caixa / Dívidas / Valor de Mercado / Patrimônio Líquido)
+  var valorMercadoClube = calcularValorMercadoClube(clube);
+  var dividas = clube.dividas || 0;
+  var patrimonioLiquido = (clube.caixa||clube.budget||0) + valorMercadoClube + dividas;
   html += '<div class="fin-dre-cards">';
+  html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">💵 Caixa Disponível</div><div class="fin-dre-valor">' + formatarDinheiro(clube.caixa||clube.budget) + '</div></div>';
+  html += '<div class="fin-dre-card ' + (dividas<0?'negativo':'neutro') + '"><div class="fin-dre-label">📉 Dívidas</div><div class="fin-dre-valor">' + (dividas<0?formatarDinheiro(dividas):'R$ 0') + '</div></div>';
+  html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">⚽ Valor do Elenco</div><div class="fin-dre-valor">' + formatarDinheiro(valorMercadoClube) + '</div></div>';
+  html += '<div class="fin-dre-card ' + (patrimonioLiquido>=0?'positivo':'negativo') + '"><div class="fin-dre-label">📊 Patrimônio Líquido</div><div class="fin-dre-valor">' + (patrimonioLiquido>=0?'+':'') + formatarDinheiro(patrimonioLiquido) + '</div></div>';
+  html += '</div>';
+
+  if (dividas < -5000000) {
+    var folhaCheck = folha;
+    var mesesAteFalencia = clube.caixa > 0 ? Math.round(clube.caixa / Math.max(folhaCheck,1)) : 0;
+    html += '<div class="fin-alerta-divida">⚠ Seu clube tem dívidas significativas (' + formatarDinheiro(dividas) + '). ';
+    html += 'Considere pagar parcelas para evitar problemas financeiros no futuro.</div>';
+  }
+
+  // Cards DRE
+  html += '<div class="fin-dre-cards" style="margin-top:8px">';
   html += '<div class="fin-dre-card receita"><div class="fin-dre-label">Total Receitas</div><div class="fin-dre-valor">' + formatarDinheiro(totalReceitas) + '</div></div>';
   html += '<div class="fin-dre-card despesa"><div class="fin-dre-label">Total Despesas</div><div class="fin-dre-valor">' + formatarDinheiro(totalDespesas) + '</div></div>';
   html += '<div class="fin-dre-card ' + (resultado >= 0 ? 'positivo' : 'negativo') + '"><div class="fin-dre-label">Resultado</div><div class="fin-dre-valor">' + (resultado >= 0 ? '+' : '') + formatarDinheiro(resultado) + '</div></div>';
   html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">Folha mensal</div><div class="fin-dre-valor">' + formatarDinheiro(folha) + '</div></div>';
   html += '</div>';
+
+  // Botão de pagar dívida
+  if (dividas < 0) {
+    html += '<div class="fin-divida-acao">';
+    html += '<div class="fin-secao-titulo" style="margin-bottom:8px">💳 Quitar parte da dívida</div>';
+    html += '<div style="display:flex;gap:10px;align-items:center">';
+    html += '<input type="number" id="inp-pagar-divida" placeholder="Valor a pagar" step="500000" style="flex:1"/>';
+    html += '<button class="btn-primario" onclick="confirmarPagamentoDivida()">Pagar</button>';
+    html += '</div></div>';
+  }
 
   // DRE por categoria
   html += '<div class="fin-grid">';
@@ -5342,6 +5541,299 @@ function renderFinanceiro() {
   html += '</div>';
   html += '</div>'; // fin-tela
 
+  document.getElementById("main").innerHTML = html;
+}
+
+
+function confirmarPagamentoDivida() {
+  var inp = document.getElementById("inp-pagar-divida");
+  if (!inp) return;
+  var valor = parseInt(inp.value);
+  if (!valor || valor <= 0) { alert("Digite um valor válido."); return; }
+  var clube = estado.meuClube;
+  if (valor > (clube.caixa||clube.budget||0)) { alert("Você não tem caixa suficiente."); return; }
+  pagarParcelaDivida(clube, valor);
+  adicionarNoticia("💳 Pagamento de " + formatarDinheiro(valor) + " realizado na dívida do clube.", estado.rodadaAtual);
+  salvarJogo();
+  renderFinanceiro();
+}</script><script>// ════════════════════════════════════════
+// SISTEMA DE RECEITAS DINÂMICAS
+// Cada fonte de receita evolui com divisão, desempenho e infraestrutura
+// ════════════════════════════════════════
+
+// ── Multiplicadores por divisão ──
+var MULT_DIVISAO = {
+  serieA:    { tv: 1.00, patrocinio: 1.00, socio: 1.00, estadio: 1.00 },
+  serieB:    { tv: 0.40, patrocinio: 0.45, socio: 0.60, estadio: 0.50 },
+  serieC:    { tv: 0.15, patrocinio: 0.20, socio: 0.30, estadio: 0.25 },
+  serieD:    { tv: 0.05, patrocinio: 0.08, socio: 0.12, estadio: 0.10 },
+  paulista_a1: { tv: 0.30, patrocinio: 0.35, socio: 0.50, estadio: 0.40 },
+  paulista_a2: { tv: 0.12, patrocinio: 0.15, socio: 0.20, estadio: 0.15 },
+  paulista_a3: { tv: 0.05, patrocinio: 0.06, socio: 0.08, estadio: 0.06 },
+  paulista_a4: { tv: 0.02, patrocinio: 0.03, socio: 0.04, estadio: 0.03 },
+  paulista_b1: { tv: 0.01, patrocinio: 0.01, socio: 0.02, estadio: 0.01 }
+};
+
+// ── Base de receitas Série A (por rodada) ──
+var BASE_RECEITA_SERIEA = {
+  // TV/Streaming: cotas CBF
+  cota_tv_cbf:         4500000,  // cota fixa por clube Série A
+  direitos_tv_rodada:   800000,  // por jogo transmitido
+  radio_streaming:      120000,
+
+  // Patrocínio master (camisa)
+  patrocinio_master:    900000,  // por rodada (contrato anual ÷ 38)
+  patrocinio_secundario: 350000,
+  naming_rights:         280000, // nome do estádio
+
+  // Estádio / matchday
+  bilheteria_media:     620000,  // por jogo em casa
+  camarotes:            180000,
+  alimentacao_loja:      90000,
+
+  // Sócio torcedor
+  socio_mensalidade:    450000,  // receita mensal dos sócios ÷ rodadas
+
+  // Premiações por posição (aplicadas a cada rodada proporcional)
+  premiacao_libertadores: 350000,
+  premiacao_sulamericana: 150000,
+  premiacao_copadoBrasil:  80000
+};
+
+// ── Estado das receitas do clube do usuário ──
+// Inicializado quando o jogo começa
+function inicializarReceitasClube(clube, divisao) {
+  if (clube.receitas) return; // já inicializado
+  var mult = MULT_DIVISAO[divisao] || MULT_DIVISAO.serieD;
+  var infra = clube.infraestrutura || {};
+  var multEstadio = 1 + ((infra.estadio || 1) - 1) * 0.15;
+
+  // Confiança da torcida: começa em 50, vai de 0 a 100
+  clube.confianca_torcida = clube.confianca_torcida || 50;
+  var multSocio = 0.5 + (clube.confianca_torcida / 100) * 0.8;
+
+  clube.receitas = {
+    // TV e direitos
+    cota_tv:        Math.round(BASE_RECEITA_SERIEA.cota_tv_cbf        * mult.tv),
+    direitos_tv:    Math.round(BASE_RECEITA_SERIEA.direitos_tv_rodada  * mult.tv),
+    radio_streaming:Math.round(BASE_RECEITA_SERIEA.radio_streaming     * mult.tv),
+
+    // Patrocínio
+    patrocinio_master:     Math.round(BASE_RECEITA_SERIEA.patrocinio_master     * mult.patrocinio),
+    patrocinio_secundario: Math.round(BASE_RECEITA_SERIEA.patrocinio_secundario * mult.patrocinio),
+    naming_rights:         Math.round(BASE_RECEITA_SERIEA.naming_rights         * mult.patrocinio * multEstadio),
+
+    // Matchday
+    bilheteria:    Math.round(BASE_RECEITA_SERIEA.bilheteria_media * mult.estadio * multEstadio),
+    camarotes:     Math.round(BASE_RECEITA_SERIEA.camarotes        * mult.estadio * multEstadio),
+    alimentacao:   Math.round(BASE_RECEITA_SERIEA.alimentacao_loja * mult.estadio * multEstadio),
+
+    // Sócio
+    socio:         Math.round(BASE_RECEITA_SERIEA.socio_mensalidade * mult.socio * multSocio),
+
+    // Premiações (variáveis, recalculadas por resultado)
+    premiacao_pos: 0
+  };
+
+  // Metas da temporada (para tracking de evolução)
+  clube.metas = clube.metas || {
+    divisao_anterior: divisao,
+    posicao_atual: 0,
+    titulos_temporada: 0,
+    rodadas_invicto: 0,
+    vitorias_seguidas: 0
+  };
+}
+
+// ── Recalcular receitas após evento que muda divisão ou infraestrutura ──
+function recalcularReceitas(clube, divisao) {
+  delete clube.receitas;
+  inicializarReceitasClube(clube, divisao);
+}
+
+// ── Processar receitas de uma rodada ──
+function processarReceitasRodada(clube, divisao, jogoEmCasa, resultadoJogo, posicaoTabela) {
+  inicializarReceitasClube(clube, divisao);
+  var r = clube.receitas;
+  var total = 0;
+  var detalhes = [];
+
+  // TV (toda rodada, independente de casa/fora)
+  var tv = r.cota_tv + r.radio_streaming;
+  if (jogoEmCasa) tv += r.direitos_tv;
+  total += tv;
+  detalhes.push({ cat: 'tv', desc: 'Direitos de TV/Rádio', valor: tv });
+
+  // Patrocínio (toda rodada)
+  var pat = r.patrocinio_master + r.patrocinio_secundario + r.naming_rights;
+  total += pat;
+  detalhes.push({ cat: 'patrocinio', desc: 'Patrocínios', valor: pat });
+
+  // Matchday (só quando joga em casa)
+  if (jogoEmCasa) {
+    // Fator público: vitórias recentes atraem mais torcida
+    var multPublico = 1 + Math.min((clube.metas.vitorias_seguidas || 0) * 0.05, 0.30);
+    var matchday = Math.round((r.bilheteria + r.camarotes + r.alimentacao) * multPublico);
+    total += matchday;
+    detalhes.push({ cat: 'matchday', desc: 'Bilheteria / Camarotes / Loja', valor: matchday });
+  }
+
+  // Sócio torcedor (toda rodada, baseado em confiança)
+  total += r.socio;
+  detalhes.push({ cat: 'socio', desc: 'Sócio Torcedor', valor: r.socio });
+
+  // Premiação por posição
+  var premiacao = 0;
+  if (posicaoTabela <= 4)       premiacao = Math.round(BASE_RECEITA_SERIEA.premiacao_libertadores * (MULT_DIVISAO[divisao]||MULT_DIVISAO.serieD).tv);
+  else if (posicaoTabela <= 8)  premiacao = Math.round(BASE_RECEITA_SERIEA.premiacao_sulamericana * (MULT_DIVISAO[divisao]||MULT_DIVISAO.serieD).tv);
+  if (premiacao > 0) {
+    total += premiacao;
+    detalhes.push({ cat: 'premiacao', desc: 'Premiação por classificação', valor: premiacao });
+  }
+
+  // Creditar no caixa
+  clube.caixa = (clube.caixa || clube.budget || 0) + total;
+  clube.budget = clube.caixa;
+
+  // Registrar no histórico financeiro
+  if (!clube.historico_receitas) clube.historico_receitas = [];
+  clube.historico_receitas.push({
+    rodada: estado.rodadaAtual,
+    total: total,
+    detalhes: detalhes
+  });
+  // Manter só últimas 38 rodadas
+  if (clube.historico_receitas.length > 38) clube.historico_receitas.shift();
+
+  return { total: total, detalhes: detalhes };
+}
+
+// ── Atualizar confiança da torcida ──
+function atualizarConfiancaTorcida(clube, resultado) {
+  // resultado: 'vitoria' | 'empate' | 'derrota'
+  var delta = resultado === 'vitoria' ? 4 : resultado === 'empate' ? 0 : -5;
+  clube.confianca_torcida = Math.max(0, Math.min(100, (clube.confianca_torcida || 50) + delta));
+
+  // Vitorias seguidas
+  if (resultado === 'vitoria') {
+    clube.metas.vitorias_seguidas = (clube.metas.vitorias_seguidas || 0) + 1;
+    clube.metas.rodadas_invicto   = (clube.metas.rodadas_invicto   || 0) + 1;
+  } else if (resultado === 'derrota') {
+    clube.metas.vitorias_seguidas = 0;
+    clube.metas.rodadas_invicto   = 0;
+  } else {
+    clube.metas.vitorias_seguidas = 0;
+    clube.metas.rodadas_invicto   = (clube.metas.rodadas_invicto || 0) + 1;
+  }
+
+  // Recalcular receita de sócio com nova confiança
+  if (clube.receitas) {
+    var mult = MULT_DIVISAO[estado.minhaDivisao || 'serieD'] || MULT_DIVISAO.serieD;
+    var multSocio = 0.5 + (clube.confianca_torcida / 100) * 0.8;
+    clube.receitas.socio = Math.round(BASE_RECEITA_SERIEA.socio_mensalidade * mult.socio * multSocio);
+  }
+}
+
+// ── Tela de Receitas ──
+function renderReceitas() {
+  var clube = estado.meuClube;
+  var div   = estado.minhaDivisao || 'serieD';
+  inicializarReceitasClube(clube, div);
+  var r = clube.receitas;
+  var hist = clube.historico_receitas || [];
+
+  var nomesDiv = {
+    serieA:'Série A', serieB:'Série B', serieC:'Série C', serieD:'Série D',
+    paulista_a1:'Paulistão A1', paulista_a2:'Paulistão A2',
+    paulista_a3:'Paulistão A3', paulista_a4:'Paulistão A4', paulista_b1:'Bezinha'
+  };
+
+  var html = '<div class="fin-tela">';
+  html += '<div class="fin-header"><h2 class="secao-titulo" style="margin:0">📈 Receitas — ' + clube.nome + '</h2>';
+  html += '<div style="font-size:12px;color:var(--text2)">Divisão: '+( nomesDiv[div]||div)+' · Confiança da torcida: <strong style="color:'+(clube.confianca_torcida>=70?'var(--green)':clube.confianca_torcida>=40?'var(--yellow)':'var(--red)')+'">'+clube.confianca_torcida+'%</strong></div>';
+  html += '</div>';
+
+  // Barra de confiança
+  html += '<div class="conf-bar-wrap">';
+  html += '<div class="conf-bar" style="width:'+clube.confianca_torcida+'%;background:'+(clube.confianca_torcida>=70?'var(--green)':clube.confianca_torcida>=40?'var(--yellow)':'var(--red)')+'"></div>';
+  html += '</div>';
+
+  // Cards por categoria
+  var categorias = [
+    {
+      icon:'📺', titulo:'TV, Rádio & Streaming',
+      desc:'Cotas CBF/FPF + direitos por jogo em casa',
+      por_rodada: r.cota_tv + r.direitos_tv + r.radio_streaming,
+      por_ano: (r.cota_tv + r.direitos_tv + r.radio_streaming) * 38,
+      info:'Aumenta ao subir de divisão. Jogos em casa geram cota adicional de ' + formatarDinheiro(r.direitos_tv) + '.'
+    },
+    {
+      icon:'👕', titulo:'Patrocínios',
+      desc:'Master (camisa) + secundário + naming rights',
+      por_rodada: r.patrocinio_master + r.patrocinio_secundario + r.naming_rights,
+      por_ano: (r.patrocinio_master + r.patrocinio_secundario + r.naming_rights) * 38,
+      info:'Cresce com divisão e tamanho do estádio. Naming rights depende da infraestrutura.'
+    },
+    {
+      icon:'🏟', titulo:'Matchday',
+      desc:'Bilheteria + camarotes + alimentação/loja',
+      por_rodada: r.bilheteria + r.camarotes + r.alimentacao,
+      por_ano: (r.bilheteria + r.camarotes + r.alimentacao) * 19, // 19 jogos em casa
+      info:'Só em jogos em casa. Público aumenta com vitórias seguidas (até +30%). Melhora com estádio maior.'
+    },
+    {
+      icon:'🎫', titulo:'Sócio Torcedor',
+      desc:'Mensalidade recorrente dos sócios',
+      por_rodada: r.socio,
+      por_ano: r.socio * 38,
+      info:'Evolui com a confiança da torcida ('+clube.confianca_torcida+'%). Vitórias aumentam a confiança. Derrotas a reduzem.'
+    }
+  ];
+
+  html += '<div class="receita-grid">';
+  categorias.forEach(function(cat) {
+    html += '<div class="receita-card">';
+    html += '<div class="receita-card-header"><span class="receita-icon">'+cat.icon+'</span>';
+    html += '<div><div class="receita-titulo">'+cat.titulo+'</div>';
+    html += '<div class="receita-desc">'+cat.desc+'</div></div></div>';
+    html += '<div class="receita-valores">';
+    html += '<div class="receita-val-item"><span class="receita-val-label">Por rodada</span><span class="receita-val">'+formatarDinheiro(cat.por_rodada)+'</span></div>';
+    html += '<div class="receita-val-item"><span class="receita-val-label">Estimativa anual</span><span class="receita-val receita-anual">'+formatarDinheiro(cat.por_ano)+'</span></div>';
+    html += '</div>';
+    html += '<div class="receita-info">💡 '+cat.info+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Total estimado
+  var totalRodada = categorias.reduce(function(s,c){return s+c.por_rodada;},0);
+  html += '<div class="receita-total">';
+  html += '<div>Total estimado por rodada: <strong>'+formatarDinheiro(totalRodada)+'</strong></div>';
+  html += '<div style="font-size:12px;color:var(--text2);margin-top:4px">Matchday conta apenas em jogos em casa (~metade das rodadas)</div>';
+  html += '</div>';
+
+  // Histórico
+  if (hist.length > 0) {
+    html += '<div class="fin-secao-titulo" style="margin-top:20px;margin-bottom:8px">📊 Histórico de receitas</div>';
+    html += '<table class="elenco-tabela"><thead><tr><th>Rodada</th><th>TV/Rádio</th><th>Patrocínio</th><th>Matchday</th><th>Sócio</th><th>Premiação</th><th>Total</th></tr></thead><tbody>';
+    hist.slice().reverse().forEach(function(h) {
+      var tv=0,pat=0,md=0,soc=0,prem=0;
+      h.detalhes.forEach(function(d){
+        if(d.cat==='tv') tv=d.valor;
+        if(d.cat==='patrocinio') pat=d.valor;
+        if(d.cat==='matchday') md=d.valor;
+        if(d.cat==='socio') soc=d.valor;
+        if(d.cat==='premiacao') prem=d.valor;
+      });
+      html+='<tr><td>Rod. '+h.rodada+'</td><td>'+formatarDinheiro(tv)+'</td><td>'+formatarDinheiro(pat)+'</td>';
+      html+='<td>'+(md>0?formatarDinheiro(md):'-')+'</td><td>'+formatarDinheiro(soc)+'</td>';
+      html+='<td>'+(prem>0?formatarDinheiro(prem):'-')+'</td>';
+      html+='<td style="font-weight:700;color:var(--green)">'+formatarDinheiro(h.total)+'</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+
+  html += '</div>';
   document.getElementById("main").innerHTML = html;
 }</script><script>// ════════════════════════════════════════
 // DIVISÕES — Série B, C e D
@@ -5430,9 +5922,12 @@ function inicializarDivisoes() {
       var overall = overallBase - Math.floor(Math.random() * spread);
       var jogadores = gerarJogadoresFicticios(c.id, overall);
       aplicarNomesFicticios(jogadores, c.id.charCodeAt(0)*997 + c.id.charCodeAt(1)*31);
+      var perfil = gerarPerfilFinanceiroGenerico(overallBase);
       return Object.assign({}, c, {
         jogadores: jogadores,
-        budget: Math.round((overallBase / 100) * 15000000 * (0.7 + Math.random() * 0.6)),
+        caixa: perfil.caixa,
+        dividas: perfil.dividas,
+        budget: perfil.caixa,
         tecnico_id: "t" + (String((_tecIdx++ % 40) + 1)).padStart(2,"0")
       });
     });
@@ -6521,10 +7016,13 @@ function inicializarPaulista() {
     return lista.map(function(c){
       var jogs = gerarJogadoresFicticios(c.id, overallBase+Math.floor(Math.random()*8)-4);
       aplicarNomesFicticios(jogs, c.id.charCodeAt(2)*997 + overallBase*31);
+      var perfil = gerarPerfilFinanceiroGenerico(overallBase);
       return Object.assign({},c,{
         divisao_paulista:nivel,
         jogadores:jogs,
-        budget:Math.round(overallBase/100*8000000*(0.6+Math.random()*0.8)),
+        caixa: perfil.caixa,
+        dividas: perfil.dividas,
+        budget: perfil.caixa,
         tecnico_id:"t"+String((_ptIdx++%40)+1).padStart(2,"0")
       });
     });
@@ -6540,10 +7038,13 @@ function inicializarPaulista() {
     g.clubes = g.clubes.map(function(c){
       var jogs=gerarJogadoresFicticios(c.id, 46+Math.floor(Math.random()*8)-4);
       aplicarNomesFicticios(jogs, c.id.charCodeAt(3)*997 + 46*31);
+      var perfil = gerarPerfilFinanceiroGenerico(46);
       return Object.assign({},c,{
         divisao_paulista:"b1",
         jogadores:jogs,
-        budget:500000,
+        caixa: perfil.caixa,
+        dividas: perfil.dividas,
+        budget: perfil.caixa,
         tecnico_id:"t"+String((Math.floor(Math.random()*40)+1)).padStart(2,"0")
       });
     });
@@ -6621,7 +7122,7 @@ function simularEventoPaulista(rodadaIdx) {
         if(ehMeu){
           var m=est.clubes.find(function(c){return c.id===jogo.mId;});
           var v=est.clubes.find(function(c){return c.id===jogo.vId;});
-          adicionarNoticia("🏅 Paulistão "+div.toUpperCase()+" · "+(m?m.sigla:"?")+' '+r.gM+"x"+r.gV+" "+(v?v.sigla:"?"), rodadaIdx);
+          adicionarNoticia("🏅 Paulistão "+div.toUpperCase()+" · "+(m?m.nome:"?")+' '+r.gM+"x"+r.gV+" "+(v?v.nome:"?"), rodadaIdx);
         }
       });
       // Verificar se grupos terminaram → gerar mata-mata
@@ -6985,10 +7486,10 @@ function renderDivisaoPaulistaTela(div) {
       var v=est.clubes.find(function(c){return c.id===j.vId;});
       var ehMeu=j.mId===meuId||j.vId===meuId;
       html+='<div class="torneio-jogo'+(ehMeu?" torneio-meu":"")+'">'+
-        '<span class="torneio-time">'+(m?m.sigla:"?")+'</span>'+
+        '<span class="torneio-time">'+(m?m.nome:"?")+'</span>'+
         (j.ok?'<span class="torneio-placar">'+j.gM+'-'+j.gV+'</span>':
                '<span class="torneio-placar pendente">vs</span>')+
-        '<span class="torneio-time right">'+(v?v.sigla:"?")+'</span></div>';
+        '<span class="torneio-time right">'+(v?v.nome:"?")+'</span></div>';
     });
   });
   if(!temMata) html+='<div class="dash-empty" style="padding:12px">Mata-mata ainda não iniciado.</div>';
@@ -7039,10 +7540,10 @@ function renderBezinhaTela() {
       var v=todos.find(function(c){return c.id===j.vId;});
       var ehMeu=j.mId===meuId||j.vId===meuId;
       html+='<div class="torneio-jogo'+(ehMeu?" torneio-meu":"")+'">'+
-        '<span class="torneio-time">'+(m?m.sigla:"?")+'</span>'+
+        '<span class="torneio-time">'+(m?m.nome:"?")+'</span>'+
         (j.ok?'<span class="torneio-placar">'+j.gM+'-'+j.gV+'</span>':
                '<span class="torneio-placar pendente">vs</span>')+
-        '<span class="torneio-time right">'+(v?v.sigla:"?")+'</span></div>';
+        '<span class="torneio-time right">'+(v?v.nome:"?")+'</span></div>';
     });
     html+='</div>';
   });
@@ -7068,10 +7569,10 @@ function renderCopaPaulistaTela(){
       var v=copa.clubes.find(function(c){return c.id===j.vId;});
       var ehMeu=j.mId===meuId||j.vId===meuId;
       html+='<div class="torneio-jogo'+(ehMeu?" torneio-meu":"")+'">'+
-        '<span class="torneio-time">'+(m?m.sigla:"?")+'</span>'+
+        '<span class="torneio-time">'+(m?m.nome:"?")+'</span>'+
         (j.ok?'<span class="torneio-placar">'+j.gM+'-'+j.gV+'</span>':
                '<span class="torneio-placar pendente">vs</span>')+
-        '<span class="torneio-time right">'+(v?v.sigla:"?")+'</span></div>';
+        '<span class="torneio-time right">'+(v?v.nome:"?")+'</span></div>';
     });
     html+='</div>';
   });
@@ -8095,7 +8596,7 @@ function navegarPara(aba) {
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
-  var abas = { dashboard: renderDashboard, inbox: renderInbox, torneios: renderTorneiosHub, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
+  var abas = { dashboard: renderDashboard, inbox: renderInbox, torneios: renderTorneiosHub, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, receitas: renderReceitas, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
   if (abas[aba]) abas[aba]();
 }
 
@@ -8599,17 +9100,24 @@ function renderFeedNoticias() {
   document.querySelectorAll(".mtab")[1].classList.add("ativo");
 }
 
-function renderMercadoBuscaHTML() {
+function _todosJogadoresMercado() {
   var meuClube = estado.meuClube;
   var todos = [];
-  CLUBES.forEach(function(clube) {
-    if (clube.id === meuClube.id) return;
-    clube.jogadores.forEach(function(j) {
-      todos.push({ jogador: j, clube: clube });
-    });
-  });
+  function add(clube) {
+    if (!clube || !clube.jogadores || clube.id === meuClube.id) return;
+    clube.jogadores.forEach(function(j) { todos.push({ jogador: j, clube: clube }); });
+  }
+  CLUBES.forEach(add);
+  (estadoDivisoes.b.clubes||[]).forEach(add);
+  (estadoDivisoes.c.clubes||[]).forEach(add);
+  (estadoDivisoes.d.clubes||[]).forEach(add);
+  ["a1","a2","a3","a4"].forEach(function(d){ (estadoPaulista[d]&&estadoPaulista[d].clubes||[]).forEach(add); });
+  GRUPOS_BEZINHA.forEach(function(g){ g.clubes.forEach(add); });
+  return todos;
+}
 
-  // Ordenar por overall desc
+function renderMercadoBuscaHTML() {
+  var todos = _todosJogadoresMercado();
   todos.sort(function(a, b) { return b.jogador.overall - a.jogador.overall; });
 
   var html = '<div class="mercado-filtros">';
@@ -8625,6 +9133,11 @@ function renderMercadoBuscaHTML() {
   html += '<option value="15000000">Até R$ 15M</option>';
   html += '<option value="30000000">Até R$ 30M</option>';
   html += '</select>';
+  html += '<select id="filtro-status" onchange="filtrarMercado()">';
+  html += '<option value="">Todos os jogadores</option>';
+  html += '<option value="venda">🏷 Somente à venda</option>';
+  html += '<option value="emprestimo">🔄 Somente para empréstimo</option>';
+  html += '</select>';
   html += '</div>';
 
   html += '<div id="lista-mercado">';
@@ -8636,16 +9149,15 @@ function renderMercadoBuscaHTML() {
 function filtrarMercado() {
   var pos    = document.getElementById("filtro-pos").value;
   var budget = document.getElementById("filtro-budget").value;
-  var meuClube = estado.meuClube;
+  var status = document.getElementById("filtro-status").value;
 
-  var todos = [];
-  CLUBES.forEach(function(clube) {
-    if (clube.id === meuClube.id) return;
-    clube.jogadores.forEach(function(j) {
-      if (pos && j.posicao !== pos) return;
-      if (budget && j.valor_mercado > parseInt(budget)) return;
-      todos.push({ jogador: j, clube: clube });
-    });
+  var todos = _todosJogadoresMercado().filter(function(item) {
+    var j = item.jogador;
+    if (pos && j.posicao !== pos) return false;
+    if (budget && j.valor_mercado > parseInt(budget)) return false;
+    if (status === "venda" && !j.a_venda) return false;
+    if (status === "emprestimo" && !j.para_emprestimo) return false;
+    return true;
   });
   todos.sort(function(a, b) { return b.jogador.overall - a.jogador.overall; });
   document.getElementById("lista-mercado").innerHTML = renderListaJogadoresMercado(todos);
@@ -8655,26 +9167,28 @@ function renderListaJogadoresMercado(lista) {
   if (lista.length === 0) return '<p style="color:var(--text2);padding:16px">Nenhum jogador encontrado.</p>';
 
   var html = '<div class="lista-jogadores-mercado">';
-  lista.slice(0, 60).forEach(function(item) {
+  lista.slice(0, 80).forEach(function(item) {
     var j = item.jogador;
     var c = item.clube;
     var fimContrato = j.contrato_termino <= estado.rodadaAtual + 6;
     var podeContratar = estado.meuClube.budget >= j.valor_mercado * 0.8;
 
-    html += '<div class="item-mercado">';
+    html += '<div class="item-mercado' + (j.a_venda||j.para_emprestimo ? ' item-mercado-disponivel' : '') + '">';
     html += '<div class="mercado-info">';
     html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
     html += '<div class="mercado-jogador">';
     html += '<div class="mercado-nome">' + j.nome;
     if (fimContrato) html += ' <span class="badge-contrato">Fim de contrato</span>';
+    if (j.a_venda) html += ' <span class="badge-venda">À venda</span>';
+    if (j.para_emprestimo) html += ' <span class="badge-emprestimo">Empréstimo</span>';
     html += '</div>';
     html += '<div class="mercado-clube">' + c.nome + '</div>';
     html += '</div>';
     html += '</div>';
     html += '<div class="mercado-valores">';
     html += '<div class="mercado-overall ' + overallClasse(j.overall) + '">' + j.overall + '</div>';
-    html += '<div class="mercado-vm">' + formatarDinheiro(j.valor_mercado) + '</div>';
-    if (podeContratar || fimContrato) {
+    html += '<div class="mercado-vm">' + formatarDinheiro(j.a_venda && j.preco_minimo ? j.preco_minimo : j.valor_mercado) + '</div>';
+    if (podeContratar || fimContrato || j.a_venda) {
       html += '<button class="btn-proposta" onclick="abrirModalProposta(\'' + j.id + '\',\'' + c.id + '\')">Propor</button>';
     } else {
       html += '<span class="sem-budget">Sem budget</span>';
@@ -8809,15 +9323,19 @@ function mostrarResultadoProposta(aceita, motivo, nomeJogador) {
 // ── Processar mercado da IA ao simular rodada ──
 function processarMercadoRodada(rodadaIdx) {
   if (!estado.feedNoticias) estado.feedNoticias = [];
-  var janela = janelaAberta(rodadaIdx);
-  if (!janela) return;
 
-  // IA faz transferências entre si
-  var noticias = simularMercadoIA();
-  noticias.forEach(function(n) {
-    n.rodada = rodadaIdx;
-    estado.feedNoticias.push(n);
-  });
+  // IA decide vendas/empréstimos sempre (mesmo fora da janela) — chance baixa por rodada
+  if (Math.random() < 0.3) iaDecidirVendasEmprestimos();
+
+  var janela = janelaAberta(rodadaIdx);
+  if (janela) {
+    // IA faz transferências entre si (só durante a janela)
+    var noticias = simularMercadoIA();
+    noticias.forEach(function(n) {
+      n.rodada = rodadaIdx;
+      estado.feedNoticias.push(n);
+    });
+  }
 
   // Receita de bilheteria
   processarReceitaRodada(rodadaIdx);
@@ -9552,6 +10070,25 @@ function renderTodasPaulistas() {
 
 // Voltar ao dashboard após partida
 function voltarAoDashboard() {
+  // Atualizar confiança da torcida com base no resultado
+  if (jogoAtivo && jogoAtivo.resultado && estado.meuClube) {
+    var gM = jogoAtivo.resultado.golsMandante;
+    var gV = jogoAtivo.resultado.golsVisitante;
+    var meuMandante = jogoAtivo.mandante && jogoAtivo.mandante.id === estado.meuClube.id;
+    var meuGols = meuMandante ? gM : gV;
+    var advGols = meuMandante ? gV : gM;
+    var resultado = meuGols > advGols ? 'vitoria' : meuGols < advGols ? 'derrota' : 'empate';
+    if (typeof atualizarConfiancaTorcida !== 'undefined') {
+      atualizarConfiancaTorcida(estado.meuClube, resultado);
+    }
+    // Receita matchday
+    var div = estado.minhaDivisao || 'serieA';
+    var jogoEmCasa = meuMandante;
+    if (typeof processarReceitasRodada !== 'undefined') {
+      processarReceitasRodada(estado.meuClube, div, jogoEmCasa, resultado, 10);
+    }
+  }
+
   // Para times paulistas, marcar jogo como simulado
   if (estado._jogoAtivoPaulista && jogoAtivo && jogoAtivo.resultado) {
     var info = estado._jogoAtivoPaulista;
@@ -9625,7 +10162,7 @@ function getLancesResultados(resultados) {
 }</script>
 <script>
 inicializarFinancas();
-function atualizarSaldo(){var s=estado.meuClube?formatarDinheiro(estado.meuClube.budget):'';var e1=document.getElementById("header-saldo"),e2=document.getElementById("sidebar-saldo");if(e1)e1.textContent=s;if(e2)e2.textContent=s;}
+function atualizarSaldo(){var s=estado.meuClube?formatarDinheiro(estado.meuClube.caixa||estado.meuClube.budget||0):'';var e1=document.getElementById("header-saldo"),e2=document.getElementById("sidebar-saldo");if(e1)e1.textContent=s;if(e2)e2.textContent=s;}
 setInterval(atualizarSaldo,2000);
 function salvarManual(){atualizarSaldo();var ok=salvarJogo();var btn=document.getElementById("btn-salvar");if(btn){btn.textContent=ok?"✅ Salvo!":"❌ Erro";btn.classList.add("salvo");setTimeout(function(){btn.textContent="💾 Salvar jogo";btn.classList.remove("salvo");},2000);}}
 var _origMostrarNav=mostrarNav;mostrarNav=function(){_origMostrarNav();var btn=document.getElementById("btn-salvar");if(btn)btn.classList.remove("hidden");atualizarSaldo();};
