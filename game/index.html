@@ -4141,17 +4141,20 @@ function carregarJogo() {
     var raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     var save = JSON.parse(raw);
-    if (!save || save.versao !== 1) return false;
+
+    // Aceitar versão 1 ou 2, ou sem versão definida (salves antigos)
+    if (!save) return false;
 
     // Restaurar estado básico
-    estado.manager      = save.manager;
-    estado.rodadaAtual  = save.rodadaAtual;
+    estado.manager      = save.manager || { nome: "Manager" };
+    estado.rodadaAtual  = save.rodadaAtual || 0;
     estado.eventoAtual  = save.eventoAtual || 0;
     estado.resultados   = save.resultados || [];
     estado.inbox        = save.inbox || [];
     estado.noticias     = save.noticias || [];
     estado.feedNoticias = save.feedNoticias || [];
     estado.baixas       = save.baixas || [];
+    estado.minhaDivisao = save.minhaDivisao || "serieA";
 
     // Restaurar calView
     if (save.calView) {
@@ -4159,41 +4162,84 @@ function carregarJogo() {
       calView.ano = save.calView.ano;
     }
 
-    // Restaurar clube e técnico
-    estado.meuClube  = CLUBES.find(function(c) { return c.id === save.meuClubeId; });
-    estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === save.meuTecnicoId; });
+    // Restaurar clube — buscar em todas as fontes
+    var clubeId = save.meuClubeId;
+    estado.meuClube = CLUBES.find(function(c){ return c.id === clubeId; });
 
-    if (!estado.meuClube || !estado.meuTecnico) return false;
-
-    // Restaurar budgets
-    if (save.clubesBudget) {
-      save.clubesBudget.forEach(function(cb) {
-        var clube = CLUBES.find(function(c) { return c.id === cb.id; });
-        if (clube) clube.budget = cb.budget;
-      });
+    // Se não achou na Série A, inicializar divisões e buscar lá
+    if (!estado.meuClube) {
+      inicializarDivisoes();
+      if (estadoDivisoes.b.clubes) estado.meuClube = estadoDivisoes.b.clubes.find(function(c){ return c.id===clubeId; });
+      if (!estado.meuClube && estadoDivisoes.c.clubes) estado.meuClube = estadoDivisoes.c.clubes.find(function(c){ return c.id===clubeId; });
+      if (!estado.meuClube && estadoDivisoes.d.clubes) estado.meuClube = estadoDivisoes.d.clubes.find(function(c){ return c.id===clubeId; });
+    }
+    // Se não achou, buscar no Paulistão
+    if (!estado.meuClube) {
+      inicializarPaulista();
+      estado.meuClube = clubePaulistaPorId(clubeId);
     }
 
-    // Restaurar dados financeiros dos jogadores do meu clube
+    if (!estado.meuClube) {
+      console.error("Clube não encontrado:", clubeId);
+      return false;
+    }
+
+    // Restaurar técnico
+    estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){ return t.id === save.meuTecnicoId; });
+    if (!estado.meuTecnico) estado.meuTecnico = TECNICOS_DISPONIVEIS[0];
+
+    // Restaurar financeiro do clube (novo sistema caixa/dividas)
+    if (save.clubeFinanceiro) {
+      estado.meuClube.caixa    = save.clubeFinanceiro.caixa   || save.clubeFinanceiro.budget || 500000;
+      estado.meuClube.dividas  = save.clubeFinanceiro.dividas  || 0;
+      estado.meuClube.budget   = estado.meuClube.caixa;
+      estado.meuClube.confianca_torcida    = save.clubeFinanceiro.confianca_torcida || 50;
+      estado.meuClube.historico_receitas   = save.clubeFinanceiro.historico_receitas || [];
+      estado.meuClube.historico_despesas   = save.clubeFinanceiro.historico_despesas || [];
+      estado.meuClube.receitas             = save.clubeFinanceiro.receitas || null;
+      estado.meuClube.metas                = save.clubeFinanceiro.metas || null;
+    } else if (save.clubesBudget) {
+      // Compatibilidade com save antigo
+      var cbEntry = save.clubesBudget.find(function(cb){ return cb.id === clubeId; });
+      if (cbEntry) {
+        estado.meuClube.caixa  = cbEntry.budget || cbEntry.caixa || 500000;
+        estado.meuClube.budget = estado.meuClube.caixa;
+      }
+    }
+
+    // Restaurar jogadores do meu clube
     if (save.jogadoresMeuClube) {
       save.jogadoresMeuClube.forEach(function(sj) {
-        var j = estado.meuClube.jogadores.find(function(x) { return x.id === sj.id; });
-        if (j) {
-          j.clube_id            = sj.clube_id;
-          j.valor_mercado       = sj.valor_mercado;
-          j.salario             = sj.salario;
-          j.clausula_rescisoria = sj.clausula_rescisoria;
-          j.contrato_termino    = sj.contrato_termino;
+        var j = estado.meuClube.jogadores.find(function(x){ return x.id === sj.id; });
+        if (!j) {
+          // Jogador novo (comprado ou livre): adicionar ao elenco
+          if (sj.clube_id === clubeId) estado.meuClube.jogadores.push(sj);
+          return;
         }
+        // Atualizar campos
+        Object.assign(j, sj);
+      });
+      // Remover jogadores que saíram (clube_id diferente e não é o nosso)
+      estado.meuClube.jogadores = estado.meuClube.jogadores.filter(function(j){
+        return !j.clube_id || j.clube_id === clubeId || !save.jogadoresMeuClube.find(function(sj){ return sj.id===j.id; });
       });
     }
 
-    // Reconstruir calendário
-    estado.calendario = gerarCalendario(CLUBES);
+    // Inicializar subsistemas se ainda não foram
+    if (!estadoDivisoes.b.clubes) inicializarDivisoes();
+    if (!estadoPaulista.a1.clubes) inicializarPaulista();
 
-    // Reconstruir eventos (não serializa funções, então regenera)
+    // Reconstruir calendário baseado na divisão
+    var div = estado.minhaDivisao || "serieA";
+    if (div.indexOf("paulista") === 0) {
+      estado.calendario = gerarCalendarioPaulista(div.replace("paulista_",""));
+    } else {
+      var clubesCal = clubesParaCalendario ? clubesParaCalendario(div) : CLUBES;
+      estado.calendario = gerarCalendario(clubesCal.length >= 2 ? clubesCal : CLUBES);
+    }
+
+    // Reconstruir eventos
     estado.eventos = gerarEventos();
-
-    // Marcar eventos já processados
     for (var i = 0; i <= estado.eventoAtual; i++) {
       if (estado.eventos[i]) estado.eventos[i].processado = true;
     }
@@ -4201,6 +4247,7 @@ function carregarJogo() {
     return true;
   } catch(e) {
     console.error("Erro ao carregar save:", e);
+    alert("Erro ao carregar o save: " + e.message + ". Iniciando novo jogo.");
     return false;
   }
 }
