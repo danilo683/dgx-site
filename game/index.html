@@ -4597,6 +4597,31 @@ function renderTelaJogo(rodadaIdx) {
   renderJogoHTML(fMandante, fVisitante, ev, rodada);
 }
 
+function _renderListaJogadores(esc, corTitulo, lado) {
+  var html = '<div class="jog-lista-titulo" style="color:'+corTitulo+'">' + (lado==='vis' ? jogoAtivo.visitante.nome : jogoAtivo.mandante.nome) + '</div>';
+  html += '<div class="jog-lista-header">';
+  if (lado==='vis') html += '<span>Pos</span><span>Nome</span><span>OVR</span>';
+  else              html += '<span>OVR</span><span>Nome</span><span>Pos</span>';
+  html += '</div>';
+  esc.forEach(function(j) {
+    var ovEf = Math.round(overallEfetivo(j));
+    var sub = j._substituido ? ' _substituido' : '';
+    if (lado==='vis') {
+      html += '<div class="jog-lista-item'+sub+'">';
+      html += '<span class="posicao-badge pos-'+j.posicao+'" style="font-size:9px;padding:1px 4px">'+j.posicao+'</span>';
+      html += '<span class="jog-nome" id="jv_'+j.id+'">'+j.nome.split(" ")[0]+'</span>';
+      html += '<span class="jog-ovr '+overallClasse(j.overall)+'">'+ovEf+'</span>';
+    } else {
+      html += '<div class="jog-lista-item jog-mandante'+sub+'">';
+      html += '<span class="jog-ovr '+overallClasse(j.overall)+'">'+ovEf+'</span>';
+      html += '<span class="jog-nome" id="jm_'+j.id+'">'+j.nome.split(" ")[0]+'</span>';
+      html += '<span class="posicao-badge pos-'+j.posicao+'" style="font-size:9px;padding:1px 4px">'+j.posicao+'</span>';
+    }
+    html += '</div>';
+  });
+  return html;
+}
+
 function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   var mandante = jogoAtivo.mandante;
   var visitante = jogoAtivo.visitante;
@@ -4607,7 +4632,7 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
 
   var html = '<div class="jogo-tela">';
 
-  // Header com placar e cronômetro
+  // Header
   html += '<div class="jogo-tela-header">';
   html += '<div class="jogo-tela-rodada">Rodada ' + rodada.numero + ' · ' + (ev ? ev.subtitulo : '') + '</div>';
   html += '<div class="jogo-tela-placar">';
@@ -4618,32 +4643,31 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   html += '<div class="jogo-tela-cronometro" id="cronometro">0\'</div>';
   html += '</div>';
 
-  // Stats ao vivo
+  // Stats
   html += '<div class="jogo-stats-vivos">';
   html += '<div class="stat-vivo"><span id="sv-chutes-m">0</span><span>Chutes</span><span id="sv-chutes-v">0</span></div>';
   html += '<div class="stat-vivo"><span id="sv-posse-m">50%</span><span>Posse</span><span id="sv-posse-v">50%</span></div>';
   html += '<div class="stat-vivo"><span id="sv-subs-m">0/5</span><span>Subs</span><span id="sv-subs-v">0/5</span></div>';
   html += '</div>';
 
-  // Layout dois painéis: campo + feed
-  html += '<div class="jogo-dois-paineis">';
+  // 3 colunas: visitante | campo+feed | mandante
+  html += '<div class="jogo-tres-paineis">';
 
-  // Campo tático
-  html += '<div class="jogo-painel-campo">';
+  html += '<div class="jogo-painel-jogadores" id="lista-vis">' + _renderListaJogadores(escV, '#9be', 'vis') + '</div>';
+
+  html += '<div class="jogo-painel-centro">';
   html += '<div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div>';
-  html += '</div>';
-
-  // Feed de lances
-  html += '<div class="jogo-painel-feed">';
-  html += '<div class="lances-feed-titulo">⚡ Lances</div>';
+  html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
   html += '<div class="lances-lista" id="lances-lista"><div class="lance-vazio">Aguardando início...</div></div>';
-  html += '</div>';
+  html += '</div></div>';
 
-  html += '</div>'; // jogo-dois-paineis
+  html += '<div class="jogo-painel-jogadores" id="lista-man">' + _renderListaJogadores(escM, '#fb9', 'man') + '</div>';
 
-  // Botão iniciar
-  html += '<div class="jogo-acoes">';
-  html += '<button class="btn-simular-grande" id="btn-iniciar" onclick="iniciarPartidaAoVivo()">▶ Iniciar partida</button>';
+  html += '</div>'; // jogo-tres-paineis
+
+  // Botão iniciar (só aparece UMA vez, some após iniciar)
+  html += '<div class="jogo-acoes" id="jogo-acoes-wrap">';
+  html += '<button class="btn-simular-grande" onclick="iniciarPartidaAoVivo()">▶ Iniciar partida</button>';
   html += '</div>';
   html += '</div>';
 
@@ -4773,8 +4797,12 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
 }
 
 function iniciarPartidaAoVivo() {
-  var btn = document.getElementById("btn-iniciar");
-  if (btn) { btn.disabled = true; btn.textContent = "⏱ Em andamento..."; }
+  // Evitar dupla inicialização
+  if (jogoAtivo && jogoAtivo.timer) return;
+
+  // Esconder botão iniciar
+  var acoeswrap = document.getElementById("jogo-acoes-wrap");
+  if (acoeswrap) acoeswrap.innerHTML = '<button class="btn-simular-grande" disabled style="opacity:.5;cursor:default">⏱ Em andamento...</button>';
 
   // Simular resultado
   var r = simularPartidaSimples(
