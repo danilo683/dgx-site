@@ -2354,7 +2354,84 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   overflow: hidden;
   margin-bottom: 16px;
 }
-.conf-bar { height:100%;border-radius:4px;transition:width .4s; }</style>
+.conf-bar { height:100%;border-radius:4px;transition:width .4s; }
+
+/* ── Três painéis da partida ── */
+.jogo-tres-paineis {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.jogo-painel-jogadores {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-size: 11px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.jog-lista-titulo {
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jog-lista-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 28px;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text2);
+  text-transform: uppercase;
+  padding: 2px 2px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+
+.jog-lista-item {
+  display: grid;
+  grid-template-columns: 36px 1fr 28px;
+  gap: 4px;
+  align-items: center;
+  padding: 3px 2px;
+  border-radius: 4px;
+  transition: background .1s;
+}
+.jog-lista-item:hover { background: var(--bg3); }
+.jog-lista-item._substituido { opacity: 0.4; text-decoration: line-through; }
+.jog-lista-item._titular { }
+
+.jog-mandante { direction: rtl; }
+.jog-mandante .jog-nome { direction: ltr; text-align: right; }
+
+.jog-nome {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jog-ovr {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.jogo-painel-centro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}</style>
 </head>
 <body>
 <div id="app">
@@ -5108,8 +5185,22 @@ function renderTelaJogoAtivo() {
   html += '<div class="stat-vivo"><span id="sv-subs-m">' + (jogoAtivo.subsM||0) + '/5</span><span>Subs</span><span id="sv-subs-v">' + (jogoAtivo.subsV||0) + '/5</span></div>';
   html += '</div>';
 
-  html += '<div class="jogo-dois-paineis">';
-  html += '<div class="jogo-painel-campo"><div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div></div>';
+  html += '<div class="jogo-tres-paineis">';
+
+  html += '<div class="jogo-painel-jogadores">';
+  html += '<div class="jog-lista-titulo" style="color:#9be">' + visitante.nome + '</div>';
+  html += '<div class="jog-lista-header"><span>Pos</span><span>Nome</span><span>OVR</span></div>';
+  escV.forEach(function(j) {
+    html += '<div class="jog-lista-item jog-visitante">';
+    html += '<span class="posicao-badge pos-' + j.posicao + '" style="font-size:9px;padding:1px 4px">' + j.posicao + '</span>';
+    html += '<span class="jog-nome">' + j.nome.split(" ")[0] + '</span>';
+    html += '<span class="jog-ovr ' + overallClasse(j.overall) + '">' + Math.round(overallEfetivo(j)) + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="jogo-painel-centro">';
+  html += '<div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div>';
   html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
   html += '<div class="lances-lista" id="lances-lista">';
   // Relançar lances já exibidos
@@ -8655,13 +8746,28 @@ function iniciarJogo() {
 }
 
 function navegarPara(aba) {
-  // Se há partida em andamento (timer rodando), pausar ao sair
-  if (jogoAtivo && jogoAtivo.timer) {
-    pausarPartida();
+  // Enquanto há partida em andamento, BLOQUEAR navegação
+  // O único escape é voltarAoDashboard() após o jogo terminar
+  if (jogoAtivo && !jogoAtivo.resultado) {
+    // Pausar o timer se ainda estiver rodando
+    if (jogoAtivo.timer) pausarPartida();
+
+    // Mostrar aviso e botão de retomar no main
+    document.getElementById("main").innerHTML =
+      '<div style="text-align:center;padding:60px 20px">' +
+      '<div style="font-size:48px;margin-bottom:16px">⏸</div>' +
+      '<div style="font-size:20px;font-weight:700;margin-bottom:8px">Partida pausada</div>' +
+      '<div style="color:var(--text2);margin-bottom:24px">' +
+        (jogoAtivo.mandante ? jogoAtivo.mandante.nome : "?") + ' ' +
+        (jogoAtivo.golsExibidosM||0) + ' – ' + (jogoAtivo.golsExibidosV||0) + ' ' +
+        (jogoAtivo.visitante ? jogoAtivo.visitante.nome : "?") + ' · ' +
+        (jogoAtivo.minAtual||0) + "'" +
+      '</div>' +
+      '<button class="btn-primario" style="font-size:16px;padding:14px 32px" onclick="voltarParaPartida()">▶ Retomar partida</button>' +
+      '</div>';
+    return; // NÃO navega para outra aba
   }
 
-  // Se há partida pausada e não está indo pro dashboard, mostrar aviso
-  // e ir mesmo assim (já está pausada)
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
   if (btn) btn.classList.add("ativo");
