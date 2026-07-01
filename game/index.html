@@ -2359,9 +2359,10 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 /* ── Três painéis da partida ── */
 .jogo-tres-paineis {
   display: grid;
-  grid-template-columns: 200px 1fr 200px;
+  grid-template-columns: 190px minmax(0, 500px) 190px;
   gap: 10px;
   margin-bottom: 12px;
+  justify-content: center;
 }
 
 .jogo-painel-jogadores {
@@ -2431,6 +2432,8 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
+  overflow: hidden;
 }</style>
 </head>
 <body>
