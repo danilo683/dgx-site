@@ -1645,14 +1645,14 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 }
 
 .jogo-painel-campo { min-width: 0; }
-.jogo-painel-feed  {
+.jogo-painel-feed {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  max-height: 580px;
+  height: 540px;
 }
 
 .jogo-painel-feed .lances-lista {
@@ -2359,10 +2359,10 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 /* ── Três painéis da partida ── */
 .jogo-tres-paineis {
   display: grid;
-  grid-template-columns: 190px minmax(0, 500px) 190px;
+  grid-template-columns: 190px minmax(0, 420px) 190px 260px;
   gap: 10px;
   margin-bottom: 12px;
-  justify-content: center;
+  align-items: start;
 }
 
 .jogo-painel-jogadores {
@@ -4707,11 +4707,14 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
 
   html += '<div class="jogo-painel-centro">';
   html += '<div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div>';
-  html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
-  html += '<div class="lances-lista" id="lances-lista"><div class="lance-vazio">Aguardando início...</div></div>';
-  html += '</div></div>';
+  html += '</div>';
 
   html += '<div class="jogo-painel-jogadores" id="lista-man">' + _renderListaJogadores(escM, '#fb9', 'man') + '</div>';
+
+  // 4ª coluna: feed de lances
+  html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
+  html += '<div class="lances-lista" id="lances-lista"><div class="lance-vazio">Aguardando início...</div></div>';
+  html += '</div>';
 
   html += '</div>'; // jogo-tres-paineis
 
