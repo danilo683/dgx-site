@@ -3220,7 +3220,30 @@ var TECNICOS_EXTRAS = [
 ];
 
 // Mesclar com os técnicos disponíveis
-TECNICOS_DISPONIVEIS = TECNICOS_DISPONIVEIS.concat(TECNICOS_EXTRAS);</script><script>// ── Janelas de transferência do Brasileirão ──
+TECNICOS_DISPONIVEIS = TECNICOS_DISPONIVEIS.concat(TECNICOS_EXTRAS);
+
+// ── Buscar técnico de um clube ──
+// Série A: usa TECNICOS_DISPONIVEIS com nomes reais
+// Divisões inferiores: usa nome fictício gerado pelo clube
+function getTecnicoClube(clube) {
+  if (!clube) return TECNICOS_DISPONIVEIS[0];
+
+  // Se o clube tem nome fictício gerado, usar ele
+  if (clube.tecnico_nome_ficticio) {
+    // Encontrar a formação do técnico pelo id
+    var tec = TECNICOS_DISPONIVEIS.find(function(t){ return t.id === clube.tecnico_id; });
+    return {
+      id: clube.tecnico_id,
+      nome: clube.tecnico_nome_ficticio,
+      formacao: tec ? tec.formacao : "4-4-2",
+      estilo:   tec ? tec.estilo   : "Equilibrado",
+      overall:  tec ? tec.overall  : 60
+    };
+  }
+
+  // Série A e outros com técnico real
+  return TECNICOS_DISPONIVEIS.find(function(t){ return t.id === clube.tecnico_id; }) || TECNICOS_DISPONIVEIS[0];
+}</script><script>// ── Janelas de transferência do Brasileirão ──
 const JANELAS = [
   { nome: "Janela de verão",   inicio: 1,  fim: 6  },
   { nome: "Janela de inverno", inicio: 19, fim: 23 }
@@ -4604,7 +4627,7 @@ function renderTelaJogo(rodadaIdx) {
   var meuClube    = estado.meuClube;
   var advId = meuJogo ? (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId) : null;
   var adversario = advId ? buscarClubePorId(advId) : null;
-  var tecAdv = adversario ? TECNICOS_DISPONIVEIS.find(function(t) { return t.id === adversario.tecnico_id; }) : null;
+  var tecAdv = adversario ? getTecnicoClube(adversario) : null;
 
   var mandante    = euMandante ? meuClube : adversario;
   var visitante   = euMandante ? adversario : meuClube;
@@ -5077,8 +5100,8 @@ function finalizarPartida() {
     if (jogo.mandanteId === mandante.id && jogo.visitanteId === visitante.id) return;
     var m2 = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
     var v2 = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
-    var tM2 = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === m2.tecnico_id; });
-    var tV2 = TECNICOS_DISPONIVEIS.find(function(t) { return t.id === v2.tecnico_id; });
+    var tM2 = getTecnicoClube(m2);
+    var tV2 = getTecnicoClube(v2);
     var r2  = simularPartidaSimples(m2, v2, tM2, tV2);
     estado.resultados.push({
       rodada: jogoAtivo.rodadaIdx,
@@ -8691,7 +8714,7 @@ function renderSelecionarClube() {
     html += '<div class="grid-clubes">';
     clubesAba.forEach(function(c) {
       var f   = calcularForca(c);
-      var tec = TECNICOS_DISPONIVEIS.find(function(t){return t.id===c.tecnico_id;});
+      var tec = getTecnicoClube(c);
       var val = calcularValorClube(c);
       html += '<div class="card-clube" onclick="comprarClube(\'' + c.id + '\',\'' + aba + '\')">';
       html += '<div class="escudo" style="background:' + c.cor + '">' + c.sigla + '</div>';
@@ -8784,8 +8807,7 @@ function selecionarClube(id, lista) {
     estado.calendario = gerarCalendarioPaulista(divCal.replace("paulista_",""));
   }
 
-  var tec_id = estado.meuClube.tecnico_id;
-  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){return t.id===tec_id;}) || TECNICOS_DISPONIVEIS[0];
+  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){return t.id===estado.meuClube.tecnico_id;}) || TECNICOS_DISPONIVEIS[0];
   iniciarJogo();
 }
 
@@ -10326,36 +10348,43 @@ function renderTodasPaulistas() {
 
 // Voltar ao dashboard após partida
 function voltarAoDashboard() {
-  // Atualizar confiança da torcida com base no resultado
-  if (jogoAtivo && jogoAtivo.resultado && estado.meuClube) {
-    var gM = jogoAtivo.resultado.golsMandante;
-    var gV = jogoAtivo.resultado.golsVisitante;
-    var meuMandante = jogoAtivo.mandante && jogoAtivo.mandante.id === estado.meuClube.id;
-    var meuGols = meuMandante ? gM : gV;
-    var advGols = meuMandante ? gV : gM;
-    var resultado = meuGols > advGols ? 'vitoria' : meuGols < advGols ? 'derrota' : 'empate';
-    if (typeof atualizarConfiancaTorcida !== 'undefined') {
-      atualizarConfiancaTorcida(estado.meuClube, resultado);
+  // Processar resultado antes de zerar jogoAtivo
+  if (jogoAtivo) {
+    if (jogoAtivo.resultado && estado.meuClube) {
+      var gM = jogoAtivo.resultado.golsMandante;
+      var gV = jogoAtivo.resultado.golsVisitante;
+      var meuMandante = jogoAtivo.mandante && jogoAtivo.mandante.id === estado.meuClube.id;
+      var meuGols = meuMandante ? gM : gV;
+      var advGols = meuMandante ? gV : gM;
+      var res = meuGols > advGols ? 'vitoria' : meuGols < advGols ? 'derrota' : 'empate';
+      if (typeof atualizarConfiancaTorcida !== 'undefined') atualizarConfiancaTorcida(estado.meuClube, res);
+      if (typeof processarReceitasRodada !== 'undefined') {
+        processarReceitasRodada(estado.meuClube, estado.minhaDivisao || 'serieA', meuMandante, res, 10);
+      }
     }
-    // Receita matchday
-    var div = estado.minhaDivisao || 'serieA';
-    var jogoEmCasa = meuMandante;
-    if (typeof processarReceitasRodada !== 'undefined') {
-      processarReceitasRodada(estado.meuClube, div, jogoEmCasa, resultado, 10);
+    // Times paulistas
+    if (estado._jogoAtivoPaulista && jogoAtivo.resultado) {
+      var info = estado._jogoAtivoPaulista;
+      info.jogo.gM = jogoAtivo.resultado.golsMandante;
+      info.jogo.gV = jogoAtivo.resultado.golsVisitante;
+      info.jogo.ok = true;
+      estado._jogoAtivoPaulista = null;
+      simularEventoPaulista(info.rodadaIdx);
     }
+    // Garantir timer parado
+    if (jogoAtivo.timer) { clearInterval(jogoAtivo.timer); jogoAtivo.timer = null; }
   }
 
-  // Para times paulistas, marcar jogo como simulado
-  if (estado._jogoAtivoPaulista && jogoAtivo && jogoAtivo.resultado) {
-    var info = estado._jogoAtivoPaulista;
-    info.jogo.gM = jogoAtivo.resultado.golsMandante;
-    info.jogo.gV = jogoAtivo.resultado.golsVisitante;
-    info.jogo.ok = true;
-    estado._jogoAtivoPaulista = null;
-    simularEventoPaulista(info.rodadaIdx);
-  }
+  // Zerar ANTES de navegar para que navegarPara não bloqueie
   jogoAtivo = null;
-  navegarPara("dashboard");
+  _partidaPausada = false;
+
+  // Navegar diretamente sem passar por navegarPara (que pode bloquear)
+  document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
+  var btnDash = document.querySelector('#sidebar-nav button[data-aba="dashboard"]');
+  if (btnDash) btnDash.classList.add("ativo");
+  salvarJogo();
+  renderDashboard();
 }
 
 // ════════════════════════════════════════
