@@ -2434,6 +2434,24 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   gap: 10px;
   min-width: 0;
   overflow: hidden;
+}
+
+/* ── Substituições nas listas laterais ── */
+.jog-saiu {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.jog-entrou {
+  color: var(--green);
+  font-weight: 600;
+}
+.jog-sep-subs {
+  font-size: 9px;
+  color: var(--text2);
+  text-align: center;
+  padding: 4px 0 2px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
 }</style>
 </head>
 <body>
@@ -4608,8 +4626,14 @@ function tecnicoDecideSubstituicoes(escAtual, reservas, parada, subsRestantes, p
 
 // Aplicar substituição no array de escalados
 function aplicarSubstituicao(escAtual, sub) {
+  // Marcar quem saiu como substituído (fica na lista com visual diferente)
+  sub.sai._substituido = true;
+  sub.entra._entrouSub = true;
+  // Substituir na escalação ativa
   var idx = escAtual.findIndex(function(j) { return j.id === sub.sai.id; });
   if (idx >= 0) escAtual[idx] = sub.entra;
+  // Adicionar quem saiu ao final para aparecer riscado na lista
+  escAtual.push(sub.sai);
   return escAtual;
 }</script><script>// ════════════════════════════════════════
 // TELA DE JOGO AO VIVO
@@ -4671,27 +4695,46 @@ function renderTelaJogo(rodadaIdx) {
 }
 
 function _renderListaJogadores(esc, corTitulo, lado) {
-  var html = '<div class="jog-lista-titulo" style="color:'+corTitulo+'">' + (lado==='vis' ? jogoAtivo.visitante.nome : jogoAtivo.mandante.nome) + '</div>';
+  if (!jogoAtivo) return '';
+  var nomeTime = lado==='vis' ? jogoAtivo.visitante.nome : jogoAtivo.mandante.nome;
+  var html = '<div class="jog-lista-titulo" style="color:'+corTitulo+'">'+nomeTime+'</div>';
   html += '<div class="jog-lista-header">';
   if (lado==='vis') html += '<span>Pos</span><span>Nome</span><span>OVR</span>';
   else              html += '<span>OVR</span><span>Nome</span><span>Pos</span>';
   html += '</div>';
-  esc.forEach(function(j) {
+
+  // Separar titulares e substitutos
+  var titulares   = esc.filter(function(j){ return !j._substituido && !j._entrouSub; });
+  var substituidos= esc.filter(function(j){ return j._substituido; });
+  var subEntrou   = esc.filter(function(j){ return j._entrouSub; });
+
+  function renderJog(j, isOut) {
     var ovEf = Math.round(overallEfetivo(j));
-    var sub = j._substituido ? ' _substituido' : '';
+    var classeExtra = isOut ? ' jog-saiu' : (j._entrouSub ? ' jog-entrou' : '');
+    var prefixo = isOut ? '↓ ' : (j._entrouSub ? '↑ ' : '');
     if (lado==='vis') {
-      html += '<div class="jog-lista-item'+sub+'">';
+      html += '<div class="jog-lista-item'+classeExtra+'">';
       html += '<span class="posicao-badge pos-'+j.posicao+'" style="font-size:9px;padding:1px 4px">'+j.posicao+'</span>';
-      html += '<span class="jog-nome" id="jv_'+j.id+'">'+j.nome.split(" ")[0]+'</span>';
+      html += '<span class="jog-nome">'+prefixo+j.nome.split(" ")[0]+'</span>';
       html += '<span class="jog-ovr '+overallClasse(j.overall)+'">'+ovEf+'</span>';
     } else {
-      html += '<div class="jog-lista-item jog-mandante'+sub+'">';
+      html += '<div class="jog-lista-item jog-mandante'+classeExtra+'">';
       html += '<span class="jog-ovr '+overallClasse(j.overall)+'">'+ovEf+'</span>';
-      html += '<span class="jog-nome" id="jm_'+j.id+'">'+j.nome.split(" ")[0]+'</span>';
+      html += '<span class="jog-nome">'+prefixo+j.nome.split(" ")[0]+'</span>';
       html += '<span class="posicao-badge pos-'+j.posicao+'" style="font-size:9px;padding:1px 4px">'+j.posicao+'</span>';
     }
     html += '</div>';
-  });
+  }
+
+  titulares.forEach(function(j){ renderJog(j, false); });
+  if (subEntrou.length > 0) {
+    html += '<div class="jog-sep-subs">— Substitutos —</div>';
+    subEntrou.forEach(function(j){ renderJog(j, false); });
+  }
+  if (substituidos.length > 0) {
+    substituidos.forEach(function(j){ renderJog(j, true); });
+  }
+
   return html;
 }
 
@@ -5057,6 +5100,19 @@ function adicionarLanceFeed(lance) {
   div.innerHTML = '<span class="lance-min">' + lance.minuto + '\'</span><span class="lance-texto">' + lance.texto + '</span>';
   lista.appendChild(div);
   lista.scrollTop = lista.scrollHeight;
+
+  // Atualizar listas laterais se houve substituição
+  if (lance.tipo === "substituicao") {
+    atualizarListasLaterais();
+  }
+}
+
+function atualizarListasLaterais() {
+  if (!jogoAtivo) return;
+  var elVis = document.getElementById("lista-vis");
+  var elMan = document.getElementById("lista-man") || document.getElementById("lista-man2");
+  if (elVis) elVis.innerHTML = _renderListaJogadores(jogoAtivo.escVisitante, '#9be', 'vis');
+  if (elMan) elMan.innerHTML = _renderListaJogadores(jogoAtivo.escMandante,  '#fb9', 'man');
 }
 
 function finalizarPartida() {
@@ -10348,43 +10404,56 @@ function renderTodasPaulistas() {
 
 // Voltar ao dashboard após partida
 function voltarAoDashboard() {
-  // Processar resultado antes de zerar jogoAtivo
-  if (jogoAtivo) {
-    if (jogoAtivo.resultado && estado.meuClube) {
-      var gM = jogoAtivo.resultado.golsMandante;
-      var gV = jogoAtivo.resultado.golsVisitante;
-      var meuMandante = jogoAtivo.mandante && jogoAtivo.mandante.id === estado.meuClube.id;
-      var meuGols = meuMandante ? gM : gV;
-      var advGols = meuMandante ? gV : gM;
-      var res = meuGols > advGols ? 'vitoria' : meuGols < advGols ? 'derrota' : 'empate';
-      if (typeof atualizarConfiancaTorcida !== 'undefined') atualizarConfiancaTorcida(estado.meuClube, res);
-      if (typeof processarReceitasRodada !== 'undefined') {
-        processarReceitasRodada(estado.meuClube, estado.minhaDivisao || 'serieA', meuMandante, res, 10);
+  try {
+    // Processar resultado antes de zerar jogoAtivo
+    if (jogoAtivo) {
+      if (jogoAtivo.resultado && estado.meuClube) {
+        var gM = jogoAtivo.resultado.golsMandante;
+        var gV = jogoAtivo.resultado.golsVisitante;
+        var meuMandante = jogoAtivo.mandante && jogoAtivo.mandante.id === estado.meuClube.id;
+        var meuGols = meuMandante ? gM : gV;
+        var advGols = meuMandante ? gV : gM;
+        var res = meuGols > advGols ? 'vitoria' : meuGols < advGols ? 'derrota' : 'empate';
+        try { atualizarConfiancaTorcida(estado.meuClube, res); } catch(e){}
+        try { processarReceitasRodada(estado.meuClube, estado.minhaDivisao||'serieA', meuMandante, res, 10); } catch(e){}
       }
+      if (estado._jogoAtivoPaulista && jogoAtivo.resultado) {
+        try {
+          var info = estado._jogoAtivoPaulista;
+          info.jogo.gM = jogoAtivo.resultado.golsMandante;
+          info.jogo.gV = jogoAtivo.resultado.golsVisitante;
+          info.jogo.ok = true;
+          estado._jogoAtivoPaulista = null;
+          simularEventoPaulista(info.rodadaIdx);
+        } catch(e){}
+      }
+      if (jogoAtivo.timer) { clearInterval(jogoAtivo.timer); jogoAtivo.timer = null; }
     }
-    // Times paulistas
-    if (estado._jogoAtivoPaulista && jogoAtivo.resultado) {
-      var info = estado._jogoAtivoPaulista;
-      info.jogo.gM = jogoAtivo.resultado.golsMandante;
-      info.jogo.gV = jogoAtivo.resultado.golsVisitante;
-      info.jogo.ok = true;
-      estado._jogoAtivoPaulista = null;
-      simularEventoPaulista(info.rodadaIdx);
-    }
-    // Garantir timer parado
-    if (jogoAtivo.timer) { clearInterval(jogoAtivo.timer); jogoAtivo.timer = null; }
-  }
+  } catch(e) { console.error("voltarAoDashboard erro parcial:", e); }
 
-  // Zerar ANTES de navegar para que navegarPara não bloqueie
+  // Zerar estado do jogo
   jogoAtivo = null;
   _partidaPausada = false;
 
-  // Navegar diretamente sem passar por navegarPara (que pode bloquear)
+  // Atualizar sidebar
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btnDash = document.querySelector('#sidebar-nav button[data-aba="dashboard"]');
   if (btnDash) btnDash.classList.add("ativo");
-  salvarJogo();
-  renderDashboard();
+
+  // Salvar e ir ao dashboard
+  try { salvarJogo(); } catch(e){}
+
+  try {
+    renderDashboard();
+  } catch(e) {
+    console.error("Erro ao renderizar dashboard:", e);
+    document.getElementById("main").innerHTML =
+      '<div style="padding:40px;text-align:center">' +
+      '<div style="font-size:20px;margin-bottom:16px">Dashboard</div>' +
+      '<div style="color:var(--text2);margin-bottom:20px">Erro ao carregar: ' + e.message + '</div>' +
+      '<button class="btn-primario" onclick="location.reload()">🔄 Recarregar página</button>' +
+      '</div>';
+  }
 }
 
 // ════════════════════════════════════════
