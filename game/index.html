@@ -2468,7 +2468,8 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   padding: 4px 0 2px;
   border-top: 1px solid var(--border);
   margin-top: 4px;
-}</style>
+}
+</style>
 </head>
 <body>
 <div id="app">
@@ -3111,7 +3112,9 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
       { id: "p500", nome: "Sandry",            posicao: "ATA", overall: 68, nacionalidade: "BR", idade: 19, stats: { jogos: 0, gols: 0, assistencias: 0, nota_media: 0 } },
     ]
   }
-];</script><script>// ════════════════════════════════════════
+];
+</script>
+<script>// ════════════════════════════════════════
 // NOMES FICTÍCIOS — jogadores e técnicos
 // ════════════════════════════════════════
 var PRENOMES_BR = ["Carlos","Lucas","Felipe","Rafael","Rodrigo","André","Thiago","Bruno","Gustavo","Diego","Mateus","João","Gabriel","Pedro","Eduardo","Leandro","Marcelo","Victor","Paulo","Renato","Alessandro","Cleber","Fabio","Henrique","Igor","Julio","Kaique","Léo","Murilo","Nathan","Osvaldo","Preto","Queops","Ruan","Samuel","Tarcísio","Ulisses","Vagner","Willian","Xande","Yago","Zé","Alan","Beto","Caio","Davi","Elvis","Fábio","Gilberto","Hugo"];
@@ -3173,7 +3176,9 @@ function aplicarNomesFicticios(jogadores, seed) {
     }
   });
   _nomesSeed = savedSeed;
-}</script><script>const TECNICOS_DISPONIVEIS = [
+}
+</script>
+<script>const TECNICOS_DISPONIVEIS = [
   // Elite (80+)
   { id: "t01", nome: "Abel Ferreira",    overall: 88, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
   { id: "t02", nome: "Tite",             overall: 85, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
@@ -3277,7 +3282,9 @@ function getTecnicoClube(clube) {
 
   // Série A e outros com técnico real
   return TECNICOS_DISPONIVEIS.find(function(t){ return t.id === clube.tecnico_id; }) || TECNICOS_DISPONIVEIS[0];
-}</script><script>// ── Janelas de transferência do Brasileirão ──
+}
+</script>
+<script>// ── Janelas de transferência do Brasileirão ──
 const JANELAS = [
   { nome: "Janela de verão",   inicio: 1,  fim: 6  },
   { nome: "Janela de inverno", inicio: 19, fim: 23 }
@@ -3687,7 +3694,9 @@ function negociarLivre(id) {
   adicionarNoticia("✅ " + j.nome + " contratado como jogador livre pelo " + clube.nome, estado.rodadaAtual);
   salvarJogo();
   navegarPara("mercado");
-}</script><script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
+}
+</script>
+<script>// Calcula encaixe do elenco na formação do técnico (0 a 1)
 function calcularEncaixe(clube, formacao) {
   const req = FORMACOES[formacao].requisitos;
   let totalReq = 0, totalAtendido = 0;
@@ -3882,7 +3891,8 @@ function gerarCalendario(clubes) {
     });
   }
   return rodadas;
-}</script>
+}
+</script>
 <script>// ── Configuração de datas ──
 var DATA_INICIO = new Date(2025, 3, 13); // 13 abril 2025
 
@@ -4134,7 +4144,9 @@ function inicializarCalendario() {
 function adicionarNoticia(texto, rodada) {
   estado.noticias = estado.noticias || [];
   estado.noticias.push({ texto: texto, rodada: rodada });
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // SISTEMA DE SAVE — localStorage
 // ════════════════════════════════════════
 var SAVE_KEY = "managerfc_save";
@@ -4337,7 +4349,9 @@ function infoSave() {
       timestamp: save.timestamp ? formatarTimestamp(save.timestamp) : "?"
     };
   } catch(e) { return null; }
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // MOTOR DE PARTIDA — escalação, lances, notas
 // ════════════════════════════════════════
 
@@ -4650,7 +4664,9 @@ function aplicarSubstituicao(escAtual, sub) {
   var idx = escAtual.findIndex(function(j) { return j.id === sub.sai.id; });
   if (idx >= 0) escAtual[idx] = sub.entra;
   return escAtual;
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // TELA DE JOGO AO VIVO
 // ════════════════════════════════════════
 var jogoAtivo = null;
@@ -5516,7 +5532,8 @@ function _processarParada(parada, paradaNum) {
   }
   var cw=document.getElementById("campo-wrap");
   if(cw) cw.innerHTML=renderCampoTatico(jogoAtivo.escMandante,jogoAtivo.escVisitante,jogoAtivo.mandante,jogoAtivo.visitante,jogoAtivo.tecMandante,jogoAtivo.tecVisitante);
-}</script>
+}
+</script>
 <script>// ════════════════════════════════════════
 // SISTEMA FINANCEIRO
 // ════════════════════════════════════════
@@ -5888,7 +5905,9 @@ function confirmarPagamentoDivida() {
   adicionarNoticia("💳 Pagamento de " + formatarDinheiro(valor) + " realizado na dívida do clube.", estado.rodadaAtual);
   salvarJogo();
   renderFinanceiro();
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // SISTEMA DE RECEITAS DINÂMICAS
 // Cada fonte de receita evolui com divisão, desempenho e infraestrutura
 // ════════════════════════════════════════
@@ -6167,7 +6186,9 @@ function renderReceitas() {
 
   html += '</div>';
   document.getElementById("main").innerHTML = html;
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // DIVISÕES — Série B, C e D
 // ════════════════════════════════════════
 
@@ -6462,7 +6483,9 @@ function renderDivisoes() {
 function mudarDivisao(div) {
   window._divAtiva = div;
   renderDivisoes();
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // SISTEMA DE TORNEIOS
 // ════════════════════════════════════════
 
@@ -7148,7 +7171,9 @@ function renderEstaduaisTela() {
   });
   html += '</div></div>';
   return html;
-}</script><script>// ════════════════════════════════════════
+}
+</script>
+<script>// ════════════════════════════════════════
 // SISTEMA PAULISTA — Formatos 2026
 // A1: 16 times, 1 grupo, 8 rodadas, top8 → quartas/semi/final
 // A2: 16 times, 1 grupo, 15 rodadas, top8 → 2 grupos de 4 → semi → final
@@ -7235,40 +7260,39 @@ var CLUBES_PAULISTA_A4 = [
 
 // Bezinha 2026: 24 times, 4 grupos de 6 (regionalizados)
 var GRUPOS_BEZINHA = [
-  { letra:"A", clubes:[
-    { id:"pb1_01",nome:"Santos B",          sigla:"SNB",cor:"#1a1a1a" },
-    { id:"pb1_02",nome:"Portuguesa B",      sigla:"POB",cor:"#CC0000" },
-    { id:"pb1_03",nome:"São Bernardo B",    sigla:"SBB",cor:"#0033A0" },
-    { id:"pb1_04",nome:"Jabaquara B",       sigla:"JAB",cor:"#1a1a1a" },
-    { id:"pb1_05",nome:"Atibaia B",         sigla:"ATB",cor:"#006400" },
-    { id:"pb1_06",nome:"Desportivo Brasil B",sigla:"DBB",cor:"#0033A0" }
+  { letra:"1", clubes:[
+    { id:"pb1_01",nome:"América FC",         sigla:"AME",cor:"#006400" },
+    { id:"pb1_02",nome:"CA Assisense",       sigla:"ASS",cor:"#CC0000" },
+    { id:"pb1_03",nome:"José Bonifácio EC",  sigla:"JBE",cor:"#0033A0" },
+    { id:"pb1_04",nome:"Riopretano FC",      sigla:"RIO",cor:"#1a1a1a" },
+    { id:"pb1_05",nome:"Santa Fé FC",        sigla:"SFE",cor:"#CC0000" },
+    { id:"pb1_06",nome:"Tupã FC",            sigla:"TUP",cor:"#006400" }
   ]},
-  { letra:"B", clubes:[
-    { id:"pb1_07",nome:"Palmeiras B",       sigla:"PLB",cor:"#006437" },
-    { id:"pb1_08",nome:"Corinthians B",     sigla:"CRB",cor:"#1a1a1a" },
-    { id:"pb1_09",nome:"São Paulo B",       sigla:"SPB",cor:"#CC0000" },
-    { id:"pb1_10",nome:"Grêmio Osasco",     sigla:"GOS",cor:"#006400" },
-    { id:"pb1_11",nome:"União São João B",  sigla:"USB",cor:"#006400" },
-    { id:"pb1_12",nome:"Oeste B",           sigla:"OEB",cor:"#CC0000" }
+  { letra:"2", clubes:[
+    { id:"pb1_07",nome:"AE Santacruzense",   sigla:"STC",cor:"#0033A0" },
+    { id:"pb1_08",nome:"Grêmio Catanduvense",sigla:"CAT",cor:"#006400" },
+    { id:"pb1_09",nome:"Independente FC",    sigla:"IND",cor:"#CC0000" },
+    { id:"pb1_10",nome:"Mogi Mirim EC",      sigla:"MMR",cor:"#006400" },
+    { id:"pb1_11",nome:"São Carlos FC",      sigla:"SCF",cor:"#0033A0" },
+    { id:"pb1_12",nome:"SE Matonense",       sigla:"MAT",cor:"#CC0000" }
   ]},
-  { letra:"C", clubes:[
-    { id:"pb1_13",nome:"RB Bragantino B",   sigla:"RBB",cor:"#CC0000" },
-    { id:"pb1_14",nome:"Votuporanguense B", sigla:"VOB",cor:"#CC0000" },
-    { id:"pb1_15",nome:"Rio Preto B",       sigla:"RPB",cor:"#0033A0" },
-    { id:"pb1_16",nome:"Francana B",        sigla:"FRB",cor:"#006400" },
-    { id:"pb1_17",nome:"Catanduva B",       sigla:"CTB",cor:"#CC0000" },
-    { id:"pb1_18",nome:"Sertãozinho B",     sigla:"SRB",cor:"#CC0000" }
+  { letra:"3", clubes:[
+    { id:"pb1_13",nome:"AA Flamengo",        sigla:"FLA",cor:"#CC0000" },
+    { id:"pb1_14",nome:"AD Guarulhos",       sigla:"GUA",cor:"#006400" },
+    { id:"pb1_15",nome:"Osasco Audax",       sigla:"AUD",cor:"#1a1a1a" },
+    { id:"pb1_16",nome:"Paulínia FU",        sigla:"PAU",cor:"#006400" },
+    { id:"pb1_17",nome:"SC Paulinense",      sigla:"PCL",cor:"#CC0000" },
+    { id:"pb1_18",nome:"Votoraty FC",        sigla:"VOT",cor:"#0033A0" }
   ]},
-  { letra:"D", clubes:[
-    { id:"pb1_19",nome:"Mauá FC",           sigla:"MAU",cor:"#FFD700" },
-    { id:"pb1_20",nome:"Grêmio Mauaense",   sigla:"GMA",cor:"#0033A0" },
-    { id:"pb1_21",nome:"Manthiqueira",      sigla:"MAN",cor:"#006400" },
-    { id:"pb1_22",nome:"Barcelona Esportivo",sigla:"BAR",cor:"#CC0000" },
-    { id:"pb1_23",nome:"Itaquaquecetuba AC",sigla:"ITA",cor:"#0033A0" },
-    { id:"pb1_24",nome:"União Mogi FC",     sigla:"UMO",cor:"#006400" }
+  { letra:"4", clubes:[
+    { id:"pb1_19",nome:"AD Manthiqueira",    sigla:"MAN",cor:"#006400" },
+    { id:"pb1_20",nome:"Barcelona Esportivo",sigla:"BAR",cor:"#A50044" },
+    { id:"pb1_21",nome:"Itaquaquecetuba AC", sigla:"IAC",cor:"#CC0000" },
+    { id:"pb1_22",nome:"Grêmio Mauaense",   sigla:"MAU",cor:"#1a1a1a" },
+    { id:"pb1_23",nome:"Mauá FC",           sigla:"MFC",cor:"#006400" },
+    { id:"pb1_24",nome:"União Mogi",        sigla:"UMO",cor:"#0033A0" }
   ]}
 ];
-
 // Estado do sistema paulista
 var estadoPaulista = {
   a1:   { clubes:null, faseAtual:"grupos", jogos:[], mataMataClubes:[], campeao:null, rebaixados:[] },
@@ -7375,13 +7399,15 @@ function inicializarPaulista() {
       var jogs=gerarJogadoresFicticios(c.id, 46+Math.floor(Math.random()*8)-4);
       aplicarNomesFicticios(jogs, c.id.charCodeAt(3)*997 + 46*31);
       var perfil = gerarPerfilFinanceiroGenerico(46);
+      var bzSeed = c.id.charCodeAt(0)*13 + c.id.charCodeAt(3)*7;
       return Object.assign({},c,{
         divisao_paulista:"b1",
         jogadores:jogs,
         caixa: perfil.caixa,
         dividas: perfil.dividas,
         budget: perfil.caixa,
-        tecnico_id:"t"+String((Math.floor(Math.random()*40)+1)).padStart(2,"0")
+        tecnico_id:"t"+String((bzSeed%40)+1).padStart(2,"0"),
+        tecnico_nome_ficticio: gerarNomeTecnicoFicticio(bzSeed)
       });
     });
   });
@@ -8090,7 +8116,8 @@ function hookFinalizarPartidaPaulista() {
   estado._jogoAtivoPaulista = null;
   simularEventoPaulista(info.rodadaIdx);
   return true;
-}</script>
+}
+</script>
 <script>// ════════════════════════════════════════
 // MENU MANAGER
 // ════════════════════════════════════════
@@ -8298,7 +8325,9 @@ function melhorarInfraestrutura(key, custo) {
   adicionarNoticia("🏗 " + clube.nome + " melhorou a infraestrutura do clube.", estado.rodadaAtual);
   salvarJogo();
   renderInfraestrutura();
-}</script><script>
+}
+</script>
+<script>
 // ════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════
@@ -8695,7 +8724,9 @@ function renderNoticias() {
   });
   html += '</div>';
   return html;
-}</script><script>const estado = {
+}
+</script>
+<script>const estado = {
   manager: null,
   meuClube: null,
   meuTecnico: null,
@@ -10601,7 +10632,8 @@ function getLancesResultados(resultados) {
     if (r.eventos) r.eventos.forEach(function(e){ lances.push(e); });
   });
   return lances;
-}</script>
+}
+</script>
 <script>
 inicializarFinancas();
 function atualizarSaldo(){var s=estado.meuClube?formatarDinheiro(estado.meuClube.caixa||estado.meuClube.budget||0):'';var e1=document.getElementById("header-saldo"),e2=document.getElementById("sidebar-saldo");if(e1)e1.textContent=s;if(e2)e2.textContent=s;}
