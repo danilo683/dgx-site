@@ -4642,14 +4642,13 @@ function tecnicoDecideSubstituicoes(escAtual, reservas, parada, subsRestantes, p
 
 // Aplicar substituição no array de escalados
 function aplicarSubstituicao(escAtual, sub) {
-  // Marcar quem saiu como substituído (fica na lista com visual diferente)
+  // Marcar flags
   sub.sai._substituido = true;
   sub.entra._entrouSub = true;
-  // Substituir na escalação ativa
+  // Substituir na posição correta — NÃO adicionar de volta ao array
+  // (quem saiu fica acessível via jogoAtivo.substituidos para exibição)
   var idx = escAtual.findIndex(function(j) { return j.id === sub.sai.id; });
   if (idx >= 0) escAtual[idx] = sub.entra;
-  // Adicionar quem saiu ao final para aparecer riscado na lista
-  escAtual.push(sub.sai);
   return escAtual;
 }</script><script>// ════════════════════════════════════════
 // TELA DE JOGO AO VIVO
@@ -4694,15 +4693,17 @@ function renderTelaJogo(rodadaIdx) {
     euMandante: euMandante,
     mandante: mandante, visitante: visitante,
     tecMandante: tecMandante, tecVisitante: tecVisitante,
-    escMandante: escMandante.slice(),
-    escVisitante: escVisitante.slice(),
-    escInicial: escMandante.slice(), // para notas
-    reservasMandante: reservasMandante,
-    reservasVisitante: reservasVisitante,
-    lances: [], golsM: 0, golsV: 0,
+    escMandante: escMandante.slice().map(function(j){ j._substituido=false; j._entrouSub=false; return j; }),
+    escVisitante: escVisitante.slice().map(function(j){ j._substituido=false; j._entrouSub=false; return j; }),
+    escInicial: escMandante.slice(),
+    reservasMandante: reservasMandante.map(function(j){ j._substituido=false; j._entrouSub=false; return j; }),
+    reservasVisitante: reservasVisitante.map(function(j){ j._substituido=false; j._entrouSub=false; return j; }),
+    lances: [], lancesExibidos: [], golsM: 0, golsV: 0,
+    golsExibidosM: 0, golsExibidosV: 0,
     chutesM: 0, chutesV: 0,
-    subsM: 0, subsV: 0, // contagem de substituições
+    subsM: 0, subsV: 0,
     paradasM: 0, paradasV: 0,
+    saidosM: [], saidosV: [],
     timer: null, minAtual: 0,
     resultado: null
   };
@@ -4713,16 +4714,13 @@ function renderTelaJogo(rodadaIdx) {
 function _renderListaJogadores(esc, corTitulo, lado) {
   if (!jogoAtivo) return '';
   var nomeTime = lado==='vis' ? jogoAtivo.visitante.nome : jogoAtivo.mandante.nome;
+  var saidos   = lado==='vis' ? (jogoAtivo.saidosV||[]) : (jogoAtivo.saidosM||[]);
+
   var html = '<div class="jog-lista-titulo" style="color:'+corTitulo+'">'+nomeTime+'</div>';
   html += '<div class="jog-lista-header">';
   if (lado==='vis') html += '<span>Pos</span><span>Nome</span><span>OVR</span>';
   else              html += '<span>OVR</span><span>Nome</span><span>Pos</span>';
   html += '</div>';
-
-  // Separar titulares e substitutos
-  var titulares   = esc.filter(function(j){ return !j._substituido && !j._entrouSub; });
-  var substituidos= esc.filter(function(j){ return j._substituido; });
-  var subEntrou   = esc.filter(function(j){ return j._entrouSub; });
 
   function renderJog(j, isOut) {
     var ovEf = Math.round(overallEfetivo(j));
@@ -4742,13 +4740,20 @@ function _renderListaJogadores(esc, corTitulo, lado) {
     html += '</div>';
   }
 
-  titulares.forEach(function(j){ renderJog(j, false); });
-  if (subEntrou.length > 0) {
-    html += '<div class="jog-sep-subs">— Substitutos —</div>';
-    subEntrou.forEach(function(j){ renderJog(j, false); });
+  // Titulares ativos (não saíram)
+  var titulares = esc.filter(function(j){ return !j._substituido; });
+  var entrou    = titulares.filter(function(j){ return j._entrouSub; });
+  var ainda     = titulares.filter(function(j){ return !j._entrouSub; });
+
+  ainda.forEach(function(j){ renderJog(j, false); });
+
+  if (entrou.length > 0) {
+    html += '<div class="jog-sep-subs">↑ Entraram</div>';
+    entrou.forEach(function(j){ renderJog(j, false); });
   }
-  if (substituidos.length > 0) {
-    substituidos.forEach(function(j){ renderJog(j, true); });
+  if (saidos.length > 0) {
+    html += '<div class="jog-sep-subs">↓ Saíram</div>';
+    saidos.forEach(function(j){ renderJog(j, true); });
   }
 
   return html;
@@ -5006,6 +5011,7 @@ function iniciarPartidaAoVivo() {
           jogoAtivo.paradasM++;
           subsM.forEach(function(sub) {
             if (jogoAtivo.subsM >= 5) return;
+            jogoAtivo.saidosM.push(sub.sai);
             jogoAtivo.escMandante = aplicarSubstituicao(jogoAtivo.escMandante, sub);
             jogoAtivo.subsM++;
             adicionarLanceFeed({
@@ -5025,6 +5031,7 @@ function iniciarPartidaAoVivo() {
           jogoAtivo.paradasV++;
           subsV.forEach(function(sub) {
             if (jogoAtivo.subsV >= 5) return;
+            jogoAtivo.saidosV.push(sub.sai);
             jogoAtivo.escVisitante = aplicarSubstituicao(jogoAtivo.escVisitante, sub);
             jogoAtivo.subsV++;
             adicionarLanceFeed({
@@ -5334,7 +5341,6 @@ function voltarParaPartida() {
 }
 
 function renderTelaJogoAtivo() {
-  // Reconstruir a tela do jogo com estado atual
   var mandante  = jogoAtivo.mandante;
   var visitante = jogoAtivo.visitante;
   var tecM = jogoAtivo.tecMandante;
@@ -5349,10 +5355,10 @@ function renderTelaJogoAtivo() {
   html += '<div class="jogo-tela-rodada">Rodada ' + (rodadaIdx+1) + (ev?' · '+ev.subtitulo:'') + '</div>';
   html += '<div class="jogo-tela-placar">';
   html += '<span class="jogo-tela-nome">' + mandante.nome + '</span>';
-  html += '<span class="placar-numeros" id="placar-numeros">' + jogoAtivo.golsExibidosM + ' – ' + jogoAtivo.golsExibidosV + '</span>';
+  html += '<span class="placar-numeros" id="placar-numeros">' + (jogoAtivo.golsExibidosM||0) + ' – ' + (jogoAtivo.golsExibidosV||0) + '</span>';
   html += '<span class="jogo-tela-nome">' + visitante.nome + '</span>';
   html += '</div>';
-  html += '<div class="jogo-tela-cronometro" id="cronometro">' + jogoAtivo.minAtual + "'" + '</div>';
+  html += '<div class="jogo-tela-cronometro" id="cronometro">' + (jogoAtivo.minAtual||0) + "'" + '</div>';
   html += '</div>';
 
   html += '<div class="jogo-stats-vivos">';
@@ -5361,25 +5367,19 @@ function renderTelaJogoAtivo() {
   html += '<div class="stat-vivo"><span id="sv-subs-m">' + (jogoAtivo.subsM||0) + '/5</span><span>Subs</span><span id="sv-subs-v">' + (jogoAtivo.subsV||0) + '/5</span></div>';
   html += '</div>';
 
+  // Mesmas 4 colunas do renderJogoHTML
   html += '<div class="jogo-tres-paineis">';
-
-  html += '<div class="jogo-painel-jogadores">';
-  html += '<div class="jog-lista-titulo" style="color:#9be">' + visitante.nome + '</div>';
-  html += '<div class="jog-lista-header"><span>Pos</span><span>Nome</span><span>OVR</span></div>';
-  escV.forEach(function(j) {
-    html += '<div class="jog-lista-item jog-visitante">';
-    html += '<span class="posicao-badge pos-' + j.posicao + '" style="font-size:9px;padding:1px 4px">' + j.posicao + '</span>';
-    html += '<span class="jog-nome">' + j.nome.split(" ")[0] + '</span>';
-    html += '<span class="jog-ovr ' + overallClasse(j.overall) + '">' + Math.round(overallEfetivo(j)) + '</span>';
-    html += '</div>';
-  });
-  html += '</div>';
+  html += '<div class="jogo-painel-jogadores" id="lista-vis">' + _renderListaJogadores(escV, '#9be', 'vis') + '</div>';
 
   html += '<div class="jogo-painel-centro">';
   html += '<div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div>';
+  html += '</div>';
+
+  html += '<div class="jogo-painel-jogadores" id="lista-man">' + _renderListaJogadores(escM, '#fb9', 'man') + '</div>';
+
+  // Feed com lances já exibidos
   html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
   html += '<div class="lances-lista" id="lances-lista">';
-  // Relançar lances já exibidos
   if (jogoAtivo.lancesExibidos && jogoAtivo.lancesExibidos.length > 0) {
     jogoAtivo.lancesExibidos.forEach(function(lance) {
       var cls = "lance-item";
@@ -5387,20 +5387,16 @@ function renderTelaJogoAtivo() {
       if (lance.tipo==="substituicao") cls+=" lance-sub";
       if (lance.tipo==="intervalo") cls+=" lance-intervalo";
       if (lance.tipo==="fim") cls+=" lance-fim";
-      html += '<div class="' + cls + '"><span class="lance-min">' + lance.minuto + "'</span><span class='lance-texto'>" + lance.texto + '</span></div>';
+      html += '<div class="'+cls+'"><span class="lance-min">'+lance.minuto+"'</span><span class='lance-texto'>"+lance.texto+'</span></div>';
     });
   } else {
     html += '<div class="lance-vazio">Aguardando lances...</div>';
   }
-  html += '</div></div></div>';
-  html += '</div>';
+  html += '</div></div>';
+  html += '</div>'; // tres-paineis
 
-  html += '<div class="jogo-acoes" style="gap:10px">';
-  if (_partidaPausada) {
-    html += '<button class="btn-simular-grande" onclick="voltarParaPartida()" style="background:var(--green)">▶ Retomar partida</button>';
-  } else {
-    html += '<button class="btn-simular-grande" disabled style="opacity:.6">⏱ Em andamento...</button>';
-  }
+  html += '<div class="jogo-acoes" id="jogo-acoes-wrap">';
+  html += '<button class="btn-simular-grande" disabled style="opacity:.5;cursor:default">⏱ Em andamento...</button>';
   html += '</div></div>';
 
   document.getElementById("main").innerHTML = html;
@@ -5476,6 +5472,7 @@ function _processarParada(parada, paradaNum) {
     jogoAtivo.paradasM++;
     subsM.forEach(function(sub){
       if(jogoAtivo.subsM>=5) return;
+      jogoAtivo.saidosM.push(sub.sai);
       jogoAtivo.escMandante=aplicarSubstituicao(jogoAtivo.escMandante,sub);
       jogoAtivo.subsM++;
       var lance={minuto:parada,tipo:"substituicao",texto:"🔄 "+jogoAtivo.mandante.nome+": entra "+sub.entra.nome+", sai "+sub.sai.nome+" ("+sub.motivo+")"};
