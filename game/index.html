@@ -8018,6 +8018,8 @@ function renderCopaPaulistaTela(){
 // Gera eventos de jogo baseados nos jogos do Paulistão
 // ════════════════════════════════════════
 function gerarCalendarioPaulista(div) {
+  // Garantir que paulista foi inicializado
+  if (!estadoPaulista.a1.clubes && !estadoPaulista.b1.jogos.length) inicializarPaulista();
   var est = div === "b1" ? estadoPaulista.b1 : estadoPaulista[div];
   if (!est) return gerarCalendario(CLUBES); // fallback
 
@@ -9266,8 +9268,8 @@ function renderCampeonato() {
       var resultado = estado.resultados.find(function(r) {
         return r.rodada === idx && r.mandanteId === jogo.mandanteId && r.visitanteId === jogo.visitanteId;
       });
-      var mandante  = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
-      var visitante = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+      var mandante  = buscarClubePorId(jogo.mandanteId) || {nome:"?",sigla:"?",cor:"#555"};
+      var visitante = buscarClubePorId(jogo.visitanteId) || {nome:"?",sigla:"?",cor:"#555"};
       var clsM = jogo.mandanteId  === meuId ? ' meu' : '';
       var clsV = jogo.visitanteId === meuId ? ' meu' : '';
 
@@ -9300,8 +9302,8 @@ function simularRodada(idx) {
   var meuTec = estado.meuTecnico;
 
   rodada.jogos.forEach(function(jogo) {
-    var mandante  = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
-    var visitante = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+    var mandante  = buscarClubePorId(jogo.mandanteId);
+    var visitante = buscarClubePorId(jogo.visitanteId);
     var tecM = jogo.mandanteId  === meuId ? meuTec : null;
     var tecV = jogo.visitanteId === meuId ? meuTec : null;
     var r = simularPartidaSimples(mandante, visitante, tecM, tecV);
@@ -9333,7 +9335,13 @@ function simularRodada(idx) {
 
 // ── Aba: Tabela ──
 function renderTabela() {
-  var tabela = calcularTabela(CLUBES, estado.resultados);
+  // Usar clubes corretos conforme divisão
+  var _clubesTab = CLUBES;
+  var _resultsTab = estado.resultados;
+  if (estado.minhaDivisao === "serieB" && estadoDivisoes.b.clubes) { _clubesTab = estadoDivisoes.b.clubes; _resultsTab = estadoDivisoes.b.resultados||estado.resultados; }
+  else if (estado.minhaDivisao === "serieC" && estadoDivisoes.c.clubes) { _clubesTab = estadoDivisoes.c.clubes; _resultsTab = estadoDivisoes.c.resultados||estado.resultados; }
+  else if (estado.minhaDivisao === "serieD" && estadoDivisoes.d.clubes) { _clubesTab = estadoDivisoes.d.clubes; _resultsTab = estadoDivisoes.d.resultados||estado.resultados; }
+  var tabela = calcularTabela(_clubesTab, _resultsTab);
   var meuId  = estado.meuClube.id;
 
   var html = '<p class="secao-titulo">Classificação — Brasileirão</p>';
