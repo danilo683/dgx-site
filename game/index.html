@@ -5103,7 +5103,12 @@ function iniciarPartidaAoVivo() {
 
     if (minAtual >= 90) {
       clearInterval(jogoAtivo.timer);
-      finalizarPartida();
+      jogoAtivo.timer = null;
+      try { finalizarPartida(); } catch(e) {
+        console.error("Erro em finalizarPartida:", e);
+        var aw = document.getElementById("jogo-acoes-wrap");
+        if (aw) aw.innerHTML = '<button class="btn-primario" style="width:100%;font-size:16px;padding:14px" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
+      }
     }
   }, intervalo);
 }
@@ -5405,6 +5410,11 @@ function renderTelaJogoAtivo() {
 
 function retomarPartidaTimer() {
   if (!jogoAtivo || jogoAtivo.timer) return;
+  // Garantir campos necessários
+  if (!jogoAtivo.paradasFeitas) jogoAtivo.paradasFeitas = {};
+  if (!jogoAtivo.lancesExibidos) jogoAtivo.lancesExibidos = [];
+  if (!jogoAtivo.saidosM) jogoAtivo.saidosM = [];
+  if (!jogoAtivo.saidosV) jogoAtivo.saidosV = [];
   var totalMs = 30000;
   var minRestante = 90 - jogoAtivo.minAtual;
   var intervalo = totalMs / 90;
@@ -5451,17 +5461,25 @@ function retomarPartidaTimer() {
     }
 
     // Posse
-    var fM=jogoAtivo.resultado.forcaMandante.forca,fV=jogoAtivo.resultado.forcaVisitante.forca;
-    var posseM=Math.max(30,Math.min(70,Math.round(50+(fM-fV)*0.2+(Math.random()*4-2))));
-    var spm=document.getElementById("sv-posse-m"),spv=document.getElementById("sv-posse-v");
-    if(spm) spm.textContent=posseM+"%"; if(spv) spv.textContent=(100-posseM)+"%";
+    try {
+      var fM=(jogoAtivo.resultado&&jogoAtivo.resultado.forcaMandante)?jogoAtivo.resultado.forcaMandante.forca:50;
+      var fV=(jogoAtivo.resultado&&jogoAtivo.resultado.forcaVisitante)?jogoAtivo.resultado.forcaVisitante.forca:50;
+      var posseM=Math.max(30,Math.min(70,Math.round(50+(fM-fV)*0.2+(Math.random()*4-2))));
+      var spm=document.getElementById("sv-posse-m"),spv=document.getElementById("sv-posse-v");
+      if(spm) spm.textContent=posseM+"%"; if(spv) spv.textContent=(100-posseM)+"%";
+    } catch(e) {}
 
-    if(minAtual%10===0){var cw=document.getElementById("campo-wrap");if(cw)cw.innerHTML=renderCampoTatico(jogoAtivo.escMandante,jogoAtivo.escVisitante,jogoAtivo.mandante,jogoAtivo.visitante,jogoAtivo.tecMandante,jogoAtivo.tecVisitante);}
+    if(minAtual%10===0){try{var cw=document.getElementById("campo-wrap");if(cw)cw.innerHTML=renderCampoTatico(jogoAtivo.escMandante,jogoAtivo.escVisitante,jogoAtivo.mandante,jogoAtivo.visitante,jogoAtivo.tecMandante,jogoAtivo.tecVisitante);}catch(e){}}
 
     if (minAtual >= 90) {
       clearInterval(jogoAtivo.timer);
       jogoAtivo.timer = null;
-      finalizarPartida();
+      try { finalizarPartida(); } catch(e) {
+        console.error("Erro em finalizarPartida:", e);
+        // Fallback: mostrar botão de voltar mesmo com erro
+        var aw = document.getElementById("jogo-acoes-wrap");
+        if (aw) aw.innerHTML = '<button class="btn-primario" style="width:100%;font-size:16px;padding:14px" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
+      }
     }
   }, intervalo);
 }
