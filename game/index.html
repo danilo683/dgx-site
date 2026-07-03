@@ -7405,19 +7405,76 @@ function inicializarPaulista() {
   });
   estadoPaulista.b1.faseAtual = "grupos";
 
-  // Copa Paulista: top 8 da A1 + 8 da A2 (não em Libertadores)
-  var copaClubes = shuffleArr(estadoPaulista.a1.clubes.slice(0,8).concat(estadoPaulista.a2.clubes.slice(0,8)));
+  // Copa Paulista 2026 — times reais em 4 grupos de 4
+  // (A2/A3/A4 sem competição no período + convidados)
+  // Campeão escolhe: Série D ou Copa do Brasil 2027
+  var GRUPOS_COPA = [
+    { letra:"1", clubes:[
+      { id:"cp_01",nome:"Bandeirante",     sigla:"BAN",cor:"#1a1a1a" },
+      { id:"cp_02",nome:"Grêmio Prudente", sigla:"GPR",cor:"#0033A0" },
+      { id:"cp_03",nome:"Linense",         sigla:"LIN",cor:"#CC0000" },
+      { id:"cp_04",nome:"Marília AC",      sigla:"MAR",cor:"#006400" }
+    ]},
+    { letra:"2", clubes:[
+      { id:"cp_05",nome:"Comercial FC",    sigla:"COM",cor:"#CC0000" },
+      { id:"cp_06",nome:"Noroeste",        sigla:"NOR",cor:"#1a1a1a" },
+      { id:"cp_07",nome:"União São João",  sigla:"USJ",cor:"#006400" },
+      { id:"cp_08",nome:"XV de Piracicaba",sigla:"XVP",cor:"#006400" }
+    ]},
+    { letra:"3", clubes:[
+      { id:"cp_09",nome:"Juventus",        sigla:"JUV",cor:"#1a1a1a" },
+      { id:"cp_10",nome:"Osasco FC",       sigla:"OSA",cor:"#0033A0" },
+      { id:"cp_11",nome:"Sporting",        sigla:"SPT",cor:"#006400" },
+      { id:"cp_12",nome:"Primavera",       sigla:"PRI",cor:"#CC0000" }
+    ]},
+    { letra:"4", clubes:[
+      { id:"cp_13",nome:"Santo André",     sigla:"AND",cor:"#CC0000" },
+      { id:"cp_14",nome:"São Bernardo FC", sigla:"SBC",cor:"#0033A0" },
+      { id:"cp_15",nome:"São Caetano",     sigla:"SCE",cor:"#0033A0" },
+      { id:"cp_16",nome:"São José EC",     sigla:"SJE",cor:"#006400" }
+    ]}
+  ];
+
+  // Preparar clubes com jogadores fictícios
+  var copaClubes = [];
+  GRUPOS_COPA.forEach(function(g) {
+    g.clubes.forEach(function(c) {
+      var jogs = gerarJogadoresFicticios(c.id, 62 + Math.floor(Math.random()*8));
+      aplicarNomesFicticios(jogs, c.id.charCodeAt(2)*997 + 62*31);
+      var perfil = gerarPerfilFinanceiroGenerico(62);
+      var seed = c.id.charCodeAt(0)*17 + copaClubes.length;
+      copaClubes.push(Object.assign({}, c, {
+        jogadores: jogs,
+        caixa: perfil.caixa, dividas: perfil.dividas, budget: perfil.caixa,
+        tecnico_id: "t"+String((copaClubes.length%40)+1).padStart(2,"0"),
+        tecnico_nome_ficticio: gerarNomeTecnicoFicticio(seed),
+        grupo_copa: g.letra
+      }));
+    });
+  });
+
   estadoPaulista.copa.clubes = copaClubes;
+  estadoPaulista.copa.grupos = GRUPOS_COPA.map(function(g) {
+    return { letra: g.letra, clubeIds: g.clubes.map(function(c){ return c.id; }) };
+  });
   gerarJogosCopaPaulista();
 }
 
 function gerarJogosCopaPaulista() {
-  var c=estadoPaulista.copa.clubes;
+  var grupos = estadoPaulista.copa.grupos || [];
+  var todos = estadoPaulista.copa.clubes || [];
   estadoPaulista.copa.jogos = [];
-  for(var i=0;i<c.length;i+=2){
-    if(i+1>=c.length) break;
-    estadoPaulista.copa.jogos.push({fase:"oitavas",mId:c[i].id,vId:c[i+1].id,gM:null,gV:null,ok:false});
-  }
+
+  // Fase de grupos: turno + returno dentro de cada grupo
+  grupos.forEach(function(g) {
+    var ids = g.clubeIds;
+    for (var i=0; i<ids.length; i++) {
+      for (var j=i+1; j<ids.length; j++) {
+        estadoPaulista.copa.jogos.push({fase:"grupos",grupo:g.letra,mId:ids[i],vId:ids[j],gM:null,gV:null,ok:false});
+        estadoPaulista.copa.jogos.push({fase:"grupos",grupo:g.letra,mId:ids[j],vId:ids[i],gM:null,gV:null,ok:false});
+      }
+    }
+  });
 }
 
 // Todos os clubes de uma divisão (flat)
@@ -8894,7 +8951,7 @@ function selecionarClube(id, lista) {
     estado.calendario = gerarCalendarioPaulista(divCal.replace("paulista_",""));
   }
 
-  estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){return t.id===estado.meuClube.tecnico_id;}) || TECNICOS_DISPONIVEIS[0];
+  estado.meuTecnico = getTecnicoClube(estado.meuClube) || TECNICOS_DISPONIVEIS[0];
   iniciarJogo();
 }
 
