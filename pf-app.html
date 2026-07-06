@@ -716,6 +716,47 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   background:rgba(0,182,233,0.03);position:sticky;left:0;z-index:1;
 }
 
+/* ════════ WISHLIST ════════ */
+.wish-resumo{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.2rem}
+@media(max-width:800px){.wish-resumo{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.wish-resumo{grid-template-columns:1fr 1fr}}
+
+.wish-filtros{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem}
+.wish-cat-filtro{font-family:'Inter',sans-serif;font-size:.72rem;cursor:pointer}
+
+.wish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+
+.wish-card{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.4rem;position:relative;transition:border-color .2s}
+.wish-card:hover{border-color:rgba(0,182,233,0.3)}
+.wish-card.comprado{opacity:.5;border-style:dashed}
+.wish-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem}
+.wish-card-nome{font-size:.88rem;font-weight:700;color:var(--white);line-height:1.3}
+.wish-card-marca{font-size:.7rem;color:var(--gray2);margin-top:.1rem}
+.wish-card-preco{font-size:1rem;font-weight:700;color:var(--gold);white-space:nowrap}
+.wish-card-badges{display:flex;gap:.3rem;flex-wrap:wrap;margin:.5rem 0}
+.wish-badge{font-size:.58rem;font-weight:700;letter-spacing:.05em;padding:.15rem .5rem;border-radius:10px;text-transform:uppercase;white-space:nowrap}
+.wish-badge.Preciso{background:rgba(224,82,82,0.15);color:var(--red)}
+.wish-badge.Quero{background:rgba(240,201,58,0.12);color:#f0c93a}
+.wish-badge.legal{background:rgba(78,201,138,0.12);color:var(--green)}
+.wish-badge.timing{background:rgba(0,182,233,0.1);color:var(--gold)}
+.wish-badge.cat{background:rgba(255,255,255,0.06);color:var(--gray)}
+.wish-card-config{font-size:.7rem;color:var(--gray);margin:.3rem 0}
+.wish-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.8rem;padding-top:.6rem;border-top:1px solid var(--border2)}
+.wish-card-quando{font-size:.65rem;color:var(--gray2)}
+.wish-card-acoes{display:flex;gap:.4rem;align-items:center}
+.wish-card-link{font-size:.7rem;color:var(--gold);text-decoration:none;font-weight:600}
+.wish-card-link:hover{text-decoration:underline}
+.wish-card-edit{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:.8rem;padding:0 .2rem;transition:color .2s}
+.wish-card-edit:hover{color:var(--gold)}
+.wish-estrelas{color:#f0c93a;font-size:.85rem;letter-spacing:1px}
+.wish-estrelas .vazia{color:var(--navy3)}
+.wish-comprado-tag{position:absolute;top:.6rem;right:.6rem;font-size:.58rem;font-weight:700;background:rgba(78,201,138,0.15);color:var(--green);padding:.15rem .5rem;border-radius:10px;letter-spacing:.05em}
+
+/* Estrelas input */
+.wish-estrelas-input{display:flex;gap:.2rem}
+.wish-estrela-btn{background:none;border:none;font-size:1.4rem;color:var(--navy3);cursor:pointer;padding:0;transition:color .15s;line-height:1}
+.wish-estrela-btn.ativa{color:#f0c93a}
+
 /* ════════ METAS ════════ */
 .metas-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.4rem}
 @media(max-width:700px){.metas-resumo{grid-template-columns:1fr 1fr}}
@@ -1218,7 +1259,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('wishlist', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
         Wishlist
-        <span class="menu-badge-soon">em breve</span>
       </button>
 
       <div class="sidebar-divider" id="admin-divider" style="display:none"></div>
@@ -2186,12 +2226,105 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
       <!-- ── WISHLIST ── -->
       <div class="tela" id="tela-wishlist">
-        <div class="tela-header"><h2>Wishlist</h2><p>O que você quer conquistar</p></div>
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-          <h3>Lista de desejos</h3>
-          <p>Registre os itens e experiências que deseja conquistar, estime o valor, e transforme desejos em metas concretas com apoio do seu planejamento.</p>
-          <span class="em-breve-tag">Em construção</span>
+        <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+          <div><h2>Wishlist</h2><p>O que você quer conquistar</p></div>
+          <button class="orc-btn-save" style="display:inline-flex" onclick="wishAbrirForm(null)">+ Adicionar item</button>
+        </div>
+
+        <!-- Cards resumo -->
+        <div class="wish-resumo">
+          <div class="inv-card"><div class="inv-card-label">Total de itens</div><div class="inv-card-val" id="wish-total">0</div></div>
+          <div class="inv-card"><div class="inv-card-label">Valor estimado</div><div class="inv-card-val gold" id="wish-valor">R$ 0</div></div>
+          <div class="inv-card"><div class="inv-card-label">Preciso</div><div class="inv-card-val red" id="wish-preciso">0</div></div>
+          <div class="inv-card"><div class="inv-card-label">Quero</div><div class="inv-card-val gold" id="wish-quero">0</div></div>
+          <div class="inv-card"><div class="inv-card-label">Legal Ter</div><div class="inv-card-val" id="wish-legal">0</div></div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="wish-filtros">
+          <div class="conq-filtros" style="margin-bottom:0;flex:1">
+            <button class="conq-filtro-btn active" onclick="wishFiltrar(this,'todas')">Todos</button>
+            <button class="conq-filtro-btn" onclick="wishFiltrar(this,'Preciso')">🔴 Preciso</button>
+            <button class="conq-filtro-btn" onclick="wishFiltrar(this,'Quero')">🟡 Quero</button>
+            <button class="conq-filtro-btn" onclick="wishFiltrar(this,'Legal Ter')">🟢 Legal Ter</button>
+            <button class="conq-filtro-btn" onclick="wishFiltrar(this,'comprado')">✅ Comprados</button>
+          </div>
+          <select class="diag-input wish-cat-filtro" id="wish-cat-filtro" onchange="wishFiltrarCat(this.value)" style="max-width:160px;padding:.4rem .6rem">
+            <option value="">Todas categorias</option>
+            <option>Vestuário</option><option>Eletrônicos</option><option>Esportes</option>
+            <option>Acessórios</option><option>Saúde</option><option>Beleza</option>
+            <option>Casa</option><option>Lifestyle</option>
+          </select>
+        </div>
+
+        <div class="orc-loading" id="wish-loading">Carregando wishlist...</div>
+        <div class="wish-grid" id="wish-grid"></div>
+        <div class="plano-vazio" id="wish-vazio" style="display:none">Nenhum item na wishlist ainda. Adicione seus desejos!</div>
+
+        <!-- MODAL -->
+        <div class="overlay" id="overlay-wish">
+          <div class="modal" style="max-width:600px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-wish')">×</button>
+            <div class="modal-title" id="wish-modal-titulo">Novo item</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Item *</label>
+                <input class="diag-input" type="text" id="wish-item" placeholder="Ex: Nike Air Max 270, iPhone 15 Pro...">
+              </div>
+              <div class="diag-field"><label class="diag-label">Marca</label><input class="diag-input" type="text" id="wish-marca" placeholder="Ex: Nike, Apple..."></div>
+              <div class="diag-field"><label class="diag-label">Categoria</label>
+                <select class="diag-input" id="wish-categoria">
+                  <option value="">Selecione...</option>
+                  <option>Vestuário</option><option>Eletrônicos</option><option>Esportes</option>
+                  <option>Acessórios</option><option>Saúde</option><option>Beleza</option>
+                  <option>Casa</option><option>Lifestyle</option>
+                </select>
+              </div>
+              <div class="diag-field"><label class="diag-label">Preço estimado (R$)</label><input class="diag-input" type="number" step="0.01" id="wish-preco" placeholder="0,00"></div>
+              <div class="diag-field"><label class="diag-label">Loja</label><input class="diag-input" type="text" id="wish-loja" placeholder="Ex: Amazon, Shopee..."></div>
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Configuração (cor, tamanho, modelo, etc.)</label>
+                <input class="diag-input" type="text" id="wish-config" placeholder="Ex: Preto, Tamanho 42, 256GB...">
+              </div>
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Link de compra</label>
+                <input class="diag-input" type="url" id="wish-link" placeholder="https://...">
+              </div>
+              <div class="diag-field"><label class="diag-label">Urgência</label>
+                <select class="diag-input" id="wish-urgencia">
+                  <option value="">Selecione...</option>
+                  <option>Preciso</option><option>Quero</option><option>Legal Ter</option>
+                </select>
+              </div>
+              <div class="diag-field"><label class="diag-label">Timing</label>
+                <select class="diag-input" id="wish-timing">
+                  <option value="">Selecione...</option>
+                  <option>Imediato</option><option>Logo</option><option>Posso esperar</option>
+                </select>
+              </div>
+              <div class="diag-field"><label class="diag-label">Quando (data prevista)</label><input class="diag-input" type="date" id="wish-quando"></div>
+              <div class="diag-field">
+                <label class="diag-label">Prioridade</label>
+                <div class="wish-estrelas-input" id="wish-estrelas-input">
+                  <button type="button" class="wish-estrela-btn" onclick="wishSetEstrela(1)">★</button>
+                  <button type="button" class="wish-estrela-btn" onclick="wishSetEstrela(2)">★</button>
+                  <button type="button" class="wish-estrela-btn" onclick="wishSetEstrela(3)">★</button>
+                  <button type="button" class="wish-estrela-btn" onclick="wishSetEstrela(4)">★</button>
+                  <button type="button" class="wish-estrela-btn" onclick="wishSetEstrela(5)">★</button>
+                </div>
+                <input type="hidden" id="wish-prioridade" value="0">
+              </div>
+            </div>
+            <div class="diag-field" style="margin-top:.8rem">
+              <label class="diag-label">Obs.</label>
+              <textarea class="diag-input" id="wish-obs" style="min-height:50px" placeholder="Notas adicionais..."></textarea>
+            </div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="wishSalvar()">Salvar</button>
+              <button id="wish-comprado-btn" class="modal-link" style="color:var(--green);display:none" onclick="wishMarcarComprado()">✓ Marcar como comprado</button>
+              <button id="wish-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="wishExcluir()">Excluir</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2934,6 +3067,7 @@ async function irPara(tela, btn){
   if(tela==='conquistas') conqCarregar();
   if(tela==='metas') metasCarregar();
   if(tela==='patrimonio') patCarregar();
+  if(tela==='wishlist') wishCarregar();
 }
 
 // ══════════════════════════════════════════════
@@ -6149,6 +6283,181 @@ function simToggle(modo){
 // ══════════════════════════════════════════════
 // METAS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// WISHLIST
+// ══════════════════════════════════════════════
+const WISH_URGENCIA_COR = { 'Preciso':'red','Quero':'gold','Legal Ter':'green' };
+const WISH_TIMING_LABEL = { 'Imediato':'⚡ Imediato','Logo':'🕐 Logo','Posso esperar':'⏳ Pode esperar' };
+
+let wishDados = [];
+let wishFiltroUrgencia = 'todas';
+let wishFiltroCat = '';
+let wishEditId = null;
+let wishEstrelaAtual = 0;
+
+async function wishCarregar(){
+  document.getElementById('wish-loading').style.display='block';
+  document.getElementById('wish-grid').innerHTML='';
+  document.getElementById('wish-vazio').style.display='none';
+
+  const { data } = await sb.from('wishlist').select('*')
+    .eq('user_id', usuarioAtual.id).order('prioridade',{ascending:false}).order('created_at',{ascending:false});
+
+  wishDados = data || [];
+  document.getElementById('wish-loading').style.display='none';
+  wishRenderizar();
+}
+
+function wishRenderizar(){
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  let lista = [...wishDados];
+
+  // Filtro urgência
+  if(wishFiltroUrgencia==='comprado') lista = lista.filter(i=>i.comprado);
+  else if(wishFiltroUrgencia!=='todas') lista = lista.filter(i=>!i.comprado && i.urgencia===wishFiltroUrgencia);
+  else lista = lista.filter(i=>!i.comprado); // "todas" não mostra comprados
+
+  // Filtro categoria
+  if(wishFiltroCat) lista = lista.filter(i=>i.categoria===wishFiltroCat);
+
+  // Cards resumo (sempre do total, sem filtros)
+  const ativos = wishDados.filter(i=>!i.comprado);
+  const totalValor = ativos.reduce((a,i)=>a+Number(i.preco||0),0);
+  document.getElementById('wish-total').textContent   = ativos.length;
+  document.getElementById('wish-valor').textContent   = fmt(totalValor);
+  document.getElementById('wish-preciso').textContent = ativos.filter(i=>i.urgencia==='Preciso').length;
+  document.getElementById('wish-quero').textContent   = ativos.filter(i=>i.urgencia==='Quero').length;
+  document.getElementById('wish-legal').textContent   = ativos.filter(i=>i.urgencia==='Legal Ter').length;
+
+  if(!lista.length){
+    document.getElementById('wish-grid').innerHTML='';
+    document.getElementById('wish-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('wish-vazio').style.display='none';
+
+  document.getElementById('wish-grid').innerHTML = lista.map(item=>{
+    const estrelas = Array.from({length:5},(_,i)=>
+      `<span class="${i<(item.prioridade||0)?'':'vazia'}">★</span>`).join('');
+    const quando = item.quando
+      ? new Date(item.quando+'T00:00:00').toLocaleDateString('pt-BR',{month:'short',year:'numeric'})
+      : null;
+
+    return `<div class="wish-card${item.comprado?' comprado':''}">
+      ${item.comprado?'<div class="wish-comprado-tag">✓ Comprado</div>':''}
+      <div class="wish-card-top">
+        <div>
+          <div class="wish-card-nome">${escapeHtml(item.item)}</div>
+          ${item.marca?`<div class="wish-card-marca">${escapeHtml(item.marca)}</div>`:''}
+        </div>
+        ${item.preco?`<div class="wish-card-preco">${fmt(item.preco)}</div>`:''}
+      </div>
+      <div class="wish-card-badges">
+        ${item.urgencia?`<span class="wish-badge ${item.urgencia==='Legal Ter'?'legal':item.urgencia}">${item.urgencia}</span>`:''}
+        ${item.timing?`<span class="wish-badge timing">${WISH_TIMING_LABEL[item.timing]||item.timing}</span>`:''}
+        ${item.categoria?`<span class="wish-badge cat">${item.categoria}</span>`:''}
+      </div>
+      ${item.configuracao?`<div class="wish-card-config">⚙️ ${escapeHtml(item.configuracao)}</div>`:''}
+      ${item.loja?`<div class="wish-card-config">🏪 ${escapeHtml(item.loja)}</div>`:''}
+      ${item.prioridade?`<div class="wish-estrelas">${estrelas}</div>`:''}
+      <div class="wish-card-footer">
+        <div class="wish-card-quando">${quando?`📅 ${quando}`:''}</div>
+        <div class="wish-card-acoes">
+          ${item.link?`<a class="wish-card-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener">🔗 Ver produto</a>`:''}
+          <button class="wish-card-edit" onclick="wishAbrirForm(${item.id})">✎</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function wishFiltrar(btn, filtro){
+  document.querySelectorAll('#tela-wishlist .conq-filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  wishFiltroUrgencia = filtro;
+  wishRenderizar();
+}
+
+function wishFiltrarCat(cat){
+  wishFiltroCat = cat;
+  wishRenderizar();
+}
+
+function wishSetEstrela(n){
+  wishEstrelaAtual = n;
+  document.getElementById('wish-prioridade').value = n;
+  document.querySelectorAll('.wish-estrela-btn').forEach((btn,i)=>{
+    btn.classList.toggle('ativa', i<n);
+  });
+}
+
+function wishAbrirForm(id){
+  wishEditId = id;
+  const w = id ? wishDados.find(x=>x.id===id) : null;
+  document.getElementById('wish-modal-titulo').textContent = w ? 'Editar item' : 'Novo item';
+  document.getElementById('wish-item').value       = w?.item||'';
+  document.getElementById('wish-marca').value      = w?.marca||'';
+  document.getElementById('wish-categoria').value  = w?.categoria||'';
+  document.getElementById('wish-preco').value      = w?.preco||'';
+  document.getElementById('wish-loja').value       = w?.loja||'';
+  document.getElementById('wish-config').value     = w?.configuracao||'';
+  document.getElementById('wish-link').value       = w?.link||'';
+  document.getElementById('wish-urgencia').value   = w?.urgencia||'';
+  document.getElementById('wish-timing').value     = w?.timing||'';
+  document.getElementById('wish-quando').value     = w?.quando||'';
+  document.getElementById('wish-obs').value        = w?.obs||'';
+  wishSetEstrela(w?.prioridade||0);
+  document.getElementById('wish-excluir-btn').style.display    = w ? 'inline' : 'none';
+  document.getElementById('wish-comprado-btn').style.display   = (w && !w.comprado) ? 'inline' : 'none';
+  abrirOverlay('overlay-wish');
+}
+
+async function wishSalvar(){
+  const item = document.getElementById('wish-item').value.trim();
+  if(!item){ alert('Preencha o nome do item.'); return; }
+
+  const payload = {
+    user_id: usuarioAtual.id,
+    item,
+    marca:       document.getElementById('wish-marca').value.trim()||null,
+    categoria:   document.getElementById('wish-categoria').value||null,
+    preco:       parseFloat(document.getElementById('wish-preco').value)||null,
+    loja:        document.getElementById('wish-loja').value.trim()||null,
+    configuracao:document.getElementById('wish-config').value.trim()||null,
+    link:        document.getElementById('wish-link').value.trim()||null,
+    urgencia:    document.getElementById('wish-urgencia').value||null,
+    timing:      document.getElementById('wish-timing').value||null,
+    quando:      document.getElementById('wish-quando').value||null,
+    prioridade:  parseInt(document.getElementById('wish-prioridade').value)||null,
+    obs:         document.getElementById('wish-obs').value.trim()||null,
+  };
+
+  let error;
+  if(wishEditId){
+    ({ error } = await sb.from('wishlist').update(payload).eq('id', wishEditId));
+  } else {
+    ({ error } = await sb.from('wishlist').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-wish');
+  await wishCarregar();
+}
+
+async function wishMarcarComprado(){
+  if(!confirm('Marcar este item como comprado?')) return;
+  await sb.from('wishlist').update({ comprado: true }).eq('id', wishEditId);
+  fecharOverlay('overlay-wish');
+  await wishCarregar();
+}
+
+async function wishExcluir(){
+  if(!confirm('Excluir este item da wishlist?')) return;
+  await sb.from('wishlist').delete().eq('id', wishEditId);
+  fecharOverlay('overlay-wish');
+  await wishCarregar();
+}
+
 let metasDados = [];
 let metasConqDados = [];
 let metasFiltroAtivo = 'todas';
