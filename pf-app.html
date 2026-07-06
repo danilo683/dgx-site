@@ -716,6 +716,56 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   background:rgba(0,182,233,0.03);position:sticky;left:0;z-index:1;
 }
 
+/* ════════ METAS ════════ */
+.metas-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.4rem}
+@media(max-width:700px){.metas-resumo{grid-template-columns:1fr 1fr}}
+
+.meta-card{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.4rem;margin-bottom:.8rem;position:relative}
+.meta-card.concluida{opacity:.6;border-color:rgba(78,201,138,0.3)}
+.meta-card.atrasada{border-color:rgba(224,82,82,0.35)}
+.meta-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;margin-bottom:.5rem}
+.meta-card-titulo{font-size:.88rem;font-weight:700;color:var(--white)}
+.meta-card-badges{display:flex;gap:.4rem;align-items:center;flex-shrink:0}
+.meta-status-badge{font-size:.58rem;font-weight:700;letter-spacing:.06em;padding:.15rem .55rem;border-radius:10px;text-transform:uppercase}
+.meta-status-badge.andamento{background:rgba(0,182,233,0.12);color:var(--gold)}
+.meta-status-badge.concluida{background:rgba(78,201,138,0.12);color:var(--green)}
+.meta-status-badge.atrasada{background:rgba(224,82,82,0.12);color:var(--red)}
+.meta-card-desc{font-size:.74rem;color:var(--gray);margin-bottom:.6rem;line-height:1.5}
+.meta-card-data{font-size:.65rem;color:var(--gray2);margin-bottom:.6rem}
+.meta-card-data.atrasada{color:var(--red)}
+.meta-card-edit{position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:var(--gray2);cursor:pointer;font-size:.8rem;transition:color .2s}
+.meta-card-edit:hover{color:var(--gold)}
+
+/* Conquistas como metas */
+.meta-conq-item{display:flex;align-items:center;gap:1rem;padding:.7rem 0;border-bottom:1px solid var(--border2)}
+.meta-conq-item:last-child{border-bottom:none}
+.meta-conq-icone{font-size:1.4rem;flex-shrink:0}
+.meta-conq-body{flex:1;min-width:0}
+.meta-conq-titulo{font-size:.82rem;font-weight:600;color:var(--gray);margin-bottom:.2rem}
+.meta-conq-desc{font-size:.7rem;color:var(--gray2);line-height:1.4}
+
+/* ════════ PATRIMÔNIO ════════ */
+.pat-split{display:flex;gap:1.5rem;align-items:flex-start;margin-top:1.2rem}
+.pat-col{flex:1;min-width:0}
+@media(max-width:860px){.pat-split{flex-direction:column}}
+.pat-col-header{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;margin-bottom:.5rem;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.pat-col-header.ativos{background:rgba(78,201,138,0.08);color:var(--green);border-left:3px solid var(--green)}
+.pat-col-header.passivos{background:rgba(224,82,82,0.08);color:var(--red);border-left:3px solid var(--red)}
+
+.pat-item{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-bottom:1px solid var(--border2);background:var(--navy2)}
+.pat-item:last-child{border-bottom:none}
+.pat-item-icone{font-size:1.2rem;flex-shrink:0}
+.pat-item-body{flex:1;min-width:0}
+.pat-item-cat{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray2);margin-bottom:.1rem}
+.pat-item-desc{font-size:.8rem;font-weight:600;color:var(--white)}
+.pat-item-data{font-size:.62rem;color:var(--gray2);margin-top:.1rem}
+.pat-item-val{font-size:.88rem;font-weight:700;white-space:nowrap}
+.pat-item-val.ativo{color:var(--green)}
+.pat-item-val.passivo{color:var(--red)}
+.pat-item-edit{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:.8rem;padding:0 .3rem;transition:color .2s;flex-shrink:0}
+.pat-item-edit:hover{color:var(--gold)}
+.pat-subtotal{padding:.6rem 1rem;font-size:.75rem;font-weight:700;text-align:right;background:rgba(10,21,37,0.5);border-top:1px solid var(--border)}
+
 /* ════════ CONQUISTAS ════════ */
 .conq-resumo{display:flex;align-items:center;gap:1.5rem;background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.8rem;margin-bottom:1.5rem;flex-wrap:wrap}
 .conq-resumo-item{display:flex;flex-direction:column;align-items:center;gap:.2rem}
@@ -1148,12 +1198,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('metas', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
         Metas
-        <span class="menu-badge-soon">em breve</span>
       </button>
       <button class="menu-item" onclick="irPara('patrimonio', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
         Patrimônio
-        <span class="menu-badge-soon">em breve</span>
       </button>
       <button class="menu-item" onclick="irPara('investimentos', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
@@ -1463,22 +1511,129 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <!-- ── METAS ── -->
       <div class="tela" id="tela-metas">
         <div class="tela-header"><h2>Metas</h2><p>Seus objetivos financeiros com prazo e progresso</p></div>
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-          <h3>Metas financeiras</h3>
-          <p>Defina objetivos com valor e prazo — viagem, reserva de emergência, imóvel — e acompanhe o progresso de cada um com clareza.</p>
-          <span class="em-breve-tag">Em construção</span>
+
+        <div class="orc-loading" id="metas-loading">Carregando metas...</div>
+        <div id="metas-content" style="display:none">
+
+          <!-- Cards resumo -->
+          <div class="metas-resumo">
+            <div class="inv-card"><div class="inv-card-label">Total de metas</div><div class="inv-card-val" id="metas-total">0</div></div>
+            <div class="inv-card"><div class="inv-card-label">Concluídas</div><div class="inv-card-val green" id="metas-conc">0</div></div>
+            <div class="inv-card"><div class="inv-card-label">Em andamento</div><div class="inv-card-val gold" id="metas-em-and">0</div></div>
+            <div class="inv-card"><div class="inv-card-label">Atrasadas</div><div class="inv-card-val red" id="metas-atr">0</div></div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="conq-filtros" style="margin-bottom:1.2rem">
+            <button class="conq-filtro-btn active" onclick="metasFiltrar(this,'todas')">Todas</button>
+            <button class="conq-filtro-btn" onclick="metasFiltrar(this,'andamento')">Em andamento</button>
+            <button class="conq-filtro-btn" onclick="metasFiltrar(this,'concluida')">Concluídas</button>
+            <button class="conq-filtro-btn" onclick="metasFiltrar(this,'atrasada')">Atrasadas</button>
+            <button class="conq-filtro-btn" onclick="metasFiltrar(this,'conquista')">🏆 Conquistas</button>
+          </div>
+
+          <!-- Lista de metas do Plano de Ação -->
+          <div id="metas-plano-lista"></div>
+
+          <!-- Metas de conquistas pendentes -->
+          <div id="metas-conq-section" style="margin-top:1.5rem">
+            <div class="lanc-col-titulo" style="margin-bottom:.8rem">🏆 Metas de conquistas</div>
+            <div id="metas-conq-lista"></div>
+          </div>
+
+          <div class="plano-vazio" id="metas-vazio" style="display:none">Nenhuma meta cadastrada ainda.</div>
         </div>
       </div>
 
       <!-- ── PATRIMÔNIO ── -->
       <div class="tela" id="tela-patrimonio">
-        <div class="tela-header"><h2>Patrimônio</h2><p>Evolução do seu patrimônio ao longo do tempo</p></div>
-        <div class="em-breve">
-          <div class="em-breve-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-          <h3>Visão patrimonial</h3>
-          <p>Consolide ativos e passivos, acompanhe o crescimento do patrimônio líquido e visualize a evolução mês a mês em gráficos históricos.</p>
-          <span class="em-breve-tag">Em construção</span>
+        <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+          <div><h2>Patrimônio</h2><p>Ativos, passivos e patrimônio líquido</p></div>
+          <button class="orc-btn-save" style="display:inline-flex" onclick="patAbrirForm(null,'ativo')">+ Novo bem</button>
+        </div>
+
+        <div class="orc-loading" id="pat-loading">Carregando patrimônio...</div>
+        <div id="pat-content" style="display:none">
+
+          <!-- Cards topo -->
+          <div class="inv-cards" style="grid-template-columns:repeat(3,1fr)">
+            <div class="inv-card"><div class="inv-card-label">Total Ativos</div><div class="inv-card-val green" id="pat-total-ativos">—</div></div>
+            <div class="inv-card"><div class="inv-card-label">Total Passivos</div><div class="inv-card-val red" id="pat-total-passivos">—</div></div>
+            <div class="inv-card"><div class="inv-card-label">Patrimônio Líquido</div><div class="inv-card-val gold" id="pat-liquido">—</div></div>
+          </div>
+
+          <div class="pat-split">
+            <!-- ATIVOS -->
+            <div class="pat-col">
+              <div class="pat-col-header ativos">
+                <span>Ativos</span>
+                <button class="orc-btn-save" style="display:inline-flex;font-size:.65rem;padding:.35rem .7rem" onclick="patAbrirForm(null,'ativo')">+ Adicionar</button>
+              </div>
+              <div id="pat-ativos-lista"></div>
+              <div class="pat-subtotal" id="pat-ativos-subtotal"></div>
+            </div>
+
+            <!-- PASSIVOS -->
+            <div class="pat-col">
+              <div class="pat-col-header passivos">
+                <span>Passivos</span>
+                <button class="orc-btn-save" style="display:inline-flex;font-size:.65rem;padding:.35rem .7rem" onclick="patAbrirForm(null,'passivo')">+ Adicionar</button>
+              </div>
+              <div id="pat-passivos-lista"></div>
+              <div class="pat-subtotal" id="pat-passivos-subtotal"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="plano-vazio" id="pat-vazio" style="display:none">Nenhum bem cadastrado ainda. Comece adicionando seus ativos.</div>
+
+        <!-- MODAL -->
+        <div class="overlay" id="overlay-pat">
+          <div class="modal" style="max-width:520px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-pat')">×</button>
+            <div class="modal-title" id="pat-modal-titulo">Novo bem</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field">
+                <label class="diag-label">Tipo</label>
+                <select class="diag-input" id="pat-tipo" onchange="patAtualizarCategorias()">
+                  <option value="ativo">Ativo</option>
+                  <option value="passivo">Passivo</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Categoria</label>
+                <select class="diag-input" id="pat-categoria"></select>
+              </div>
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Descrição</label>
+                <input class="diag-input" type="text" id="pat-descricao" placeholder="Ex: Apartamento no centro, Carro 2022...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Valor atual (R$)</label>
+                <input class="diag-input" type="number" step="0.01" id="pat-valor-atual">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Valor de aquisição (R$)</label>
+                <input class="diag-input" type="number" step="0.01" id="pat-valor-aquis" placeholder="Opcional">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Data de aquisição</label>
+                <input class="diag-input" type="date" id="pat-data-aquis">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Última atualização</label>
+                <input class="diag-input" type="date" id="pat-data-atual">
+              </div>
+            </div>
+            <div class="diag-field" style="margin-top:.8rem">
+              <label class="diag-label">Obs.</label>
+              <textarea class="diag-input" id="pat-obs" style="min-height:50px"></textarea>
+            </div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="patSalvar()">Salvar</button>
+              <button id="pat-excluir-btn" class="modal-link" style="color:var(--red);display:none" onclick="patExcluir()">Excluir</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2777,6 +2932,8 @@ async function irPara(tela, btn){
   }
   if(tela==='investimentos') invCarregarTudo();
   if(tela==='conquistas') conqCarregar();
+  if(tela==='metas') metasCarregar();
+  if(tela==='patrimonio') patCarregar();
 }
 
 // ══════════════════════════════════════════════
@@ -5989,6 +6146,288 @@ function simToggle(modo){
 // ══════════════════════════════════════════════
 // CONQUISTAS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// METAS
+// ══════════════════════════════════════════════
+let metasDados = [];
+let metasConqDados = [];
+let metasFiltroAtivo = 'todas';
+
+async function metasCarregar(){
+  document.getElementById('metas-loading').style.display='block';
+  document.getElementById('metas-content').style.display='none';
+
+  const [planoRes, conqRes] = await Promise.all([
+    sb.from('plano_acao').select('*').eq('user_id', usuarioAtual.id)
+      .eq('tipo','meta').order('ordem',{ascending:true}).order('created_at',{ascending:true}),
+    sb.from('conquistas').select('*').eq('user_id', usuarioAtual.id)
+  ]);
+
+  metasDados = planoRes.data || [];
+  metasConqDados = conqRes.data || [];
+
+  document.getElementById('metas-loading').style.display='none';
+  document.getElementById('metas-content').style.display='block';
+
+  metasRenderizar();
+}
+
+function metasStatus(meta){
+  if(meta.concluido) return 'concluida';
+  if(meta.data_alvo && new Date(meta.data_alvo+'T00:00:00') < new Date()) return 'atrasada';
+  return 'andamento';
+}
+
+function metasRenderizar(){
+  const hoje = new Date();
+  const total = metasDados.length;
+  const conc  = metasDados.filter(m=>m.concluido).length;
+  const atr   = metasDados.filter(m=>!m.concluido && m.data_alvo && new Date(m.data_alvo+'T00:00:00')<hoje).length;
+  const and   = total - conc - atr;
+
+  document.getElementById('metas-total').textContent  = total;
+  document.getElementById('metas-conc').textContent   = conc;
+  document.getElementById('metas-em-and').textContent = and;
+  document.getElementById('metas-atr').textContent    = atr;
+
+  const filtro = metasFiltroAtivo;
+  const mostraConq = filtro==='todas' || filtro==='conquista';
+  const mostraPlano = filtro!=='conquista';
+
+  // Metas do Plano de Ação
+  let lista = metasDados;
+  if(filtro!=='todas' && filtro!=='conquista') lista = metasDados.filter(m=>metasStatus(m)===filtro);
+
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const planoHtml = mostraPlano && lista.length ? lista.map(m=>{
+    const st = metasStatus(m);
+    const stLabel = st==='concluida'?'Concluída':st==='atrasada'?'Atrasada':'Em andamento';
+    const pct = m.meta_valor ? Math.min(100,Math.round((Number(m.progresso_valor)||0)/Number(m.meta_valor)*100)) : null;
+    const dataAlvo = m.data_alvo ? new Date(m.data_alvo+'T00:00:00').toLocaleDateString('pt-BR') : null;
+    const temSmart = m.smart_especifico||m.smart_mensuravel||m.smart_atingivel||m.smart_relevante;
+
+    return `<div class="meta-card ${st}">
+      <div class="meta-card-header">
+        <div class="meta-card-titulo">${escapeHtml(m.titulo)}</div>
+        <div class="meta-card-badges">
+          <span class="meta-status-badge ${st}">${stLabel}</span>
+        </div>
+      </div>
+      ${m.descricao?`<div class="meta-card-desc">${escapeHtml(m.descricao)}</div>`:''}
+      ${dataAlvo?`<div class="meta-card-data ${st==='atrasada'?'atrasada':''}">📅 ${st==='atrasada'?'Venceu em':'Prazo:'} ${dataAlvo}</div>`:''}
+      ${pct!==null?`<div class="plano-progresso-bar-wrap">
+        <div class="plano-progresso-bar-bg"><div class="plano-progresso-bar-fill" style="width:${pct}%;${st==='concluida'?'background:var(--green)':''}"></div></div>
+        <div class="plano-progresso-bar-txt">${fmt(m.progresso_valor)} / ${fmt(m.meta_valor)} (${pct}%)</div>
+      </div>`:''}
+      ${temSmart?`<button onclick="planoToggleSmart('meta-${m.id}')" style="background:none;border:none;color:var(--gold);font-size:.65rem;cursor:pointer;padding:.4rem 0;font-family:'Inter',sans-serif;letter-spacing:.06em" id="smart-btn-meta-${m.id}">▸ Ver detalhes SMART</button>
+      <div id="smart-meta-${m.id}" style="display:none;margin-top:.5rem;background:rgba(0,182,233,0.04);border-left:2px solid var(--gold);padding:.6rem .8rem">
+        ${m.smart_especifico?`<div style="font-size:.7rem;margin-bottom:.3rem"><span style="color:var(--gold);font-weight:700">🎯 Específico:</span> <span style="color:var(--gray)">${escapeHtml(m.smart_especifico)}</span></div>`:''}
+        ${m.smart_mensuravel?`<div style="font-size:.7rem;margin-bottom:.3rem"><span style="color:var(--gold);font-weight:700">📏 Mensurável:</span> <span style="color:var(--gray)">${escapeHtml(m.smart_mensuravel)}</span></div>`:''}
+        ${m.smart_atingivel?`<div style="font-size:.7rem;margin-bottom:.3rem"><span style="color:var(--gold);font-weight:700">✅ Atingível:</span> <span style="color:var(--gray)">${escapeHtml(m.smart_atingivel)}</span></div>`:''}
+        ${m.smart_relevante?`<div style="font-size:.7rem"><span style="color:var(--gold);font-weight:700">💡 Relevante:</span> <span style="color:var(--gray)">${escapeHtml(m.smart_relevante)}</span></div>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('') : '';
+
+  document.getElementById('metas-plano-lista').innerHTML = planoHtml;
+
+  // Conquistas pendentes como metas
+  const conqPendentes = CONQ_CATALOGO.filter(c=>{
+    const reg = metasConqDados.find(d=>d.codigo===c.codigo);
+    return !reg?.concluida;
+  });
+
+  const conqSection = document.getElementById('metas-conq-section');
+  conqSection.style.display = mostraConq && conqPendentes.length ? 'block' : 'none';
+
+  if(mostraConq){
+    document.getElementById('metas-conq-lista').innerHTML = conqPendentes.map(c=>`
+      <div class="meta-conq-item">
+        <div class="meta-conq-icone">${c.icone}</div>
+        <div class="meta-conq-body">
+          <div class="meta-conq-titulo">${c.titulo}</div>
+          <div class="meta-conq-desc">${c.desc}</div>
+        </div>
+        <span class="meta-status-badge andamento">Pendente</span>
+      </div>`).join('');
+  }
+
+  const temAlgo = lista.length > 0 || (mostraConq && conqPendentes.length > 0);
+  document.getElementById('metas-vazio').style.display = temAlgo ? 'none' : 'block';
+}
+
+function metasFiltrar(btn, filtro){
+  document.querySelectorAll('#tela-metas .conq-filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  metasFiltroAtivo = filtro;
+  metasRenderizar();
+}
+
+// Reutiliza planoToggleSmart com prefixo 'meta-'
+const _planoToggleSmartOrig = typeof planoToggleSmart === 'function' ? planoToggleSmart : null;
+function planoToggleSmart(id){
+  const el = document.getElementById('smart-'+id);
+  const btn = document.getElementById('smart-btn-'+id);
+  if(!el || !btn) return;
+  const aberto = el.style.display !== 'none';
+  el.style.display = aberto ? 'none' : 'block';
+  btn.textContent = aberto ? '▸ Ver detalhes SMART' : '▾ Ocultar detalhes SMART';
+}
+
+// ══════════════════════════════════════════════
+// PATRIMÔNIO
+// ══════════════════════════════════════════════
+const PAT_CATS_ATIVO = ['Imóveis','Veículos','Investimentos','Reserva/Caixa','Previdência','Outros ativos'];
+const PAT_CATS_PASSIVO = ['Financiamentos','Dívidas','Outras obrigações'];
+const PAT_ICONES = {
+  'Imóveis':'🏠','Veículos':'🚗','Investimentos':'📈','Reserva/Caixa':'🏦',
+  'Previdência':'💼','Outros ativos':'💎','Financiamentos':'🏦','Dívidas':'💳','Outras obrigações':'📋'
+};
+
+let patDados = [];
+let patEditId = null;
+
+async function patCarregar(){
+  document.getElementById('pat-loading').style.display='block';
+  document.getElementById('pat-content').style.display='none';
+  document.getElementById('pat-vazio').style.display='none';
+
+  const { data } = await sb.from('patrimonio').select('*').eq('user_id', usuarioAtual.id).order('categoria').order('descricao');
+  patDados = data || [];
+
+  // Pegar valor da carteira de investimentos automaticamente
+  const { posArray } = invConsolidar();
+  const totalInv = posArray.reduce((a,p)=>a+p.valor_mercado, 0);
+
+  // Verificar se já tem entrada de investimentos criada automaticamente
+  const invEntry = patDados.find(p=>p.categoria==='Investimentos' && p.obs==='__auto__');
+  if(totalInv > 0){
+    if(invEntry){
+      if(Math.abs(invEntry.valor_atual - totalInv) > 0.01){
+        await sb.from('patrimonio').update({valor_atual:totalInv, data_atualizacao:new Date().toISOString().split('T')[0]}).eq('id',invEntry.id);
+        invEntry.valor_atual = totalInv;
+      }
+    } else {
+      const { data: novo } = await sb.from('patrimonio').insert({
+        user_id:usuarioAtual.id, tipo:'ativo', categoria:'Investimentos',
+        descricao:'Carteira de investimentos', valor_atual:totalInv,
+        data_atualizacao:new Date().toISOString().split('T')[0], obs:'__auto__'
+      }).select().single();
+      if(novo) patDados.push(novo);
+    }
+  }
+
+  document.getElementById('pat-loading').style.display='none';
+  patRenderizar();
+}
+
+function patRenderizar(){
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const ativos   = patDados.filter(p=>p.tipo==='ativo');
+  const passivos  = patDados.filter(p=>p.tipo==='passivo');
+  const totAtivos  = ativos.reduce((a,p)=>a+Number(p.valor_atual),0);
+  const totPassivos = passivos.reduce((a,p)=>a+Number(p.valor_atual),0);
+  const liquido = totAtivos - totPassivos;
+
+  document.getElementById('pat-total-ativos').textContent   = fmt(totAtivos);
+  document.getElementById('pat-total-passivos').textContent = fmt(totPassivos);
+  const liqEl = document.getElementById('pat-liquido');
+  liqEl.textContent = fmt(Math.abs(liquido));
+  liqEl.className = 'inv-card-val '+(liquido>=0?'gold':'red');
+
+  if(!patDados.length){
+    document.getElementById('pat-content').style.display='none';
+    document.getElementById('pat-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('pat-content').style.display='block';
+  document.getElementById('pat-vazio').style.display='none';
+
+  const renderItem = (p) => {
+    const isAuto = p.obs==='__auto__';
+    const dataStr = p.data_atualizacao ? new Date(p.data_atualizacao+'T00:00:00').toLocaleDateString('pt-BR') : '';
+    return `<div class="pat-item">
+      <div class="pat-item-icone">${PAT_ICONES[p.categoria]||'💼'}</div>
+      <div class="pat-item-body">
+        <div class="pat-item-cat">${p.categoria}</div>
+        <div class="pat-item-desc">${escapeHtml(p.descricao)}${isAuto?' <span style="font-size:.58rem;color:var(--gray2)">(automático)</span>':''}</div>
+        ${dataStr?`<div class="pat-item-data">Atualizado em ${dataStr}</div>`:''}
+      </div>
+      <div class="pat-item-val ${p.tipo}">${fmt(p.valor_atual)}</div>
+      ${!isAuto?`<button class="pat-item-edit" onclick="patAbrirForm(${p.id},'${p.tipo}')">✎</button>`:'<div style="width:24px"></div>'}
+    </div>`;
+  };
+
+  // Agrupar por categoria
+  const renderGrupo = (lista) => {
+    const grupos = {};
+    lista.forEach(p=>{ if(!grupos[p.categoria]) grupos[p.categoria]=[]; grupos[p.categoria].push(p); });
+    return Object.entries(grupos).map(([cat, itens])=>itens.map(renderItem).join('')).join('');
+  };
+
+  document.getElementById('pat-ativos-lista').innerHTML   = renderGrupo(ativos)   || '<div class="plano-vazio" style="text-align:center;padding:1rem">Nenhum ativo cadastrado.</div>';
+  document.getElementById('pat-passivos-lista').innerHTML = renderGrupo(passivos)  || '<div class="plano-vazio" style="text-align:center;padding:1rem">Nenhum passivo cadastrado.</div>';
+  document.getElementById('pat-ativos-subtotal').innerHTML   = `Total ativos: <span style="color:var(--green)">${fmt(totAtivos)}</span>`;
+  document.getElementById('pat-passivos-subtotal').innerHTML = `Total passivos: <span style="color:var(--red)">${fmt(totPassivos)}</span>`;
+}
+
+function patAtualizarCategorias(){
+  const tipo = document.getElementById('pat-tipo').value;
+  const cats = tipo==='ativo' ? PAT_CATS_ATIVO : PAT_CATS_PASSIVO;
+  document.getElementById('pat-categoria').innerHTML = cats.map(c=>`<option>${c}</option>`).join('');
+}
+
+function patAbrirForm(id, tipoDefault){
+  patEditId = id;
+  const p = id ? patDados.find(x=>x.id===id) : null;
+  document.getElementById('pat-modal-titulo').textContent = p ? 'Editar bem' : 'Novo bem';
+  document.getElementById('pat-tipo').value = p?.tipo || tipoDefault || 'ativo';
+  patAtualizarCategorias();
+  document.getElementById('pat-categoria').value   = p?.categoria || PAT_CATS_ATIVO[0];
+  document.getElementById('pat-descricao').value   = p?.descricao || '';
+  document.getElementById('pat-valor-atual').value = p?.valor_atual || '';
+  document.getElementById('pat-valor-aquis').value = p?.valor_aquisicao || '';
+  document.getElementById('pat-data-aquis').value  = p?.data_aquisicao || '';
+  document.getElementById('pat-data-atual').value  = p?.data_atualizacao || new Date().toISOString().split('T')[0];
+  document.getElementById('pat-obs').value         = p?.obs||'' === '__auto__' ? '' : p?.obs||'';
+  document.getElementById('pat-excluir-btn').style.display = p ? 'inline' : 'none';
+  abrirOverlay('overlay-pat');
+}
+
+async function patSalvar(){
+  const desc = document.getElementById('pat-descricao').value.trim();
+  if(!desc){ alert('Preencha a descrição.'); return; }
+  const payload = {
+    user_id: usuarioAtual.id,
+    tipo: document.getElementById('pat-tipo').value,
+    categoria: document.getElementById('pat-categoria').value,
+    descricao: desc,
+    valor_atual: parseFloat(document.getElementById('pat-valor-atual').value)||0,
+    valor_aquisicao: parseFloat(document.getElementById('pat-valor-aquis').value)||null,
+    data_aquisicao: document.getElementById('pat-data-aquis').value||null,
+    data_atualizacao: document.getElementById('pat-data-atual').value||null,
+    obs: document.getElementById('pat-obs').value||null,
+  };
+  let error;
+  if(patEditId){
+    ({ error } = await sb.from('patrimonio').update(payload).eq('id', patEditId));
+  } else {
+    ({ error } = await sb.from('patrimonio').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-pat');
+  await patCarregar();
+}
+
+async function patExcluir(){
+  if(!confirm('Excluir este item?')) return;
+  await sb.from('patrimonio').delete().eq('id', patEditId);
+  fecharOverlay('overlay-pat');
+  await patCarregar();
+}
+
 const CONQ_CATALOGO = [
   // DÍVIDAS
   { codigo:'bola_neve', titulo:'Bola de Neve Andando', icone:'⛄', categoria:'dividas', tipo:'manual',
