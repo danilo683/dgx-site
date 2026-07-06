@@ -4965,10 +4965,11 @@ async function adminAbrirCliente(idx){
 // ── ADMIN: ORÇAMENTO ──
 function adminOrcToggleConfig(){
   const el = document.getElementById('admin-orc-config-panel');
-  const btn = document.querySelector('#adminp-orcamento .orc-btn-config');
+  if(!el) return;
   const open = el.style.display === 'block';
   el.style.display = open ? 'none' : 'block';
-  btn.classList.toggle('active', !open);
+  const btn = document.querySelector('#adminp-orcamento .orc-btn-config');
+  if(btn) btn.classList.toggle('active', !open);
   if(!open) adminOrcPopularSelectsAno();
 }
 
@@ -4991,42 +4992,47 @@ function adminOrcPopularSelectsAno(){
 }
 
 function adminOrcConfirmarImport(){
-  const mesInicio = Number(document.getElementById('admin-orc-import-mes-inicio').value);
-  const mesNome = MESES_FULL[mesInicio-1];
-  if(!confirm(`Importar médias do Raio X do cliente?\n\nIsso vai preencher de ${mesNome} a Dezembro de ${adminOrcAno} com as médias dos últimos 3 meses. Valores existentes serão sobrescritos.`)) return;
-  if(!confirm(`⚠️ Última confirmação\n\nTodos os valores de ${mesNome} a Dezembro de ${adminOrcAno} serão substituídos. Esta ação não pode ser desfeita.\n\nConfirmar?`)) return;
-  adminOrcExecutarImport(mesInicio);
+  try {
+    const sel = document.getElementById('admin-orc-import-mes-inicio');
+    if(!sel){ alert('Erro: elemento de seleção não encontrado.'); return; }
+    const mesInicio = Number(sel.value);
+    const mesNome = MESES_FULL[mesInicio-1];
+    if(!confirm(`Importar médias do Raio X do cliente?\n\nIsso vai preencher de ${mesNome} a Dezembro de ${adminOrcAno} com as médias dos últimos 3 meses. Valores existentes serão sobrescritos.`)) return;
+    if(!confirm(`⚠️ Última confirmação\n\nTodos os valores de ${mesNome} a Dezembro de ${adminOrcAno} serão substituídos. Esta ação não pode ser desfeita.\n\nConfirmar?`)) return;
+    adminOrcExecutarImport(mesInicio);
+  } catch(e){ alert('Erro: '+e.message); }
 }
 
 function adminOrcImportStep2(mesInicio){ adminOrcExecutarImport(mesInicio); }
 
 async function adminOrcExecutarImport(mesInicio){
-  fecharOverlay('overlay-orc-import');
-  // Carregar Raio X do cliente
-  const { data: rxRow } = await sb.from('raiox').select('despesas,receitas').eq('user_id', adminClienteAtualId).maybeSingle();
-  if(!rxRow){ alert('Raio X do cliente não encontrado.'); return; }
+  try {
+    const { data: rxRow } = await sb.from('raiox').select('despesas,receitas').eq('user_id', adminClienteAtualId).maybeSingle();
+    if(!rxRow){ alert('Raio X do cliente não encontrado. Peça ao cliente para preencher o Raio X primeiro.'); return; }
 
-  const rxDesp = rxRow.despesas || {};
-  const rxRec  = rxRow.receitas  || [];
+    const rxDesp = rxRow.despesas || {};
+    const rxRec  = rxRow.receitas  || [];
 
-  RX_DESPESAS_GRUPOS.forEach(g=>{
-    const gDados = rxDesp[g.id] || {};
-    const itens = [...g.itens, ...(gDados.extras||[])];
-    itens.forEach(item=>{
-      const v = gDados[item] || {};
-      const media = Math.round(((Number(v.m1)||0)+(Number(v.m2)||0)+(Number(v.m3)||0))/3*100)/100;
-      if(media>0) for(let m=mesInicio;m<=12;m++) adminOrcDados[`${item}|${m}`]=media;
+    RX_DESPESAS_GRUPOS.forEach(g=>{
+      const gDados = rxDesp[g.id] || {};
+      const itens = [...g.itens, ...(gDados.extras||[])];
+      itens.forEach(item=>{
+        const v = gDados[item] || {};
+        const media = Math.round(((Number(v.m1)||0)+(Number(v.m2)||0)+(Number(v.m3)||0))/3*100)/100;
+        if(media>0) for(let m=mesInicio;m<=12;m++) adminOrcDados[`${item}|${m}`]=media;
+      });
     });
-  });
 
-  rxRec.forEach(rec=>{
-    const media = Math.round(((Number(rec.m1)||0)+(Number(rec.m2)||0)+(Number(rec.m3)||0))/3*100)/100;
-    if(media>0) for(let m=mesInicio;m<=12;m++) adminOrcDados[orcRecKey(rec.label,m)]=media;
-  });
+    rxRec.forEach(rec=>{
+      const media = Math.round(((Number(rec.m1)||0)+(Number(rec.m2)||0)+(Number(rec.m3)||0))/3*100)/100;
+      if(media>0) for(let m=mesInicio;m<=12;m++) adminOrcDados[orcRecKey(rec.label,m)]=media;
+    });
 
-  adminOrcRenderTabela();
-  adminOrcAlterado=true;
-  document.getElementById('admin-orc-save-btn').style.display='inline-flex';
+    adminOrcRenderTabela();
+    adminOrcAlterado=true;
+    document.getElementById('admin-orc-save-btn').style.display='inline-flex';
+    alert('✓ Médias importadas! Clique em "Salvar alterações" para confirmar.');
+  } catch(e){ alert('Erro ao importar: '+e.message); }
 }
 
 function adminOrcConfirmarCopia(){
