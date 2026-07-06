@@ -2255,6 +2255,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <button class="admin-tab" onclick="adminTab(this,'extrato')">Extrato</button>
             <button class="admin-tab" onclick="adminTab(this,'raiox')">Raio X</button>
             <button class="admin-tab" onclick="adminTab(this,'diagnostico')">Diagnóstico</button>
+            <button class="admin-tab" onclick="adminTab(this,'orcamento')">Orçamento</button>
             <button class="admin-tab" onclick="adminTab(this,'cronograma')">Cronograma</button>
             <button class="admin-tab" onclick="adminTab(this,'plano')">Plano de Ação</button>
           </div>
@@ -2276,6 +2277,33 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
           <div class="admin-panel" id="adminp-diagnostico">
             <div id="admin-diag-content"></div>
+          </div>
+
+          <div class="admin-panel" id="adminp-orcamento">
+            <!-- Cabeçalho de navegação -->
+            <div class="orc-header" style="margin-bottom:1rem">
+              <div class="orc-nav">
+                <button class="orc-nav-btn" onclick="adminOrcMudarAno(-1)">‹</button>
+                <span class="orc-ano" id="admin-orc-ano-label">2025</span>
+                <button class="orc-nav-btn" onclick="adminOrcMudarAno(1)">›</button>
+              </div>
+              <div class="orc-acoes">
+                <button class="orc-btn-save" id="admin-orc-save-btn" onclick="adminOrcSalvar()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Salvar alterações
+                </button>
+                <span class="diag-saved-msg" id="admin-orc-saved-msg">✓ Salvo!</span>
+              </div>
+            </div>
+
+            <div class="orc-loading" id="admin-orc-loading">Carregando orçamento...</div>
+            <div class="orc-table-wrap" id="admin-orc-wrap" style="display:none;max-height:65vh">
+              <table class="orc-table" id="admin-orc-table">
+                <thead id="admin-orc-thead"></thead>
+                <tbody id="admin-orc-tbody"></tbody>
+                <tfoot id="admin-orc-tfoot"></tfoot>
+              </table>
+            </div>
           </div>
 
           <div class="admin-panel" id="adminp-cronograma">
@@ -4379,6 +4407,9 @@ async function perfilSalvar(){
 // ══════════════════════════════════════════════
 let adminClientesCache = [];
 let adminClienteAtualId = null;
+let adminOrcAno = new Date().getFullYear();
+let adminOrcDados = {};
+let adminOrcAlterado = false;
 
 async function adminCriarCliente(){
   const nome  = document.getElementById('novo-cliente-nome').value.trim();
@@ -4459,6 +4490,7 @@ function adminTab(btn, panel){
   document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('adminp-'+panel).classList.add('active');
+  if(panel==='orcamento') adminOrcCarregar();
 }
 
 async function adminAbrirCliente(idx){
@@ -4493,6 +4525,217 @@ async function adminAbrirCliente(idx){
   adminRenderDiagnostico(diagRes.data);
   adminCronoCarregar();
   adminPlanoCarregar();
+  adminOrcAno = new Date().getFullYear();
+  document.getElementById('admin-orc-ano-label').textContent = adminOrcAno;
+}
+
+// ── ADMIN: ORÇAMENTO ──
+function adminOrcMudarAno(delta){
+  adminOrcAno += delta;
+  document.getElementById('admin-orc-ano-label').textContent = adminOrcAno;
+  adminOrcCarregar();
+}
+
+async function adminOrcCarregar(){
+  if(!adminClienteAtualId) return;
+  document.getElementById('admin-orc-loading').style.display='block';
+  document.getElementById('admin-orc-wrap').style.display='none';
+
+  const { data, error } = await sb.from('orcamento')
+    .select('*').eq('user_id', adminClienteAtualId).eq('ano', adminOrcAno);
+
+  adminOrcDados = {};
+  (data||[]).forEach(r=>{
+    const key = r.grupo==='__receitas' ? orcRecKey(r.categoria, r.mes) : `${r.categoria}|${r.mes}`;
+    adminOrcDados[key] = Number(r.previsto);
+  });
+
+  document.getElementById('admin-orc-loading').style.display='none';
+  document.getElementById('admin-orc-wrap').style.display='block';
+  adminOrcRenderTabela();
+  adminOrcAlterado = false;
+  document.getElementById('admin-orc-save-btn').style.display='none';
+}
+
+function adminOrcRenderTabela(){
+  const thead = document.getElementById('admin-orc-thead');
+  const tbody = document.getElementById('admin-orc-tbody');
+  const tfoot = document.getElementById('admin-orc-tfoot');
+
+  // Cabeçalho
+  let thHtml = '<tr><th>Categoria</th>';
+  MESES_NOMES.forEach((m,mi)=>{
+    const par = (mi+1)%2===0?' mes-par':'';
+    thHtml += `<th class="mes-header${par}">${m}</th>`;
+  });
+  thHtml += '<th style="text-align:right;min-width:100px">Total ano</th></tr>';
+  thead.innerHTML = thHtml;
+
+  let bodyHtml = '';
+
+  // Receitas
+  const recAberta = true;
+  const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
+    ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+  const totMesRecFunc = mes => recLabels.reduce((a,lb)=>a+(adminOrcDados[orcRecKey(lb,mes)]||0),0);
+  const totalRecAnual = recLabels.reduce((a,lb)=>a+MESES_NOMES.reduce((s,_,mi)=>s+(adminOrcDados[orcRecKey(lb,mi+1)]||0),0),0);
+
+  bodyHtml += `<tr class="orc-grupo-row receita"><td colspan="14">▾ Receitas</td>`;
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    bodyHtml += `<td class="${par}" id="admin-orc-stm-__receitas-${mes}" style="text-align:center;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totMesRecFunc(mes))}</td>`;
+  });
+  bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totalRecAnual)}</td></tr>`;
+
+  recLabels.forEach(lb=>{
+    const catId = encodeURIComponent('__rec:'+lb);
+    const totalCat = MESES_NOMES.reduce((a,_,mi)=>a+(adminOrcDados[orcRecKey(lb,mi+1)]||0),0);
+    bodyHtml += `<tr><td style="padding-left:1.8rem">${lb}</td>`;
+    MESES_NOMES.forEach((_,mi)=>{
+      const mes=mi+1, par=mes%2===0?' mes-par':'';
+      const key=orcRecKey(lb,mes), val=adminOrcDados[key]||'';
+      bodyHtml += `<td class="${par}"><div class="orc-cell">
+        <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
+          placeholder="—" value="${val}"
+          data-cat="__rec:${escapeHtml(lb)}" data-mes="${mes}"
+          oninput="adminOrcOnInput(this,'${escapeHtml(lb)}')" onblur="orcOnBlur(this)">
+        <button class="orc-replicar${val?' visivel':''}" title="Replicar até dezembro"
+          onclick="adminOrcReplicarRec(this,'${escapeHtml(lb)}',${mes})">→</button>
+      </div></td>`;
+    });
+    bodyHtml += `<td class="orc-total-cat" id="admin-orc-tcr-${catId}" style="text-align:right;color:var(--green)">${orcFmt(totalCat)}</td></tr>`;
+  });
+
+  // Despesas
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    const totMesG = mes => itens.reduce((a,item)=>a+(adminOrcDados[`${item}|${mes}`]||0),0);
+    const totalG = itens.reduce((acc,item)=>acc+MESES_NOMES.reduce((a,_,mi)=>a+(adminOrcDados[`${item}|${mi+1}`]||0),0),0);
+
+    bodyHtml += `<tr class="orc-grupo-row"><td colspan="14">▾ ${g.label}</td>`;
+    MESES_NOMES.forEach((_,mi)=>{
+      const mes=mi+1, par=mes%2===0?' mes-par':'';
+      bodyHtml += `<td class="${par}" id="admin-orc-stm-${g.id}-${mes}" style="text-align:center;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totMesG(mes))}</td>`;
+    });
+    bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalG)}</td></tr>`;
+
+    itens.forEach(item=>{
+      const catId = encodeURIComponent(item);
+      const totalCat = MESES_NOMES.reduce((a,_,mi)=>a+(adminOrcDados[`${item}|${mi+1}`]||0),0);
+      bodyHtml += `<tr><td style="padding-left:1.8rem">${item}</td>`;
+      MESES_NOMES.forEach((_,mi)=>{
+        const mes=mi+1, par=mes%2===0?' mes-par':'';
+        const key=`${item}|${mes}`, val=adminOrcDados[key]||'';
+        bodyHtml += `<td class="${par}"><div class="orc-cell">
+          <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
+            placeholder="—" value="${val}"
+            data-cat="${escapeHtml(item)}" data-mes="${mes}"
+            oninput="adminOrcOnInput(this,null)" onblur="orcOnBlur(this)">
+          <button class="orc-replicar${val?' visivel':''}" title="Replicar até dezembro"
+            onclick="adminOrcReplicar(this,'${escapeHtml(item)}',${mes})">→</button>
+        </div></td>`;
+      });
+      bodyHtml += `<td class="orc-total-cat" id="admin-orc-tc-${catId}" style="text-align:right">${orcFmt(totalCat)}</td></tr>`;
+    });
+  });
+
+  tbody.innerHTML = bodyHtml;
+
+  // Rodapé
+  let tfHtml = '<tr class="orc-total-row"><td>Total Receitas</td>';
+  let totRecAnual=0;
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    const tot=recLabels.reduce((a,lb)=>a+(adminOrcDados[orcRecKey(lb,mes)]||0),0); totRecAnual+=tot;
+    tfHtml += `<td class="${par}" id="admin-orc-tr-${mes}" style="text-align:center;color:var(--green)">${orcFmt(tot)}</td>`;
+  });
+  tfHtml += `<td style="text-align:right;color:var(--green)">${orcFmt(totRecAnual)}</td></tr>`;
+
+  tfHtml += '<tr class="orc-total-row"><td>Total Despesas</td>';
+  let totDespAnual=0;
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    const tot=Object.entries(adminOrcDados).filter(([k])=>k.endsWith(`|${mes}`)&&!k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0);
+    totDespAnual+=tot;
+    tfHtml += `<td class="orc-total-mes${par}" id="admin-orc-tm-${mes}" style="text-align:center">${orcFmt(tot)}</td>`;
+  });
+  tfHtml += `<td class="orc-total-mes" style="text-align:right">${orcFmt(totDespAnual)}</td></tr>`;
+  tfoot.innerHTML = tfHtml;
+}
+
+function adminOrcOnInput(el, recLabel){
+  const isRec = recLabel !== null;
+  const mes = Number(el.dataset.mes);
+  const val = parseFloat(el.value)||0;
+  const key = isRec ? orcRecKey(recLabel, mes) : `${el.dataset.cat}|${mes}`;
+  if(val) adminOrcDados[key]=val; else delete adminOrcDados[key];
+  el.className = 'orc-input'+(val?'':' sem-valor');
+  const btnRep = el.parentElement.querySelector('.orc-replicar');
+  if(btnRep) btnRep.classList.toggle('visivel', !!val);
+  if(!adminOrcAlterado){
+    adminOrcAlterado=true;
+    document.getElementById('admin-orc-save-btn').style.display='inline-flex';
+  }
+}
+
+function adminOrcReplicar(btn, cat, mesInicio){
+  const input = btn.parentElement.querySelector('.orc-input');
+  const val = parseFloat(input.value)||0;
+  if(!val) return;
+  for(let m=mesInicio+1; m<=12; m++){
+    adminOrcDados[`${cat}|${m}`]=val;
+    document.querySelectorAll(`.orc-input[data-cat="${CSS.escape(cat)}"][data-mes="${m}"]`).forEach(inp=>{
+      inp.value=val.toFixed(2); inp.className='orc-input';
+      const r=inp.parentElement.querySelector('.orc-replicar'); if(r)r.classList.add('visivel');
+    });
+  }
+  if(!adminOrcAlterado){ adminOrcAlterado=true; document.getElementById('admin-orc-save-btn').style.display='inline-flex'; }
+}
+
+function adminOrcReplicarRec(btn, label, mesInicio){
+  const input = btn.parentElement.querySelector('.orc-input');
+  const val = parseFloat(input.value)||0;
+  if(!val) return;
+  for(let m=mesInicio+1; m<=12; m++){
+    adminOrcDados[orcRecKey(label,m)]=val;
+    document.querySelectorAll(`.orc-input[data-cat="__rec:${CSS.escape(label)}"][data-mes="${m}"]`).forEach(inp=>{
+      inp.value=val.toFixed(2); inp.className='orc-input';
+      const r=inp.parentElement.querySelector('.orc-replicar'); if(r)r.classList.add('visivel');
+    });
+  }
+  if(!adminOrcAlterado){ adminOrcAlterado=true; document.getElementById('admin-orc-save-btn').style.display='inline-flex'; }
+}
+
+async function adminOrcSalvar(){
+  const btn = document.getElementById('admin-orc-save-btn');
+  const original = btn.innerHTML;
+  btn.innerHTML='Salvando...'; btn.disabled=true;
+
+  const rows = Object.entries(adminOrcDados).map(([key,val])=>{
+    const isRec = key.startsWith('__rec:');
+    const partes = key.split('|');
+    const mes = Number(partes[1]);
+    const cat = isRec ? partes[0].replace('__rec:','') : partes[0];
+    let grupo = isRec ? '__receitas' : '';
+    if(!isRec) RX_DESPESAS_GRUPOS.forEach(g=>{
+      const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+      const itens=[...g.itens,...(gDados.extras||[])];
+      if(itens.includes(cat)) grupo=g.label;
+    });
+    return { user_id:adminClienteAtualId, ano:adminOrcAno, mes, categoria:cat, grupo, previsto:val };
+  });
+
+  await sb.from('orcamento').delete().eq('user_id', adminClienteAtualId).eq('ano', adminOrcAno);
+  let error=null;
+  if(rows.length)({ error }=await sb.from('orcamento').insert(rows));
+
+  btn.innerHTML=original; btn.disabled=false;
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+  adminOrcAlterado=false;
+  btn.style.display='none';
+  const msg=document.getElementById('admin-orc-saved-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',2000);
 }
 
 // ── ADMIN: CRONOGRAMA ──
