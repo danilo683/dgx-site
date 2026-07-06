@@ -17,6 +17,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh}
+#site-pf{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#site-pf::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%, rgba(0,182,233,0.07) 0%, transparent 70%);pointer-events:none;}
+.entrada-wrap{text-align:center;position:relative}
+.entrada-logo{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.6rem;}
+.entrada-tag{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);}
 
 /* ════════════════════════ SITE PF ════════════════════════ */
 nav.public-nav{
@@ -1099,80 +1104,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 <body>
 
 <!-- ══════════ SITE PÚBLICO ══════════ -->
-<div id="site-pf">
-  <nav class="public-nav">
-    <div class="nav-left">
-      <a href="/" class="nav-back">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        dgxconsultoria.com.br
-      </a>
-      <div class="nav-sep"></div>
-      <div>
-        <div class="nav-brand">DGX · Pessoa Física</div>
-        <div class="nav-tag">Consultoria Financeira Pessoal</div>
-      </div>
-    </div>
-    <button class="btn-login" onclick="abrirLogin()">Área do cliente</button>
-  </nav>
+<div id="site-pf"><div class="entrada-wrap"><div class="entrada-logo">DGX</div><div class="entrada-tag">Consultoria · Pessoa Física</div><button class="btn-login" style="margin-top:2rem" onclick="abrirLogin()">Entrar</button></div></div>
 
-  <section class="hero">
-    <div class="hero-eyebrow">Consultoria Financeira Pessoal</div>
-    <h1>Clareza financeira para<br><em>decisões que transformam</em></h1>
-    <p>Planejamento personalizado, assessoria de investimentos e organização financeira para que você alcance seus objetivos com estratégia e segurança.</p>
-    <div class="hero-ctas">
-      <button class="btn-primary" onclick="document.getElementById('servicos').scrollIntoView({behavior:'smooth'})">Conheça os serviços</button>
-      <button class="btn-outline" onclick="abrirLogin()">Acessar minha área</button>
-    </div>
-  </section>
-
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-num">+8 anos</div><div class="stat-label">de experiência</div></div>
-    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">personalizado</div></div>
-    <div class="stat-item"><div class="stat-num">360°</div><div class="stat-label">visão financeira</div></div>
-  </div>
-
-  <section id="servicos">
-    <div class="section-inner">
-      <div class="eyebrow">Nossos serviços</div>
-      <h2 class="section-title">Uma consultoria completa<br>para cada fase da sua vida</h2>
-      <p class="section-sub">Do diagnóstico financeiro até a execução do plano, acompanho você em cada etapa.</p>
-      <div class="services-grid">
-        <div class="service-card"><span class="service-num">01</span><div class="service-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></div><h3>Planejamento Financeiro Pessoal</h3><p>Diagnóstico completo das suas finanças, organização do orçamento e construção de um plano de metas realistas e alcançáveis.</p></div>
-        <div class="service-card"><span class="service-num">02</span><div class="service-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Assessoria de Investimentos</h3><p>Análise do seu perfil de investidor, seleção de ativos adequados e acompanhamento da carteira com foco nos seus objetivos.</p></div>
-        <div class="service-card"><span class="service-num">03</span><div class="service-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><h3>Organização de Dívidas e Crédito</h3><p>Renegociação estratégica de dívidas, controle do uso do crédito e construção de um caminho saudável rumo à independência financeira.</p></div>
-        <div class="service-card"><span class="service-num">04</span><div class="service-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Planejamento da Aposentadoria</h3><p>Projeção de patrimônio, estruturação da previdência complementar e estratégia de longo prazo para garantir sua tranquilidade no futuro.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="process">
-    <div class="section-inner">
-      <div class="eyebrow">Como funciona</div>
-      <h2 class="section-title" style="margin-bottom:2.5rem">Do primeiro contato ao<br>resultado concreto</h2>
-      <div>
-        <div class="step"><div class="step-num">01</div><div class="step-content"><h4>Diagnóstico financeiro</h4><p>Levantamento completo da sua situação: receitas, despesas, dívidas, investimentos e objetivos.</p></div></div>
-        <div class="step"><div class="step-num">02</div><div class="step-content"><h4>Construção do plano</h4><p>Elaboração de um plano personalizado com metas, prazos e ações concretas, adequado ao seu perfil e momento de vida.</p></div></div>
-        <div class="step"><div class="step-num">03</div><div class="step-content"><h4>Implementação e acompanhamento</h4><p>Execução das estratégias com monitoramento contínuo e acesso à sua área exclusiva de cliente.</p></div></div>
-        <div class="step"><div class="step-num">04</div><div class="step-content"><h4>Evolução e revisões periódicas</h4><p>Revisão trimestral do plano, atualização da carteira e manutenção do foco nos seus objetivos de longo prazo.</p></div></div>
-      </div>
-    </div>
-  </section>
-
-  <div class="cta-section">
-    <div class="eyebrow" style="margin-bottom:1rem">Dê o primeiro passo</div>
-    <h2>Pronto para transformar<br>sua vida financeira?</h2>
-    <p>Entre em contato e agende uma conversa inicial sem compromisso.</p>
-    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-      <a href="https://wa.me/5511999999999" style="text-decoration:none"><button class="btn-primary">Falar pelo WhatsApp</button></a>
-      <button class="btn-outline" onclick="abrirLogin()">Já sou cliente — entrar</button>
-    </div>
-  </div>
-
-  <footer>
-    <div><div class="footer-brand">DGX Consultoria</div><div class="footer-copy" style="margin-top:.3rem">Pessoa Física · dgxconsultoria.com.br/pf</div></div>
-    <div class="footer-copy">© 2025 DGX Consultoria · Todos os direitos reservados</div>
-  </footer>
-</div>
 
 <!-- ══════════ MODAL LOGIN ══════════ -->
 <div class="overlay" id="overlay-login">
@@ -3042,6 +2975,8 @@ sb.auth.onAuthStateChange((event, session) => {
   const { data:{ session } } = await sb.auth.getSession();
   if(session && !window.location.hash.includes('type=recovery')){
     await mostrarPainel(session.user);
+  } else if(!window.location.hash.includes('type=recovery')){
+    abrirLogin();
   }
 })();
 
@@ -5058,26 +4993,12 @@ function adminOrcPopularSelectsAno(){
 function adminOrcConfirmarImport(){
   const mesInicio = Number(document.getElementById('admin-orc-import-mes-inicio').value);
   const mesNome = MESES_FULL[mesInicio-1];
-  document.getElementById('orc-import-title').textContent = 'Importar médias do Raio X?';
-  document.getElementById('orc-import-sub').textContent =
-    `Isso vai preencher de ${mesNome} a Dezembro de ${adminOrcAno} com as médias do Raio X do cliente. Valores existentes serão sobrescritos.`;
-  document.getElementById('orc-import-confirm-btn').textContent = 'Sim, quero importar';
-  document.getElementById('orc-import-confirm-btn').onclick = ()=>adminOrcImportStep2(mesInicio);
-  abrirOverlay('overlay-orc-import');
+  if(!confirm(`Importar médias do Raio X do cliente?\n\nIsso vai preencher de ${mesNome} a Dezembro de ${adminOrcAno} com as médias dos últimos 3 meses. Valores existentes serão sobrescritos.`)) return;
+  if(!confirm(`⚠️ Última confirmação\n\nTodos os valores de ${mesNome} a Dezembro de ${adminOrcAno} serão substituídos. Esta ação não pode ser desfeita.\n\nConfirmar?`)) return;
+  adminOrcExecutarImport(mesInicio);
 }
 
-function adminOrcImportStep2(mesInicio){
-  fecharOverlay('overlay-orc-import');
-  const mesNome = MESES_FULL[mesInicio-1];
-  setTimeout(()=>{
-    document.getElementById('orc-import-title').textContent = '⚠️ Última chance — tem certeza mesmo?';
-    document.getElementById('orc-import-sub').textContent =
-      `Todos os valores de ${mesNome} a Dezembro de ${adminOrcAno} serão substituídos. Esta ação não pode ser desfeita.`;
-    document.getElementById('orc-import-confirm-btn').textContent = 'Confirmar importação';
-    document.getElementById('orc-import-confirm-btn').onclick = ()=>adminOrcExecutarImport(mesInicio);
-    abrirOverlay('overlay-orc-import');
-  }, 200);
-}
+function adminOrcImportStep2(mesInicio){ adminOrcExecutarImport(mesInicio); }
 
 async function adminOrcExecutarImport(mesInicio){
   fecharOverlay('overlay-orc-import');
@@ -5120,13 +5041,8 @@ function adminOrcConfirmarCopia(){
     alert('O mês final precisa ser depois do mês inicial.'); return;
   }
 
-  document.getElementById('orc-import-title').textContent = 'Copiar orçamento?';
-  document.getElementById('orc-import-sub').textContent =
-    `Copiar de ${MESES_FULL[mesOrig-1]}/${anoOrig} para ${MESES_FULL[mesDestIni-1]}/${anoDestIni} até ${MESES_FULL[mesDestFim-1]}/${anoDestFim}.`;
-  document.getElementById('orc-import-confirm-btn').textContent = 'Sim, copiar';
-  document.getElementById('orc-import-confirm-btn').onclick =
-    ()=>adminOrcExecutarCopia(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim);
-  abrirOverlay('overlay-orc-import');
+  if(!confirm(`Copiar orçamento de ${MESES_FULL[mesOrig-1]}/${anoOrig} para ${MESES_FULL[mesDestIni-1]}/${anoDestIni} até ${MESES_FULL[mesDestFim-1]}/${anoDestFim}?\n\nValores existentes no período de destino serão substituídos.`)) return;
+  adminOrcExecutarCopia(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim);
 }
 
 async function adminOrcExecutarCopia(mesOrig,anoOrig,mesDestIni,anoDestIni,mesDestFim,anoDestFim){
