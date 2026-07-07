@@ -2443,7 +2443,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="orc-loading" id="orcdash-loading">Carregando dados...</div>
           <div class="orcdash-split" id="orcdash-split" style="display:none">
 
-            <!-- Coluna esquerda 30%: Pizza -->
+            <!-- Coluna esquerda 30%: Pizzas -->
             <div class="orcdash-col-pizza">
               <div class="orcpizza-header">
                 <div class="orcpizza-title">Alocação por categoria</div>
@@ -2466,6 +2466,17 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               <div id="orcpizza-svg-wrap" style="display:flex;justify-content:center;margin-top:.8rem"></div>
               <div id="orcpizza-legenda-lista" style="margin-top:.6rem"></div>
               <div class="orc-loading" id="orcpizza-vazio" style="display:none;padding:1.5rem 0">Nenhuma despesa no período.</div>
+
+              <!-- Segunda pizza: Classificação -->
+              <div style="margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border)">
+                <div class="orcpizza-title">Essencial × Não essencial × Investimento</div>
+                <div id="orcclass-svg-wrap" style="display:flex;justify-content:center;margin-top:.8rem"></div>
+                <div id="orcclass-legenda" style="margin-top:.6rem"></div>
+                <div class="orc-loading" id="orcclass-vazio" style="display:none;padding:1rem 0;text-align:center;font-size:.75rem">
+                  Nenhuma classificação definida ainda.<br>
+                  <span style="font-size:.68rem;color:var(--gray2)">Classifique as categorias no Orçamento.</span>
+                </div>
+              </div>
             </div>
 
             <!-- Coluna direita 70%: Barras + linha -->
@@ -6422,6 +6433,72 @@ async function orcdashCarregar(){
   document.getElementById('orcdash-split').style.display='flex';
 
   orcdashDesenhar(porMes);
+  orcclassPizzaRenderizar(data||[]);
+}
+
+function orcclassPizzaRenderizar(dados){
+  // Agrupa valores de despesa por classificação
+  const totais = { essencial:0, nao_essencial:0, investimento:0, sem_class:0 };
+
+  dados.forEach(r=>{
+    if(r.grupo === '__receitas') return; // ignora receitas
+    const val = Number(r.previsto||0);
+    if(!val) return;
+    switch(r.classificacao){
+      case 'essencial':     totais.essencial     += val; break;
+      case 'nao_essencial': totais.nao_essencial += val; break;
+      case 'investimento':  totais.investimento  += val; break;
+      default:              totais.sem_class     += val; break;
+    }
+  });
+
+  const total = Object.values(totais).reduce((a,v)=>a+v,0);
+
+  if(!total || (totais.sem_class === total)){
+    document.getElementById('orcclass-svg-wrap').innerHTML = '';
+    document.getElementById('orcclass-legenda').innerHTML = '';
+    document.getElementById('orcclass-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('orcclass-vazio').style.display='none';
+
+  const itens = [
+    { label:'Essencial',      val:totais.essencial,     cor:'#e05252' },
+    { label:'Não essencial',  val:totais.nao_essencial, cor:'#f0c93a' },
+    { label:'Investimento',   val:totais.investimento,  cor:'#4ec98a' },
+    { label:'Sem classificação', val:totais.sem_class,  cor:'#4b5563' },
+  ].filter(i=>i.val>0);
+
+  // Desenhar pizza SVG
+  const size=180, r=72, ri=38, cx=90, cy=90;
+  let ang=-90, svgStr=`<svg viewBox="0 0 ${size} ${size}" width="180" height="180" xmlns="http://www.w3.org/2000/svg">`;
+
+  itens.forEach(item=>{
+    const pct=item.val/total, a2=ang+pct*360;
+    if(pct<0.005){ang=a2;return;}
+    const x1=cx+r*Math.cos(ang*Math.PI/180), y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180),  y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180), yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0;
+    svgStr+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${item.cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    ang=a2;
+  });
+  svgStr+=`<text x="${cx}" y="${cy-4}" text-anchor="middle" fill="#6b7280" font-size="7.5" font-family="Inter,sans-serif">Despesas</text>`;
+  svgStr+=`<text x="${cx}" y="${cy+9}" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="Inter,sans-serif">${orcFmt(total)}</text>`;
+  svgStr+='</svg>';
+  document.getElementById('orcclass-svg-wrap').innerHTML=svgStr;
+
+  // Legenda
+  document.getElementById('orcclass-legenda').innerHTML = itens.map(item=>{
+    const pct=(item.val/total*100).toFixed(1);
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.22rem 0;border-bottom:1px solid var(--border2);font-size:.72rem">
+      <div style="width:9px;height:9px;border-radius:2px;background:${item.cor};flex-shrink:0"></div>
+      <span style="flex:1;color:var(--gray)">${item.label}</span>
+      <span style="color:var(--white);font-weight:600">${pct}%</span>
+      <span style="color:var(--gray2);font-size:.65rem">${orcFmt(item.val)}</span>
+    </div>`;
+  }).join('');
 }
 
 function orcdashDesenhar(porMes){
