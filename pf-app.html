@@ -470,6 +470,31 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ ALERTAS INÍCIO ════════ */
+.inicio-alertas-card{
+  background:rgba(240,201,58,0.06);border:1px solid rgba(240,201,58,0.25);
+  padding:1rem 1.4rem;border-left:3px solid #f0c93a;
+}
+.inicio-alertas-titulo{
+  font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#f0c93a;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem;
+}
+.inicio-alerta-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.4rem 0;border-bottom:1px solid rgba(240,201,58,0.1);
+  font-size:.76rem;gap:1rem;flex-wrap:wrap;
+}
+.inicio-alerta-item:last-child{border-bottom:none}
+.inicio-alerta-item-desc{color:var(--gray);flex:1}
+.inicio-alerta-item-desc strong{color:var(--white)}
+.inicio-alerta-item a{
+  font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#f0c93a;text-decoration:none;cursor:pointer;white-space:nowrap;
+  padding:.2rem .6rem;border:1px solid rgba(240,201,58,0.4);border-radius:2px;
+  transition:background .2s;
+}
+.inicio-alerta-item a:hover{background:rgba(240,201,58,0.1)}
+
 /* ════════ PLANO DE AÇÃO ════════ */
 .plano-card{background:var(--navy2);border:1px solid var(--border);padding:1.6rem 1.8rem}
 .plano-titulo{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
@@ -1311,6 +1336,17 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="inicio-quote-mark">"</div>
           <p class="inicio-quote-text" id="inicio-quote-text">Carregando...</p>
           <p class="inicio-quote-autor" id="inicio-quote-autor"></p>
+        </div>
+
+        <!-- Alertas de pendências -->
+        <div id="inicio-alertas-wrap" style="display:none;margin-bottom:1.2rem">
+          <div class="inicio-alertas-card">
+            <div class="inicio-alertas-titulo">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Pendências
+            </div>
+            <div id="inicio-alertas-lista"></div>
+          </div>
         </div>
 
         <!-- Plano de Ação + Cronograma lado a lado -->
@@ -2653,6 +2689,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <button class="admin-tab" onclick="adminTab(this,'orcdash')">Dash Orçamento</button>
             <button class="admin-tab" onclick="adminTab(this,'cronograma')">Cronograma</button>
             <button class="admin-tab" onclick="adminTab(this,'plano')">Plano de Ação</button>
+            <button class="admin-tab" onclick="adminTab(this,'conquistas')">Conquistas</button>
+            <button class="admin-tab" onclick="adminTab(this,'metas')">Metas</button>
+            <button class="admin-tab" onclick="adminTab(this,'patrimonio')">Patrimônio</button>
+            <button class="admin-tab" onclick="adminTab(this,'investimentos')">Investimentos</button>
           </div>
 
           <div class="admin-panel active" id="adminp-resumo">
@@ -2799,6 +2839,16 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                   <div class="orcdash-mes-filtro" id="admin-orcdash-mes-filtro"></div>
                   <svg id="admin-orcdash-pizza-svg" viewBox="0 0 260 260" style="width:100%;max-width:260px;display:block;margin:0 auto"></svg>
                   <div id="admin-orcdash-pizza-legenda" style="margin-top:.8rem"></div>
+
+                  <!-- Segunda pizza: classificação -->
+                  <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border)">
+                    <div class="orcdash-section-title">Essencial × Não essencial × Investimento</div>
+                    <div id="admin-orcclass-svg-wrap" style="display:flex;justify-content:center;margin-top:.6rem"></div>
+                    <div id="admin-orcclass-legenda" style="margin-top:.5rem"></div>
+                    <div class="orc-loading" id="admin-orcclass-vazio" style="display:none;padding:.8rem 0;text-align:center;font-size:.75rem">
+                      Nenhuma classificação definida ainda.
+                    </div>
+                  </div>
                 </div>
                 <div class="orcdash-bars-col">
                   <div class="orcdash-section-title">Receitas × Despesas × Saldo</div>
@@ -2907,6 +2957,79 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             </table>
             <div class="admin-empty" id="admin-plano-empty" style="display:none">Nenhum item cadastrado.</div>
           </div>
+
+          <!-- CONQUISTAS -->
+          <div class="admin-panel" id="adminp-conquistas">
+            <div class="orc-loading" id="admin-conq-loading">Carregando...</div>
+            <div id="admin-conq-content" style="display:none">
+              <div class="conq-resumo" id="admin-conq-resumo" style="margin-bottom:1.2rem"></div>
+              <div class="conq-grid" id="admin-conq-grid"></div>
+            </div>
+            <div class="plano-vazio" id="admin-conq-vazio" style="display:none">Nenhuma conquista registrada.</div>
+          </div>
+
+          <!-- METAS -->
+          <div class="admin-panel" id="adminp-metas">
+            <div class="orc-loading" id="admin-metas-loading">Carregando...</div>
+            <div id="admin-metas-content" style="display:none">
+              <div class="metas-resumo" id="admin-metas-resumo" style="margin-bottom:1.2rem"></div>
+              <div id="admin-metas-lista"></div>
+            </div>
+            <div class="plano-vazio" id="admin-metas-vazio" style="display:none">Nenhuma meta cadastrada.</div>
+          </div>
+
+          <!-- PATRIMÔNIO -->
+          <div class="admin-panel" id="adminp-patrimonio">
+            <div class="orc-loading" id="admin-pat-loading">Carregando...</div>
+            <div id="admin-pat-content" style="display:none">
+              <div class="inv-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem">
+                <div class="inv-card"><div class="inv-card-label">Total Ativos</div><div class="inv-card-val green" id="admin-pat-ativos">—</div></div>
+                <div class="inv-card"><div class="inv-card-label">Total Passivos</div><div class="inv-card-val red" id="admin-pat-passivos">—</div></div>
+                <div class="inv-card"><div class="inv-card-label">Patrimônio Líquido</div><div class="inv-card-val gold" id="admin-pat-liquido">—</div></div>
+              </div>
+              <div class="pat-split">
+                <div class="pat-col">
+                  <div class="pat-col-header ativos"><span>Ativos</span></div>
+                  <div id="admin-pat-ativos-lista"></div>
+                  <div class="pat-subtotal" id="admin-pat-ativos-subtotal"></div>
+                </div>
+                <div class="pat-col">
+                  <div class="pat-col-header passivos"><span>Passivos</span></div>
+                  <div id="admin-pat-passivos-lista"></div>
+                  <div class="pat-subtotal" id="admin-pat-passivos-subtotal"></div>
+                </div>
+              </div>
+            </div>
+            <div class="plano-vazio" id="admin-pat-vazio" style="display:none">Nenhum bem cadastrado.</div>
+          </div>
+
+          <!-- INVESTIMENTOS -->
+          <div class="admin-panel" id="adminp-investimentos">
+            <div class="orc-loading" id="admin-inv-loading">Carregando...</div>
+            <div id="admin-inv-content" style="display:none">
+              <div class="inv-cards" style="margin-bottom:1.2rem" id="admin-inv-cards"></div>
+              <div class="inv-dash-split">
+                <div class="inv-dash-col">
+                  <div class="inv-section-titulo">Alocação por classe</div>
+                  <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+                    <div id="admin-inv-pizza-svg"></div>
+                    <div id="admin-inv-pizza-legenda" style="flex:1;min-width:160px"></div>
+                  </div>
+                </div>
+                <div class="inv-dash-col">
+                  <div class="inv-section-titulo">Posição atual</div>
+                  <div class="orc-table-wrap" style="max-height:none">
+                    <table class="inv-table">
+                      <thead><tr><th>Classe</th><th>Ticker</th><th>Qtd.</th><th>Preço Médio</th><th>Custo Total</th><th>Cotação</th><th>Valor Mercado</th><th>Ret. %</th></tr></thead>
+                      <tbody id="admin-inv-pos-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="plano-vazio" id="admin-inv-vazio" style="display:none">Nenhum investimento registrado.</div>
+          </div>
+
         </div>
       </div>
 
@@ -3156,7 +3279,8 @@ async function mostrarPainel(user){
     carregarExtrato(),
     diagCarregarSalvo(),
     planoCarregar(),
-    cronoCarregar()
+    cronoCarregar(),
+    inicioCarregarAlertas()
   ]);
 
   inicioRenderJornada();
@@ -3182,7 +3306,7 @@ async function irPara(tela, btn){
   document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tela-'+tela).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); planoCarregar(); cronoCarregar(); }
+  if(tela==='inicio'){ inicioSortearFrase(); inicioRenderJornada(); planoCarregar(); cronoCarregar(); inicioCarregarAlertas(); }
   if(tela==='extrato'){
     if(typeof rxDadosCarregados==='undefined' || !rxDadosCarregados) await rxCarregarDados();
     lancAtualizarCategorias();
@@ -3282,6 +3406,96 @@ function inicioJornadaClick(i){
 // ══════════════════════════════════════════════
 // PLANO DE AÇÃO
 // ══════════════════════════════════════════════
+async function inicioCarregarAlertas(){
+  const wrap = document.getElementById('inicio-alertas-wrap');
+  const lista = document.getElementById('inicio-alertas-lista');
+  wrap.style.display='none';
+  lista.innerHTML='';
+
+  const alertas = [];
+  const anoAtual = new Date().getFullYear();
+
+  // 1. Categorias com valor no orçamento mas sem classificação
+  const { data: orcRows } = await sb.from('orcamento')
+    .select('categoria,classificacao,previsto')
+    .eq('user_id', usuarioAtual.id)
+    .eq('ano', anoAtual)
+    .neq('grupo','__receitas');
+
+  if(orcRows && orcRows.length){
+    // Agrupa por categoria e verifica se tem valor mas sem classificação
+    const porCat = {};
+    orcRows.forEach(r=>{
+      if(!porCat[r.categoria]) porCat[r.categoria] = { total:0, class:r.classificacao };
+      porCat[r.categoria].total += Number(r.previsto||0);
+      if(r.classificacao) porCat[r.categoria].class = r.classificacao;
+    });
+    const semClass = Object.entries(porCat)
+      .filter(([,v])=>v.total>0 && !v.class)
+      .map(([cat])=>cat);
+
+    if(semClass.length){
+      alertas.push({
+        desc: `<strong>${semClass.length} categoria${semClass.length>1?'s':''}</strong> com valor no orçamento sem classificação (Essencial/Não essencial/Investimento)`,
+        acao: ()=>irPara('orcamento', document.querySelector('.menu-item[onclick*="orcamento"]')),
+        label: 'Classificar agora'
+      });
+    }
+  }
+
+  // 2. Plano de ação com itens sem data alvo
+  const { data: planoRows } = await sb.from('plano_acao')
+    .select('titulo,data_alvo,concluido')
+    .eq('user_id', usuarioAtual.id)
+    .eq('concluido', false);
+
+  if(planoRows && planoRows.length){
+    const semData = planoRows.filter(p=>!p.data_alvo).length;
+    if(semData>0){
+      alertas.push({
+        desc: `<strong>${semData} item${semData>1?'ns':''}</strong> no Plano de Ação sem data alvo definida`,
+        acao: ()=>irPara('inicio', null),
+        label: 'Ver plano'
+      });
+    }
+    // Itens atrasados
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const atrasados = planoRows.filter(p=>p.data_alvo && new Date(p.data_alvo+'T00:00:00')<hoje).length;
+    if(atrasados>0){
+      alertas.push({
+        desc: `<strong>${atrasados} item${atrasados>1?'ns':''}</strong> no Plano de Ação com prazo vencido`,
+        acao: ()=>irPara('metas', document.querySelector('.menu-item[onclick*="metas"]')),
+        label: 'Ver metas'
+      });
+    }
+  }
+
+  // 3. Raio X não preenchido
+  if(!rxDados || (!rxDados.despesas || Object.keys(rxDados.despesas).length===0)){
+    alertas.push({
+      desc: `<strong>Raio X</strong> ainda não preenchido — necessário para orçamento e lançamentos`,
+      acao: ()=>irPara('raiox', document.querySelector('.menu-item[onclick*="raiox"]')),
+      label: 'Preencher'
+    });
+  }
+
+  if(!alertas.length){ wrap.style.display='none'; return; }
+
+  lista.innerHTML = alertas.map((a,i)=>`
+    <div class="inicio-alerta-item">
+      <div class="inicio-alerta-item-desc">${a.desc}</div>
+      <a onclick="inicioAlertaAcao(${i})">${a.label} →</a>
+    </div>`).join('');
+
+  window.__inicioAlertas = alertas;
+  wrap.style.display='block';
+}
+
+function inicioAlertaAcao(i){
+  const a = window.__inicioAlertas && window.__inicioAlertas[i];
+  if(a && a.acao) a.acao();
+}
+
 async function planoCarregar(){
   document.getElementById('plano-loading').style.display='block';
   document.getElementById('plano-lista').innerHTML='';
@@ -5329,6 +5543,10 @@ function adminTab(btn, panel){
   document.getElementById('adminp-'+panel).classList.add('active');
   if(panel==='orcamento') adminOrcCarregar();
   if(panel==='orcdash'){ adminOrcdashAno = adminOrcAno; adminOrcdashCarregar(); }
+  if(panel==='conquistas') adminConqCarregar();
+  if(panel==='metas') adminMetasCarregar();
+  if(panel==='patrimonio') adminPatCarregar();
+  if(panel==='investimentos') adminInvCarregar();
 }
 
 async function adminAbrirCliente(idx){
@@ -5869,6 +6087,320 @@ async function adminOrcdashCarregar(){
   barsSvg += `<polyline points="${pts}" fill="none" stroke="#00B6E9" stroke-width="2" stroke-linejoin="round"/>`;
   barsSvg += '</svg>';
   svgEl.outerHTML = barsSvg;
+
+  // Segunda pizza: classificação (reutiliza dados do orçamento já carregados)
+  adminOrcclassPizzaRenderizar(data||[]);
+}
+
+function adminOrcclassPizzaRenderizar(dados){
+  const totais = { essencial:0, nao_essencial:0, investimento:0, sem_class:0 };
+  dados.forEach(r=>{
+    if(r.grupo === '__receitas') return;
+    const val = Number(r.previsto||0);
+    if(!val) return;
+    switch(r.classificacao){
+      case 'essencial':     totais.essencial     += val; break;
+      case 'nao_essencial': totais.nao_essencial += val; break;
+      case 'investimento':  totais.investimento  += val; break;
+      default:              totais.sem_class     += val; break;
+    }
+  });
+
+  const total = Object.values(totais).reduce((a,v)=>a+v,0);
+  const svgWrap  = document.getElementById('admin-orcclass-svg-wrap');
+  const legWrap  = document.getElementById('admin-orcclass-legenda');
+  const vazioEl  = document.getElementById('admin-orcclass-vazio');
+
+  if(!total || totais.sem_class === total){
+    svgWrap.innerHTML=''; legWrap.innerHTML='';
+    vazioEl.style.display='block'; return;
+  }
+  vazioEl.style.display='none';
+
+  const itens = [
+    { label:'Essencial',         val:totais.essencial,     cor:'#e05252' },
+    { label:'Não essencial',     val:totais.nao_essencial, cor:'#f0c93a' },
+    { label:'Investimento',      val:totais.investimento,  cor:'#4ec98a' },
+    { label:'Sem classificação', val:totais.sem_class,     cor:'#4b5563' },
+  ].filter(i=>i.val>0);
+
+  const size=180, r=72, ri=38, cx=90, cy=90;
+  let ang=-90, svgStr=`<svg viewBox="0 0 ${size} ${size}" width="180" height="180" xmlns="http://www.w3.org/2000/svg">`;
+  itens.forEach(item=>{
+    const pct=item.val/total, a2=ang+pct*360;
+    if(pct<0.005){ang=a2;return;}
+    const x1=cx+r*Math.cos(ang*Math.PI/180),y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180), y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180), yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0;
+    svgStr+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${item.cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    ang=a2;
+  });
+  svgStr+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="Inter,sans-serif">${(itens[0]?.val/total*100||0).toFixed(0)}% ess.</text>`;
+  svgStr+='</svg>';
+  svgWrap.innerHTML=svgStr;
+
+  legWrap.innerHTML=itens.map(item=>{
+    const pct=(item.val/total*100).toFixed(1);
+    const fmt = v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.22rem 0;border-bottom:1px solid var(--border2);font-size:.7rem">
+      <div style="width:8px;height:8px;border-radius:2px;background:${item.cor};flex-shrink:0"></div>
+      <span style="flex:1;color:var(--gray)">${item.label}</span>
+      <span style="color:var(--white);font-weight:600">${pct}%</span>
+      <span style="color:var(--gray2);font-size:.62rem">${fmt(item.val)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── ADMIN: CONQUISTAS ──
+async function adminConqCarregar(){
+  document.getElementById('admin-conq-loading').style.display='block';
+  document.getElementById('admin-conq-content').style.display='none';
+  document.getElementById('admin-conq-vazio').style.display='none';
+
+  const { data } = await sb.from('conquistas').select('*').eq('user_id', adminClienteAtualId);
+  document.getElementById('admin-conq-loading').style.display='none';
+
+  if(!data){ document.getElementById('admin-conq-vazio').style.display='block'; return; }
+
+  const total = CONQ_CATALOGO.length;
+  const conc  = (data||[]).filter(d=>d.concluida).length;
+  const pct   = Math.round(conc/total*100);
+
+  document.getElementById('admin-conq-resumo').innerHTML=`
+    <div class="conq-resumo-item"><span class="conq-resumo-num">${total}</span><span class="conq-resumo-label">Total</span></div>
+    <div class="conq-resumo-sep"></div>
+    <div class="conq-resumo-item"><span class="conq-resumo-num gold">${conc}</span><span class="conq-resumo-label">Conquistadas</span></div>
+    <div class="conq-resumo-sep"></div>
+    <div class="conq-resumo-item"><span class="conq-resumo-num">${total-conc}</span><span class="conq-resumo-label">Pendentes</span></div>
+    <div class="conq-resumo-prog-wrap"><div class="conq-resumo-prog-bg"><div class="conq-resumo-prog-fill" style="width:${pct}%"></div></div><span class="conq-resumo-prog-pct">${pct}%</span></div>`;
+
+  document.getElementById('admin-conq-grid').innerHTML = CONQ_CATALOGO.map(c=>{
+    const reg = (data||[]).find(d=>d.codigo===c.codigo);
+    const ok  = reg?.concluida;
+    const dataConc = reg?.data_conclusao ? new Date(reg.data_conclusao+'T00:00:00').toLocaleDateString('pt-BR') : null;
+    return `<div class="conq-badge${ok?' conquistada':''}">
+      <div class="conq-badge-check"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      ${c.nivel?`<div class="conq-badge-nivel">${c.nivel}</div>`:''}
+      <div class="conq-badge-icone">${c.icone}</div>
+      <div class="conq-badge-titulo">${c.titulo}</div>
+      <div class="conq-badge-desc">${c.desc}</div>
+      ${ok&&dataConc?`<div class="conq-badge-data">✓ ${dataConc}</div>`:''}
+      ${!ok?`<button style="margin-top:.5rem;background:var(--gold);border:none;color:var(--navy);font-size:.6rem;font-weight:700;padding:.2rem .6rem;cursor:pointer;border-radius:2px;font-family:'Inter',sans-serif" onclick="adminConqMarcar('${c.codigo}','${escapeHtml(c.titulo)}')">Marcar como conquistada</button>`:''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('admin-conq-content').style.display='block';
+}
+
+async function adminConqMarcar(codigo, titulo){
+  if(!confirm(`Marcar "${titulo}" como conquistada para este cliente?`)) return;
+  const hoje = new Date().toISOString().split('T')[0];
+  const { data: existing } = await sb.from('conquistas').select('id').eq('user_id', adminClienteAtualId).eq('codigo', codigo).maybeSingle();
+  if(existing){
+    await sb.from('conquistas').update({ concluida:true, data_conclusao:hoje }).eq('id', existing.id);
+  } else {
+    const cat = CONQ_CATALOGO.find(c=>c.codigo===codigo);
+    await sb.from('conquistas').insert({
+      user_id:adminClienteAtualId, codigo, titulo:cat?.titulo||titulo,
+      descricao:cat?.desc||'', icone:cat?.icone||'🏆',
+      categoria:cat?.categoria||'geral', tipo:cat?.tipo||'manual',
+      nivel:1, concluida:true, data_conclusao:hoje
+    });
+  }
+  adminConqCarregar();
+}
+
+// ── ADMIN: METAS ──
+async function adminMetasCarregar(){
+  document.getElementById('admin-metas-loading').style.display='block';
+  document.getElementById('admin-metas-content').style.display='none';
+  document.getElementById('admin-metas-vazio').style.display='none';
+
+  const { data } = await sb.from('plano_acao').select('*')
+    .eq('user_id', adminClienteAtualId).eq('tipo','meta')
+    .order('ordem',{ascending:true}).order('created_at',{ascending:true});
+
+  document.getElementById('admin-metas-loading').style.display='none';
+
+  if(!data?.length){ document.getElementById('admin-metas-vazio').style.display='block'; return; }
+
+  const hoje = new Date();
+  const conc = data.filter(m=>m.concluido).length;
+  const atr  = data.filter(m=>!m.concluido && m.data_alvo && new Date(m.data_alvo+'T00:00:00')<hoje).length;
+  const fmt  = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  document.getElementById('admin-metas-resumo').innerHTML=`
+    <div class="inv-card"><div class="inv-card-label">Total</div><div class="inv-card-val">${data.length}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Concluídas</div><div class="inv-card-val green">${conc}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Em andamento</div><div class="inv-card-val gold">${data.length-conc-atr}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Atrasadas</div><div class="inv-card-val red">${atr}</div></div>`;
+
+  document.getElementById('admin-metas-lista').innerHTML = data.map(m=>{
+    const st = m.concluido?'concluida': m.data_alvo&&new Date(m.data_alvo+'T00:00:00')<hoje?'atrasada':'andamento';
+    const stLabel = {concluida:'Concluída',atrasada:'Atrasada',andamento:'Em andamento'}[st];
+    const pct = m.meta_valor ? Math.min(100,Math.round((Number(m.progresso_valor)||0)/Number(m.meta_valor)*100)) : null;
+    const dataAlvo = m.data_alvo ? new Date(m.data_alvo+'T00:00:00').toLocaleDateString('pt-BR') : null;
+    return `<div class="meta-card ${st}" style="margin-bottom:.8rem">
+      <div class="meta-card-header">
+        <div class="meta-card-titulo">${escapeHtml(m.titulo)}</div>
+        <span class="meta-status-badge ${st}">${stLabel}</span>
+      </div>
+      ${m.descricao?`<div class="meta-card-desc">${escapeHtml(m.descricao)}</div>`:''}
+      ${dataAlvo?`<div class="meta-card-data ${st==='atrasada'?'atrasada':''}">📅 ${dataAlvo}</div>`:''}
+      ${pct!==null?`<div class="plano-progresso-bar-wrap">
+        <div class="plano-progresso-bar-bg"><div class="plano-progresso-bar-fill" style="width:${pct}%"></div></div>
+        <div class="plano-progresso-bar-txt">${fmt(m.progresso_valor)} / ${fmt(m.meta_valor)} (${pct}%)</div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('admin-metas-content').style.display='block';
+}
+
+// ── ADMIN: PATRIMÔNIO ──
+async function adminPatCarregar(){
+  document.getElementById('admin-pat-loading').style.display='block';
+  document.getElementById('admin-pat-content').style.display='none';
+  document.getElementById('admin-pat-vazio').style.display='none';
+
+  const { data } = await sb.from('patrimonio').select('*')
+    .eq('user_id', adminClienteAtualId).order('categoria').order('descricao');
+
+  document.getElementById('admin-pat-loading').style.display='none';
+
+  if(!data?.length){ document.getElementById('admin-pat-vazio').style.display='block'; return; }
+
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const ativos   = data.filter(p=>p.tipo==='ativo');
+  const passivos = data.filter(p=>p.tipo==='passivo');
+  const totAt = ativos.reduce((a,p)=>a+Number(p.valor_atual),0);
+  const totPas= passivos.reduce((a,p)=>a+Number(p.valor_atual),0);
+  const liq   = totAt-totPas;
+
+  document.getElementById('admin-pat-ativos').textContent   = fmt(totAt);
+  document.getElementById('admin-pat-passivos').textContent = fmt(totPas);
+  const liqEl = document.getElementById('admin-pat-liquido');
+  liqEl.textContent = fmt(Math.abs(liq));
+  liqEl.className = 'inv-card-val '+(liq>=0?'gold':'red');
+
+  const renderItem = p=>`<div class="pat-item">
+    <div class="pat-item-icone">${PAT_ICONES[p.categoria]||'💼'}</div>
+    <div class="pat-item-body">
+      <div class="pat-item-cat">${p.categoria}</div>
+      <div class="pat-item-desc">${escapeHtml(p.descricao)}</div>
+      ${p.data_atualizacao?`<div class="pat-item-data">Atualizado em ${new Date(p.data_atualizacao+'T00:00:00').toLocaleDateString('pt-BR')}</div>`:''}
+    </div>
+    <div class="pat-item-val ${p.tipo}">${fmt(p.valor_atual)}</div>
+  </div>`;
+
+  document.getElementById('admin-pat-ativos-lista').innerHTML   = ativos.map(renderItem).join('') || '<div class="plano-vazio" style="text-align:center;padding:1rem">Nenhum ativo.</div>';
+  document.getElementById('admin-pat-passivos-lista').innerHTML = passivos.map(renderItem).join('') || '<div class="plano-vazio" style="text-align:center;padding:1rem">Nenhum passivo.</div>';
+  document.getElementById('admin-pat-ativos-subtotal').innerHTML   = `Total ativos: <span style="color:var(--green)">${fmt(totAt)}</span>`;
+  document.getElementById('admin-pat-passivos-subtotal').innerHTML = `Total passivos: <span style="color:var(--red)">${fmt(totPas)}</span>`;
+  document.getElementById('admin-pat-content').style.display='block';
+}
+
+// ── ADMIN: INVESTIMENTOS ──
+async function adminInvCarregar(){
+  document.getElementById('admin-inv-loading').style.display='block';
+  document.getElementById('admin-inv-content').style.display='none';
+  document.getElementById('admin-inv-vazio').style.display='none';
+
+  const [lancRes, cotRes] = await Promise.all([
+    sb.from('investimentos_lancamentos').select('*').eq('user_id', adminClienteAtualId).order('data',{ascending:true}),
+    sb.from('investimentos_cotacoes').select('*')
+  ]);
+
+  document.getElementById('admin-inv-loading').style.display='none';
+
+  const lancs = lancRes.data || [];
+  if(!lancs.length){ document.getElementById('admin-inv-vazio').style.display='block'; return; }
+
+  // Reutiliza invConsolidar mas com dados do cliente
+  const cotMap = {};
+  (cotRes.data||[]).forEach(c=>{ cotMap[c.ticker]=Number(c.cotacao); });
+
+  // Mini-consolidação (replica lógica de invConsolidar para dados do admin)
+  const pos = {};
+  const sorted = [...lancs].sort((a,b)=>a.data.localeCompare(b.data));
+  sorted.forEach(l=>{
+    const tk = l.ticker.toUpperCase();
+    if(!pos[tk]) pos[tk]={classe:l.classe,ticker:tk,qtd:0,preco_medio:0,custo_total:0};
+    const p=pos[tk];
+    if(['COMPRA','BONIFICACAO','DESDOBRAMENTO'].includes(l.tipo_op)){
+      const nt=p.custo_total+Number(l.custo_total||0), nq=p.qtd+Number(l.qtd||0);
+      p.preco_medio=nq?nt/nq:0; p.custo_total=nt; p.qtd=nq;
+    } else if(['VENDA','GRUPAMENTO'].includes(l.tipo_op)){
+      p.qtd=Math.max(0,p.qtd-Number(l.qtd||0));
+      p.custo_total=p.qtd*p.preco_medio;
+    }
+  });
+
+  const posArray = Object.values(pos).filter(p=>p.qtd>0.000001).map(p=>({
+    ...p,
+    cotacao_atual: cotMap[p.ticker]||0,
+    valor_mercado: cotMap[p.ticker] ? p.qtd*cotMap[p.ticker] : p.custo_total
+  }));
+
+  const proventos = lancs.filter(l=>['DIVIDENDO','JCP','RENDIMENTO','BONIFICACAO'].includes(l.tipo_op));
+  const totCusto   = posArray.reduce((a,p)=>a+p.custo_total,0);
+  const totMercado = posArray.reduce((a,p)=>a+p.valor_mercado,0);
+  const totProv    = proventos.reduce((a,l)=>a+Number(l.valor_brl||0),0);
+  const retCap     = totMercado-totCusto;
+  const retTot     = retCap+totProv;
+
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('admin-inv-cards').innerHTML=`
+    <div class="inv-card"><div class="inv-card-label">Patrimônio</div><div class="inv-card-val gold">${fmt(totMercado)}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Custo investido</div><div class="inv-card-val">${fmt(totCusto)}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Retorno capital</div><div class="inv-card-val ${retCap>=0?'green':'red'}">${fmt(retCap)}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Proventos</div><div class="inv-card-val green">${fmt(totProv)}</div></div>`;
+
+  // Pizza por classe
+  const porClasse={};
+  posArray.forEach(p=>{ if(!porClasse[p.classe])porClasse[p.classe]=0; porClasse[p.classe]+=p.valor_mercado; });
+  const entradas=Object.entries(porClasse).sort((a,b)=>b[1]-a[1]);
+  const totalPizza=entradas.reduce((a,[,v])=>a+v,0)||1;
+  const cores=INV_CORES;
+  const size=160,r=60,ri=32,cx=80,cy=80;
+  let ang=-90,svg=`<svg viewBox="0 0 ${size} ${size}" width="160" height="160" xmlns="http://www.w3.org/2000/svg">`;
+  entradas.forEach(([,v],i)=>{
+    const pct=v/totalPizza,a2=ang+pct*360;
+    const x1=cx+r*Math.cos(ang*Math.PI/180),y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180),y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180),yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0;
+    svg+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${cores[i%cores.length]}" stroke="#0A1525" stroke-width="1.5"/>`;
+    ang=a2;
+  });
+  svg+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="Inter,sans-serif">${fmt(totMercado)}</text></svg>`;
+  document.getElementById('admin-inv-pizza-svg').innerHTML=svg;
+  document.getElementById('admin-inv-pizza-legenda').innerHTML=entradas.map(([cls,v],i)=>`
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0;border-bottom:1px solid var(--border2);font-size:.72rem">
+      <div style="width:9px;height:9px;border-radius:2px;background:${cores[i%cores.length]};flex-shrink:0"></div>
+      <span style="flex:1;color:var(--gray)">${cls}</span>
+      <span style="color:var(--white);font-weight:600">${(v/totalPizza*100).toFixed(1)}%</span>
+    </div>`).join('');
+
+  // Tabela posição
+  document.getElementById('admin-inv-pos-tbody').innerHTML=posArray.map(p=>{
+    const retPct=p.custo_total?(p.valor_mercado-p.custo_total)/p.custo_total:0;
+    return `<tr>
+      <td><span class="inv-classe-badge ${INV_CLASS_BADGE[p.classe]||'ou'}">${p.classe}</span></td>
+      <td style="color:var(--white);font-weight:600">${escapeHtml(p.ticker)}</td>
+      <td>${Number(p.qtd).toLocaleString('pt-BR',{maximumFractionDigits:6})}</td>
+      <td>${fmt(p.preco_medio)}</td>
+      <td>${fmt(p.custo_total)}</td>
+      <td>${p.cotacao_atual?fmt(p.cotacao_atual):'—'}</td>
+      <td><strong style="color:var(--white)">${fmt(p.valor_mercado)}</strong></td>
+      <td class="${retPct>=0?'inv-ret-pos':'inv-ret-neg'}">${(retPct*100).toFixed(2)}%</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('admin-inv-content').style.display='block';
 }
 
 // ── ADMIN: CRONOGRAMA ──
