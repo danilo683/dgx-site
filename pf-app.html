@@ -546,6 +546,25 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .crono-evento-hora{font-size:.68rem;color:var(--gray);margin-top:.1rem}
 .crono-evento-desc{font-size:.72rem;color:var(--gray);margin-top:.2rem;line-height:1.4}
 
+/* ════════ CSV IMPORT ════════ */
+.csv-upload-area{
+  border:2px dashed var(--border);padding:2rem;text-align:center;cursor:pointer;
+  border-radius:4px;transition:all .2s;display:flex;flex-direction:column;align-items:center;
+}
+.csv-upload-area:hover{border-color:var(--gold);background:rgba(0,182,233,0.03)}
+.csv-spinner{
+  width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--gold);
+  border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#csv-tabela td{font-size:.72rem;padding:.4rem .5rem;vertical-align:middle}
+#csv-tabela td:first-child{text-align:center}
+#csv-tabela select,#csv-tabela input[type=text]{
+  font-size:.7rem;background:var(--navy3);border:1px solid var(--border);
+  color:var(--white);padding:.2rem .4rem;width:100%;font-family:'Inter',sans-serif;
+}
+.csv-row-removida{opacity:.4;text-decoration:line-through}
+
 /* ════════ LANÇAMENTOS (orçado x realizado) ════════ */
 .lanc-mes-tabs{display:flex;gap:.3rem;flex-wrap:wrap}
 .lanc-mes-tab{
@@ -1380,7 +1399,13 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
           <!-- DIREITA: lançamentos do mês -->
           <div class="lanc-col-lista">
-            <div class="lanc-col-titulo">Lançamentos do mês</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+              <div class="lanc-col-titulo" style="margin:0">Lançamentos do mês</div>
+              <button class="orc-btn-config" onclick="csvImportAbrirModal()" style="font-size:.7rem">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Importar CSV
+              </button>
+            </div>
 
             <div class="add-lancamento" style="margin-top:0">
               <div class="add-lancamento-title">Registrar lançamento</div>
@@ -1404,6 +1429,70 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
             <table class="extrato-table" id="extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody id="extrato-tbody"></tbody></table>
             <div class="extrato-empty" id="extrato-empty" style="display:none">Nenhum lançamento neste mês.</div>
+          </div>
+        </div>
+
+        <!-- MODAL: Importar CSV -->
+        <div class="overlay" id="overlay-csv-import">
+          <div class="modal" style="max-width:900px;width:95vw">
+            <button class="modal-close" onclick="fecharOverlay('overlay-csv-import')">×</button>
+            <div class="modal-title">Importar extrato CSV</div>
+
+            <!-- Etapa 1: Upload -->
+            <div id="csv-step-1">
+              <p style="font-size:.8rem;color:var(--gray);margin-bottom:1rem">Selecione o arquivo CSV exportado do seu banco. A IA vai analisar cada lançamento e sugerir o tipo e categoria automaticamente.</p>
+              <div class="csv-upload-area" id="csv-upload-area" onclick="document.getElementById('csv-file-input').click()">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold);margin-bottom:.8rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div style="font-size:.85rem;color:var(--white);font-weight:600">Clique para selecionar o CSV</div>
+                <div style="font-size:.72rem;color:var(--gray);margin-top:.3rem">Ou arraste e solte aqui</div>
+                <input type="file" id="csv-file-input" accept=".csv,.txt" style="display:none" onchange="csvLerArquivo(this)">
+              </div>
+
+              <div style="margin-top:1rem;background:var(--navy3);border:1px solid var(--border);padding:.8rem 1rem;font-size:.72rem;color:var(--gray);line-height:1.7">
+                <strong style="color:var(--white);display:block;margin-bottom:.3rem">💡 Dica: como exportar o CSV</strong>
+                O arquivo deve ter colunas de <strong style="color:var(--gold)">Data</strong>, <strong style="color:var(--gold)">Descrição</strong> e <strong style="color:var(--gold)">Valor</strong>.
+                A maioria dos bancos exporta neste formato em "Extrato" → "Exportar" → "CSV".<br>
+                Nubank, Inter, C6, Itaú, Bradesco e Santander são compatíveis.
+              </div>
+            </div>
+
+            <!-- Etapa 2: Revisão -->
+            <div id="csv-step-2" style="display:none">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+                <div>
+                  <div style="font-size:.85rem;font-weight:600;color:var(--white)">Revise os lançamentos sugeridos</div>
+                  <div style="font-size:.72rem;color:var(--gray);margin-top:.2rem">A IA classificou cada item. Ajuste o que precisar e confirme.</div>
+                </div>
+                <div style="display:flex;gap:.6rem;align-items:center">
+                  <span id="csv-contagem" style="font-size:.72rem;color:var(--gray)"></span>
+                  <button class="btn-diag-save" onclick="csvConfirmarImport()">✓ Importar selecionados</button>
+                  <button class="orc-btn-config" onclick="csvVoltarStep1()">← Novo arquivo</button>
+                </div>
+              </div>
+
+              <div class="orc-loading" id="csv-ia-loading" style="display:none">
+                <div style="display:flex;align-items:center;gap:.8rem">
+                  <div class="csv-spinner"></div>
+                  <span id="csv-ia-status">Analisando com IA...</span>
+                </div>
+              </div>
+
+              <div class="orc-table-wrap" id="csv-tabela-wrap" style="display:none;max-height:55vh">
+                <table class="inv-table" id="csv-tabela">
+                  <thead><tr>
+                    <th style="width:36px;text-align:center"><input type="checkbox" id="csv-check-all" onchange="csvToggleAll(this)" style="cursor:pointer"></th>
+                    <th style="text-align:left">Data</th>
+                    <th style="text-align:left">Descrição original</th>
+                    <th style="text-align:right">Valor (R$)</th>
+                    <th>Tipo</th>
+                    <th>Categoria</th>
+                    <th style="text-align:left">Desc. para lançar</th>
+                  </tr></thead>
+                  <tbody id="csv-tabela-body"></tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -2550,6 +2639,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <button class="admin-tab" onclick="adminTab(this,'raiox')">Raio X</button>
             <button class="admin-tab" onclick="adminTab(this,'diagnostico')">Diagnóstico</button>
             <button class="admin-tab" onclick="adminTab(this,'orcamento')">Orçamento</button>
+            <button class="admin-tab" onclick="adminTab(this,'orcdash')">Dash Orçamento</button>
             <button class="admin-tab" onclick="adminTab(this,'cronograma')">Cronograma</button>
             <button class="admin-tab" onclick="adminTab(this,'plano')">Plano de Ação</button>
           </div>
@@ -2679,6 +2769,33 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <tfoot id="admin-orc-tfoot"></tfoot>
               </table>
             </div>
+          </div>
+
+          <div class="admin-panel" id="adminp-orcdash">
+            <div class="orc-header" style="margin-bottom:1rem">
+              <div class="orc-nav">
+                <button class="orc-nav-btn" onclick="adminOrcdashMudarAno(-1)">‹</button>
+                <span class="orc-ano" id="admin-orcdash-ano-label">2025</span>
+                <button class="orc-nav-btn" onclick="adminOrcdashMudarAno(1)">›</button>
+              </div>
+            </div>
+            <div class="orc-loading" id="admin-orcdash-loading">Carregando dashboard...</div>
+            <div id="admin-orcdash-content" style="display:none">
+              <div class="orcdash-cards" id="admin-orcdash-cards"></div>
+              <div class="orcdash-split">
+                <div class="orcdash-pizza-col">
+                  <div class="orcdash-section-title">Despesas por categoria</div>
+                  <div class="orcdash-mes-filtro" id="admin-orcdash-mes-filtro"></div>
+                  <svg id="admin-orcdash-pizza-svg" viewBox="0 0 260 260" style="width:100%;max-width:260px;display:block;margin:0 auto"></svg>
+                  <div id="admin-orcdash-pizza-legenda" style="margin-top:.8rem"></div>
+                </div>
+                <div class="orcdash-bars-col">
+                  <div class="orcdash-section-title">Receitas × Despesas × Saldo</div>
+                  <svg id="admin-orcdash-bars-svg" style="width:100%;overflow:visible"></svg>
+                </div>
+              </div>
+            </div>
+            <div class="plano-vazio" id="admin-orcdash-vazio" style="display:none">Nenhum dado de orçamento para este ano.</div>
           </div>
 
           <div class="admin-panel" id="adminp-cronograma">
@@ -3337,6 +3454,227 @@ function cronoRenderListas(){
 
   document.getElementById('crono-lista-entregas').innerHTML = renderLista(entregas);
   document.getElementById('crono-vazio-entregas').style.display = entregas.length ? 'none' : 'block';
+}
+
+// ══════════════════════════════════════════════
+// IMPORTAÇÃO CSV COM IA
+// ══════════════════════════════════════════════
+let csvLinhas = []; // linhas parseadas do CSV
+
+function csvImportAbrirModal(){
+  csvVoltarStep1();
+  abrirOverlay('overlay-csv-import');
+}
+
+function csvVoltarStep1(){
+  document.getElementById('csv-step-1').style.display='block';
+  document.getElementById('csv-step-2').style.display='none';
+  document.getElementById('csv-file-input').value='';
+  csvLinhas = [];
+}
+
+function csvLerArquivo(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => csvParsear(e.target.result);
+  reader.readAsText(file, 'UTF-8');
+}
+
+function csvParsear(texto){
+  // Detecta separador (vírgula, ponto-e-vírgula ou tab)
+  const sep = texto.includes(';') ? ';' : texto.includes('\t') ? '\t' : ',';
+  const linhas = texto.split(/\r?\n/).filter(l=>l.trim());
+  const header = linhas[0].split(sep).map(h=>h.replace(/['"]/g,'').trim().toLowerCase());
+
+  // Mapear colunas possíveis
+  const colData  = header.findIndex(h=>/data|date|dt/.test(h));
+  const colDesc  = header.findIndex(h=>/desc|hist|memo|lançamento|lancamento|narrat/.test(h));
+  const colVal   = header.findIndex(h=>/valor|value|amount|quantia|debit|credit/.test(h));
+  const colTipo  = header.findIndex(h=>/tipo|type|operac/.test(h));
+
+  if(colData===-1 || colDesc===-1 || colVal===-1){
+    alert('Não consegui identificar as colunas de Data, Descrição e Valor no arquivo. Verifique se o CSV está no formato correto.');
+    return;
+  }
+
+  const dados = [];
+  for(let i=1; i<linhas.length; i++){
+    const cols = linhas[i].split(sep).map(c=>c.replace(/['"]/g,'').trim());
+    if(cols.length < 3) continue;
+    const dataRaw = cols[colData] || '';
+    const desc    = cols[colDesc] || '';
+    const valRaw  = (cols[colVal] || '').replace(/\./g,'').replace(',','.');
+    const val     = Math.abs(parseFloat(valRaw));
+    if(!desc || isNaN(val) || val===0) continue;
+
+    // Normalizar data para YYYY-MM-DD
+    let data = dataRaw;
+    const dmY = dataRaw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+    if(dmY) data = `${dmY[3].length===2?'20'+dmY[3]:dmY[3]}-${dmY[2].padStart(2,'0')}-${dmY[1].padStart(2,'0')}`;
+
+    dados.push({ data, desc, val, tipo:'', categoria:'', descLancar:desc, incluir:true });
+  }
+
+  if(!dados.length){ alert('Nenhum lançamento válido encontrado no arquivo.'); return; }
+
+  csvLinhas = dados;
+  document.getElementById('csv-step-1').style.display='none';
+  document.getElementById('csv-step-2').style.display='block';
+  document.getElementById('csv-ia-loading').style.display='flex';
+  document.getElementById('csv-tabela-wrap').style.display='none';
+
+  csvClassificarComIA();
+}
+
+async function csvClassificarComIA(){
+  const statusEl = document.getElementById('csv-ia-status');
+  statusEl.textContent = 'Enviando para análise...';
+
+  const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
+    ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+  const despLabels = [];
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+    despLabels.push(...g.itens,...(gDados.extras||[]));
+  });
+
+  try {
+    statusEl.textContent = 'IA classificando os lançamentos...';
+
+    const { data: { session } } = await sb.auth.getSession();
+
+    const res = await fetch(
+      'https://mixsehmmwvrbpndavvhp.supabase.co/functions/v1/classificar-lancamentos',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          lancamentos: csvLinhas.map((l,i)=>({i:i+1, data:l.data, desc:l.desc, val:l.val})),
+          categorias_receita: recLabels,
+          categorias_despesa: despLabels
+        })
+      }
+    );
+
+    const json = await res.json();
+    const resultado = json.resultado || [];
+
+    resultado.forEach((item) => {
+      if(csvLinhas[item.i-1]){
+        csvLinhas[item.i-1].tipo      = item.tipo || 'despesa';
+        csvLinhas[item.i-1].categoria = item.categoria || 'Outros';
+      }
+    });
+  } catch(e){
+    console.warn('Erro IA:', e);
+    csvLinhas.forEach(l=>{ if(!l.tipo){ l.tipo='despesa'; l.categoria='Outros'; } });
+  }
+
+  document.getElementById('csv-ia-loading').style.display='none';
+  csvRenderTabela();
+}
+
+function csvRenderTabela(){
+  const tipoOpts = ['receita','despesa','investimento','transferencia'];
+  const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
+    ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+  const despLabels = [];
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+    despLabels.push(...g.itens,...(gDados.extras||[]));
+  });
+  const todasCats = [...recLabels, ...despLabels];
+
+  document.getElementById('csv-tabela-body').innerHTML = csvLinhas.map((l,i)=>{
+    const dt = l.data ? new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR') : l.data;
+    const tipoSel = tipoOpts.map(t=>`<option value="${t}"${l.tipo===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
+    const catSel  = todasCats.map(c=>`<option value="${escapeHtml(c)}"${l.categoria===c?' selected':''}>${escapeHtml(c)}</option>`).join('');
+    return `<tr id="csv-row-${i}" class="${l.incluir?'':'csv-row-removida'}">
+      <td><input type="checkbox" ${l.incluir?'checked':''} onchange="csvToggleRow(${i},this)" style="cursor:pointer"></td>
+      <td style="white-space:nowrap;color:var(--gray)">${dt}</td>
+      <td style="color:var(--gray2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(l.desc)}">${escapeHtml(l.desc)}</td>
+      <td style="text-align:right;font-weight:600;color:var(--white)">R$ ${l.val.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      <td><select onchange="csvLinhas[${i}].tipo=this.value;csvAtualizarCatOptions(${i})">${tipoSel}</select></td>
+      <td><select id="csv-cat-${i}" onchange="csvLinhas[${i}].categoria=this.value"><option value="${escapeHtml(l.categoria)}" selected>${escapeHtml(l.categoria)}</option>${catSel}</select></td>
+      <td><input type="text" value="${escapeHtml(l.descLancar)}" oninput="csvLinhas[${i}].descLancar=this.value" style="min-width:150px"></td>
+    </tr>`;
+  }).join('');
+
+  const total = csvLinhas.length;
+  document.getElementById('csv-contagem').textContent = `${total} lançamento${total!==1?'s':''} encontrado${total!==1?'s':''}`;
+  document.getElementById('csv-tabela-wrap').style.display='block';
+}
+
+function csvToggleRow(i, cb){
+  csvLinhas[i].incluir = cb.checked;
+  const row = document.getElementById('csv-row-'+i);
+  row.classList.toggle('csv-row-removida', !cb.checked);
+}
+
+function csvToggleAll(cb){
+  csvLinhas.forEach((_,i)=>{
+    csvLinhas[i].incluir = cb.checked;
+    const row = document.getElementById('csv-row-'+i);
+    if(row) row.classList.toggle('csv-row-removida', !cb.checked);
+    const rowCb = row?.querySelector('input[type=checkbox]');
+    if(rowCb) rowCb.checked = cb.checked;
+  });
+}
+
+function csvAtualizarCatOptions(i){
+  const tipo = csvLinhas[i].tipo;
+  const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
+    ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+  const despLabels = [];
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+    despLabels.push(...g.itens,...(gDados.extras||[]));
+  });
+  const cats = tipo==='receita' ? recLabels : tipo==='despesa' ? despLabels : ['Geral'];
+  const sel = document.getElementById('csv-cat-'+i);
+  if(sel) sel.innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  csvLinhas[i].categoria = cats[0]||'Outros';
+}
+
+async function csvConfirmarImport(){
+  const selecionados = csvLinhas.filter(l=>l.incluir);
+  if(!selecionados.length){ alert('Selecione pelo menos um lançamento para importar.'); return; }
+
+  const btn = document.querySelector('#csv-step-2 .btn-diag-save');
+  btn.textContent='Importando...'; btn.disabled=true;
+
+  try {
+    const rows = selecionados.map(l=>({
+      user_id: usuarioAtual.id,
+      data: l.data,
+      descricao: l.descLancar || l.desc,
+      tipo: l.tipo,
+      categoria: l.categoria,
+      valor: l.val
+    }));
+
+    const { error } = await sb.from('extrato').insert(rows);
+    if(error){ alert('Erro ao importar: '+error.message); return; }
+
+    // Recarregar extrato
+    const { data } = await sb.from('extrato').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:false});
+    extratoAtual = (data||[]).map(r=>({id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor)}));
+
+    fecharOverlay('overlay-csv-import');
+    renderExtrato();
+    lancRenderOrcadoRealizado();
+    calcularResumo();
+
+    alert(`✓ ${rows.length} lançamento${rows.length!==1?'s':''} importado${rows.length!==1?'s':''} com sucesso!`);
+  } catch(e){
+    alert('Erro: '+e.message);
+  } finally {
+    btn.textContent='✓ Importar selecionados'; btn.disabled=false;
+  }
 }
 
 async function carregarExtrato(){
@@ -4979,6 +5317,7 @@ function adminTab(btn, panel){
   btn.classList.add('active');
   document.getElementById('adminp-'+panel).classList.add('active');
   if(panel==='orcamento') adminOrcCarregar();
+  if(panel==='orcdash'){ adminOrcdashAno = adminOrcAno; adminOrcdashCarregar(); }
 }
 
 async function adminAbrirCliente(idx){
@@ -5291,6 +5630,21 @@ function adminOrcRenderTabela(){
     tfHtml += `<td class="orc-total-mes${par}" id="admin-orc-tm-${mes}" style="text-align:center">${orcFmt(tot)}</td>`;
   });
   tfHtml += `<td class="orc-total-mes" style="text-align:right">${orcFmt(totDespAnual)}</td><td colspan="2"></td></tr>`;
+
+  // Saldo mensal
+  tfHtml += '<tr class="orc-saldo-row"><td>Saldo mensal</td>';
+  let saldoAnual=0;
+  MESES_NOMES.forEach((_,mi)=>{
+    const mes=mi+1, par=mes%2===0?' mes-par':'';
+    const rec=recLabels.reduce((a,lb)=>a+(adminOrcDados[orcRecKey(lb,mes)]||0),0);
+    const dep=Object.entries(adminOrcDados).filter(([k])=>k.endsWith(`|${mes}`)&&!k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0);
+    const saldo=rec-dep; saldoAnual+=saldo;
+    const cls=saldo>=0?'orc-saldo-positivo':'orc-saldo-negativo';
+    tfHtml += `<td class="${par}" style="text-align:center"><span class="${cls}">${orcFmt(Math.abs(saldo))}${saldo<0?' ▼':saldo>0?' ▲':''}</span></td>`;
+  });
+  const clsAnual=saldoAnual>=0?'orc-saldo-positivo':'orc-saldo-negativo';
+  tfHtml += `<td style="text-align:right"><span class="${clsAnual}">${orcFmt(Math.abs(saldoAnual))}${saldoAnual<0?' ▼':saldoAnual>0?' ▲':''}</span></td><td colspan="2"></td></tr>`;
+
   tfoot.innerHTML = tfHtml;
 }
 
@@ -5382,6 +5736,128 @@ async function adminOrcSalvar(){
   btn.style.display='none';
   const msg=document.getElementById('admin-orc-saved-msg');
   msg.style.display='block'; setTimeout(()=>msg.style.display='none',2000);
+}
+
+// ── ADMIN: DASH ORÇAMENTO ──
+let adminOrcdashAno = new Date().getFullYear();
+
+function adminOrcdashMudarAno(delta){
+  adminOrcdashAno += delta;
+  document.getElementById('admin-orcdash-ano-label').textContent = adminOrcdashAno;
+  adminOrcdashCarregar();
+}
+
+async function adminOrcdashCarregar(){
+  document.getElementById('admin-orcdash-loading').style.display='block';
+  document.getElementById('admin-orcdash-content').style.display='none';
+  document.getElementById('admin-orcdash-vazio').style.display='none';
+  document.getElementById('admin-orcdash-ano-label').textContent = adminOrcdashAno;
+
+  const { data } = await sb.from('orcamento')
+    .select('*').eq('user_id', adminClienteAtualId).eq('ano', adminOrcdashAno);
+
+  document.getElementById('admin-orcdash-loading').style.display='none';
+
+  if(!data || !data.length){
+    document.getElementById('admin-orcdash-vazio').style.display='block';
+    return;
+  }
+  document.getElementById('admin-orcdash-content').style.display='block';
+
+  // Montar dados no mesmo formato do orcdash do cliente
+  const orcDadosAdm = {};
+  (data||[]).forEach(r=>{
+    const key = r.grupo==='__receitas' ? orcRecKey(r.categoria, r.mes) : `${r.categoria}|${r.mes}`;
+    orcDadosAdm[key] = Number(r.previsto);
+  });
+
+  const recLabels = orcGetRecLabels();
+
+  // Cards resumo
+  const totRec  = MESES_NOMES.reduce((a,_,mi)=>a+recLabels.reduce((b,lb)=>b+(orcDadosAdm[orcRecKey(lb,mi+1)]||0),0),0);
+  const totDesp = MESES_NOMES.reduce((a,_,mi)=>a+Object.entries(orcDadosAdm).filter(([k])=>k.endsWith(`|${mi+1}`)&&!k.startsWith('__rec:')).reduce((b,[,v])=>b+v,0),0);
+  const saldoAnual = totRec - totDesp;
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  document.getElementById('admin-orcdash-cards').innerHTML = `
+    <div class="orcdash-card"><div class="orcdash-card-label">Receitas anuais</div><div class="orcdash-card-val positive">${fmt(totRec)}</div></div>
+    <div class="orcdash-card"><div class="orcdash-card-label">Despesas anuais</div><div class="orcdash-card-val">${fmt(totDesp)}</div></div>
+    <div class="orcdash-card"><div class="orcdash-card-label">Saldo projetado</div><div class="orcdash-card-val ${saldoAnual>=0?'positive':'negative'}">${fmt(Math.abs(saldoAnual))}</div></div>
+    <div class="orcdash-card"><div class="orcdash-card-label">Média mensal receitas</div><div class="orcdash-card-val positive">${fmt(totRec/12)}</div></div>
+  `;
+
+  // Pizza despesas (mês 1-12 todos somados por categoria)
+  const porCat = {};
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    itens.forEach(item=>{
+      const total = MESES_NOMES.reduce((a,_,mi)=>a+(orcDadosAdm[`${item}|${mi+1}`]||0),0);
+      if(total>0){ if(!porCat[g.label]) porCat[g.label]=0; porCat[g.label]+=total; }
+    });
+  });
+
+  const entradas = Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+  const totalPizza = entradas.reduce((a,[,v])=>a+v,0)||1;
+  const cores = ['#00B6E9','#4ec98a','#f0c93a','#7c9cff','#e0824f','#e05252','#a78bfa','#f472b6','#34d399'];
+
+  let ang=-90, svgStr='';
+  const cx=130,cy=130,r=100,ri=55;
+  entradas.forEach(([cat,val],i)=>{
+    const pct=val/totalPizza, a2=ang+pct*360;
+    if(pct<0.001){ang=a2;return;}
+    const x1=cx+r*Math.cos(ang*Math.PI/180),y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180),y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180),yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0, cor=cores[i%cores.length];
+    svgStr+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    ang=a2;
+  });
+  svgStr+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="Inter,sans-serif">${fmt(totDesp)}</text>`;
+  document.getElementById('admin-orcdash-pizza-svg').innerHTML=svgStr;
+
+  document.getElementById('admin-orcdash-pizza-legenda').innerHTML=entradas.map(([cat,val],i)=>`
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0;font-size:.72rem">
+      <div style="width:9px;height:9px;border-radius:2px;background:${cores[i%cores.length]};flex-shrink:0"></div>
+      <span style="flex:1;color:var(--gray)">${cat}</span>
+      <span style="color:var(--white);font-weight:600">${(val/totalPizza*100).toFixed(1)}%</span>
+    </div>`).join('');
+
+  // Gráfico barras por mês
+  const svgEl = document.getElementById('admin-orcdash-bars-svg');
+  const W = svgEl.parentElement.offsetWidth || 500;
+  const H = 200, pad = {t:20,r:20,b:40,l:60};
+  const gW = W-pad.l-pad.r, gH = H-pad.t-pad.b;
+  const nMeses = 12, bW = Math.floor(gW/nMeses*0.35);
+
+  const mRec  = MESES_NOMES.map((_,mi)=>recLabels.reduce((a,lb)=>a+(orcDadosAdm[orcRecKey(lb,mi+1)]||0),0));
+  const mDesp = MESES_NOMES.map((_,mi)=>Object.entries(orcDadosAdm).filter(([k])=>k.endsWith(`|${mi+1}`)&&!k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0));
+  const mSaldo = mRec.map((r,i)=>r-mDesp[i]);
+  const maxVal = Math.max(...mRec,...mDesp,1);
+  const yScale = v=>(gH*(1-v/maxVal));
+
+  let barsSvg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+  const slotW = gW/nMeses;
+
+  MESES_NOMES.forEach((m,mi)=>{
+    const x = pad.l + mi*slotW + slotW/2;
+    const rH = gH*mRec[mi]/maxVal, dH = gH*mDesp[mi]/maxVal;
+    const rY = pad.t+gH-rH, dY = pad.t+gH-dH;
+    barsSvg += `<rect x="${(x-bW-2).toFixed(0)}" y="${rY.toFixed(0)}" width="${bW}" height="${rH.toFixed(0)}" fill="#4ec98a" opacity=".8"/>`;
+    barsSvg += `<rect x="${(x+2).toFixed(0)}" y="${dY.toFixed(0)}" width="${bW}" height="${dH.toFixed(0)}" fill="#f0c93a" opacity=".8"/>`;
+    barsSvg += `<text x="${x.toFixed(0)}" y="${(H-pad.b+14).toFixed(0)}" text-anchor="middle" font-size="8" fill="#6b7280" font-family="Inter,sans-serif">${m}</text>`;
+  });
+
+  // Linha de saldo
+  const pts = mSaldo.map((s,mi)=>{
+    const x = pad.l + mi*slotW + slotW/2;
+    const y = pad.t + gH/2 - (s/maxVal)*(gH/2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  barsSvg += `<polyline points="${pts}" fill="none" stroke="#00B6E9" stroke-width="2" stroke-linejoin="round"/>`;
+  barsSvg += '</svg>';
+  svgEl.outerHTML = barsSvg;
 }
 
 // ── ADMIN: CRONOGRAMA ──
