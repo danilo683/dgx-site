@@ -2469,6 +2469,27 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   border-top: 1px solid var(--border);
   margin-top: 4px;
 }
+
+/* ── Cartões no feed ── */
+.lance-amarelo { background: rgba(234,179,8,.12); border-left: 3px solid #eab308; }
+.lance-vermelho { background: rgba(239,68,68,.12); border-left: 3px solid var(--red); }
+
+/* ── Tela de resultados da rodada ── */
+.rodada-jogos-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.rodada-jogo-item {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.rodada-jogo-meu { border-color: var(--accent); background: rgba(79,142,247,.08); font-weight: 600; }
+.rodada-jogo-placar { text-align: center; font-size: 16px; font-weight: 700; color: var(--accent); }
+.rodada-jogo-time { display: flex; align-items: center; gap: 6px; }
+.rodada-jogo-time.direita { justify-content: flex-end; flex-direction: row-reverse; }
 </style>
 </head>
 <body>
@@ -4280,20 +4301,16 @@ function carregarJogo() {
     }
 
     // Restaurar jogadores do meu clube
-    if (save.jogadoresMeuClube) {
-      save.jogadoresMeuClube.forEach(function(sj) {
-        var j = estado.meuClube.jogadores.find(function(x){ return x.id === sj.id; });
-        if (!j) {
-          // Jogador novo (comprado ou livre): adicionar ao elenco
-          if (sj.clube_id === clubeId) estado.meuClube.jogadores.push(sj);
-          return;
-        }
-        // Atualizar campos
-        Object.assign(j, sj);
+    if (save.jogadoresMeuClube && save.jogadoresMeuClube.length > 0) {
+      // Substituir elenco inteiro pelo salvo (mais confiável que merge)
+      estado.meuClube.jogadores = save.jogadoresMeuClube.filter(function(sj){
+        return !sj.clube_id || sj.clube_id === clubeId;
       });
-      // Remover jogadores que saíram (clube_id diferente e não é o nosso)
-      estado.meuClube.jogadores = estado.meuClube.jogadores.filter(function(j){
-        return !j.clube_id || j.clube_id === clubeId || !save.jogadoresMeuClube.find(function(sj){ return sj.id===j.id; });
+      // Adicionar jogadores comprados que podem não ter clube_id
+      save.jogadoresMeuClube.forEach(function(sj) {
+        if (!estado.meuClube.jogadores.find(function(x){ return x.id===sj.id; })) {
+          estado.meuClube.jogadores.push(sj);
+        }
       });
     }
 
@@ -4488,9 +4505,42 @@ function gerarLancesPartida(mandante, visitante, tecM, tecV, golsM, golsV) {
   var tiposExtra = [
     { tipo: "chute",  textos: ["Chute de {j} para fora", "Finalização de {j} defendida pelo goleiro", "{j} tenta de longe, vai pra fora"] },
     { tipo: "defesa", textos: ["Grande defesa! Goleiro salva chute de {j}", "Goleiro espalmou tentativa de {j}"] },
-    { tipo: "falta",  textos: ["Falta dura em {j}", "{j} sofre falta perigosa na intermediária", "Amarelo! Falta em {j}"] },
+    { tipo: "falta",  textos: ["{j} sofre falta perigosa na intermediária", "Falta dura em {j}"] },
     { tipo: "escanteio", textos: ["Escanteio para {nome}", "Cobrança de escanteio — ninguém alcança"] }
   ];
+
+  // Cartões amarelos (1-3 por partida)
+  var qtdAmarelos = 1 + Math.floor(Math.random() * 3);
+  for (var ca = 0; ca < qtdAmarelos; ca++) {
+    var ehMandanteA = Math.random() > 0.5;
+    var escA = ehMandanteA ? escM : escV;
+    var clubeA = ehMandanteA ? mandante : visitante;
+    var jA = rand(escA);
+    if (jA) {
+      jA.cartoes_amarelos = (jA.cartoes_amarelos || 0) + 1;
+      var textoAmarelo = "🟨 Cartão amarelo! " + jA.nome.split(" ")[0] + " (" + clubeA.nome + ")";
+      if (jA.cartoes_amarelos >= 2) {
+        textoAmarelo = "🟥 EXPULSO! " + jA.nome.split(" ")[0] + " leva segundo amarelo (" + clubeA.nome + ")";
+        jA.cartoes_amarelos = 0;
+        lances.push({ minuto: minUnico(30 + Math.floor(Math.random()*55), 2), tipo: "vermelho", time: ehMandanteA?"mandante":"visitante", texto: textoAmarelo, jogadorId: jA.id });
+      } else {
+        lances.push({ minuto: minUnico(10 + Math.floor(Math.random()*75), 2), tipo: "amarelo", time: ehMandanteA?"mandante":"visitante", texto: textoAmarelo, jogadorId: jA.id });
+      }
+    }
+  }
+
+  // Cartão vermelho direto (raro, ~15% das partidas)
+  if (Math.random() < 0.15) {
+    var ehMandanteV2 = Math.random() > 0.5;
+    var escV2 = ehMandanteV2 ? escM : escV;
+    var clubeV2 = ehMandanteV2 ? mandante : visitante;
+    var jV2 = rand(escV2);
+    if (jV2) {
+      jV2.cartoes_vermelhos = (jV2.cartoes_vermelhos||0)+1;
+      lances.push({ minuto: minUnico(20+Math.floor(Math.random()*65),2), tipo:"vermelho", time:ehMandanteV2?"mandante":"visitante",
+        texto:"🟥 EXPULSO! "+jV2.nome.split(" ")[0]+" recebe vermelho direto ("+clubeV2.nome+")", jogadorId:jV2.id });
+    }
+  }
 
   var qtdExtra = 8 + Math.floor(Math.random() * 6);
   for (var i = 0; i < qtdExtra; i++) {
@@ -4672,16 +4722,33 @@ function aplicarSubstituicao(escAtual, sub) {
 var jogoAtivo = null;
 
 function renderTelaJogo(rodadaIdx) {
+  // Garantir que divisões foram inicializadas (importante ao carregar save)
+  if (!estadoDivisoes.b.clubes) inicializarDivisoes();
+  if (!estadoPaulista.a1.clubes) inicializarPaulista();
+
   var rodada      = estado.calendario[rodadaIdx];
   var meuId       = estado.meuClube.id;
   var meuTecnico  = estado.meuTecnico;
-  var meuJogo     = rodada.jogos.find(function(j) {
+  var meuJogo     = rodada ? rodada.jogos.find(function(j) {
     return j.mandanteId === meuId || j.visitanteId === meuId;
-  });
+  }) : null;
   var euMandante  = meuJogo && meuJogo.mandanteId === meuId;
   var meuClube    = estado.meuClube;
   var advId = meuJogo ? (euMandante ? meuJogo.visitanteId : meuJogo.mandanteId) : null;
   var adversario = advId ? buscarClubePorId(advId) : null;
+
+  // Se adversário não encontrado ou sem jogadores, erro amigável
+  if (!adversario || !adversario.jogadores) {
+    document.getElementById("main").innerHTML =
+      '<div style="padding:40px;color:var(--red);text-align:center">' +
+      '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
+      '<div style="font-size:16px;font-weight:700;margin-bottom:8px">Erro ao carregar partida</div>' +
+      '<div style="color:var(--text2);margin-bottom:20px">Adversário não encontrado (ID: ' + (advId||'?') + '). Inicie um novo jogo.</div>' +
+      '<button class="btn-primario" onclick="navegarPara(\'dashboard\')">← Voltar ao Dashboard</button>' +
+      '</div>';
+    jogoAtivo = null;
+    return;
+  }
   var tecAdv = adversario ? getTecnicoClube(adversario) : null;
 
   var mandante    = euMandante ? meuClube : adversario;
@@ -5140,6 +5207,8 @@ function adicionarLanceFeed(lance) {
   if (lance.tipo === "substituicao")cls += " lance-sub";
   if (lance.tipo === "intervalo")   cls += " lance-intervalo";
   if (lance.tipo === "fim")         cls += " lance-fim";
+  if (lance.tipo === "amarelo")     cls += " lance-amarelo";
+  if (lance.tipo === "vermelho")    cls += " lance-vermelho";
   div.className = cls;
   div.innerHTML = '<span class="lance-min">' + lance.minuto + '\'</span><span class="lance-texto">' + lance.texto + '</span>';
   lista.appendChild(div);
@@ -5230,7 +5299,65 @@ function finalizarPartida() {
   });
 
   salvarJogo();
-  renderTelaResultadoComNotas(meuEsc, minhasNotas, r, euMandante);
+  renderTelaRodadaCompleta(meuEsc, minhasNotas, r, euMandante, jogoAtivo.rodadaIdx);
+}
+
+// ── Tela: todos os resultados da rodada ──
+function renderTelaRodadaCompleta(meuEsc, notas, resultado, euMandante, rodadaIdx) {
+  var mandante  = jogoAtivo.mandante;
+  var visitante = jogoAtivo.visitante;
+  var meusG = euMandante ? resultado.golsMandante : resultado.golsVisitante;
+  var delesG= euMandante ? resultado.golsVisitante : resultado.golsMandante;
+  var res   = meusG > delesG ? "vitoria" : meusG < delesG ? "derrota" : "empate";
+  var titulo = res==="vitoria" ? "🏆 Vitória!" : res==="derrota" ? "😔 Derrota" : "🤝 Empate";
+  var corRes = res==="vitoria" ? "var(--green)" : res==="derrota" ? "var(--red)" : "var(--yellow)";
+
+  var html = '<div class="tela-resultado">';
+
+  // Resultado do meu jogo
+  html += '<div class="resultado-meu" style="border:2px solid '+corRes+';border-radius:16px;padding:24px;text-align:center;margin-bottom:20px">';
+  html += '<div style="font-size:28px;font-weight:900;color:'+corRes+';margin-bottom:6px">'+titulo+'</div>';
+  html += '<div style="font-size:22px;font-weight:700;margin-bottom:4px">';
+  html += mandante.nome + ' <span style="font-size:32px;color:var(--accent);margin:0 12px">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</span> ' + visitante.nome;
+  html += '</div>';
+  html += '</div>';
+
+  // Todos os resultados da rodada
+  var cal = estado.calendario[rodadaIdx];
+  var todosResultados = estado.resultados.filter(function(r){ return r.rodada===rodadaIdx; });
+
+  if (todosResultados.length > 0) {
+    html += '<div class="fin-secao-titulo" style="margin-bottom:10px">📋 Rodada '+(rodadaIdx+1)+' — Todos os resultados</div>';
+    html += '<div class="rodada-jogos-lista">';
+    todosResultados.forEach(function(res) {
+      var m = buscarClubePorId(res.mandanteId) || {nome:"?",sigla:"?",cor:"#555"};
+      var v = buscarClubePorId(res.visitanteId) || {nome:"?",sigla:"?",cor:"#555"};
+      var ehMeu = res.mandanteId===estado.meuClube.id || res.visitanteId===estado.meuClube.id;
+      html += '<div class="rodada-jogo-item'+(ehMeu?' rodada-jogo-meu':'')+'">'+
+        '<span class="rodada-jogo-time"><span class="escudo-mini" style="background:'+(m.cor||"#555")+'">'+m.sigla+'</span>'+m.nome+'</span>'+
+        '<span class="rodada-jogo-placar">'+res.golsMandante+' – '+res.golsVisitante+'</span>'+
+        '<span class="rodada-jogo-time direita">'+v.nome+'<span class="escudo-mini" style="background:'+(v.cor||"#555")+'">'+v.sigla+'</span></span>'+
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Notas dos jogadores
+  html += '<div class="fin-secao-titulo" style="margin:16px 0 8px">📊 Notas dos jogadores</div>';
+  html += '<table class="elenco-tabela"><thead><tr><th>Jogador</th><th>Pos</th><th>Nota</th></tr></thead><tbody>';
+  meuEsc.forEach(function(j) {
+    var nota = notas[j.id] || 6.0;
+    var corNota = nota>=7.5?'var(--green)':nota>=6.5?'var(--yellow)':'var(--red)';
+    html += '<tr><td>'+j.nome+'</td><td><span class="posicao-badge pos-'+j.posicao+'">'+j.posicao+'</span></td>';
+    html += '<td style="font-weight:700;color:'+corNota+'">'+nota.toFixed(1)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  html += '<div class="jogo-acoes" style="margin-top:20px">';
+  html += '<button class="btn-primario" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
+  html += '</div></div>';
+
+  document.getElementById("main").innerHTML = html;
 }
 
 function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
@@ -7394,12 +7521,14 @@ function inicializarPaulista() {
   estadoPaulista.a4.clubes = prepDiv(CLUBES_PAULISTA_A4,"a4",54);
 
   // Bezinha: preparar clubes de todos os grupos
+  var _bzIdx = 0;
   GRUPOS_BEZINHA.forEach(function(g){
     g.clubes = g.clubes.map(function(c){
       var jogs=gerarJogadoresFicticios(c.id, 46+Math.floor(Math.random()*8)-4);
       aplicarNomesFicticios(jogs, c.id.charCodeAt(3)*997 + 46*31);
       var perfil = gerarPerfilFinanceiroGenerico(46);
-      var bzSeed = c.id.charCodeAt(0)*13 + c.id.charCodeAt(3)*7;
+      var bzSeed = _bzIdx * 137 + 11; // seed único por clube
+      _bzIdx++;
       return Object.assign({},c,{
         divisao_paulista:"b1",
         jogadores:jogs,
@@ -7558,29 +7687,32 @@ function simularEventoPaulista(rodadaIdx) {
     }
   });
 
-  // Bezinha — simular exatamente 1 jogo por grupo por evento
-  // Cada grupo avança 1 jogo por vez = todos sincronizados
+  // Bezinha — simular 3 jogos por grupo por evento (rodada completa de grupo de 6)
+  // Grupo de 6 times: rodada completa = 3 jogos simultâneos
   if(estadoPaulista.b1.faseAtual==="grupos"){
     var todosB1=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
     GRUPOS_BEZINHA.forEach(function(g){
-      var pend=estadoPaulista.b1.jogos.find(function(j){
+      // Simular 3 jogos por rodada (todos os times do grupo jogam 1 vez)
+      var pendentes=estadoPaulista.b1.jogos.filter(function(j){
         return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;
-      });
-      if(pend){
+      }).slice(0, 3);
+      pendentes.forEach(function(pend){
         var r=simularJPaulista(pend.mId,pend.vId,todosB1);
         pend.gM=r.gM; pend.gV=r.gV; pend.ok=true;
-      }
+      });
     });
     var restB=estadoPaulista.b1.jogos.filter(function(j){return j.fase==="grupos"&&!j.ok;});
     if(restB.length===0) gerarMataMataB1();
   } else {
-    var pendB=estadoPaulista.b1.jogos.find(function(j){return j.fase!=="grupos"&&!j.ok;});
-    if(pendB){
-      var todos=GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+    // Mata-mata: simular todos os jogos pendentes da fase atual
+    var todos=GRUPOS_BEZINHA.reduce(function(a,g){return a.concat(g.clubes);}, []);
+    var faseAtualB1 = estadoPaulista.b1.faseAtual || "oitavas";
+    var pendentesB1=estadoPaulista.b1.jogos.filter(function(j){return j.fase===faseAtualB1&&!j.ok;});
+    pendentesB1.forEach(function(pendB){
       var r=simularJPaulista(pendB.mId,pendB.vId,todos);
       pendB.gM=r.gM; pendB.gV=r.gV; pendB.ok=true;
-      verificarFaseB1();
-    }
+    });
+    if(pendentesB1.length>0) verificarFaseB1();
   }
 
   // Copa Paulista
