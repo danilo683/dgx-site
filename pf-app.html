@@ -4149,6 +4149,7 @@ const MESES_NOMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out'
 const MESES_FULL  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 let orcAno = new Date().getFullYear();
 let orcDados = {};
+let orcClass = {};
 let orcAlterado = false;
 let orcGruposFechados = new Set();
 
@@ -4198,9 +4199,13 @@ async function orcCarregarDados(){
 
   if(error) console.error(error);
   orcDados = {};
+  orcClass = {};
   (data||[]).forEach(r=>{
     const key = r.grupo==='__receitas' ? orcRecKey(r.categoria, r.mes) : `${r.categoria}|${r.mes}`;
     orcDados[key] = Number(r.previsto);
+    if(r.grupo!=='__receitas' && r.categoria && (r.classificacao||r.frequencia)){
+      orcClass[r.categoria] = { classificacao: r.classificacao||'', frequencia: r.frequencia||'' };
+    }
   });
 
   orcRenderTabela();
@@ -4221,7 +4226,10 @@ function orcRenderTabela(){
     const par = (mi+1)%2===0 ? ' mes-par' : '';
     thHtml += `<th class="mes-header${par}">${m}</th>`;
   });
-  thHtml += '<th style="text-align:right;min-width:100px">Total ano</th></tr>';
+  thHtml += '<th style="text-align:right;min-width:100px">Total ano</th>';
+  thHtml += '<th style="min-width:130px;text-align:center">Classificação</th>';
+  thHtml += '<th style="min-width:110px;text-align:center">Frequência</th>';
+  thHtml += '</tr>';
   thead.innerHTML = thHtml;
 
   let bodyHtml = '';
@@ -4283,26 +4291,47 @@ function orcRenderTabela(){
       const mes=mi+1, par=mes%2===0?' mes-par':'';
       bodyHtml += `<td class="${par}" id="orc-stm-${g.id}-${mes}" style="text-align:center;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totMesG(mes))}</td>`;
     });
-    bodyHtml += `<td id="orc-sta-${g.id}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalG)}</td></tr>`;
+    bodyHtml += `<td id="orc-sta-${g.id}" style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalG)}</td><td></td><td></td></tr>`;
 
     if(gAberto){
       itens.forEach(item=>{
         const totalCat = orcTotalCat(item);
         const catId = encodeURIComponent(item);
-        bodyHtml += `<tr data-grupo="${g.id}" data-cat="${escapeHtml(item)}"><td style="padding-left:1.8rem">${item}</td>`;
+        const cls = orcClass[item] || {};
+        const catEsc = escapeHtml(item);
+        bodyHtml += `<tr data-grupo="${g.id}" data-cat="${catEsc}"><td style="padding-left:1.8rem">${item}</td>`;
         MESES_NOMES.forEach((_,mi)=>{
           const mes=mi+1, par=mes%2===0?' mes-par':'';
           const key=`${item}|${mes}`, val=orcDados[key]||'';
           bodyHtml += `<td class="${par}"><div class="orc-cell">
             <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
               placeholder="—" value="${val}"
-              data-cat="${escapeHtml(item)}" data-mes="${mes}"
+              data-cat="${catEsc}" data-mes="${mes}"
               oninput="orcOnInput(this)" onblur="orcOnBlur(this)">
             <button class="orc-replicar${val?' visivel':''}" title="Replicar até dezembro"
-              onclick="orcReplicar(this,'${escapeHtml(item)}',${mes})">→</button>
+              onclick="orcReplicar(this,'${catEsc}',${mes})">→</button>
           </div></td>`;
         });
-        bodyHtml += `<td class="orc-total-cat" id="orc-tc-${catId}" style="text-align:right">${orcFmt(totalCat)}</td></tr>`;
+        bodyHtml += `<td class="orc-total-cat" id="orc-tc-${catId}" style="text-align:right">${orcFmt(totalCat)}</td>`;
+        bodyHtml += `<td style="text-align:center;padding:.3rem .4rem">
+          <select class="orc-class-select" data-cat="${catEsc}" data-field="classificacao"
+            onchange="orcOnClassChange(this)"
+            style="font-size:.65rem;background:var(--navy3);border:1px solid var(--border);color:var(--white);padding:.2rem .3rem;width:100%;cursor:pointer">
+            <option value="">—</option>
+            <option value="essencial"${cls.classificacao==='essencial'?' selected':''}>Essencial</option>
+            <option value="nao_essencial"${cls.classificacao==='nao_essencial'?' selected':''}>Não essencial</option>
+            <option value="investimento"${cls.classificacao==='investimento'?' selected':''}>Investimento</option>
+          </select>
+        </td>`;
+        bodyHtml += `<td style="text-align:center;padding:.3rem .4rem">
+          <select class="orc-class-select" data-cat="${catEsc}" data-field="frequencia"
+            onchange="orcOnClassChange(this)"
+            style="font-size:.65rem;background:var(--navy3);border:1px solid var(--border);color:var(--white);padding:.2rem .3rem;width:100%;cursor:pointer">
+            <option value="">—</option>
+            <option value="mensal"${cls.frequencia==='mensal'?' selected':''}>Mensal</option>
+            <option value="eventual"${cls.frequencia==='eventual'?' selected':''}>Eventual</option>
+          </select>
+        </td></tr>`;
       });
     }
   });
@@ -4319,7 +4348,7 @@ function orcRenderTabela(){
     const tot=orcTotalMesRec(mes); totRecAnual+=tot;
     tfHtml += `<td class="${par}" id="orc-tr-${mes}" style="text-align:center;color:var(--green)">${orcFmt(tot)}</td>`;
   });
-  tfHtml += `<td id="orc-tr-anual" style="text-align:right;color:var(--green)">${orcFmt(totRecAnual)}</td></tr>`;
+  tfHtml += `<td id="orc-tr-anual" style="text-align:right;color:var(--green)">${orcFmt(totRecAnual)}</td><td colspan="2"></td></tr>`;
 
   // Linha despesas
   let totDespAnual = 0;
@@ -4329,7 +4358,7 @@ function orcRenderTabela(){
     const tot=orcTotalMesDesp(mes); totDespAnual+=tot;
     tfHtml += `<td class="orc-total-mes${par}" id="orc-tm-${mes}" style="text-align:center">${orcFmt(tot)}</td>`;
   });
-  tfHtml += `<td class="orc-total-mes" id="orc-tg" style="text-align:right">${orcFmt(totDespAnual)}</td></tr>`;
+  tfHtml += `<td class="orc-total-mes" id="orc-tg" style="text-align:right">${orcFmt(totDespAnual)}</td><td colspan="2"></td></tr>`;
 
   // Linha saldo
   tfHtml += '<tr class="orc-saldo-row"><td>Saldo mensal</td>';
@@ -4341,7 +4370,7 @@ function orcRenderTabela(){
     tfHtml += `<td class="${par}" id="orc-sal-${mes}" style="text-align:center"><span class="${cls}">${orcFmt(Math.abs(saldo))}${saldo<0?' ▼':saldo>0?' ▲':''}</span></td>`;
   });
   const clsAnual=saldoAnual>=0?'orc-saldo-positivo':'orc-saldo-negativo';
-  tfHtml += `<td style="text-align:right"><span class="${clsAnual}" id="orc-sal-anual">${orcFmt(Math.abs(saldoAnual))}${saldoAnual<0?' ▼':saldoAnual>0?' ▲':''}</span></td></tr>`;
+  tfHtml += `<td style="text-align:right"><span class="${clsAnual}" id="orc-sal-anual">${orcFmt(Math.abs(saldoAnual))}${saldoAnual<0?' ▼':saldoAnual>0?' ▲':''}</span></td><td colspan="2"></td></tr>`;
 
   tfoot.innerHTML = tfHtml;
 }
@@ -4458,6 +4487,17 @@ function orcRecKey(label, mes){ return `__rec:${label}|${mes}`; }
 function orcTotalRecCat(label){ return MESES_NOMES.reduce((a,_,mi)=>a+(orcDados[orcRecKey(label,mi+1)]||0),0); }
 function orcTotalRecMes(mes){ return orcTotalMesRec(mes); }
 
+function orcOnClassChange(sel){
+  const cat = sel.dataset.cat;
+  const field = sel.dataset.field;
+  if(!orcClass[cat]) orcClass[cat] = {classificacao:'', frequencia:''};
+  orcClass[cat][field] = sel.value;
+  if(!orcAlterado){
+    orcAlterado = true;
+    document.getElementById('orc-save-btn').style.display='inline-flex';
+  }
+}
+
 function orcOnInput(el){
   const cat = el.dataset.cat, mes = Number(el.dataset.mes);
   const val = parseFloat(el.value)||0;
@@ -4564,7 +4604,12 @@ async function orcSalvar(){
       const itens = [...g.itens, ...(gDados.extras||[])];
       if(itens.includes(cat)) grupo = g.label;
     });
-    return { user_id:usuarioAtual.id, ano:orcAno, mes, categoria:cat, grupo, previsto:val };
+    const cls = (!isRec && orcClass[cat]) || {};
+    return {
+      user_id:usuarioAtual.id, ano:orcAno, mes, categoria:cat, grupo, previsto:val,
+      classificacao: cls.classificacao||null,
+      frequencia: cls.frequencia||null
+    };
   });
 
   await sb.from('orcamento').delete().eq('user_id', usuarioAtual.id).eq('ano', orcAno);
