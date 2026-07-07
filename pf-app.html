@@ -2732,8 +2732,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <div class="diag-field" id="plano-form-progresso-wrap" style="display:none"><label class="diag-label">Progresso atual (R$)</label><input class="diag-input" type="number" step="0.01" id="plano-form-progresso-valor" placeholder="Ex: 1200"></div>
               </div>
 
-              <!-- Campos SMART -->
-              <div class="plano-smart-wrap">
+              <!-- Campos SMART (só para metas) -->
+              <div class="plano-smart-wrap" id="plano-smart-bloco">
                 <div class="plano-smart-titulo">Metodologia SMART</div>
                 <div class="plano-smart-grid">
                   <div class="diag-field">
@@ -2756,6 +2756,14 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <div class="diag-field" style="margin-top:.6rem">
                   <label class="diag-label">📝 Descrição / Observações</label>
                   <textarea class="diag-input" id="plano-form-desc" placeholder="Detalhes adicionais, contexto ou anotações..." style="min-height:60px"></textarea>
+                </div>
+              </div>
+
+              <!-- Observação (só para ações) -->
+              <div id="plano-obs-bloco" style="display:none;margin-top:1rem">
+                <div class="diag-field">
+                  <label class="diag-label">📝 Observação</label>
+                  <textarea class="diag-input" id="plano-form-obs-acao" placeholder="Detalhes, contexto ou instruções para esta ação..." style="min-height:80px"></textarea>
                 </div>
               </div>
 
@@ -4842,6 +4850,7 @@ let adminClientesCache = [];
 let adminClienteAtualId = null;
 let adminOrcAno = new Date().getFullYear();
 let adminOrcDados = {};
+let adminOrcClass = {}; // { categoria: { classificacao, frequencia } }
 let adminOrcAlterado = false;
 
 async function adminCriarCliente(){
@@ -5086,9 +5095,17 @@ async function adminOrcCarregar(){
     .select('*').eq('user_id', adminClienteAtualId).eq('ano', adminOrcAno);
 
   adminOrcDados = {};
+  adminOrcClass = {}; // { 'categoria': { classificacao, frequencia } }
   (data||[]).forEach(r=>{
     const key = r.grupo==='__receitas' ? orcRecKey(r.categoria, r.mes) : `${r.categoria}|${r.mes}`;
     adminOrcDados[key] = Number(r.previsto);
+    // Classificações (mesmas para todas as linhas da categoria no ano)
+    if(r.grupo!=='__receitas' && r.categoria && (r.classificacao||r.frequencia)){
+      adminOrcClass[r.categoria] = {
+        classificacao: r.classificacao||'',
+        frequencia: r.frequencia||''
+      };
+    }
   });
 
   document.getElementById('admin-orc-loading').style.display='none';
@@ -5109,7 +5126,10 @@ function adminOrcRenderTabela(){
     const par = (mi+1)%2===0?' mes-par':'';
     thHtml += `<th class="mes-header${par}">${m}</th>`;
   });
-  thHtml += '<th style="text-align:right;min-width:100px">Total ano</th></tr>';
+  thHtml += '<th style="text-align:right;min-width:100px">Total ano</th>';
+  thHtml += '<th style="min-width:130px;text-align:center">Classificação</th>';
+  thHtml += '<th style="min-width:110px;text-align:center">Frequência</th>';
+  thHtml += '</tr>';
   thead.innerHTML = thHtml;
 
   let bodyHtml = '';
@@ -5126,7 +5146,7 @@ function adminOrcRenderTabela(){
     const mes=mi+1, par=mes%2===0?' mes-par':'';
     bodyHtml += `<td class="${par}" id="admin-orc-stm-__receitas-${mes}" style="text-align:center;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totMesRecFunc(mes))}</td>`;
   });
-  bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totalRecAnual)}</td></tr>`;
+  bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--green);font-size:.72rem">${orcFmt(totalRecAnual)}</td><td></td><td></td></tr>`;
 
   recLabels.forEach(lb=>{
     const catId = encodeURIComponent('__rec:'+lb);
@@ -5144,7 +5164,7 @@ function adminOrcRenderTabela(){
           onclick="adminOrcReplicarRec(this,'${escapeHtml(lb)}',${mes})">→</button>
       </div></td>`;
     });
-    bodyHtml += `<td class="orc-total-cat" id="admin-orc-tcr-${catId}" style="text-align:right;color:var(--green)">${orcFmt(totalCat)}</td></tr>`;
+    bodyHtml += `<td class="orc-total-cat" id="admin-orc-tcr-${catId}" style="text-align:right;color:var(--green)">${orcFmt(totalCat)}</td><td></td><td></td></tr>`;
   });
 
   // Despesas
@@ -5159,11 +5179,13 @@ function adminOrcRenderTabela(){
       const mes=mi+1, par=mes%2===0?' mes-par':'';
       bodyHtml += `<td class="${par}" id="admin-orc-stm-${g.id}-${mes}" style="text-align:center;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totMesG(mes))}</td>`;
     });
-    bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalG)}</td></tr>`;
+    bodyHtml += `<td style="text-align:right;font-weight:700;color:var(--gold);font-size:.72rem">${orcFmt(totalG)}</td><td></td><td></td></tr>`;
 
     itens.forEach(item=>{
       const catId = encodeURIComponent(item);
       const totalCat = MESES_NOMES.reduce((a,_,mi)=>a+(adminOrcDados[`${item}|${mi+1}`]||0),0);
+      const cls = adminOrcClass[item] || {};
+      const catEsc = escapeHtml(item);
       bodyHtml += `<tr><td style="padding-left:1.8rem">${item}</td>`;
       MESES_NOMES.forEach((_,mi)=>{
         const mes=mi+1, par=mes%2===0?' mes-par':'';
@@ -5171,13 +5193,34 @@ function adminOrcRenderTabela(){
         bodyHtml += `<td class="${par}"><div class="orc-cell">
           <input class="orc-input${val?'':' sem-valor'}" type="number" min="0" step="0.01"
             placeholder="—" value="${val}"
-            data-cat="${escapeHtml(item)}" data-mes="${mes}"
+            data-cat="${catEsc}" data-mes="${mes}"
             oninput="adminOrcOnInput(this,null)" onblur="orcOnBlur(this)">
           <button class="orc-replicar${val?' visivel':''}" title="Replicar até dezembro"
-            onclick="adminOrcReplicar(this,'${escapeHtml(item)}',${mes})">→</button>
+            onclick="adminOrcReplicar(this,'${catEsc}',${mes})">→</button>
         </div></td>`;
       });
-      bodyHtml += `<td class="orc-total-cat" id="admin-orc-tc-${catId}" style="text-align:right">${orcFmt(totalCat)}</td></tr>`;
+      bodyHtml += `<td class="orc-total-cat" id="admin-orc-tc-${catId}" style="text-align:right">${orcFmt(totalCat)}</td>`;
+      // Classificação
+      bodyHtml += `<td style="text-align:center;padding:.3rem .4rem">
+        <select class="orc-class-select" data-cat="${catEsc}" data-field="classificacao"
+          onchange="adminOrcOnClassChange(this)"
+          style="font-size:.65rem;background:var(--navy3);border:1px solid var(--border);color:var(--white);padding:.2rem .3rem;width:100%;cursor:pointer">
+          <option value="">—</option>
+          <option value="essencial"${cls.classificacao==='essencial'?' selected':''}>Essencial</option>
+          <option value="nao_essencial"${cls.classificacao==='nao_essencial'?' selected':''}>Não essencial</option>
+          <option value="investimento"${cls.classificacao==='investimento'?' selected':''}>Investimento</option>
+        </select>
+      </td>`;
+      // Frequência
+      bodyHtml += `<td style="text-align:center;padding:.3rem .4rem">
+        <select class="orc-class-select" data-cat="${catEsc}" data-field="frequencia"
+          onchange="adminOrcOnClassChange(this)"
+          style="font-size:.65rem;background:var(--navy3);border:1px solid var(--border);color:var(--white);padding:.2rem .3rem;width:100%;cursor:pointer">
+          <option value="">—</option>
+          <option value="mensal"${cls.frequencia==='mensal'?' selected':''}>Mensal</option>
+          <option value="eventual"${cls.frequencia==='eventual'?' selected':''}>Eventual</option>
+        </select>
+      </td></tr>`;
     });
   });
 
@@ -5191,7 +5234,7 @@ function adminOrcRenderTabela(){
     const tot=recLabels.reduce((a,lb)=>a+(adminOrcDados[orcRecKey(lb,mes)]||0),0); totRecAnual+=tot;
     tfHtml += `<td class="${par}" id="admin-orc-tr-${mes}" style="text-align:center;color:var(--green)">${orcFmt(tot)}</td>`;
   });
-  tfHtml += `<td style="text-align:right;color:var(--green)">${orcFmt(totRecAnual)}</td></tr>`;
+  tfHtml += `<td style="text-align:right;color:var(--green)">${orcFmt(totRecAnual)}</td><td colspan="2"></td></tr>`;
 
   tfHtml += '<tr class="orc-total-row"><td>Total Despesas</td>';
   let totDespAnual=0;
@@ -5201,8 +5244,19 @@ function adminOrcRenderTabela(){
     totDespAnual+=tot;
     tfHtml += `<td class="orc-total-mes${par}" id="admin-orc-tm-${mes}" style="text-align:center">${orcFmt(tot)}</td>`;
   });
-  tfHtml += `<td class="orc-total-mes" style="text-align:right">${orcFmt(totDespAnual)}</td></tr>`;
+  tfHtml += `<td class="orc-total-mes" style="text-align:right">${orcFmt(totDespAnual)}</td><td colspan="2"></td></tr>`;
   tfoot.innerHTML = tfHtml;
+}
+
+function adminOrcOnClassChange(sel){
+  const cat = sel.dataset.cat;
+  const field = sel.dataset.field;
+  if(!adminOrcClass[cat]) adminOrcClass[cat] = {classificacao:'', frequencia:''};
+  adminOrcClass[cat][field] = sel.value;
+  if(!adminOrcAlterado){
+    adminOrcAlterado = true;
+    document.getElementById('admin-orc-save-btn').style.display='inline-flex';
+  }
 }
 
 function adminOrcOnInput(el, recLabel){
@@ -5264,7 +5318,12 @@ async function adminOrcSalvar(){
       const itens=[...g.itens,...(gDados.extras||[])];
       if(itens.includes(cat)) grupo=g.label;
     });
-    return { user_id:adminClienteAtualId, ano:adminOrcAno, mes, categoria:cat, grupo, previsto:val };
+    const cls = (!isRec && adminOrcClass[cat]) || {};
+    return {
+      user_id:adminClienteAtualId, ano:adminOrcAno, mes, categoria:cat, grupo, previsto:val,
+      classificacao: cls.classificacao||null,
+      frequencia: cls.frequencia||null
+    };
   });
 
   await sb.from('orcamento').delete().eq('user_id', adminClienteAtualId).eq('ano', adminOrcAno);
@@ -5345,8 +5404,10 @@ async function adminCronoExcluir(id){
 // ── ADMIN: PLANO DE AÇÃO ──
 function adminPlanoToggleMeta(){
   const isMeta = document.getElementById('plano-form-tipo').value === 'meta';
-  document.getElementById('plano-form-meta-wrap').style.display = isMeta ? 'block' : 'none';
-  document.getElementById('plano-form-progresso-wrap').style.display = isMeta ? 'block' : 'none';
+  document.getElementById('plano-form-meta-wrap').style.display      = isMeta ? 'block' : 'none';
+  document.getElementById('plano-form-progresso-wrap').style.display  = isMeta ? 'block' : 'none';
+  document.getElementById('plano-smart-bloco').style.display          = isMeta ? 'block' : 'none';
+  document.getElementById('plano-obs-bloco').style.display            = isMeta ? 'none'  : 'block';
 }
 
 async function adminPlanoCarregar(){
@@ -5404,7 +5465,12 @@ function adminPlanoEditar(id){
   document.getElementById('plano-form-mensuravel').value = item.smart_mensuravel||'';
   document.getElementById('plano-form-atingivel').value = item.smart_atingivel||'';
   document.getElementById('plano-form-relevante').value = item.smart_relevante||'';
-  document.getElementById('plano-form-desc').value = item.descricao||'';
+  // Preenche campo de descrição no bloco correto
+  if(item.tipo==='meta'){
+    document.getElementById('plano-form-desc').value = item.descricao||'';
+  } else {
+    document.getElementById('plano-form-obs-acao').value = item.descricao||'';
+  }
   // Muda botão para "Salvar edição"
   const btn = document.querySelector('#adminp-plano .btn-diag-save');
   btn.textContent = 'Salvar edição';
@@ -5416,15 +5482,17 @@ async function adminPlanoSalvarEdicao(id){
   const tipo = document.getElementById('plano-form-tipo').value;
   const titulo = document.getElementById('plano-form-titulo').value.trim();
   if(!titulo){ alert('Preencha o título.'); return; }
+  const descricao = tipo==='meta'
+    ? document.getElementById('plano-form-desc').value.trim()||null
+    : document.getElementById('plano-form-obs-acao').value.trim()||null;
 
   const payload = {
-    tipo, titulo,
+    tipo, titulo, descricao,
     data_alvo: document.getElementById('plano-form-data-alvo').value||null,
-    descricao: document.getElementById('plano-form-desc').value.trim()||null,
-    smart_especifico: document.getElementById('plano-form-especifico').value.trim()||null,
-    smart_mensuravel: document.getElementById('plano-form-mensuravel').value.trim()||null,
-    smart_atingivel: document.getElementById('plano-form-atingivel').value.trim()||null,
-    smart_relevante: document.getElementById('plano-form-relevante').value.trim()||null,
+    smart_especifico: tipo==='meta' ? document.getElementById('plano-form-especifico').value.trim()||null : null,
+    smart_mensuravel: tipo==='meta' ? document.getElementById('plano-form-mensuravel').value.trim()||null : null,
+    smart_atingivel:  tipo==='meta' ? document.getElementById('plano-form-atingivel').value.trim()||null  : null,
+    smart_relevante:  tipo==='meta' ? document.getElementById('plano-form-relevante').value.trim()||null  : null,
     meta_valor: tipo==='meta' ? Number(document.getElementById('plano-form-meta-valor').value)||null : null,
     progresso_valor: tipo==='meta' ? Number(document.getElementById('plano-form-progresso-valor').value)||0 : 0
   };
@@ -5437,8 +5505,9 @@ async function adminPlanoSalvarEdicao(id){
 }
 
 function adminPlanoLimparForm(){
-  ['plano-form-titulo','plano-form-desc','plano-form-meta-valor','plano-form-progresso-valor',
-   'plano-form-especifico','plano-form-mensuravel','plano-form-atingivel','plano-form-relevante','plano-form-data-alvo']
+  ['plano-form-titulo','plano-form-desc','plano-form-obs-acao','plano-form-meta-valor',
+   'plano-form-progresso-valor','plano-form-especifico','plano-form-mensuravel',
+   'plano-form-atingivel','plano-form-relevante','plano-form-data-alvo']
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const btn = document.querySelector('#adminp-plano .btn-diag-save');
   btn.textContent='Adicionar ao plano';
@@ -5449,15 +5518,17 @@ async function adminPlanoSalvar(){
   const tipo = document.getElementById('plano-form-tipo').value;
   const titulo = document.getElementById('plano-form-titulo').value.trim();
   if(!titulo){ alert('Preencha o título.'); return; }
+  const descricao = tipo==='meta'
+    ? document.getElementById('plano-form-desc').value.trim()||null
+    : document.getElementById('plano-form-obs-acao').value.trim()||null;
 
   const payload = {
-    user_id: adminClienteAtualId, tipo, titulo,
+    user_id: adminClienteAtualId, tipo, titulo, descricao,
     data_alvo: document.getElementById('plano-form-data-alvo').value||null,
-    descricao: document.getElementById('plano-form-desc').value.trim()||null,
-    smart_especifico: document.getElementById('plano-form-especifico').value.trim()||null,
-    smart_mensuravel: document.getElementById('plano-form-mensuravel').value.trim()||null,
-    smart_atingivel: document.getElementById('plano-form-atingivel').value.trim()||null,
-    smart_relevante: document.getElementById('plano-form-relevante').value.trim()||null,
+    smart_especifico: tipo==='meta' ? document.getElementById('plano-form-especifico').value.trim()||null : null,
+    smart_mensuravel: tipo==='meta' ? document.getElementById('plano-form-mensuravel').value.trim()||null : null,
+    smart_atingivel:  tipo==='meta' ? document.getElementById('plano-form-atingivel').value.trim()||null  : null,
+    smart_relevante:  tipo==='meta' ? document.getElementById('plano-form-relevante').value.trim()||null  : null,
     meta_valor: tipo==='meta' ? Number(document.getElementById('plano-form-meta-valor').value)||null : null,
     progresso_valor: tipo==='meta' ? Number(document.getElementById('plano-form-progresso-valor').value)||0 : 0
   };
