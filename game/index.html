@@ -2375,11 +2375,95 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 /* ── Três painéis da partida ── */
 .jogo-tres-paineis {
   display: grid;
-  grid-template-columns: 190px minmax(0, 420px) 190px 260px;
-  gap: 10px;
+  grid-template-columns: 200px 175px minmax(0, 400px) 175px 240px;
+  gap: 8px;
   margin-bottom: 12px;
   align-items: start;
 }
+
+/* ── Painel de Stats ao vivo ── */
+.jogo-painel-stats {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 10px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.stats-titulo {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.stats-posse-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stats-posse-barra {
+  height: 10px;
+  background: var(--bg3);
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+}
+.stats-posse-man { background: #fb9; border-radius: 5px 0 0 5px; transition: width .5s; }
+.stats-posse-vis { background: #9be; border-radius: 0 5px 5px 0; transition: width .5s; }
+.stats-posse-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+}
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+.stats-row-label { color: var(--text2); font-size: 10px; text-align: center; }
+.stats-row-val-man { text-align: left; font-weight: 700; }
+.stats-row-val-vis { text-align: right; font-weight: 700; }
+.stats-barra-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stats-barra-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 10px 1fr 24px;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+}
+.stats-barra-man-val { text-align: right; font-weight:700; color:#fb9; }
+.stats-barra-vis-val { text-align: left; font-weight:700; color:#9be; }
+.stats-barra-bg { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; position: relative; }
+.stats-barra-fill-man { height:100%; background:#fb9; position:absolute; right:0; border-radius:3px; transition:width .4s; }
+.stats-barra-fill-vis { height:100%; background:#9be; position:absolute; left:0; border-radius:3px; transition:width .4s; }
+
+.stats-eventos { display: flex; flex-direction: column; gap: 4px; }
+.stats-evento-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 4px 6px;
+  background: var(--bg3);
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.stats-evento-min { color: var(--accent); font-weight: 700; min-width: 22px; font-size: 10px; }
+.stats-evento-txt { color: var(--text); flex: 1; }
 
 .jogo-painel-jogadores {
   background: var(--bg2);
@@ -4789,6 +4873,8 @@ function renderTelaJogo(rodadaIdx) {
     lances: [], lancesExibidos: [], golsM: 0, golsV: 0,
     golsExibidosM: 0, golsExibidosV: 0,
     chutesM: 0, chutesV: 0,
+    chutesGolM: 0, chutesGolV: 0,
+    posseMandante: 50,
     subsM: 0, subsV: 0,
     paradasM: 0, paradasV: 0,
     saidosM: [], saidosV: [],
@@ -4800,6 +4886,71 @@ function renderTelaJogo(rodadaIdx) {
   renderJogoHTML(fMandante, fVisitante, ev, rodada);
   // Bloquear menu enquanto a partida estiver ativa
   if (typeof bloquearMenuPartida !== 'undefined') bloquearMenuPartida();
+}
+
+function _renderPainelStats() {
+  if (!jogoAtivo) return '<div class="jogo-painel-stats"></div>';
+  var possM = jogoAtivo.posseMandante || 50;
+  var possV = 100 - possM;
+  var cM = jogoAtivo.chutesM || 0;
+  var cV = jogoAtivo.chutesV || 0;
+  var cgM = jogoAtivo.chutesGolM || 0;
+  var cgV = jogoAtivo.chutesGolV || 0;
+  var maxC = Math.max(cM + cV, 1);
+
+  var html = '<div class="jogo-painel-stats" id="painel-stats">';
+  html += '<div class="stats-titulo">📊 Estatísticas</div>';
+
+  // Posse de bola — gráfico de barra
+  html += '<div class="stats-posse-wrap">';
+  html += '<div style="font-size:10px;color:var(--text2);text-align:center;margin-bottom:2px">Posse de bola</div>';
+  html += '<div class="stats-posse-barra">';
+  html += '<div class="stats-posse-man" id="barra-posse-man" style="width:'+possM+'%"></div>';
+  html += '<div class="stats-posse-vis" id="barra-posse-vis" style="width:'+possV+'%"></div>';
+  html += '</div>';
+  html += '<div class="stats-posse-labels">';
+  html += '<span id="posse-val-man" style="color:#fb9">'+possM+'%</span>';
+  html += '<span id="posse-val-vis" style="color:#9be">'+possV+'%</span>';
+  html += '</div></div>';
+
+  // Chutes
+  html += '<div class="stats-barra-wrap">';
+  html += _statsBarraRow('Chutes', cM, cV, maxC);
+  html += _statsBarraRow('No gol', cgM, cgV, Math.max(cM,cV,1));
+  html += _statsBarraRow('Gols', jogoAtivo.golsM||0, jogoAtivo.golsV||0, Math.max(jogoAtivo.golsM||0, jogoAtivo.golsV||0, 1));
+  html += '</div>';
+
+  // Eventos importantes (gols, cartões, lesões)
+  var eventos = (jogoAtivo.lancesExibidos||[]).filter(function(l){
+    return l.tipo==='gol'||l.tipo==='amarelo'||l.tipo==='vermelho'||l.tipo==='lesao';
+  });
+  if (eventos.length > 0) {
+    html += '<div class="stats-titulo" style="margin-top:4px">Eventos</div>';
+    html += '<div class="stats-eventos">';
+    eventos.forEach(function(l) {
+      var icone = l.tipo==='gol'?'⚽':l.tipo==='amarelo'?'🟨':l.tipo==='vermelho'?'🟥':'🤕';
+      html += '<div class="stats-evento-item">';
+      html += '<span class="stats-evento-min">'+l.minuto+"'</span>";
+      html += '<span class="stats-evento-txt">'+icone+' '+l.texto+'</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function _statsBarraRow(label, valM, valV, max) {
+  var pM = max > 0 ? Math.round((valM/max)*100) : 0;
+  var pV = max > 0 ? Math.round((valV/max)*100) : 0;
+  return '<div class="stats-barra-row">'+
+    '<span class="stats-barra-man-val">'+valM+'</span>'+
+    '<div class="stats-barra-bg" style="position:relative"><div class="stats-barra-fill-man" style="width:'+pM+'%"></div></div>'+
+    '<span style="font-size:9px;color:var(--text2);text-align:center">'+label+'</span>'+
+    '<div class="stats-barra-bg" style="position:relative"><div class="stats-barra-fill-vis" style="width:'+pV+'%"></div></div>'+
+    '<span class="stats-barra-vis-val">'+valV+'</span>'+
+    '</div>';
 }
 
 function _renderListaJogadores(esc, corTitulo, lado) {
@@ -4881,15 +5032,21 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   // 3 colunas: visitante | campo+feed | mandante
   html += '<div class="jogo-tres-paineis">';
 
+  // 1ª coluna: painel de stats
+  html += _renderPainelStats();
+
+  // 2ª coluna: visitante
   html += '<div class="jogo-painel-jogadores" id="lista-vis">' + _renderListaJogadores(escV, '#9be', 'vis') + '</div>';
 
+  // 3ª coluna: campo
   html += '<div class="jogo-painel-centro">';
   html += '<div id="campo-wrap">' + renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) + '</div>';
   html += '</div>';
 
+  // 4ª coluna: mandante
   html += '<div class="jogo-painel-jogadores" id="lista-man">' + _renderListaJogadores(escM, '#fb9', 'man') + '</div>';
 
-  // 4ª coluna: feed de lances
+  // 5ª coluna: feed de lances
   html += '<div class="jogo-painel-feed"><div class="lances-feed-titulo">⚡ Lances</div>';
   html += '<div class="lances-lista" id="lances-lista"><div class="lance-vazio">Aguardando início...</div></div>';
   html += '</div>';
@@ -5231,6 +5388,31 @@ function adicionarLanceFeed(lance) {
   if (lance.tipo === "substituicao") {
     atualizarListasLaterais();
   }
+  // Atualizar painel de stats (gols, cartões, etc)
+  if (lance.tipo==='gol'||lance.tipo==='amarelo'||lance.tipo==='vermelho') {
+    atualizarPainelStats();
+  }
+}
+
+function atualizarPainelStats() {
+  var el = document.getElementById("painel-stats");
+  if (!el) return;
+  el.outerHTML = _renderPainelStats();
+  // outerHTML reconstrói o elemento — reselecionar e atualizar posse
+  var novoEl = document.getElementById("painel-stats");
+  if (novoEl) _atualizarPosseDOM();
+}
+
+function _atualizarPosseDOM() {
+  var possM = jogoAtivo ? (jogoAtivo.posseMandante||50) : 50;
+  var bm = document.getElementById("barra-posse-man");
+  var bv = document.getElementById("barra-posse-vis");
+  var vm = document.getElementById("posse-val-man");
+  var vv = document.getElementById("posse-val-vis");
+  if (bm) bm.style.width = possM + "%";
+  if (bv) bv.style.width = (100-possM) + "%";
+  if (vm) vm.textContent = possM + "%";
+  if (vv) vv.textContent = (100-possM) + "%";
 }
 
 function atualizarListasLaterais() {
@@ -5576,8 +5758,8 @@ function renderTelaJogoAtivo() {
   html += '<div class="stat-vivo"><span id="sv-subs-m">' + (jogoAtivo.subsM||0) + '/5</span><span>Subs</span><span id="sv-subs-v">' + (jogoAtivo.subsV||0) + '/5</span></div>';
   html += '</div>';
 
-  // Mesmas 4 colunas do renderJogoHTML
   html += '<div class="jogo-tres-paineis">';
+  html += _renderPainelStats();
   html += '<div class="jogo-painel-jogadores" id="lista-vis">' + _renderListaJogadores(escV, '#9be', 'vis') + '</div>';
 
   html += '<div class="jogo-painel-centro">';
@@ -5668,9 +5850,10 @@ function retomarPartidaTimer() {
     try {
       var fM=(jogoAtivo.resultado&&jogoAtivo.resultado.forcaMandante)?jogoAtivo.resultado.forcaMandante.forca:50;
       var fV=(jogoAtivo.resultado&&jogoAtivo.resultado.forcaVisitante)?jogoAtivo.resultado.forcaVisitante.forca:50;
-      var posseM=Math.max(30,Math.min(70,Math.round(50+(fM-fV)*0.2+(Math.random()*4-2))));
+      jogoAtivo.posseMandante=Math.max(30,Math.min(70,Math.round(50+(fM-fV)*0.2+(Math.random()*4-2))));
       var spm=document.getElementById("sv-posse-m"),spv=document.getElementById("sv-posse-v");
-      if(spm) spm.textContent=posseM+"%"; if(spv) spv.textContent=(100-posseM)+"%";
+      if(spm) spm.textContent=jogoAtivo.posseMandante+"%"; if(spv) spv.textContent=(100-jogoAtivo.posseMandante)+"%";
+      _atualizarPosseDOM();
     } catch(e) {}
 
     if(minAtual%10===0){try{var cw=document.getElementById("campo-wrap");if(cw)cw.innerHTML=renderCampoTatico(jogoAtivo.escMandante,jogoAtivo.escVisitante,jogoAtivo.mandante,jogoAtivo.visitante,jogoAtivo.tecMandante,jogoAtivo.tecVisitante);}catch(e){}}
@@ -9341,8 +9524,8 @@ function renderElenco() {
 
     // Status
     var statusHtml = '';
-    if (j.a_venda) statusHtml = '<span title="À venda" class="status-dot venda">💰</span>';
-    else if (j.para_emprestimo) statusHtml = '<span title="Para empréstimo" class="status-dot emprestimo">🔄</span>';
+    if (j.a_venda) statusHtml += '<span title="À venda" class="status-dot venda">💰</span>';
+    if (j.para_emprestimo) statusHtml += '<span title="Para empréstimo" class="status-dot emprestimo">🔄</span>';
 
     html += '<tr class="elenco-linha-clicavel" onclick="abrirFichaJogador(\'' + j.id + '\')" style="background:' + corLinha + ';border-left:3px solid ' + bordaEsq + '">';
     html += '<td>' + posLabel + '</td>';
@@ -10119,7 +10302,11 @@ function abrirAcoesJogador(jogadorId) {
   html += '<div class="proposta-info">';
   html += '<div class="tstat"><span class="tstat-label">Valor de mercado</span><span class="tstat-val">' + formatarDinheiro(j.valor_mercado||0) + '</span></div>';
   html += '<div class="tstat"><span class="tstat-label">Salário mensal</span><span class="tstat-val">' + formatarDinheiro(j.salario||0) + '</span></div>';
-  html += '<div class="tstat"><span class="tstat-label">Status atual</span><span class="tstat-val">' + (j.a_venda ? '🏷 À venda' : j.para_emprestimo ? '🔄 Para empréstimo' : '✅ No elenco') + '</span></div>';
+  var _statusArr = [];
+  if (j.a_venda) _statusArr.push('🏷 À venda');
+  if (j.para_emprestimo) _statusArr.push('🔄 Para empréstimo');
+  if (_statusArr.length === 0) _statusArr.push('✅ No elenco');
+  html += '<div class="tstat"><span class="tstat-label">Status atual</span><span class="tstat-val">' + _statusArr.join(' · ') + '</span></div>';
   html += '</div>';
   html += '</div>';
 
