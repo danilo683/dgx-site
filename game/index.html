@@ -4798,6 +4798,8 @@ function renderTelaJogo(rodadaIdx) {
   _partidaPausada = false;
 
   renderJogoHTML(fMandante, fVisitante, ev, rodada);
+  // Bloquear menu enquanto a partida estiver ativa
+  if (typeof bloquearMenuPartida !== 'undefined') bloquearMenuPartida();
 }
 
 function _renderListaJogadores(esc, corTitulo, lado) {
@@ -5310,6 +5312,7 @@ function finalizarPartida() {
   });
 
   salvarJogo();
+  if (typeof desbloquearMenuPartida !== 'undefined') desbloquearMenuPartida();
   renderTelaRodadaCompleta(meuEsc, minhasNotas, r, euMandante, jogoAtivo.rodadaIdx);
 }
 
@@ -9178,36 +9181,31 @@ function iniciarJogo() {
   }
 }
 
+function bloquearMenuPartida() {
+  var nav = document.getElementById("sidebar-nav");
+  if (!nav) return;
+  nav.querySelectorAll("button").forEach(function(b) {
+    b.disabled = true;
+    b.style.opacity = "0.35";
+    b.style.cursor = "not-allowed";
+    b.title = "Encerre a partida para navegar";
+  });
+}
+
+function desbloquearMenuPartida() {
+  var nav = document.getElementById("sidebar-nav");
+  if (!nav) return;
+  nav.querySelectorAll("button").forEach(function(b) {
+    b.disabled = false;
+    b.style.opacity = "";
+    b.style.cursor = "";
+    b.title = "";
+  });
+}
+
 function navegarPara(aba) {
-  // Enquanto há partida em andamento, BLOQUEAR navegação
-  // O único escape é voltarAoDashboard() após o jogo terminar
-  if (jogoAtivo && !jogoAtivo.resultado) {
-    // Pausar o timer
-    pausarPartida();
-
-    var estadoBtn, estadoMsg;
-    if (!jogoAtivo.iniciado) {
-      // Partida ainda não começou — mostrar botão Iniciar
-      estadoBtn = '<button class="btn-primario" style="font-size:16px;padding:14px 32px" onclick="voltarParaPartida()">▶ Ir para a partida</button>';
-      estadoMsg = 'Sua partida está aguardando início.';
-    } else {
-      // Partida em andamento — pausada
-      estadoBtn = '<button class="btn-primario" style="font-size:16px;padding:14px 32px" onclick="voltarParaPartida()">▶ Retomar partida</button>';
-      estadoMsg = (jogoAtivo.mandante ? jogoAtivo.mandante.nome : "?") + ' ' +
-        (jogoAtivo.golsExibidosM||0) + ' – ' + (jogoAtivo.golsExibidosV||0) + ' ' +
-        (jogoAtivo.visitante ? jogoAtivo.visitante.nome : "?") + ' · ' +
-        (jogoAtivo.minAtual||0) + "'" ;
-    }
-
-    document.getElementById("main").innerHTML =
-      '<div style="text-align:center;padding:60px 20px">' +
-      '<div style="font-size:48px;margin-bottom:16px">⏸</div>' +
-      '<div style="font-size:20px;font-weight:700;margin-bottom:8px">Partida pausada</div>' +
-      '<div style="color:var(--text2);margin-bottom:24px">' + estadoMsg + '</div>' +
-      estadoBtn +
-      '</div>';
-    return;
-  }
+  // Menu bloqueado durante partida — ignorar cliques
+  if (jogoAtivo && !jogoAtivo.resultado) return;
 
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
   var btn = document.querySelector('#sidebar-nav button[data-aba="' + aba + '"]');
@@ -9215,26 +9213,6 @@ function navegarPara(aba) {
   var abas = { dashboard: renderDashboard, inbox: renderInbox, torneios: renderTorneiosHub, elenco: renderElenco, mercado: renderMercado, financeiro: renderFinanceiro, receitas: renderReceitas, manager: renderManager, staff: renderStaff, infraestrutura: renderInfraestrutura };
   if (abas[aba]) abas[aba]();
 }
-
-// ── Aba: Elenco ──
-var elencoOrdem = { col: 'posicao', asc: true };
-
-// Cores de fundo por posição (rgba para não sobrescrever hover)
-var COR_LINHA_POS = {
-  GOL: 'rgba(139,92,246,0.25)',   // roxo
-  LD:  'rgba(74,222,128,0.18)',   // verde claro
-  LE:  'rgba(74,222,128,0.18)',
-  ZAG: 'rgba(34,197,94,0.25)',    // verde forte
-  VOL: 'rgba(253,224,71,0.20)',   // amarelo claro
-  MEI: 'rgba(234,179,8,0.25)',    // amarelo escuro
-  ATA: 'rgba(239,68,68,0.22)'    // vermelho
-};
-
-var COR_BORDA_POS = {
-  GOL: '#8b5cf6', LD: '#4ade80', LE: '#4ade80',
-  ZAG: '#22c55e', VOL: '#fde047', MEI: '#eab308', ATA: '#ef4444'
-};
-
 function renderElenco() {
   var clube   = estado.meuClube;
   var tecnico = estado.meuTecnico;
@@ -10692,6 +10670,7 @@ function renderTodasPaulistas() {
 
 // Voltar ao dashboard após partida
 function voltarAoDashboard() {
+  desbloquearMenuPartida();
   try {
     // Processar resultado antes de zerar jogoAtivo
     if (jogoAtivo) {
