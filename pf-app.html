@@ -470,6 +470,51 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ MÉTODO 50/30/20 ════════ */
+.metodo-explicacao{display:flex;align-items:stretch;gap:0;background:var(--navy2);border:1px solid var(--border);margin-bottom:2rem}
+.metodo-exp-item{flex:1;padding:1.4rem 1.6rem;text-align:center}
+.metodo-exp-item.essencial{border-left:3px solid #e05252}
+.metodo-exp-item.nao-essencial{border-left:3px solid #f0c93a}
+.metodo-exp-item.investimento{border-left:3px solid #4ec98a}
+.metodo-exp-sep{width:1px;background:var(--border)}
+.metodo-exp-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;line-height:1}
+.metodo-exp-item.essencial .metodo-exp-num{color:#e05252}
+.metodo-exp-item.nao-essencial .metodo-exp-num{color:#f0c93a}
+.metodo-exp-item.investimento .metodo-exp-num{color:#4ec98a}
+.metodo-exp-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--white);margin:.4rem 0 .3rem}
+.metodo-exp-desc{font-size:.72rem;color:var(--gray);line-height:1.5}
+
+.metodo-pizzas{display:flex;align-items:center;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:2rem}
+.metodo-pizza-col{flex:1;min-width:240px;max-width:320px;text-align:center;background:var(--navy2);border:1px solid var(--border);padding:1.6rem}
+.metodo-pizza-titulo{font-size:.8rem;font-weight:700;color:var(--white);margin-bottom:1rem;letter-spacing:.04em}
+.metodo-pizza-vs{font-size:1.4rem;font-weight:700;color:var(--gray2);flex-shrink:0}
+.metodo-legenda{margin-top:1rem;display:flex;flex-direction:column;gap:.4rem}
+.metodo-legenda-item{display:flex;align-items:center;gap:.6rem;font-size:.74rem;color:var(--gray);justify-content:center}
+.metodo-leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.metodo-leg-dot.essencial{background:#e05252}
+.metodo-leg-dot.nao-essencial{background:#f0c93a}
+.metodo-leg-dot.investimento{background:#4ec98a}
+
+.metodo-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:700px){.metodo-cards{grid-template-columns:1fr}}
+.metodo-card{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.4rem}
+.metodo-card-label{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem}
+.metodo-card-linha{display:flex;align-items:center;justify-content:space-between;margin:.3rem 0}
+.metodo-card-desc{font-size:.72rem;color:var(--gray2)}
+.metodo-card-val{font-size:.9rem;font-weight:700}
+.metodo-card-diff{font-size:.72rem;font-weight:600;padding:.1rem .5rem;border-radius:10px}
+.metodo-card-diff.ok{background:rgba(78,201,138,0.12);color:var(--green)}
+.metodo-card-diff.alto{background:rgba(224,82,82,0.12);color:var(--red)}
+.metodo-card-diff.baixo{background:rgba(240,201,58,0.12);color:#f0c93a}
+
+.metodo-diagnostico{background:var(--navy2);border:1px solid var(--border);border-left:3px solid var(--gold);padding:1.2rem 1.6rem}
+.metodo-diag-titulo{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.metodo-diag-item{font-size:.8rem;color:var(--gray);padding:.35rem 0;border-bottom:1px solid var(--border2);line-height:1.5}
+.metodo-diag-item:last-child{border-bottom:none}
+.metodo-diag-item strong{color:var(--white)}
+
+@media(max-width:700px){.metodo-explicacao{flex-direction:column}.metodo-exp-sep{width:100%;height:1px}}
+
 /* ════════ ALERTAS INÍCIO ════════ */
 .inicio-alertas-card{
   background:rgba(240,201,58,0.06);border:1px solid rgba(240,201,58,0.25);
@@ -1278,6 +1323,13 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       </button>
 
       <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label">Método</div>
+      <button class="menu-item" onclick="irPara('metodo-5030', this)">
+        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></span>
+        Regra 50/30/20
+      </button>
+
+      <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">Crescimento</div>
 
       <button class="menu-item" onclick="irPara('metas', this)">
@@ -1670,6 +1722,73 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <h3>Gestão de dívidas</h3>
           <p>Cadastre suas dívidas, acompanhe o saldo devedor, simule estratégias de quitação e visualize o progresso da sua jornada de desendividamento.</p>
           <span class="em-breve-tag">Em construção</span>
+        </div>
+      </div>
+
+      <!-- ── MÉTODO: REGRA 50/30/20 ── -->
+      <div class="tela" id="tela-metodo-5030">
+        <div class="tela-header">
+          <h2>Regra 50/30/20</h2>
+          <p>Compare seu orçamento com o método ideal de distribuição de renda</p>
+        </div>
+
+        <div class="orc-loading" id="metodo-loading">Carregando dados...</div>
+        <div id="metodo-content" style="display:none">
+
+          <!-- Explicação -->
+          <div class="metodo-explicacao">
+            <div class="metodo-exp-item essencial">
+              <div class="metodo-exp-num">50%</div>
+              <div class="metodo-exp-label">Essenciais</div>
+              <div class="metodo-exp-desc">Moradia, alimentação, transporte, saúde — o que você não pode deixar de pagar</div>
+            </div>
+            <div class="metodo-exp-sep"></div>
+            <div class="metodo-exp-item nao-essencial">
+              <div class="metodo-exp-num">30%</div>
+              <div class="metodo-exp-label">Não essenciais</div>
+              <div class="metodo-exp-desc">Lazer, restaurantes, assinaturas, compras — o que melhora sua qualidade de vida</div>
+            </div>
+            <div class="metodo-exp-sep"></div>
+            <div class="metodo-exp-item investimento">
+              <div class="metodo-exp-num">20%</div>
+              <div class="metodo-exp-label">Investimentos</div>
+              <div class="metodo-exp-desc">Reserva de emergência, aposentadoria, objetivos financeiros de longo prazo</div>
+            </div>
+          </div>
+
+          <!-- Pizzas comparativas -->
+          <div class="metodo-pizzas">
+            <!-- Pizza ideal -->
+            <div class="metodo-pizza-col">
+              <div class="metodo-pizza-titulo">Distribuição ideal</div>
+              <div id="metodo-pizza-ideal"></div>
+              <div class="metodo-legenda">
+                <div class="metodo-legenda-item"><div class="metodo-leg-dot essencial"></div><span>50% Essenciais</span></div>
+                <div class="metodo-legenda-item"><div class="metodo-leg-dot nao-essencial"></div><span>30% Não essenciais</span></div>
+                <div class="metodo-legenda-item"><div class="metodo-leg-dot investimento"></div><span>20% Investimentos</span></div>
+              </div>
+            </div>
+
+            <!-- Divisor -->
+            <div class="metodo-pizza-vs">VS</div>
+
+            <!-- Pizza real -->
+            <div class="metodo-pizza-col">
+              <div class="metodo-pizza-titulo">Sua distribuição atual</div>
+              <div id="metodo-pizza-real"></div>
+              <div id="metodo-legenda-real"></div>
+              <div class="plano-vazio" id="metodo-sem-dados" style="display:none;margin-top:.5rem">
+                Classifique suas categorias no Orçamento para ver aqui.
+              </div>
+            </div>
+          </div>
+
+          <!-- Cards comparativos -->
+          <div class="metodo-cards" id="metodo-cards"></div>
+
+          <!-- Diagnóstico -->
+          <div class="metodo-diagnostico" id="metodo-diagnostico"></div>
+
         </div>
       </div>
 
@@ -3368,6 +3487,7 @@ async function irPara(tela, btn){
   if(tela==='investimentos') invCarregarTudo();
   if(tela==='conquistas') conqCarregar();
   if(tela==='metas') metasCarregar();
+  if(tela==='metodo-5030') metodoCarregar();
   if(tela==='patrimonio') patCarregar();
   if(tela==='wishlist') wishCarregar();
 }
@@ -3448,6 +3568,159 @@ function inicioJornadaClick(i){
 // ══════════════════════════════════════════════
 // PLANO DE AÇÃO
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// MÉTODO 50/30/20
+// ══════════════════════════════════════════════
+async function metodoCarregar(){
+  document.getElementById('metodo-loading').style.display='block';
+  document.getElementById('metodo-content').style.display='none';
+
+  const anoAtual = new Date().getFullYear();
+  const { data } = await sb.from('orcamento')
+    .select('categoria,classificacao,previsto,grupo')
+    .eq('user_id', usuarioAtual.id)
+    .eq('ano', anoAtual)
+    .neq('grupo','__receitas');
+
+  document.getElementById('metodo-loading').style.display='none';
+  document.getElementById('metodo-content').style.display='block';
+
+  // Calcular totais por classificação (anual)
+  const totais = { essencial:0, nao_essencial:0, investimento:0, total:0 };
+  (data||[]).forEach(r=>{
+    const val = Number(r.previsto||0);
+    totais.total += val;
+    if(r.classificacao==='essencial')     totais.essencial     += val;
+    else if(r.classificacao==='nao_essencial') totais.nao_essencial += val;
+    else if(r.classificacao==='investimento')  totais.investimento  += val;
+  });
+
+  // Receitas mensais médias para base de cálculo
+  const { data: recData } = await sb.from('orcamento')
+    .select('previsto').eq('user_id', usuarioAtual.id).eq('ano', anoAtual).eq('grupo','__receitas');
+  const totalReceitaAnual = (recData||[]).reduce((a,r)=>a+Number(r.previsto||0),0);
+  const receitaMensal = totalReceitaAnual/12||1;
+  const despesaMensal = totais.total/12||1;
+  const baseCalculo   = Math.max(receitaMensal, despesaMensal);
+
+  // Percentuais reais
+  const pctEss = baseCalculo ? totais.essencial/12/baseCalculo : 0;
+  const pctNao = baseCalculo ? totais.nao_essencial/12/baseCalculo : 0;
+  const pctInv = baseCalculo ? totais.investimento/12/baseCalculo : 0;
+
+  const temClassificacao = totais.essencial+totais.nao_essencial+totais.investimento > 0;
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const pctFmt = v=>(v*100).toFixed(1)+'%';
+
+  // Pizza ideal
+  document.getElementById('metodo-pizza-ideal').innerHTML = metodoPizzaSVG([
+    { val:50, cor:'#e05252', label:'50%' },
+    { val:30, cor:'#f0c93a', label:'30%' },
+    { val:20, cor:'#4ec98a', label:'20%' },
+  ], '50/30/20');
+
+  // Pizza real
+  if(!temClassificacao){
+    document.getElementById('metodo-pizza-real').innerHTML = '';
+    document.getElementById('metodo-sem-dados').style.display='block';
+    document.getElementById('metodo-legenda-real').innerHTML='';
+  } else {
+    document.getElementById('metodo-sem-dados').style.display='none';
+    const semClass = 1 - pctEss - pctNao - pctInv;
+    const itensReal = [
+      { val:pctEss*100, cor:'#e05252', label:`${pctFmt(pctEss)} Essenciais` },
+      { val:pctNao*100, cor:'#f0c93a', label:`${pctFmt(pctNao)} Não essenciais` },
+      { val:pctInv*100, cor:'#4ec98a', label:`${pctFmt(pctInv)} Investimentos` },
+    ];
+    if(semClass>0.01) itensReal.push({ val:semClass*100, cor:'#4b5563', label:`${pctFmt(semClass)} Sem classe` });
+
+    document.getElementById('metodo-pizza-real').innerHTML = metodoPizzaSVG(
+      itensReal, `${pctFmt(pctEss)}/${pctFmt(pctNao)}/${pctFmt(pctInv)}`
+    );
+    document.getElementById('metodo-legenda-real').innerHTML = itensReal.map(i=>`
+      <div class="metodo-legenda-item">
+        <div style="width:10px;height:10px;border-radius:2px;background:${i.cor};flex-shrink:0"></div>
+        <span>${i.label}</span>
+      </div>`).join('');
+  }
+
+  // Cards comparativos
+  const cards = [
+    { label:'Essenciais', ideal:50, real:pctEss*100, cor:'#e05252',
+      valIdeal: fmt(baseCalculo*.5), valReal: fmt(totais.essencial/12) },
+    { label:'Não essenciais', ideal:30, real:pctNao*100, cor:'#f0c93a',
+      valIdeal: fmt(baseCalculo*.3), valReal: fmt(totais.nao_essencial/12) },
+    { label:'Investimentos', ideal:20, real:pctInv*100, cor:'#4ec98a',
+      valIdeal: fmt(baseCalculo*.2), valReal: fmt(totais.investimento/12) },
+  ];
+
+  document.getElementById('metodo-cards').innerHTML = cards.map(c=>{
+    const diff = c.real - c.ideal;
+    const diffCls = Math.abs(diff)<3 ? 'ok' : diff>0 ? 'alto' : 'baixo';
+    const diffLabel = Math.abs(diff)<3 ? '✓ No alvo' : diff>0 ? `+${diff.toFixed(1)}% acima` : `${diff.toFixed(1)}% abaixo`;
+    return `<div class="metodo-card" style="border-top:3px solid ${c.cor}">
+      <div class="metodo-card-label">${c.label}</div>
+      <div class="metodo-card-linha">
+        <span class="metodo-card-desc">Ideal</span>
+        <span class="metodo-card-val" style="color:${c.cor}">${c.ideal}% <small style="font-size:.7rem;font-weight:400;color:var(--gray)">${c.valIdeal}/mês</small></span>
+      </div>
+      <div class="metodo-card-linha">
+        <span class="metodo-card-desc">Seu orçamento</span>
+        <span class="metodo-card-val" style="color:var(--white)">${c.real.toFixed(1)}% <small style="font-size:.7rem;font-weight:400;color:var(--gray)">${temClassificacao?c.valReal:'—'}/mês</small></span>
+      </div>
+      ${temClassificacao?`<div style="margin-top:.6rem"><span class="metodo-card-diff ${diffCls}">${diffLabel}</span></div>`:''}
+    </div>`;
+  }).join('');
+
+  // Diagnóstico
+  if(temClassificacao){
+    const msgs = [];
+    if(pctEss>.55) msgs.push(`<strong>Essenciais acima do ideal (${pctFmt(pctEss)}):</strong> Você está comprometendo mais de 55% da renda com gastos fixos. Revise contratos de moradia e transporte.`);
+    else if(pctEss<.4) msgs.push(`<strong>Essenciais abaixo do esperado (${pctFmt(pctEss)}):</strong> Bom sinal — você tem mais margem para poupar e aproveitar a vida.`);
+    else msgs.push(`<strong>Essenciais equilibrados (${pctFmt(pctEss)}):</strong> Dentro da faixa saudável de 40–55%. Continue assim.`);
+
+    if(pctNao>.35) msgs.push(`<strong>Não essenciais elevados (${pctFmt(pctNao)}):</strong> Lazer e consumo estão acima do recomendado. Oportunidade de realocação para investimentos.`);
+    else if(pctNao<.15) msgs.push(`<strong>Não essenciais muito baixos (${pctFmt(pctNao)}):</strong> Qualidade de vida também importa. Reserve espaço para o que você gosta.`);
+    else msgs.push(`<strong>Não essenciais adequados (${pctFmt(pctNao)}):</strong> Bom equilíbrio entre presente e futuro.`);
+
+    if(pctInv<.1) msgs.push(`<strong>Investimentos abaixo do ideal (${pctFmt(pctInv)}):</strong> Meta: chegar a 20% da renda investida. Comece com pelo menos 10% e aumente gradualmente.`);
+    else if(pctInv>=.2) msgs.push(`<strong>Investimentos no alvo ou acima (${pctFmt(pctInv)}):</strong> Excelente! Você está construindo sua independência financeira.`);
+    else msgs.push(`<strong>Investimentos em progresso (${pctFmt(pctInv)}):</strong> Você está no caminho. Meta é chegar a 20% — você está a ${((.2-pctInv)*100).toFixed(1)} pontos percentuais.`);
+
+    document.getElementById('metodo-diagnostico').innerHTML=`
+      <div class="metodo-diag-titulo">💡 Diagnóstico da sua distribuição</div>
+      ${msgs.map(m=>`<div class="metodo-diag-item">${m}</div>`).join('')}
+    `;
+    document.getElementById('metodo-diagnostico').style.display='block';
+  } else {
+    document.getElementById('metodo-diagnostico').style.display='none';
+  }
+}
+
+function metodoPizzaSVG(itens, centro){
+  const size=200, r=80, ri=44, cx=100, cy=100;
+  let ang=-90, svg=`<svg viewBox="0 0 ${size} ${size}" width="200" height="200" xmlns="http://www.w3.org/2000/svg">`;
+  const total = itens.reduce((a,i)=>a+i.val,0)||100;
+  itens.forEach(item=>{
+    const pct=item.val/total, a2=ang+pct*360;
+    if(pct<0.005){ang=a2;return;}
+    const x1=cx+r*Math.cos(ang*Math.PI/180),y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180), y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180), yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0;
+    svg+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${item.cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    // Label na fatia
+    const midAng=(ang+(a2-ang)/2)*Math.PI/180;
+    const lx=cx+(r+ri)/2*Math.cos(midAng), ly=cy+(r+ri)/2*Math.sin(midAng);
+    if(pct>0.08) svg+=`<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">${item.label}</text>`;
+    ang=a2;
+  });
+  svg+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="Inter,sans-serif">${centro}</text>`;
+  svg+='</svg>';
+  return svg;
+}
+
 async function inicioCarregarAlertas(){
   const wrap = document.getElementById('inicio-alertas-wrap');
   const lista = document.getElementById('inicio-alertas-lista');
