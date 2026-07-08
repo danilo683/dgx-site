@@ -5317,9 +5317,18 @@ function finalizarPartida() {
 }
 
 // ── Tela: todos os resultados da rodada ──
+// ── TELA 1: Resultado + Notas detalhadas ──
 function renderTelaRodadaCompleta(meuEsc, notas, resultado, euMandante, rodadaIdx) {
-  var mandante  = jogoAtivo.mandante;
-  var visitante = jogoAtivo.visitante;
+  // Guardar contexto para as próximas telas
+  window._posJogoCtx = { meuEsc: meuEsc, notas: notas, resultado: resultado, euMandante: euMandante, rodadaIdx: rodadaIdx };
+  var mandante  = jogoAtivo ? jogoAtivo.mandante : window._posJogoMandante;
+  var visitante = jogoAtivo ? jogoAtivo.visitante : window._posJogoVisitante;
+  var lances    = jogoAtivo ? jogoAtivo.lances : [];
+  // Guardar mandante/visitante para telas seguintes
+  window._posJogoMandante = mandante;
+  window._posJogoVisitante = visitante;
+  window._posJogoLances = lances;
+
   var meusG = euMandante ? resultado.golsMandante : resultado.golsVisitante;
   var delesG= euMandante ? resultado.golsVisitante : resultado.golsMandante;
   var res   = meusG > delesG ? "vitoria" : meusG < delesG ? "derrota" : "empate";
@@ -5328,47 +5337,75 @@ function renderTelaRodadaCompleta(meuEsc, notas, resultado, euMandante, rodadaId
 
   var html = '<div class="tela-resultado">';
 
-  // Resultado do meu jogo
+  // Placar
   html += '<div class="resultado-meu" style="border:2px solid '+corRes+';border-radius:16px;padding:24px;text-align:center;margin-bottom:20px">';
-  html += '<div style="font-size:28px;font-weight:900;color:'+corRes+';margin-bottom:6px">'+titulo+'</div>';
-  html += '<div style="font-size:22px;font-weight:700;margin-bottom:4px">';
-  html += mandante.nome + ' <span style="font-size:32px;color:var(--accent);margin:0 12px">' + resultado.golsMandante + ' – ' + resultado.golsVisitante + '</span> ' + visitante.nome;
-  html += '</div>';
-  html += '</div>';
+  html += '<div style="font-size:28px;font-weight:900;color:'+corRes+';margin-bottom:8px">'+titulo+'</div>';
+  html += '<div style="font-size:22px;font-weight:700">';
+  html += mandante.nome+' <span style="font-size:36px;color:var(--accent);margin:0 16px">'+resultado.golsMandante+' – '+resultado.golsVisitante+'</span> '+visitante.nome;
+  html += '</div></div>';
 
-  // Todos os resultados da rodada
-  var cal = estado.calendario[rodadaIdx];
-  var todosResultados = estado.resultados.filter(function(r){ return r.rodada===rodadaIdx; });
+  // Notas com gols, assistências e cartões
+  html += '<div class="fin-secao-titulo" style="margin-bottom:10px">📊 Avaliação dos jogadores</div>';
+  html += '<table class="elenco-tabela"><thead><tr>';
+  html += '<th>Pos</th><th>Jogador</th><th>Nota</th><th>⚽</th><th>🎯</th><th>🟨</th><th>🟥</th>';
+  html += '</tr></thead><tbody>';
 
-  if (todosResultados.length > 0) {
-    html += '<div class="fin-secao-titulo" style="margin-bottom:10px">📋 Rodada '+(rodadaIdx+1)+' — Todos os resultados</div>';
-    html += '<div class="rodada-jogos-lista">';
-    todosResultados.forEach(function(res) {
-      var m = buscarClubePorId(res.mandanteId) || {nome:"?",sigla:"?",cor:"#555"};
-      var v = buscarClubePorId(res.visitanteId) || {nome:"?",sigla:"?",cor:"#555"};
-      var ehMeu = res.mandanteId===estado.meuClube.id || res.visitanteId===estado.meuClube.id;
-      html += '<div class="rodada-jogo-item'+(ehMeu?' rodada-jogo-meu':'')+'">'+
-        '<span class="rodada-jogo-time"><span class="escudo-mini" style="background:'+(m.cor||"#555")+'">'+m.sigla+'</span>'+m.nome+'</span>'+
-        '<span class="rodada-jogo-placar">'+res.golsMandante+' – '+res.golsVisitante+'</span>'+
-        '<span class="rodada-jogo-time direita">'+v.nome+'<span class="escudo-mini" style="background:'+(v.cor||"#555")+'">'+v.sigla+'</span></span>'+
-        '</div>';
-    });
-    html += '</div>';
-  }
-
-  // Notas dos jogadores
-  html += '<div class="fin-secao-titulo" style="margin:16px 0 8px">📊 Notas dos jogadores</div>';
-  html += '<table class="elenco-tabela"><thead><tr><th>Jogador</th><th>Pos</th><th>Nota</th></tr></thead><tbody>';
   meuEsc.forEach(function(j) {
     var nota = notas[j.id] || 6.0;
     var corNota = nota>=7.5?'var(--green)':nota>=6.5?'var(--yellow)':'var(--red)';
-    html += '<tr><td>'+j.nome+'</td><td><span class="posicao-badge pos-'+j.posicao+'">'+j.posicao+'</span></td>';
-    html += '<td style="font-weight:700;color:'+corNota+'">'+nota.toFixed(1)+'</td></tr>';
+    // Contar eventos do jogador nos lances
+    var gols = 0, assists = 0, amarelos = 0, vermelhos = 0;
+    lances.forEach(function(l) {
+      if (l.jogadorId === j.id) {
+        if (l.tipo==='gol') gols++;
+        if (l.tipo==='amarelo') amarelos++;
+        if (l.tipo==='vermelho') vermelhos++;
+      }
+      if (l.assistenteId === j.id) assists++;
+    });
+    html += '<tr>';
+    html += '<td><span class="posicao-badge pos-'+j.posicao+'">'+j.posicao+'</span></td>';
+    html += '<td>'+j.nome+'</td>';
+    html += '<td style="font-weight:700;color:'+corNota+'">'+nota.toFixed(1)+'</td>';
+    html += '<td style="color:var(--green);font-weight:700">'+(gols>0?gols:'–')+'</td>';
+    html += '<td style="color:var(--accent)">'+(assists>0?assists:'–')+'</td>';
+    html += '<td>'+(amarelos>0?'🟨':'–')+'</td>';
+    html += '<td>'+(vermelhos>0?'🟥':'–')+'</td>';
+    html += '</tr>';
   });
   html += '</tbody></table>';
 
   html += '<div class="jogo-acoes" style="margin-top:20px">';
-  html += '<button class="btn-primario" onclick="voltarAoDashboard()">← Voltar ao Dashboard</button>';
+  html += '<button class="btn-primario" style="font-size:16px;padding:14px 40px" onclick="renderTelaResultadosRodada()">Seguir →</button>';
+  html += '</div></div>';
+
+  document.getElementById("main").innerHTML = html;
+}
+
+// ── TELA 2: Todos os resultados da rodada ──
+function renderTelaResultadosRodada() {
+  var ctx = window._posJogoCtx || {};
+  var rodadaIdx = ctx.rodadaIdx || 0;
+  var todosResultados = estado.resultados.filter(function(r){ return r.rodada===rodadaIdx; });
+
+  var html = '<div class="tela-resultado">';
+  html += '<div class="fin-secao-titulo" style="font-size:18px;margin-bottom:16px">📋 Rodada '+(rodadaIdx+1)+' — Todos os resultados</div>';
+  html += '<div class="rodada-jogos-lista">';
+
+  todosResultados.forEach(function(res) {
+    var m = buscarClubePorId(res.mandanteId) || {nome:"?",sigla:"?",cor:"#555"};
+    var v = buscarClubePorId(res.visitanteId) || {nome:"?",sigla:"?",cor:"#555"};
+    var ehMeu = res.mandanteId===estado.meuClube.id || res.visitanteId===estado.meuClube.id;
+    html += '<div class="rodada-jogo-item'+(ehMeu?' rodada-jogo-meu':'')+'">'+
+      '<span class="rodada-jogo-time"><span class="escudo-mini" style="background:'+(m.cor||"#555")+'">'+m.sigla+'</span>'+m.nome+'</span>'+
+      '<span class="rodada-jogo-placar">'+res.golsMandante+' – '+res.golsVisitante+'</span>'+
+      '<span class="rodada-jogo-time direita">'+v.nome+'<span class="escudo-mini" style="background:'+(v.cor||"#555")+'">'+v.sigla+'</span></span>'+
+      '</div>';
+  });
+
+  html += '</div>';
+  html += '<div class="jogo-acoes" style="margin-top:20px">';
+  html += '<button class="btn-primario" style="font-size:16px;padding:14px 40px" onclick="voltarAoDashboard()">Seguir →</button>';
   html += '</div></div>';
 
   document.getElementById("main").innerHTML = html;
@@ -9622,7 +9659,9 @@ function renderMercadoMeus() {
     var status = j.a_venda ? "🏷 À venda — " + formatarDinheiro(j.preco_minimo||j.valor_mercado) : "🔄 Empréstimo";
     html += '<div class="mercado-item">';
     html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
-    html += '<div class="mercado-info"><div class="mercado-nome">' + j.nome + '</div>';
+    var _lflags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹' };
+  var _lflag = _lflags[j.nacionalidade] || '🌍';
+  html += '<div class="mercado-info"><div class="mercado-nome">' + _lflag + ' ' + j.nome + '</div>';
     html += '<div class="mercado-detalhe">OVR ' + j.overall + ' · ' + status + '</div></div>';
     html += '<div class="mercado-valores"><div class="mercado-vm">' + formatarDinheiro(j.valor_mercado) + '</div></div>';
     html += '<button class="btn-demitir" style="padding:6px 12px;font-size:12px;margin-top:0" onclick="retirarVenda(\'' + j.id + '\')">Retirar</button>';
@@ -9777,7 +9816,9 @@ function renderListaJogadoresMercado(lista) {
     html += '<div class="mercado-info">';
     html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
     html += '<div class="mercado-jogador">';
-    html += '<div class="mercado-nome">' + j.nome;
+    var _mflags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
+    var _mflag = _mflags[j.nacionalidade] || '🌍';
+    html += '<div class="mercado-nome">' + _mflag + ' ' + j.nome;
     if (fimContrato) html += ' <span class="badge-contrato">Fim de contrato</span>';
     if (j.a_venda) html += ' <span class="badge-venda">À venda</span>';
     if (j.para_emprestimo) html += ' <span class="badge-emprestimo">Empréstimo</span>';
@@ -10188,7 +10229,9 @@ function abrirFichaJogador(jogadorId) {
   html += '</div>';
   html += '<div class="ficha-identidade">';
   html += '<h2 class="ficha-nome">' + j.nome + '</h2>';
-  html += '<div class="ficha-meta">' + (j.idade || '-') + ' anos · ' + (j.nacionalidade || '-') + '</div>';
+  var _flags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
+  var _flag = _flags[j.nacionalidade] || '🌍';
+  html += '<div class="ficha-meta">' + (j.idade || '-') + ' anos · ' + _flag + ' ' + (j.nacionalidade || '-') + '</div>';
   html += '</div>';
   html += '<div class="ficha-overall ' + overallClasse(j.overall) + '">' + j.overall + '<div style="font-size:12px;font-weight:400;color:var(--text2)">OVR</div></div>';
   html += '</div>'; // ficha-header
