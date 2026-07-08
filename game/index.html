@@ -5022,6 +5022,11 @@ function renderCampoTatico(escM, escV, mandante, visitante, tecM, tecV) {
 function iniciarPartidaAoVivo() {
   // Evitar dupla inicialização
   if (jogoAtivo && jogoAtivo.timer) return;
+  if (jogoAtivo && jogoAtivo.iniciado) return;
+
+  // Marcar como iniciada
+  jogoAtivo.iniciado = true;
+  _partidaPausada = false;
 
   // Esconder botão iniciar
   var acoeswrap = document.getElementById("jogo-acoes-wrap");
@@ -5471,20 +5476,30 @@ function renderTelaResultadoComNotas(meuEsc, notas, resultado, euMandante) {
 var _partidaPausada = false;
 
 function pausarPartida() {
-  if (jogoAtivo && jogoAtivo.timer) {
+  if (!jogoAtivo) return;
+  // Parar timer sempre
+  if (jogoAtivo.timer) {
     clearInterval(jogoAtivo.timer);
     jogoAtivo.timer = null;
+  }
+  // Só marcar como pausada se a partida já foi iniciada
+  if (jogoAtivo.iniciado) {
     _partidaPausada = true;
   }
 }
 
 function voltarParaPartida() {
   if (!jogoAtivo) return;
-  // Remontar a tela de jogo
+  // Parar qualquer timer duplicado
+  if (jogoAtivo.timer) {
+    clearInterval(jogoAtivo.timer);
+    jogoAtivo.timer = null;
+  }
+  _partidaPausada = false;
   renderTelaJogoAtivo();
-  if (_partidaPausada) {
+  // Só retomar se a partida já foi iniciada
+  if (jogoAtivo.iniciado) {
     retomarPartidaTimer();
-    _partidaPausada = false;
   }
 }
 
@@ -5548,7 +5563,7 @@ function renderTelaJogoAtivo() {
   html += '</div></div>';
 
   document.getElementById("main").innerHTML = html;
-  if (!_partidaPausada) retomarPartidaTimer();
+  // NÃO chamar retomarPartidaTimer aqui — quem controla é voltarParaPartida()
 }
 
 function retomarPartidaTimer() {
@@ -9161,23 +9176,31 @@ function navegarPara(aba) {
   // Enquanto há partida em andamento, BLOQUEAR navegação
   // O único escape é voltarAoDashboard() após o jogo terminar
   if (jogoAtivo && !jogoAtivo.resultado) {
-    // Pausar o timer se ainda estiver rodando
-    if (jogoAtivo.timer) pausarPartida();
+    // Pausar o timer
+    pausarPartida();
 
-    // Mostrar aviso e botão de retomar no main
+    var estadoBtn, estadoMsg;
+    if (!jogoAtivo.iniciado) {
+      // Partida ainda não começou — mostrar botão Iniciar
+      estadoBtn = '<button class="btn-primario" style="font-size:16px;padding:14px 32px" onclick="voltarParaPartida()">▶ Ir para a partida</button>';
+      estadoMsg = 'Sua partida está aguardando início.';
+    } else {
+      // Partida em andamento — pausada
+      estadoBtn = '<button class="btn-primario" style="font-size:16px;padding:14px 32px" onclick="voltarParaPartida()">▶ Retomar partida</button>';
+      estadoMsg = (jogoAtivo.mandante ? jogoAtivo.mandante.nome : "?") + ' ' +
+        (jogoAtivo.golsExibidosM||0) + ' – ' + (jogoAtivo.golsExibidosV||0) + ' ' +
+        (jogoAtivo.visitante ? jogoAtivo.visitante.nome : "?") + ' · ' +
+        (jogoAtivo.minAtual||0) + "'" ;
+    }
+
     document.getElementById("main").innerHTML =
       '<div style="text-align:center;padding:60px 20px">' +
       '<div style="font-size:48px;margin-bottom:16px">⏸</div>' +
       '<div style="font-size:20px;font-weight:700;margin-bottom:8px">Partida pausada</div>' +
-      '<div style="color:var(--text2);margin-bottom:24px">' +
-        (jogoAtivo.mandante ? jogoAtivo.mandante.nome : "?") + ' ' +
-        (jogoAtivo.golsExibidosM||0) + ' – ' + (jogoAtivo.golsExibidosV||0) + ' ' +
-        (jogoAtivo.visitante ? jogoAtivo.visitante.nome : "?") + ' · ' +
-        (jogoAtivo.minAtual||0) + "'" +
-      '</div>' +
-      '<button class="btn-primario" style="font-size:16px;padding:14px 32px" onclick="voltarParaPartida()">▶ Retomar partida</button>' +
+      '<div style="color:var(--text2);margin-bottom:24px">' + estadoMsg + '</div>' +
+      estadoBtn +
       '</div>';
-    return; // NÃO navega para outra aba
+    return;
   }
 
   document.querySelectorAll("#sidebar-nav button").forEach(function(b) { b.classList.remove("ativo"); });
