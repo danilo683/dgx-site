@@ -4771,9 +4771,14 @@ function renderTelaJogo(rodadaIdx) {
   var fVisitante = calcularForca(visitante, tecVisitante);
   var ev = estado.eventos[estado.eventoAtual];
 
+  // Parar qualquer jogo anterior
+  if (jogoAtivo && jogoAtivo.timer) {
+    clearInterval(jogoAtivo.timer);
+  }
   jogoAtivo = {
     rodadaIdx: rodadaIdx,
     euMandante: euMandante,
+    iniciado: false,  // false até o usuário clicar "Iniciar partida"
     mandante: mandante, visitante: visitante,
     tecMandante: tecMandante, tecVisitante: tecVisitante,
     escMandante: escMandante.slice().map(function(j){ j._substituido=false; j._entrouSub=false; return j; }),
@@ -4790,6 +4795,7 @@ function renderTelaJogo(rodadaIdx) {
     timer: null, minAtual: 0,
     resultado: null
   };
+  _partidaPausada = false;
 
   renderJogoHTML(fMandante, fVisitante, ev, rodada);
 }
