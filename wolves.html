@@ -252,7 +252,7 @@ function playerCell(nome) {
   return `<div class="player-cell">
     <div class="player-avatar-placeholder" id="av-${slug}" title="${nome}" style="position:relative;overflow:hidden">
       <span class="av-iniciais">${iniciais}</span>
-      <img src="foto-${slug}.png" alt="${nome}"
+      <img src="fotos-jogadores/foto-${slug}.png" alt="${nome}"
         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%"
         onload="this.style.opacity=1;this.previousElementSibling.style.display='none'"
         onerror="this.style.display='none'"
@@ -268,7 +268,7 @@ function tryLoadPhotos() {
     console.log('tryLoadPhotos: encontrou', els.length, 'avatares');
     els.forEach(el => {
       const slug = el.id.replace('av-', '');
-      const src = 'foto-' + slug + '.png';
+      const src = 'fotos-jogadores/foto-' + slug + '.png';
       console.log('Tentando carregar:', src);
       const img = new Image();
       img.onload = function() {
