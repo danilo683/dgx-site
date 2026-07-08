@@ -247,28 +247,43 @@ async function fetchCSV(url) {
 
 // Avatar do jogador — tenta carregar foto pelo nome, fallback para iniciais
 function playerCell(nome) {
-  const slug = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
-  const iniciais = nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  const slug = nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+  const iniciais = nome.trim().split(' ').map(n=>n[0]).filter(Boolean).join('').substring(0,2).toUpperCase();
   return `<div class="player-cell">
-    <div class="player-avatar-placeholder" id="av-${slug}" title="${nome}">${iniciais}</div>
-    <span class="player-name">${nome}</span>
+    <div class="player-avatar-placeholder" id="av-${slug}" title="${nome}" style="position:relative;overflow:hidden">
+      <span class="av-iniciais">${iniciais}</span>
+      <img src="foto-${slug}.png" alt="${nome}"
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%"
+        onload="this.style.opacity=1;this.previousElementSibling.style.display='none'"
+        onerror="this.style.display='none'"
+        style="opacity:0">
+    </div>
+    <span class="player-name">${nome.trim()}</span>
   </div>`;
 }
 
 function tryLoadPhotos() {
-  document.querySelectorAll('.player-avatar-placeholder').forEach(el => {
-    const slug = el.id.replace('av-', '');
-    const img = new Image();
-    img.onload = function() {
-      el.innerHTML = '';
-      el.style.cssText = 'width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(232,123,30,.4);background:none';
-      const imgEl = document.createElement('img');
-      imgEl.src = 'foto-' + slug + '.png';
-      imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover';
-      el.appendChild(imgEl);
-    };
-    img.src = 'foto-' + slug + '.png';
-  });
+  setTimeout(() => {
+    const els = document.querySelectorAll('.player-avatar-placeholder');
+    console.log('tryLoadPhotos: encontrou', els.length, 'avatares');
+    els.forEach(el => {
+      const slug = el.id.replace('av-', '');
+      const src = 'foto-' + slug + '.png';
+      console.log('Tentando carregar:', src);
+      const img = new Image();
+      img.onload = function() {
+        console.log('Foto carregada:', src);
+        el.innerHTML = '';
+        el.style.cssText = 'width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(232,123,30,.4);background:none';
+        const imgEl = document.createElement('img');
+        imgEl.src = src;
+        imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        el.appendChild(imgEl);
+      };
+      img.onerror = function() { console.log('Foto não encontrada:', src); };
+      img.src = src;
+    });
+  }, 300);
 }
 
 // ====== CALENDÁRIO ======
@@ -430,13 +445,13 @@ async function loadFrequencia() {
     body.innerHTML='';
     const data = rows.slice(1).filter(r=>{
       const nome=(r[1]||'').trim();
-      const jogos=parseInt(r[2])||0;
+      const jogos=parseInt(r[3])||0; // r[2]=ID, r[3]=Frequência
       return nome && nome.toLowerCase()!=='jogador' && jogos>0;
     });
     data.forEach((r,i)=>{
       const nome=r[1].trim();
-      const jogos=parseInt(r[2])||0;
-      const pctNum=parseInt((r[3]||'0').replace('%','').trim())||0;
+      const jogos=parseInt(r[3])||0;          // Frequência (nº de jogos)
+      const pctNum=parseInt((r[4]||'0').replace('%','').trim())||0; // Frequência %
       const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
       const tr=document.createElement('tr');
       tr.innerHTML=`
