@@ -2674,15 +2674,20 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
               Voltar para clientes
             </button>
-            <div class="admin-cliente-info">
-              <h3 id="admin-cliente-nome">—</h3>
-              <p id="admin-cliente-email">—</p>
+            <div class="admin-cliente-info" style="display:flex;align-items:center;gap:1rem">
+              <div id="admin-cliente-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--navy3);border:2px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--gold)">?</div>
+              <div>
+                <h3 id="admin-cliente-nome" style="margin:0">—</h3>
+                <p id="admin-cliente-email" style="margin:.1rem 0 0;font-size:.75rem;color:var(--gray)">—</p>
+                <p id="admin-cliente-whatsapp" style="margin:.1rem 0 0;font-size:.72rem;color:var(--gray2)"></p>
+              </div>
             </div>
           </div>
 
           <div class="admin-tabs">
             <button class="admin-tab active" onclick="adminTab(this,'resumo')">Resumo</button>
-            <button class="admin-tab" onclick="adminTab(this,'extrato')">Extrato</button>
+            <button class="admin-tab" onclick="adminTab(this,'perfil')">Perfil</button>
+            <button class="admin-tab" onclick="adminTab(this,'lancamentos')">Lançamentos</button>
             <button class="admin-tab" onclick="adminTab(this,'raiox')">Raio X</button>
             <button class="admin-tab" onclick="adminTab(this,'diagnostico')">Diagnóstico</button>
             <button class="admin-tab" onclick="adminTab(this,'orcamento')">Orçamento</button>
@@ -2699,12 +2704,45 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="summary-cards" id="admin-resumo-cards"></div>
           </div>
 
-          <div class="admin-panel" id="adminp-extrato">
-            <div class="extrato-section">
-              <table class="admin-readonly-table" id="admin-extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead><tbody id="admin-extrato-tbody"></tbody></table>
-              <div class="admin-empty" id="admin-extrato-empty" style="display:none">Nenhum lançamento registrado.</div>
+          <div class="admin-panel" id="adminp-perfil">
+            <div class="admin-frase-form">
+              <div class="admin-frase-form-title">Perfil do cliente</div>
+              <div class="admin-frase-grid">
+                <div class="diag-field"><label class="diag-label">Nome</label><input class="diag-input" type="text" id="admin-perfil-nome"></div>
+                <div class="diag-field"><label class="diag-label">Email</label><input class="diag-input" type="email" id="admin-perfil-email" disabled style="opacity:.6"></div>
+                <div class="diag-field"><label class="diag-label">WhatsApp</label><input class="diag-input" type="text" id="admin-perfil-whatsapp" placeholder="(11) 99999-9999"></div>
+                <div class="diag-field"><label class="diag-label">Telefone</label><input class="diag-input" type="text" id="admin-perfil-telefone"></div>
+                <div class="diag-field"><label class="diag-label">Data de nascimento</label><input class="diag-input" type="date" id="admin-perfil-nascimento"></div>
+                <div class="diag-field"><label class="diag-label">Cidade</label><input class="diag-input" type="text" id="admin-perfil-cidade"></div>
+                <div class="diag-field"><label class="diag-label">Estado</label><input class="diag-input" type="text" id="admin-perfil-estado" placeholder="SP"></div>
+              </div>
+              <div class="diag-save-area">
+                <button class="btn-diag-save" onclick="adminPerfilSalvar()">Salvar perfil</button>
+                <span class="diag-saved-msg" id="admin-perfil-msg">✓ Salvo!</span>
+              </div>
             </div>
           </div>
+
+          <div class="admin-panel" id="adminp-lancamentos">
+            <div class="orc-loading" id="admin-lanc-loading">Carregando...</div>
+            <div id="admin-lanc-content" style="display:none">
+              <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap">
+                <div class="orc-nav">
+                  <button class="orc-nav-btn" onclick="adminLancMudarAno(-1)">‹</button>
+                  <span class="orc-ano" id="admin-lanc-ano-label" style="font-size:1rem"></span>
+                  <button class="orc-nav-btn" onclick="adminLancMudarAno(1)">›</button>
+                </div>
+                <div class="lanc-mes-tabs" id="admin-lanc-mes-tabs" style="flex:1"></div>
+              </div>
+              <table class="admin-readonly-table" id="admin-lanc-table">
+                <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th></tr></thead>
+                <tbody id="admin-lanc-tbody"></tbody>
+              </table>
+              <div class="admin-empty" id="admin-lanc-empty" style="display:none">Nenhum lançamento neste mês.</div>
+            </div>
+          </div>
+
+          <div class="admin-panel" id="adminp-extrato" style="display:none"><!-- legado --></div>
 
           <div class="admin-panel" id="adminp-raiox">
             <div id="admin-raiox-content"></div>
@@ -2833,6 +2871,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="orc-loading" id="admin-orcdash-loading">Carregando dashboard...</div>
             <div id="admin-orcdash-content" style="display:none">
               <div class="orcdash-cards" id="admin-orcdash-cards"></div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center">
+                <span style="font-size:.7rem;color:var(--gray)">Filtrar pizza por mês:</span>
+                <div id="admin-orcdash-mes-filtro" style="display:flex;gap:.3rem;flex-wrap:wrap"></div>
+              </div>
               <div class="orcdash-split">
                 <div class="orcdash-pizza-col">
                   <div class="orcdash-section-title">Despesas por categoria</div>
@@ -5542,7 +5584,9 @@ function adminTab(btn, panel){
   btn.classList.add('active');
   document.getElementById('adminp-'+panel).classList.add('active');
   if(panel==='orcamento') adminOrcCarregar();
-  if(panel==='orcdash'){ adminOrcdashAno = adminOrcAno; adminOrcdashCarregar(); }
+  if(panel==='orcdash'){ adminOrcdashAno = adminOrcAno; adminOrcdashMesFiltro=new Set(); adminOrcdashCarregar(); }
+  if(panel==='lancamentos') adminLancCarregar();
+  if(panel==='perfil') adminPerfilCarregar();
   if(panel==='conquistas') adminConqCarregar();
   if(panel==='metas') adminMetasCarregar();
   if(panel==='patrimonio') adminPatCarregar();
@@ -5583,6 +5627,7 @@ async function adminAbrirCliente(idx){
   adminPlanoCarregar();
   adminOrcAno = new Date().getFullYear();
   document.getElementById('admin-orc-ano-label').textContent = adminOrcAno;
+  adminPerfilCarregar();
 }
 
 // ── ADMIN: ORÇAMENTO ──
@@ -5991,9 +6036,13 @@ async function adminOrcdashCarregar(){
     document.getElementById('admin-orcdash-vazio').style.display='block';
     return;
   }
+  adminOrcdashDadosCache = data;
+  adminOrcdashMesFiltro = new Set();
   document.getElementById('admin-orcdash-content').style.display='block';
 
-  // Montar dados no mesmo formato do orcdash do cliente
+  // Render filtro de meses
+  adminOrcdashRenderMesFiltro();
+
   const orcDadosAdm = {};
   (data||[]).forEach(r=>{
     const key = r.grupo==='__receitas' ? orcRecKey(r.categoria, r.mes) : `${r.categoria}|${r.mes}`;
@@ -6187,20 +6236,22 @@ async function adminConqCarregar(){
       <div class="conq-badge-titulo">${c.titulo}</div>
       <div class="conq-badge-desc">${c.desc}</div>
       ${ok&&dataConc?`<div class="conq-badge-data">✓ ${dataConc}</div>`:''}
-      ${!ok?`<button style="margin-top:.5rem;background:var(--gold);border:none;color:var(--navy);font-size:.6rem;font-weight:700;padding:.2rem .6rem;cursor:pointer;border-radius:2px;font-family:'Inter',sans-serif" onclick="adminConqMarcar('${c.codigo}','${escapeHtml(c.titulo)}')">Marcar como conquistada</button>`:''}
+      ${!ok?`<button style="margin-top:.5rem;background:var(--gold);border:none;color:var(--navy);font-size:.6rem;font-weight:700;padding:.2rem .6rem;cursor:pointer;border-radius:2px;font-family:'Inter',sans-serif" onclick="adminConqToggle('${c.codigo}','${escapeHtml(c.titulo)}',true)">✓ Marcar como conquistada</button>`:
+        `<button style="margin-top:.5rem;background:none;border:1px solid var(--border);color:var(--gray);font-size:.6rem;font-weight:600;padding:.2rem .6rem;cursor:pointer;border-radius:2px;font-family:'Inter',sans-serif" onclick="adminConqToggle('${c.codigo}','${escapeHtml(c.titulo)}',false)">✗ Desmarcar</button>`}
     </div>`;
   }).join('');
 
   document.getElementById('admin-conq-content').style.display='block';
 }
 
-async function adminConqMarcar(codigo, titulo){
-  if(!confirm(`Marcar "${titulo}" como conquistada para este cliente?`)) return;
+async function adminConqToggle(codigo, titulo, marcar){
+  const acao = marcar ? 'Marcar "'+titulo+'" como conquistada' : 'Desmarcar "'+titulo+'"';
+  if(!confirm(acao+' para este cliente?')) return;
   const hoje = new Date().toISOString().split('T')[0];
   const { data: existing } = await sb.from('conquistas').select('id').eq('user_id', adminClienteAtualId).eq('codigo', codigo).maybeSingle();
   if(existing){
-    await sb.from('conquistas').update({ concluida:true, data_conclusao:hoje }).eq('id', existing.id);
-  } else {
+    await sb.from('conquistas').update({ concluida:marcar, data_conclusao:marcar?hoje:null }).eq('id', existing.id);
+  } else if(marcar){
     const cat = CONQ_CATALOGO.find(c=>c.codigo===codigo);
     await sb.from('conquistas').insert({
       user_id:adminClienteAtualId, codigo, titulo:cat?.titulo||titulo,
@@ -6401,6 +6452,195 @@ async function adminInvCarregar(){
   }).join('');
 
   document.getElementById('admin-inv-content').style.display='block';
+}
+
+// ── ADMIN: PERFIL ──
+async function adminPerfilCarregar(){
+  const { data } = await sb.from('profiles').select('*').eq('id', adminClienteAtualId).maybeSingle();
+  if(!data) return;
+
+  document.getElementById('admin-perfil-nome').value        = data.nome||'';
+  document.getElementById('admin-perfil-email').value       = data.email||'';
+  document.getElementById('admin-perfil-whatsapp').value    = data.whatsapp||'';
+  document.getElementById('admin-perfil-telefone').value    = data.telefone||'';
+  document.getElementById('admin-perfil-nascimento').value  = data.data_nascimento||'';
+  document.getElementById('admin-perfil-cidade').value      = data.cidade||'';
+  document.getElementById('admin-perfil-estado').value      = data.estado||'';
+
+  // Avatar no cabeçalho
+  const avatarEl = document.getElementById('admin-cliente-avatar');
+  if(data.foto_url){
+    avatarEl.innerHTML = `<img src="${escapeHtml(data.foto_url)}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    avatarEl.textContent = (data.nome||data.email||'?').charAt(0).toUpperCase();
+  }
+
+  // WhatsApp no cabeçalho
+  const wpEl = document.getElementById('admin-cliente-whatsapp');
+  if(data.whatsapp) wpEl.textContent = '📱 '+data.whatsapp;
+  else wpEl.textContent = '';
+}
+
+async function adminPerfilSalvar(){
+  const payload = {
+    nome:           document.getElementById('admin-perfil-nome').value.trim()||null,
+    whatsapp:       document.getElementById('admin-perfil-whatsapp').value.trim()||null,
+    telefone:       document.getElementById('admin-perfil-telefone').value.trim()||null,
+    data_nascimento:document.getElementById('admin-perfil-nascimento').value||null,
+    cidade:         document.getElementById('admin-perfil-cidade').value.trim()||null,
+    estado:         document.getElementById('admin-perfil-estado').value.trim()||null,
+  };
+  const { error } = await sb.from('profiles').update(payload).eq('id', adminClienteAtualId);
+  if(error){ alert('Erro: '+error.message); return; }
+  const msg = document.getElementById('admin-perfil-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',2000);
+  // Atualiza cabeçalho
+  document.getElementById('admin-cliente-nome').textContent = payload.nome || document.getElementById('admin-cliente-nome').textContent;
+  if(payload.whatsapp) document.getElementById('admin-cliente-whatsapp').textContent = '📱 '+payload.whatsapp;
+}
+
+// ── ADMIN: LANÇAMENTOS (com filtro mês/ano) ──
+let adminLancAno = new Date().getFullYear();
+let adminLancMes = new Date().getMonth()+1;
+let adminLancTodos = [];
+
+function adminLancMudarAno(delta){
+  adminLancAno += delta;
+  document.getElementById('admin-lanc-ano-label').textContent = adminLancAno;
+  adminLancRenderMesTabs();
+  adminLancRenderTabela();
+}
+
+function adminLancRenderMesTabs(){
+  document.getElementById('admin-lanc-ano-label').textContent = adminLancAno;
+  document.getElementById('admin-lanc-mes-tabs').innerHTML = MESES_NOMES.map((m,i)=>{
+    const mes=i+1;
+    return `<button class="lanc-mes-tab${mes===adminLancMes?' active':''}" onclick="adminLancSelecionarMes(${mes})">${m}</button>`;
+  }).join('');
+}
+
+function adminLancSelecionarMes(mes){
+  adminLancMes = mes;
+  adminLancRenderMesTabs();
+  adminLancRenderTabela();
+}
+
+async function adminLancCarregar(){
+  document.getElementById('admin-lanc-loading').style.display='block';
+  document.getElementById('admin-lanc-content').style.display='none';
+
+  const { data } = await sb.from('extrato').select('*')
+    .eq('user_id', adminClienteAtualId).order('data',{ascending:false});
+
+  adminLancTodos = (data||[]).map(r=>({
+    id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor)
+  }));
+
+  adminLancAno = new Date().getFullYear();
+  adminLancMes = new Date().getMonth()+1;
+
+  document.getElementById('admin-lanc-loading').style.display='none';
+  document.getElementById('admin-lanc-content').style.display='block';
+  adminLancRenderMesTabs();
+  adminLancRenderTabela();
+}
+
+function adminLancRenderTabela(){
+  const filtrados = adminLancTodos.filter(l=>{
+    const d = new Date(l.data+'T00:00:00');
+    return d.getFullYear()===adminLancAno && (d.getMonth()+1)===adminLancMes;
+  }).sort((a,b)=>b.data.localeCompare(a.data));
+
+  const tbody = document.getElementById('admin-lanc-tbody');
+  const empty = document.getElementById('admin-lanc-empty');
+
+  if(!filtrados.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.'};
+  tbody.innerHTML = filtrados.map(l=>{
+    const dt = new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR');
+    const isPos=l.tipo==='receita', isNeg=l.tipo==='despesa';
+    const cls=isPos?'val-positivo':isNeg?'val-negativo':'';
+    const sinal=isPos?'+':isNeg?'-':'';
+    return `<tr>
+      <td>${dt}</td>
+      <td>${escapeHtml(l.desc)}</td>
+      <td><span class="badge-type badge-${l.tipo}">${nomes[l.tipo]||l.tipo}</span></td>
+      <td style="color:var(--gray)">${escapeHtml(l.cat)}</td>
+      <td style="text-align:right" class="${cls}">${sinal} R$ ${l.val.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ADMIN: DASH - FILTRO DE MESES ──
+let adminOrcdashMesFiltro = new Set(); // vazio = todos
+let adminOrcdashDadosCache = [];
+
+function adminOrcdashRenderMesFiltro(){
+  document.getElementById('admin-orcdash-mes-filtro').innerHTML = MESES_NOMES.map((m,i)=>{
+    const mes=i+1;
+    const ativo = adminOrcdashMesFiltro.size===0 || adminOrcdashMesFiltro.has(mes);
+    return `<button class="lanc-mes-tab${ativo?' active':''}" style="font-size:.62rem;padding:.3rem .55rem" onclick="adminOrcdashToggleMes(${mes})">${m}</button>`;
+  }).join('');
+}
+
+function adminOrcdashToggleMes(mes){
+  // Se todos ativos, ativa só este
+  if(adminOrcdashMesFiltro.size===0){
+    adminOrcdashMesFiltro = new Set(Array.from({length:12},(_,i)=>i+1).filter(m=>m!==mes));
+  } else if(adminOrcdashMesFiltro.size===11 && !adminOrcdashMesFiltro.has(mes)){
+    adminOrcdashMesFiltro = new Set(); // volta para todos
+  } else {
+    if(adminOrcdashMesFiltro.has(mes)) adminOrcdashMesFiltro.delete(mes);
+    else adminOrcdashMesFiltro.add(mes);
+    if(adminOrcdashMesFiltro.size===12) adminOrcdashMesFiltro = new Set();
+  }
+  adminOrcdashRenderMesFiltro();
+  // Re-renderizar pizza com filtro
+  const dadosFiltrados = adminOrcdashDadosCache.filter(r=>
+    adminOrcdashMesFiltro.size===0 || adminOrcdashMesFiltro.has(r.mes)
+  );
+  adminOrcdashRenderPizzas(dadosFiltrados);
+}
+
+function adminOrcdashRenderPizzas(dados){
+  // Pizza por grupo
+  const porCat = {};
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+    const itens=[...g.itens,...(gDados.extras||[])];
+    itens.forEach(item=>{
+      const total=dados.filter(r=>r.categoria===item&&r.grupo!=='__receitas').reduce((a,r)=>a+Number(r.previsto),0);
+      if(total>0){ if(!porCat[g.label])porCat[g.label]=0; porCat[g.label]+=total; }
+    });
+  });
+  const entradas=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+  const totalPizza=entradas.reduce((a,[,v])=>a+v,0)||1;
+  const cores=['#00B6E9','#4ec98a','#f0c93a','#7c9cff','#e0824f','#e05252','#a78bfa','#f472b6','#34d399'];
+  const fmt=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const cx=130,cy=130,r=100,ri=55;
+  let ang=-90,svgStr='';
+  entradas.forEach(([,v],i)=>{
+    const pct=v/totalPizza,a2=ang+pct*360;
+    if(pct<0.001){ang=a2;return;}
+    const x1=cx+r*Math.cos(ang*Math.PI/180),y1=cy+r*Math.sin(ang*Math.PI/180);
+    const x2=cx+r*Math.cos(a2*Math.PI/180),y2=cy+r*Math.sin(a2*Math.PI/180);
+    const xi1=cx+ri*Math.cos(ang*Math.PI/180),yi1=cy+ri*Math.sin(ang*Math.PI/180);
+    const xi2=cx+ri*Math.cos(a2*Math.PI/180),yi2=cy+ri*Math.sin(a2*Math.PI/180);
+    const la=pct>0.5?1:0,cor=cores[i%cores.length];
+    svgStr+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${la} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${xi2.toFixed(1)} ${yi2.toFixed(1)} A${ri} ${ri} 0 ${la} 0 ${xi1.toFixed(1)} ${yi1.toFixed(1)} Z" fill="${cor}" stroke="#0A1525" stroke-width="1.5"/>`;
+    ang=a2;
+  });
+  svgStr+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="Inter,sans-serif">${fmt(totalPizza)}</text>`;
+  document.getElementById('admin-orcdash-pizza-svg').innerHTML=svgStr;
+  document.getElementById('admin-orcdash-pizza-legenda').innerHTML=entradas.map(([cat,val],i)=>`
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0;font-size:.72rem">
+      <div style="width:9px;height:9px;border-radius:2px;background:${cores[i%cores.length]};flex-shrink:0"></div>
+      <span style="flex:1;color:var(--gray)">${cat}</span>
+      <span style="color:var(--white);font-weight:600">${(val/totalPizza*100).toFixed(1)}%</span>
+    </div>`).join('');
+  adminOrcclassPizzaRenderizar(dados);
 }
 
 // ── ADMIN: CRONOGRAMA ──
