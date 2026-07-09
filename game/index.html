@@ -5540,12 +5540,18 @@ function finalizarPartida() {
   var visitante  = jogoAtivo.visitante;
   var lances     = jogoAtivo.lances;
   var meuClube   = estado.meuClube;
-  var meuEsc     = euMandante ? jogoAtivo.escMandante : jogoAtivo.escVisitante;
-  var escInicial = euMandante ? jogoAtivo.escMandante : jogoAtivo.escVisitante;
+  // meuEsc = titulares + substitutos que entraram
+  var titulares = euMandante ? jogoAtivo.escMandante : jogoAtivo.escVisitante;
+  var reservas  = euMandante ? jogoAtivo.reservasMandante : jogoAtivo.reservasVisitante;
+  var subsEntrou = (reservas || []).filter(function(j){ return j._entrouSub; });
+  var meuEsc = titulares.concat(subsEntrou);
+  var escInicial = titulares;
 
-  // Calcular notas
-  var notasM = calcularNotasJogadores(jogoAtivo.escMandante, lances, mandante, r, true);
-  var notasV = calcularNotasJogadores(jogoAtivo.escVisitante, lances, visitante, r, false);
+  // Calcular notas (titulares + subs do adversário também)
+  var escMComSubs = jogoAtivo.escMandante.concat((jogoAtivo.reservasMandante||[]).filter(function(j){return j._entrouSub;}));
+  var escVComSubs = jogoAtivo.escVisitante.concat((jogoAtivo.reservasVisitante||[]).filter(function(j){return j._entrouSub;}));
+  var notasM = calcularNotasJogadores(escMComSubs, lances, mandante, r, true);
+  var notasV = calcularNotasJogadores(escVComSubs, lances, visitante, r, false);
   var minhasNotas = euMandante ? notasM : notasV;
 
   // Aplicar stats nos jogadores do meu time
@@ -5568,16 +5574,22 @@ function finalizarPartida() {
     forcaMandante: r.forcaMandante, forcaVisitante: r.forcaVisitante
   });
 
-  // Outros jogos da rodada
+  // Outros jogos da rodada — usar buscarClubePorId para cobrir todas divisões
   var cal = estado.calendario[jogoAtivo.rodadaIdx];
+  var ehPaulistaDiv = estado.minhaDivisao && estado.minhaDivisao.indexOf('paulista_') === 0;
+  var arrOutros = ehPaulistaDiv
+    ? (estado.resultadosPaulista || (estado.resultadosPaulista = []))
+    : estado.resultados;
+
   cal.jogos.forEach(function(jogo) {
     if (jogo.mandanteId === mandante.id && jogo.visitanteId === visitante.id) return;
-    var m2 = CLUBES.find(function(c) { return c.id === jogo.mandanteId; });
-    var v2 = CLUBES.find(function(c) { return c.id === jogo.visitanteId; });
+    var m2 = buscarClubePorId(jogo.mandanteId);
+    var v2 = buscarClubePorId(jogo.visitanteId);
+    if (!m2 || !v2) return; // ignorar jogos com clube não encontrado
     var tM2 = getTecnicoClube(m2);
     var tV2 = getTecnicoClube(v2);
     var r2  = simularPartidaSimples(m2, v2, tM2, tV2);
-    estado.resultados.push({
+    arrOutros.push({
       rodada: jogoAtivo.rodadaIdx,
       mandanteId: jogo.mandanteId, visitanteId: jogo.visitanteId,
       golsMandante: r2.golsMandante, golsVisitante: r2.golsVisitante,
@@ -5678,7 +5690,9 @@ function renderTelaRodadaCompleta(meuEsc, notas, resultado, euMandante, rodadaId
 function renderTelaResultadosRodada() {
   var ctx = window._posJogoCtx || {};
   var rodadaIdx = ctx.rodadaIdx || 0;
-  var todosResultados = estado.resultados.filter(function(r){ return r.rodada===rodadaIdx; });
+  var ehPaulista = estado.minhaDivisao && estado.minhaDivisao.indexOf('paulista_') === 0;
+  var arrRes = ehPaulista ? (estado.resultadosPaulista||[]) : estado.resultados;
+  var todosResultados = arrRes.filter(function(r){ return r.rodada===rodadaIdx; });
 
   var html = '<div class="tela-resultado">';
   html += '<div class="fin-secao-titulo" style="font-size:18px;margin-bottom:16px">📋 Rodada '+(rodadaIdx+1)+' — Todos os resultados</div>';
@@ -10084,7 +10098,6 @@ function comprarClube(id, aba) {
   var val    = calcularValorClube(clube);
   var budget = estado.manager.budget || 0;
   if (val > budget) { alert("Budget insuficiente!"); return; }
-  if (!confirm("Comprar " + clube.nome + " por " + formatarDinheiro(val) + "?\nSaldo restante: " + formatarDinheiro(budget - val))) return;
   estado.manager.budget = budget - val;
   selecionarClube(id, lista);
 }
