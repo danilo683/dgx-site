@@ -2574,6 +2574,19 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 .rodada-jogo-placar { text-align: center; font-size: 16px; font-weight: 700; color: var(--accent); }
 .rodada-jogo-time { display: flex; align-items: center; gap: 6px; }
 .rodada-jogo-time.direita { justify-content: flex-end; flex-direction: row-reverse; }
+
+/* ── Filtros de posição mercado livres ── */
+.btn-pos-filter {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-pos-filter:hover { background: var(--bg2); color: var(--text); }
 </style>
 </head>
 <body>
@@ -3750,28 +3763,51 @@ function gerarJogadoresLivres() {
 }
 
 function renderMercadoLivres(filtroPos) {
+  // Manter por compatibilidade
+  return renderMercadoLivresHTML(filtroPos);
+}
+
+function renderMercadoLivresHTML(filtroPos) {
   var jogadores = gerarJogadoresLivres();
   if (filtroPos && filtroPos !== "TODOS") {
     jogadores = jogadores.filter(function(j){ return j.posicao === filtroPos; });
   }
-  var flags = { BR:"🇧🇷",AR:"🇦🇷",UY:"🇺🇾",CL:"🇨🇱",CO:"🇨🇴",PT:"🇵🇹" };
-  var html = "";
+  var flags = { BR:"🇧🇷",AR:"🇦🇷",UY:"🇺🇾",CL:"🇨🇱",CO:"🇨🇴",PT:"🇵🇹",DE:"🇩🇪",FR:"🇫🇷",ES:"🇪🇸",IT:"🇮🇹" };
+
+  var html = '<div style="margin-bottom:12px">';
+  html += '<div style="font-size:18px;font-weight:700;margin-bottom:4px">🆓 Jogadores Livres</div>';
+  html += '<div style="font-size:12px;color:var(--text2)">Sem custo de transferência · Sem multa rescisória</div>';
+  html += '</div>';
+
+  // Filtros por posição
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">';
+  var posArr = ["TODOS","GOL","LD","ZAG","LE","VOL","MEI","ATA"];
+  posArr.forEach(function(p) {
+    var ativo = (!filtroPos && p==="TODOS") || filtroPos===p ? " style='background:var(--accent);color:#fff'" : "";
+    html += '<button class="btn-pos-filter"'+ativo+' onclick="filtrarLivres(\''+p+'\')">'+p+'</button>';
+  });
+  html += '</div>';
+
+  if (jogadores.length === 0) return html + '<div class="dash-empty">Nenhum jogador livre nesta posição.</div>';
+
+  // Tabela limpa
+  html += '<table class="elenco-tabela">';
+  html += '<thead><tr><th>Pos</th><th>Jogador</th><th>OVR</th><th>Idade</th><th>Salário/mês</th><th>Valor</th><th></th></tr></thead><tbody>';
   jogadores.forEach(function(j) {
     var flag = flags[j.nacionalidade] || "🌍";
-    html += '<div class="mercado-item mercado-livre">';
-    html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
-    html += '<div class="mercado-info">';
-    html += '<div class="mercado-nome">' + flag + " " + j.nome + ' <span class="badge-livre">Livre</span></div>';
-    html += '<div class="mercado-detalhe">OVR ' + j.overall + ' · ' + j.idade + ' anos · Sem multa rescisória</div>';
-    html += '</div>';
-    html += '<div class="mercado-valores">';
-    html += '<div class="mercado-vm">R$ ' + (j.valor_mercado/1000000).toFixed(1) + 'M</div>';
-    html += '<div class="mercado-sal">' + formatarDinheiro(j.salario) + '/mês</div>';
-    html += '</div>';
-    html += '<button class="btn-primario" style="padding:6px 12px;font-size:12px" onclick="negociarLivre(\'' + j.id + '\')">Contratar</button>';
-    html += '</div>';
+    var corOvr = overallClasse ? overallClasse(j.overall) : '';
+    html += '<tr>';
+    html += '<td><span class="posicao-badge pos-'+j.posicao+'">'+j.posicao+'</span></td>';
+    html += '<td>'+flag+' '+j.nome+' <span class="badge-livre" style="font-size:9px;background:rgba(46,204,113,.15);color:var(--green);padding:1px 5px;border-radius:4px">Livre</span></td>';
+    html += '<td class="'+corOvr+'" style="font-weight:700">'+j.overall+'</td>';
+    html += '<td>'+j.idade+' anos</td>';
+    html += '<td>'+formatarDinheiro(j.salario)+'</td>';
+    html += '<td style="color:var(--accent)">'+formatarDinheiro(j.valor_mercado)+'</td>';
+    html += '<td><button class="btn-primario" style="padding:5px 12px;font-size:12px" onclick="negociarLivre(\''+j.id+'\')" >Contratar</button></td>';
+    html += '</tr>';
   });
-  return html || '<div class="dash-empty">Nenhum jogador livre nesta posição.</div>';
+  html += '</tbody></table>';
+  return html;
 }
 
 function negociarLivre(id) {
@@ -6279,284 +6315,684 @@ function confirmarPagamentoDivida() {
 }
 </script>
 <script>// ════════════════════════════════════════
-// SISTEMA DE RECEITAS DINÂMICAS
-// Cada fonte de receita evolui com divisão, desempenho e infraestrutura
+// SISTEMA DE RECEITAS — v2
+// TV por cota, Naming Rights, Match Day com ingresso,
+// Sócio Torcedor mensal, Patrocínios de camisa e material
 // ════════════════════════════════════════
 
-// ── Multiplicadores por divisão ──
-var MULT_DIVISAO = {
-  serieA:    { tv: 1.00, patrocinio: 1.00, socio: 1.00, estadio: 1.00 },
-  serieB:    { tv: 0.40, patrocinio: 0.45, socio: 0.60, estadio: 0.50 },
-  serieC:    { tv: 0.15, patrocinio: 0.20, socio: 0.30, estadio: 0.25 },
-  serieD:    { tv: 0.05, patrocinio: 0.08, socio: 0.12, estadio: 0.10 },
-  paulista_a1: { tv: 0.30, patrocinio: 0.35, socio: 0.50, estadio: 0.40 },
-  paulista_a2: { tv: 0.12, patrocinio: 0.15, socio: 0.20, estadio: 0.15 },
-  paulista_a3: { tv: 0.05, patrocinio: 0.06, socio: 0.08, estadio: 0.06 },
-  paulista_a4: { tv: 0.02, patrocinio: 0.03, socio: 0.04, estadio: 0.03 },
-  paulista_b1: { tv: 0.01, patrocinio: 0.01, socio: 0.02, estadio: 0.01 }
+// ── Cotas de TV reais (anuais) por divisão ──
+var COTAS_TV = {
+  serieA:     80000000,
+  serieB:     15000000,
+  serieC:      5000000,
+  serieD:      1500000,
+  paulista_a1: 8000000,
+  paulista_a2: 2000000,
+  paulista_a3:  500000,
+  paulista_a4:  150000,
+  paulista_b1:   50000
 };
 
-// ── Base de receitas Série A (por rodada) ──
-var BASE_RECEITA_SERIEA = {
-  // TV/Streaming: cotas CBF
-  cota_tv_cbf:         4500000,  // cota fixa por clube Série A
-  direitos_tv_rodada:   800000,  // por jogo transmitido
-  radio_streaming:      120000,
+// ── Marcas fictícias para patrocínios ──
+var MARCAS_CAMISA = [
+  { nome:"Betzone",   tipo:"aposta",    base:1200000 },
+  { nome:"CaféBom",   tipo:"alimentos", base:800000  },
+  { nome:"TechPay",   tipo:"fintech",   base:1500000 },
+  { nome:"AutoMax",   tipo:"auto",      base:900000  },
+  { nome:"BancaRed",  tipo:"banco",     base:2000000 },
+  { nome:"EnergaPro", tipo:"energia",   base:600000  },
+  { nome:"FreshBeer", tipo:"bebidas",   base:700000  },
+  { nome:"SeguroPlus",tipo:"seguros",   base:1100000 },
+  { nome:"MegaCell",  tipo:"telecom",   base:1800000 },
+  { nome:"VidaFarm",  tipo:"farma",     base:950000  }
+];
 
-  // Patrocínio master (camisa)
-  patrocinio_master:    900000,  // por rodada (contrato anual ÷ 38)
-  patrocinio_secundario: 350000,
-  naming_rights:         280000, // nome do estádio
+var MARCAS_MATERIAL = [
+  { nome:"Puma",    base:3000000 },
+  { nome:"Umbro",   base:2000000 },
+  { nome:"Topper",  base:800000  },
+  { nome:"Penalty", base:600000  },
+  { nome:"Kappa",   base:700000  },
+  { nome:"Olympikus",base:500000 },
+  { nome:"Finta",   base:400000  }
+];
 
-  // Estádio / matchday
-  bilheteria_media:     620000,  // por jogo em casa
-  camarotes:            180000,
-  alimentacao_loja:      90000,
+// ── Inicializar contratos e receitas do clube ──
+function inicializarContratosClube(clube) {
+  if (clube._contratosInit) return;
+  clube._contratosInit = true;
+
+  // TV — cota única no início do torneio
+  if (!clube.cota_tv_paga) clube.cota_tv_paga = false;
+
+  // Naming rights
+  if (!clube.naming_rights) clube.naming_rights = null; // { marca, valor_anual, duracao, inicio_rodada }
+
+  // Patrocínios de camisa: { frente:[], costas:[], mangas:[] }
+  if (!clube.patrocinios_camisa) clube.patrocinios_camisa = { frente:[], costas:[], mangas:[] };
+
+  // Material esportivo
+  if (!clube.material_esportivo) clube.material_esportivo = null;
+
+  // Match Day
+  if (!clube.matchday) clube.matchday = {
+    preco_ingresso: 60,     // R$ por ingresso
+    capacidade: 15000,      // lotação base
+    engajamento: 50         // % de engajamento (0-100)
+  };
 
   // Sócio torcedor
-  socio_mensalidade:    450000,  // receita mensal dos sócios ÷ rodadas
-
-  // Premiações por posição (aplicadas a cada rodada proporcional)
-  premiacao_libertadores: 350000,
-  premiacao_sulamericana: 150000,
-  premiacao_copadoBrasil:  80000
-};
-
-// ── Estado das receitas do clube do usuário ──
-// Inicializado quando o jogo começa
-function inicializarReceitasClube(clube, divisao) {
-  if (clube.receitas) return; // já inicializado
-  var mult = MULT_DIVISAO[divisao] || MULT_DIVISAO.serieD;
-  var infra = clube.infraestrutura || {};
-  var multEstadio = 1 + ((infra.estadio || 1) - 1) * 0.15;
-
-  // Confiança da torcida: começa em 50, vai de 0 a 100
-  clube.confianca_torcida = clube.confianca_torcida || 50;
-  var multSocio = 0.5 + (clube.confianca_torcida / 100) * 0.8;
-
-  clube.receitas = {
-    // TV e direitos
-    cota_tv:        Math.round(BASE_RECEITA_SERIEA.cota_tv_cbf        * mult.tv),
-    direitos_tv:    Math.round(BASE_RECEITA_SERIEA.direitos_tv_rodada  * mult.tv),
-    radio_streaming:Math.round(BASE_RECEITA_SERIEA.radio_streaming     * mult.tv),
-
-    // Patrocínio
-    patrocinio_master:     Math.round(BASE_RECEITA_SERIEA.patrocinio_master     * mult.patrocinio),
-    patrocinio_secundario: Math.round(BASE_RECEITA_SERIEA.patrocinio_secundario * mult.patrocinio),
-    naming_rights:         Math.round(BASE_RECEITA_SERIEA.naming_rights         * mult.patrocinio * multEstadio),
-
-    // Matchday
-    bilheteria:    Math.round(BASE_RECEITA_SERIEA.bilheteria_media * mult.estadio * multEstadio),
-    camarotes:     Math.round(BASE_RECEITA_SERIEA.camarotes        * mult.estadio * multEstadio),
-    alimentacao:   Math.round(BASE_RECEITA_SERIEA.alimentacao_loja * mult.estadio * multEstadio),
-
-    // Sócio
-    socio:         Math.round(BASE_RECEITA_SERIEA.socio_mensalidade * mult.socio * multSocio),
-
-    // Premiações (variáveis, recalculadas por resultado)
-    premiacao_pos: 0
-  };
-
-  // Metas da temporada (para tracking de evolução)
-  clube.metas = clube.metas || {
-    divisao_anterior: divisao,
-    posicao_atual: 0,
-    titulos_temporada: 0,
-    rodadas_invicto: 0,
-    vitorias_seguidas: 0
+  if (!clube.socio_torcedor) clube.socio_torcedor = {
+    mensalidade: 40,        // R$ por mês
+    num_socios: 2000,
+    ultima_variacao: 0
   };
 }
 
-// ── Recalcular receitas após evento que muda divisão ou infraestrutura ──
-function recalcularReceitas(clube, divisao) {
-  delete clube.receitas;
-  inicializarReceitasClube(clube, divisao);
+// ── Pagar cota de TV no início do torneio ──
+function pagarCotaTV(clube, divisao) {
+  inicializarContratosClube(clube);
+  if (clube.cota_tv_paga) return 0;
+  var cota = COTAS_TV[divisao] || 50000;
+  clube.caixa = (clube.caixa||0) + cota;
+  clube.budget = clube.caixa;
+  clube.cota_tv_paga = true;
+  return cota;
 }
 
-// ── Processar receitas de uma rodada ──
-function processarReceitasRodada(clube, divisao, jogoEmCasa, resultadoJogo, posicaoTabela) {
-  inicializarReceitasClube(clube, divisao);
-  var r = clube.receitas;
-  var total = 0;
-  var detalhes = [];
+// ── Receita de Match Day ──
+function calcularMatchDay(clube) {
+  inicializarContratosClube(clube);
+  var md = clube.matchday;
+  var cap = md.capacidade || 15000;
+  var preco = md.preco_ingresso || 60;
+  var eng = md.engajamento || 50;
 
-  // TV (toda rodada, independente de casa/fora)
-  var tv = r.cota_tv + r.radio_streaming;
-  if (jogoEmCasa) tv += r.direitos_tv;
-  total += tv;
-  detalhes.push({ cat: 'tv', desc: 'Direitos de TV/Rádio', valor: tv });
+  // Público: função da confiança da torcida, engajamento e preço
+  var conf = clube.confianca_torcida || 50;
+  var demanda = (conf/100 * 0.5 + eng/100 * 0.5); // 0-1
 
-  // Patrocínio (toda rodada)
-  var pat = r.patrocinio_master + r.patrocinio_secundario + r.naming_rights;
-  total += pat;
-  detalhes.push({ cat: 'patrocinio', desc: 'Patrocínios', valor: pat });
+  // Elasticidade: preço alto reduz público
+  var precoRef = 60;
+  var fatorPreco = Math.max(0.2, Math.min(1.5, Math.pow(precoRef/preco, 0.7)));
 
-  // Matchday (só quando joga em casa)
-  if (jogoEmCasa) {
-    // Fator público: vitórias recentes atraem mais torcida
-    var multPublico = 1 + Math.min((clube.metas.vitorias_seguidas || 0) * 0.05, 0.30);
-    var matchday = Math.round((r.bilheteria + r.camarotes + r.alimentacao) * multPublico);
-    total += matchday;
-    detalhes.push({ cat: 'matchday', desc: 'Bilheteria / Camarotes / Loja', valor: matchday });
-  }
+  var publico = Math.round(cap * demanda * fatorPreco);
+  publico = Math.max(500, Math.min(cap, publico));
 
-  // Sócio torcedor (toda rodada, baseado em confiança)
-  total += r.socio;
-  detalhes.push({ cat: 'socio', desc: 'Sócio Torcedor', valor: r.socio });
+  var renda = publico * preco;
+  // Camarotes: 2% do público paga 5x
+  renda += Math.round(publico * 0.02 * preco * 5);
 
-  // Premiação por posição
-  var premiacao = 0;
-  if (posicaoTabela <= 4)       premiacao = Math.round(BASE_RECEITA_SERIEA.premiacao_libertadores * (MULT_DIVISAO[divisao]||MULT_DIVISAO.serieD).tv);
-  else if (posicaoTabela <= 8)  premiacao = Math.round(BASE_RECEITA_SERIEA.premiacao_sulamericana * (MULT_DIVISAO[divisao]||MULT_DIVISAO.serieD).tv);
-  if (premiacao > 0) {
-    total += premiacao;
-    detalhes.push({ cat: 'premiacao', desc: 'Premiação por classificação', valor: premiacao });
-  }
+  return { publico: publico, renda: renda };
+}
 
-  // Creditar no caixa
-  clube.caixa = (clube.caixa || clube.budget || 0) + total;
+// ── Receita mensal sócio torcedor ──
+function calcularReceitaSocio(clube) {
+  inicializarContratosClube(clube);
+  var st = clube.socio_torcedor;
+  return st.num_socios * st.mensalidade;
+}
+
+// ── Atualizar sócios mensalmente ──
+function atualizarSociosMensais(clube) {
+  inicializarContratosClube(clube);
+  var st = clube.socio_torcedor;
+  var conf = clube.confianca_torcida || 50;
+
+  // Variação: +5% se confiança alta, -3% se baixa, base estável
+  var varPct = (conf >= 70) ? (2 + Math.random()*3) :
+               (conf >= 40) ? (-1 + Math.random()*2) :
+               (-5 + Math.random()*2);
+  var delta = Math.round(st.num_socios * varPct/100);
+  st.num_socios = Math.max(0, st.num_socios + delta);
+  st.ultima_variacao = delta;
+
+  var receita = calcularReceitaSocio(clube);
+  clube.caixa = (clube.caixa||0) + receita;
   clube.budget = clube.caixa;
 
-  // Registrar no histórico financeiro
-  if (!clube.historico_receitas) clube.historico_receitas = [];
-  clube.historico_receitas.push({
-    rodada: estado.rodadaAtual,
-    total: total,
-    detalhes: detalhes
+  // Notícia
+  if (clube.id === (estado.meuClube && estado.meuClube.id)) {
+    var msg = delta >= 0
+      ? '🎫 Sócio Torcedor: +'+delta+' novos sócios (total: '+st.num_socios+'). Receita: '+formatarDinheiro(receita)
+      : '🎫 Sócio Torcedor: '+delta+' saídas (total: '+st.num_socios+'). Receita: '+formatarDinheiro(receita);
+    adicionarNoticia(msg, estado.rodadaAtual);
+    if (estado.inbox) estado.inbox.push({
+      id: 'socio_'+Date.now(), titulo: '📋 Relatório Sócio Torcedor',
+      remetente: 'Departamento Comercial',
+      texto: msg + '. Mensalidade atual: '+formatarDinheiro(st.mensalidade)+'/mês.',
+      lida: false
+    });
+  }
+  return receita;
+}
+
+// ── Receita de Naming Rights (anual) ──
+function calcularNamingRightsAnual(clube) {
+  inicializarContratosClube(clube);
+  if (!clube.naming_rights) return 0;
+  var nr = clube.naming_rights;
+  if (estado.rodadaAtual > nr.inicio_rodada + nr.duracao * 38) {
+    clube.naming_rights = null; // contrato expirado
+    return 0;
+  }
+  return nr.valor_anual;
+}
+
+// ── Receita de patrocínios ──
+function calcularPatrociniosTotal(clube) {
+  inicializarContratosClube(clube);
+  var total = 0;
+  var pc = clube.patrocinios_camisa;
+  ['frente','costas','mangas'].forEach(function(local) {
+    (pc[local]||[]).forEach(function(p) {
+      if (estado.rodadaAtual <= p.inicio_rodada + p.duracao*38) {
+        total += p.valor_anual / 38; // por rodada
+      }
+    });
   });
-  // Manter só últimas 38 rodadas
-  if (clube.historico_receitas.length > 38) clube.historico_receitas.shift();
+  if (clube.material_esportivo) {
+    var me = clube.material_esportivo;
+    if (estado.rodadaAtual <= me.inicio_rodada + me.duracao*38) {
+      total += me.valor_anual / 38;
+    }
+  }
+  return total;
+}
+
+// ── Gerar proposta de Naming Rights ──
+function gerarPropostaNamingRights(clube) {
+  inicializarContratosClube(clube);
+  if (clube.naming_rights) return null; // já tem contrato
+  var cap = (clube.matchday||{}).capacidade || 15000;
+  var eng = (clube.matchday||{}).engajamento || 50;
+  var baseValor = Math.round(cap * 100 * (eng/100 + 0.5));
+  var duracao = 1 + Math.floor(Math.random()*19); // 1-20 anos
+  var marca = ['Arena','Estádio','Campo'][Math.floor(Math.random()*3)] +
+              ' ' + ['Tech','Bank','Energy','Beer','Auto'][Math.floor(Math.random()*5)];
+  return { marca: marca, valor_anual: baseValor, duracao: duracao };
+}
+
+// ── Gerar proposta de patrocínio de camisa ──
+function gerarPropostaPatrocinio(clube, local) {
+  inicializarContratosClube(clube);
+  var pc = clube.patrocinios_camisa;
+  var limites = { frente:5, costas:3, mangas:2 };
+  if ((pc[local]||[]).length >= limites[local]) return null;
+
+  var marca = MARCAS_CAMISA[Math.floor(Math.random()*MARCAS_CAMISA.length)];
+  var div = estado.minhaDivisao || 'serieD';
+  var mult = { serieA:1.0, serieB:0.4, serieC:0.15, serieD:0.05,
+    paulista_a1:0.3, paulista_a2:0.1, paulista_a3:0.05, paulista_a4:0.02, paulista_b1:0.01 };
+  var m = mult[div] || 0.05;
+  var fatorLocal = local==='frente' ? 1.0 : local==='costas' ? 0.5 : 0.3;
+  var valor = Math.round(marca.base * m * fatorLocal * (0.8 + Math.random()*0.4));
+  var duracao = 1 + Math.floor(Math.random()*4); // 1-5 anos
+  return { marca: marca.nome, tipo: marca.tipo, valor_anual: valor, duracao: duracao, local: local };
+}
+
+// ── Gerar proposta de material esportivo ──
+function gerarPropostaMaterial(clube) {
+  inicializarContratosClube(clube);
+  if (clube.material_esportivo) return null;
+  var marca = MARCAS_MATERIAL[Math.floor(Math.random()*MARCAS_MATERIAL.length)];
+  var div = estado.minhaDivisao || 'serieD';
+  var mult = { serieA:1.0, serieB:0.4, serieC:0.15, serieD:0.05,
+    paulista_a1:0.3, paulista_a2:0.1, paulista_a3:0.05, paulista_a4:0.02, paulista_b1:0.01 };
+  var m = mult[div] || 0.05;
+  var valor = Math.round(marca.base * m * (0.8 + Math.random()*0.4));
+  var duracao = 1 + Math.floor(Math.random()*4);
+  return { marca: marca.nome, valor_anual: valor, duracao: duracao };
+}
+
+// ── Aceitar contratos ──
+function aceitarNamingRights(proposta) {
+  var clube = estado.meuClube;
+  clube.naming_rights = {
+    marca: proposta.marca,
+    valor_anual: proposta.valor_anual,
+    duracao: proposta.duracao,
+    inicio_rodada: estado.rodadaAtual
+  };
+  // Pagar primeira parcela imediatamente
+  clube.caixa = (clube.caixa||0) + proposta.valor_anual;
+  clube.budget = clube.caixa;
+  salvarJogo();
+  adicionarNoticia('🏟 Naming Rights: '+proposta.marca+' firmou contrato de '+proposta.duracao+' anos por '+formatarDinheiro(proposta.valor_anual)+'/ano.', estado.rodadaAtual);
+  renderReceitas();
+}
+
+function aceitarPatrocinioCamisa(proposta) {
+  var clube = estado.meuClube;
+  inicializarContratosClube(clube);
+  if (!clube.patrocinios_camisa[proposta.local]) clube.patrocinios_camisa[proposta.local] = [];
+  clube.patrocinios_camisa[proposta.local].push({
+    marca: proposta.marca, tipo: proposta.tipo,
+    valor_anual: proposta.valor_anual, duracao: proposta.duracao,
+    inicio_rodada: estado.rodadaAtual
+  });
+  salvarJogo();
+  adicionarNoticia('👕 Patrocínio: '+proposta.marca+' na '+proposta.local+' da camisa — '+formatarDinheiro(proposta.valor_anual)+'/ano por '+proposta.duracao+' anos.', estado.rodadaAtual);
+  renderReceitas();
+}
+
+function aceitarMaterialEsportivo(proposta) {
+  var clube = estado.meuClube;
+  clube.material_esportivo = {
+    marca: proposta.marca,
+    valor_anual: proposta.valor_anual,
+    duracao: proposta.duracao,
+    inicio_rodada: estado.rodadaAtual
+  };
+  salvarJogo();
+  adicionarNoticia('👟 Material esportivo: '+proposta.marca+' assina por '+proposta.duracao+' anos — '+formatarDinheiro(proposta.valor_anual)+'/ano.', estado.rodadaAtual);
+  renderReceitas();
+}
+
+// ── Processar receitas por rodada (chamado a cada evento) ──
+function processarReceitasRodada(clube, divisao, jogoEmCasa, resultadoJogo, posicaoTabela) {
+  inicializarContratosClube(clube);
+  var total = 0;
+  var detalhes = [];
+  var rod = estado.rodadaAtual;
+
+  // 1. Cota de TV — rodada 1
+  if (rod === 0 && !clube.cota_tv_paga) {
+    var cota = pagarCotaTV(clube, divisao);
+    if (cota > 0) {
+      total += cota;
+      detalhes.push({ cat:'tv', desc:'Cota de TV ('+divisao+')', valor: cota });
+    }
+  }
+
+  // 2. Match Day — só jogos em casa
+  if (jogoEmCasa) {
+    var md = calcularMatchDay(clube);
+    clube.caixa = (clube.caixa||0) + md.renda;
+    clube.budget = clube.caixa;
+    total += md.renda;
+    detalhes.push({ cat:'matchday', desc:'Match Day ('+md.publico.toLocaleString('pt-BR')+' torcedores)', valor: md.renda });
+  }
+
+  // 3. Patrocínios (por rodada)
+  var pat = calcularPatrociniosTotal(clube);
+  if (pat > 0) {
+    clube.caixa = (clube.caixa||0) + pat;
+    clube.budget = clube.caixa;
+    total += pat;
+    detalhes.push({ cat:'patrocinio', desc:'Patrocínios (camisa + material)', valor: pat });
+  }
+
+  // 4. Sócio torcedor (a cada 4 rodadas = mensal)
+  if (rod % 4 === 0) {
+    var recSocio = atualizarSociosMensais(clube);
+    total += recSocio;
+    detalhes.push({ cat:'socio', desc:'Sócio Torcedor', valor: recSocio });
+  }
+
+  // 5. Naming Rights (anual = rodada 0 de cada temporada)
+  if (rod % 38 === 0 && rod > 0) {
+    var nr = calcularNamingRightsAnual(clube);
+    if (nr > 0) {
+      clube.caixa = (clube.caixa||0) + nr;
+      clube.budget = clube.caixa;
+      total += nr;
+      detalhes.push({ cat:'naming', desc:'Naming Rights ('+clube.naming_rights.marca+')', valor: nr });
+    }
+  }
+
+  // Histórico
+  if (!clube.historico_receitas) clube.historico_receitas = [];
+  if (detalhes.length > 0) {
+    clube.historico_receitas.push({ rodada: rod, total: total, detalhes: detalhes });
+    if (clube.historico_receitas.length > 38) clube.historico_receitas.shift();
+  }
 
   return { total: total, detalhes: detalhes };
 }
 
 // ── Atualizar confiança da torcida ──
 function atualizarConfiancaTorcida(clube, resultado) {
-  // resultado: 'vitoria' | 'empate' | 'derrota'
-  var delta = resultado === 'vitoria' ? 4 : resultado === 'empate' ? 0 : -5;
-  clube.confianca_torcida = Math.max(0, Math.min(100, (clube.confianca_torcida || 50) + delta));
-
-  // Vitorias seguidas
-  if (resultado === 'vitoria') {
-    clube.metas.vitorias_seguidas = (clube.metas.vitorias_seguidas || 0) + 1;
-    clube.metas.rodadas_invicto   = (clube.metas.rodadas_invicto   || 0) + 1;
-  } else if (resultado === 'derrota') {
+  var delta = resultado==='vitoria' ? 4 : resultado==='derrota' ? -5 : 0;
+  clube.confianca_torcida = Math.max(0, Math.min(100, (clube.confianca_torcida||50) + delta));
+  inicializarContratosClube(clube);
+  if (resultado==='vitoria') {
+    clube.metas = clube.metas || {};
+    clube.metas.vitorias_seguidas = (clube.metas.vitorias_seguidas||0)+1;
+    // Engajamento sobe com vitórias
+    clube.matchday.engajamento = Math.min(100, clube.matchday.engajamento + 2);
+  } else if (resultado==='derrota') {
+    clube.metas = clube.metas || {};
     clube.metas.vitorias_seguidas = 0;
-    clube.metas.rodadas_invicto   = 0;
-  } else {
-    clube.metas.vitorias_seguidas = 0;
-    clube.metas.rodadas_invicto   = (clube.metas.rodadas_invicto || 0) + 1;
-  }
-
-  // Recalcular receita de sócio com nova confiança
-  if (clube.receitas) {
-    var mult = MULT_DIVISAO[estado.minhaDivisao || 'serieD'] || MULT_DIVISAO.serieD;
-    var multSocio = 0.5 + (clube.confianca_torcida / 100) * 0.8;
-    clube.receitas.socio = Math.round(BASE_RECEITA_SERIEA.socio_mensalidade * mult.socio * multSocio);
+    clube.matchday.engajamento = Math.max(0, clube.matchday.engajamento - 1);
   }
 }
 
-// ── Tela de Receitas ──
+// ════════════════════════════════
+// TELA DE RECEITAS
+// ════════════════════════════════
 function renderReceitas() {
   var clube = estado.meuClube;
   var div   = estado.minhaDivisao || 'serieD';
-  inicializarReceitasClube(clube, div);
-  var r = clube.receitas;
-  var hist = clube.historico_receitas || [];
-
-  var nomesDiv = {
-    serieA:'Série A', serieB:'Série B', serieC:'Série C', serieD:'Série D',
-    paulista_a1:'Paulistão A1', paulista_a2:'Paulistão A2',
-    paulista_a3:'Paulistão A3', paulista_a4:'Paulistão A4', paulista_b1:'Bezinha'
-  };
+  inicializarContratosClube(clube);
 
   var html = '<div class="fin-tela">';
-  html += '<div class="fin-header"><h2 class="secao-titulo" style="margin:0">📈 Receitas — ' + clube.nome + '</h2>';
-  html += '<div style="font-size:12px;color:var(--text2)">Divisão: '+( nomesDiv[div]||div)+' · Confiança da torcida: <strong style="color:'+(clube.confianca_torcida>=70?'var(--green)':clube.confianca_torcida>=40?'var(--yellow)':'var(--red)')+'">'+clube.confianca_torcida+'%</strong></div>';
+  html += '<h2 class="secao-titulo" style="margin:0 0 20px">📈 Receitas — '+clube.nome+'</h2>';
+
+  // Tabs
+  var tab = window._receitasTab || 'tv';
+  var tabs = [
+    {k:'tv',     label:'📺 TV & Cotas'},
+    {k:'matchday',label:'🏟 Match Day'},
+    {k:'socio',  label:'🎫 Sócio Torcedor'},
+    {k:'naming', label:'🏷 Naming Rights'},
+    {k:'patrocinio', label:'👕 Patrocínios'},
+    {k:'historico',  label:'📊 Histórico'}
+  ];
+  html += '<div class="divisoes-tabs" style="margin-bottom:20px;flex-wrap:wrap">';
+  tabs.forEach(function(t){
+    html += '<button class="div-tab'+(tab===t.k?' ativo':'')+'" onclick="mudarReceitasTab(\''+t.k+'\')">'+t.label+'</button>';
+  });
   html += '</div>';
 
-  // Barra de confiança
-  html += '<div class="conf-bar-wrap">';
-  html += '<div class="conf-bar" style="width:'+clube.confianca_torcida+'%;background:'+(clube.confianca_torcida>=70?'var(--green)':clube.confianca_torcida>=40?'var(--yellow)':'var(--red)')+'"></div>';
+  if (tab==='tv')         html += renderReceitasTV(clube, div);
+  else if (tab==='matchday')   html += renderReceitasMatchDay(clube);
+  else if (tab==='socio')      html += renderReceitasSocio(clube);
+  else if (tab==='naming')     html += renderReceitasNaming(clube);
+  else if (tab==='patrocinio') html += renderReceitasPatrocinio(clube, div);
+  else if (tab==='historico')  html += renderReceitasHistorico(clube);
+
+  html += '</div>';
+  document.getElementById('main').innerHTML = html;
+}
+
+function mudarReceitasTab(t){ window._receitasTab=t; renderReceitas(); }
+
+// ── Tab TV ──
+function renderReceitasTV(clube, div) {
+  var cota = COTAS_TV[div] || 50000;
+  var paga = clube.cota_tv_paga;
+  var html = '<div class="receita-card" style="max-width:600px">';
+  html += '<div class="receita-card-header"><span class="receita-icon">📺</span>';
+  html += '<div><div class="receita-titulo">Cota de Direitos de TV e Transmissão</div>';
+  html += '<div class="receita-desc">Paga 1 semana antes do início do torneio · Não renovável durante a temporada</div></div></div>';
+  html += '<div class="receita-valores" style="margin-top:12px">';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Divisão</span><span class="receita-val">'+div+'</span></div>';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Cota anual</span><span class="receita-val receita-anual">'+formatarDinheiro(cota)+'</span></div>';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Status</span><span class="receita-val" style="color:'+(paga?'var(--green)':'var(--yellow)')+'">'+( paga?'✅ Recebida':'⏳ Aguardando início')+'</span></div>';
+  html += '</div>';
+  if (!paga) {
+    html += '<div class="receita-info">💡 A cota será creditada automaticamente na rodada 1 do torneio.</div>';
+  }
   html += '</div>';
 
-  // Cards por categoria
-  var categorias = [
-    {
-      icon:'📺', titulo:'TV, Rádio & Streaming',
-      desc:'Cotas CBF/FPF + direitos por jogo em casa',
-      por_rodada: r.cota_tv + r.direitos_tv + r.radio_streaming,
-      por_ano: (r.cota_tv + r.direitos_tv + r.radio_streaming) * 38,
-      info:'Aumenta ao subir de divisão. Jogos em casa geram cota adicional de ' + formatarDinheiro(r.direitos_tv) + '.'
-    },
-    {
-      icon:'👕', titulo:'Patrocínios',
-      desc:'Master (camisa) + secundário + naming rights',
-      por_rodada: r.patrocinio_master + r.patrocinio_secundario + r.naming_rights,
-      por_ano: (r.patrocinio_master + r.patrocinio_secundario + r.naming_rights) * 38,
-      info:'Cresce com divisão e tamanho do estádio. Naming rights depende da infraestrutura.'
-    },
-    {
-      icon:'🏟', titulo:'Matchday',
-      desc:'Bilheteria + camarotes + alimentação/loja',
-      por_rodada: r.bilheteria + r.camarotes + r.alimentacao,
-      por_ano: (r.bilheteria + r.camarotes + r.alimentacao) * 19, // 19 jogos em casa
-      info:'Só em jogos em casa. Público aumenta com vitórias seguidas (até +30%). Melhora com estádio maior.'
-    },
-    {
-      icon:'🎫', titulo:'Sócio Torcedor',
-      desc:'Mensalidade recorrente dos sócios',
-      por_rodada: r.socio,
-      por_ano: r.socio * 38,
-      info:'Evolui com a confiança da torcida ('+clube.confianca_torcida+'%). Vitórias aumentam a confiança. Derrotas a reduzem.'
+  // Cotas de referência
+  html += '<div class="fin-secao-titulo" style="margin-top:20px;margin-bottom:8px">📋 Cotas por divisão (referência)</div>';
+  html += '<table class="elenco-tabela"><thead><tr><th>Divisão</th><th>Cota anual</th></tr></thead><tbody>';
+  var divs = [
+    ['serieA','Série A'],['serieB','Série B'],['serieC','Série C'],['serieD','Série D'],
+    ['paulista_a1','Paulistão A1'],['paulista_a2','Paulistão A2'],['paulista_a3','Paulistão A3'],['paulista_b1','Bezinha']
+  ];
+  divs.forEach(function(d) {
+    var ativo = d[0]===div?' style="background:rgba(79,142,247,.12)"':'';
+    html += '<tr'+ativo+'><td>'+d[1]+'</td><td style="color:var(--green);font-weight:700">'+formatarDinheiro(COTAS_TV[d[0]]||0)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+// ── Tab Match Day ──
+function renderReceitasMatchDay(clube) {
+  var md = clube.matchday;
+  var calc = calcularMatchDay(clube);
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+
+  // Card de configuração
+  html += '<div class="receita-card">';
+  html += '<div class="receita-card-header"><span class="receita-icon">🏟</span>';
+  html += '<div><div class="receita-titulo">Bilheteria & Match Day</div>';
+  html += '<div class="receita-desc">Receita por jogo em casa</div></div></div>';
+
+  html += '<div style="margin-top:14px">';
+  html += '<label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Preço do ingresso: <strong>'+formatarDinheiro(md.preco_ingresso)+'</strong></label>';
+  html += '<input type="range" min="10" max="500" step="5" value="'+md.preco_ingresso+'" id="slider-ingresso" oninput="atualizarIngresso(this.value)" style="width:100%">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2)"><span>R$10 (popular)</span><span>R$500 (premium)</span></div>';
+  html += '</div>';
+
+  html += '<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">Público estimado</div><div class="fin-dre-valor">'+calc.publico.toLocaleString('pt-BR')+'</div></div>';
+  html += '<div class="fin-dre-card positivo"><div class="fin-dre-label">Renda estimada</div><div class="fin-dre-valor">'+formatarDinheiro(calc.renda)+'</div></div>';
+  html += '</div>';
+  html += '<div class="receita-info" style="margin-top:10px">💡 Ingressos mais baratos atraem mais público mas podem reduzir renda total. O ponto ótimo depende do engajamento ('+md.engajamento+'%).</div>';
+  html += '</div>';
+
+  // Card de capacidade e engajamento
+  html += '<div class="receita-card">';
+  html += '<div class="receita-card-header"><span class="receita-icon">📊</span>';
+  html += '<div><div class="receita-titulo">Capacidade & Engajamento</div>';
+  html += '<div class="receita-desc">Evolui com infraestrutura e resultados</div></div></div>';
+
+  html += '<div style="margin-top:14px;display:grid;gap:10px">';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Capacidade do estádio</span><span class="receita-val">'+md.capacidade.toLocaleString('pt-BR')+' lugares</span></div>';
+
+  // Barra de engajamento
+  var corEng = md.engajamento>=70?'var(--green)':md.engajamento>=40?'var(--yellow)':'var(--red)';
+  html += '<div><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Engajamento da torcida: <strong style="color:'+corEng+'">'+md.engajamento+'%</strong></div>';
+  html += '<div class="conf-bar-wrap"><div class="conf-bar" style="width:'+md.engajamento+'%;background:'+corEng+'"></div></div></div>';
+
+  var corConf = (clube.confianca_torcida||50)>=70?'var(--green)':(clube.confianca_torcida||50)>=40?'var(--yellow)':'var(--red)';
+  html += '<div><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Confiança da torcida: <strong style="color:'+corConf+'">'+(clube.confianca_torcida||50)+'%</strong></div>';
+  html += '<div class="conf-bar-wrap"><div class="conf-bar" style="width:'+(clube.confianca_torcida||50)+'%;background:'+corConf+'"></div></div></div>';
+  html += '</div>';
+
+  html += '<div class="receita-info" style="margin-top:10px">💡 Vitórias aumentam engajamento (+2%) e confiança (+4%). Derrotas reduzem ambos.</div>';
+  html += '</div>';
+
+  html += '</div>'; // grid
+  return html;
+}
+
+// ── Tab Sócio Torcedor ──
+function renderReceitasSocio(clube) {
+  var st = clube.socio_torcedor;
+  var receita = calcularReceitaSocio(clube);
+  var delta = st.ultima_variacao || 0;
+  var corDelta = delta>=0?'var(--green)':'var(--red)';
+
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+
+  html += '<div class="receita-card">';
+  html += '<div class="receita-card-header"><span class="receita-icon">🎫</span>';
+  html += '<div><div class="receita-titulo">Programa Sócio Torcedor</div>';
+  html += '<div class="receita-desc">Receita mensal recorrente</div></div></div>';
+
+  html += '<div style="margin-top:14px">';
+  html += '<label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Mensalidade: <strong>'+formatarDinheiro(st.mensalidade)+'/mês</strong></label>';
+  html += '<input type="range" min="15" max="200" step="5" value="'+st.mensalidade+'" id="slider-socio" oninput="atualizarMensalidade(this.value)" style="width:100%">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2)"><span>R$15 (acessível)</span><span>R$200 (premium)</span></div>';
+  html += '</div>';
+
+  html += '<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">Total de sócios</div><div class="fin-dre-valor">'+st.num_socios.toLocaleString('pt-BR')+'</div></div>';
+  html += '<div class="fin-dre-card positivo"><div class="fin-dre-label">Receita mensal</div><div class="fin-dre-valor">'+formatarDinheiro(receita)+'</div></div>';
+  html += '</div>';
+
+  if (delta !== 0) {
+    html += '<div style="margin-top:10px;padding:8px 12px;background:var(--bg3);border-radius:8px;font-size:12px">';
+    html += 'Última variação: <strong style="color:'+corDelta+'">'+(delta>=0?'+':'')+delta+' sócios</strong></div>';
+  }
+  html += '<div class="receita-info" style="margin-top:10px">💡 Mensalidade alta pode afastar sócios. Vitórias e engajamento atraem novos adeptos. Relatório enviado todo mês.</div>';
+  html += '</div>';
+
+  // Projeção anual
+  html += '<div class="receita-card">';
+  html += '<div class="receita-card-header"><span class="receita-icon">📈</span>';
+  html += '<div><div class="receita-titulo">Projeção Anual</div></div></div>';
+  html += '<div style="margin-top:14px;display:grid;gap:10px">';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Receita mensal atual</span><span class="receita-val receita-anual">'+formatarDinheiro(receita)+'</span></div>';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Projeção anual</span><span class="receita-val receita-anual">'+formatarDinheiro(receita*12)+'</span></div>';
+  html += '<div class="receita-val-item"><span class="receita-val-label">Receita por sócio/ano</span><span class="receita-val">'+formatarDinheiro(st.mensalidade*12)+'</span></div>';
+  html += '</div></div>';
+  html += '</div>';
+  return html;
+}
+
+// ── Tab Naming Rights ──
+function renderReceitasNaming(clube) {
+  var nr = clube.naming_rights;
+  var html = '';
+
+  if (nr) {
+    var rodFim = nr.inicio_rodada + nr.duracao*38;
+    var rodAnos = Math.ceil((rodFim - estado.rodadaAtual)/38);
+    html += '<div class="receita-card" style="max-width:500px;border-color:var(--green)">';
+    html += '<div class="receita-card-header"><span class="receita-icon">🏟</span>';
+    html += '<div><div class="receita-titulo">'+nr.marca+'</div>';
+    html += '<div class="receita-desc">Contrato de '+nr.duracao+' anos em vigor</div></div></div>';
+    html += '<div style="margin-top:14px;display:grid;gap:8px">';
+    html += '<div class="receita-val-item"><span class="receita-val-label">Valor anual</span><span class="receita-val receita-anual">'+formatarDinheiro(nr.valor_anual)+'</span></div>';
+    html += '<div class="receita-val-item"><span class="receita-val-label">Anos restantes</span><span class="receita-val">'+rodAnos+' ano(s)</span></div>';
+    html += '<div class="receita-val-item"><span class="receita-val-label">Total contrato</span><span class="receita-val">'+formatarDinheiro(nr.valor_anual*nr.duracao)+'</span></div>';
+    html += '</div></div>';
+  } else {
+    var proposta = gerarPropostaNamingRights(clube);
+    html += '<div class="receita-card" style="max-width:500px">';
+    html += '<div class="receita-card-header"><span class="receita-icon">🏟</span>';
+    html += '<div><div class="receita-titulo">Naming Rights — Sem contrato ativo</div>';
+    html += '<div class="receita-desc">Nome comercial do estádio</div></div></div>';
+    if (proposta) {
+      html += '<div style="margin-top:14px;background:rgba(79,142,247,.08);border:1px solid var(--accent);border-radius:10px;padding:14px">';
+      html += '<div style="font-size:13px;font-weight:700;margin-bottom:8px">📬 Proposta recebida</div>';
+      html += '<div style="display:grid;gap:6px;font-size:13px">';
+      html += '<div>Empresa: <strong>'+proposta.marca+'</strong></div>';
+      html += '<div>Valor: <strong style="color:var(--green)">'+formatarDinheiro(proposta.valor_anual)+'/ano</strong></div>';
+      html += '<div>Duração: <strong>'+proposta.duracao+' anos</strong></div>';
+      html += '<div>Total: <strong>'+formatarDinheiro(proposta.valor_anual*proposta.duracao)+'</strong></div>';
+      html += '</div>';
+      html += '<div style="display:flex;gap:8px;margin-top:12px">';
+      html += '<button class="btn-primario" onclick="aceitarNamingRights('+JSON.stringify(proposta)+')">✅ Aceitar</button>';
+      html += '<button class="btn-demitir" onclick="renderReceitas()">❌ Recusar</button>';
+      html += '</div></div>';
+    } else {
+      html += '<div class="receita-info" style="margin-top:10px">Aguardando proposta. Propostas aparecem periodicamente conforme o engajamento e tamanho do estádio.</div>';
     }
+    html += '</div>';
+  }
+  return html;
+}
+
+// ── Tab Patrocínios ──
+function renderReceitasPatrocinio(clube, div) {
+  var pc = clube.patrocinios_camisa;
+  var me = clube.material_esportivo;
+  var html = '';
+
+  // Camisa
+  html += '<div class="fin-secao-titulo" style="margin-bottom:12px">👕 Patrocínios de Camisa</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">';
+
+  var locais = [
+    {k:'frente', label:'Frente', max:5, icon:'👕'},
+    {k:'costas', label:'Costas', max:3, icon:'🔙'},
+    {k:'mangas', label:'Mangas/Ombros', max:2, icon:'💪'}
   ];
 
-  html += '<div class="receita-grid">';
-  categorias.forEach(function(cat) {
+  locais.forEach(function(loc) {
     html += '<div class="receita-card">';
-    html += '<div class="receita-card-header"><span class="receita-icon">'+cat.icon+'</span>';
-    html += '<div><div class="receita-titulo">'+cat.titulo+'</div>';
-    html += '<div class="receita-desc">'+cat.desc+'</div></div></div>';
-    html += '<div class="receita-valores">';
-    html += '<div class="receita-val-item"><span class="receita-val-label">Por rodada</span><span class="receita-val">'+formatarDinheiro(cat.por_rodada)+'</span></div>';
-    html += '<div class="receita-val-item"><span class="receita-val-label">Estimativa anual</span><span class="receita-val receita-anual">'+formatarDinheiro(cat.por_ano)+'</span></div>';
-    html += '</div>';
-    html += '<div class="receita-info">💡 '+cat.info+'</div>';
+    html += '<div class="receita-card-header"><span class="receita-icon">'+loc.icon+'</span>';
+    html += '<div><div class="receita-titulo">'+loc.label+'</div>';
+    html += '<div class="receita-desc">'+(pc[loc.k]||[]).length+'/'+loc.max+' contratos</div></div></div>';
+
+    (pc[loc.k]||[]).forEach(function(p) {
+      var ativo = estado.rodadaAtual <= p.inicio_rodada + p.duracao*38;
+      html += '<div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:6px;font-size:11px'+(ativo?'':';opacity:.5')+'">';
+      html += '<strong>'+p.marca+'</strong> '+formatarDinheiro(p.valor_anual)+'/ano'+(ativo?' ✅':' (expirado)');
+      html += '</div>';
+    });
+
+    if ((pc[loc.k]||[]).length < loc.max) {
+      var prop = gerarPropostaPatrocinio(clube, loc.k);
+      if (prop) {
+        html += '<div style="margin-top:8px;padding:8px;background:rgba(79,142,247,.08);border:1px solid var(--accent);border-radius:6px;font-size:11px">';
+        html += '<div style="font-weight:700;margin-bottom:4px">📬 '+prop.marca+'</div>';
+        html += '<div>'+formatarDinheiro(prop.valor_anual)+'/ano · '+prop.duracao+' anos</div>';
+        html += '<div style="display:flex;gap:6px;margin-top:6px">';
+        html += '<button class="btn-primario" style="font-size:10px;padding:3px 8px" onclick="aceitarPatrocinioCamisa('+JSON.stringify(prop)+')">Aceitar</button>';
+        html += '</div></div>';
+      } else {
+        html += '<div class="receita-info" style="margin-top:8px;font-size:10px">Aguardando proposta...</div>';
+      }
+    }
     html += '</div>';
   });
   html += '</div>';
 
-  // Total estimado
-  var totalRodada = categorias.reduce(function(s,c){return s+c.por_rodada;},0);
-  html += '<div class="receita-total">';
-  html += '<div>Total estimado por rodada: <strong>'+formatarDinheiro(totalRodada)+'</strong></div>';
-  html += '<div style="font-size:12px;color:var(--text2);margin-top:4px">Matchday conta apenas em jogos em casa (~metade das rodadas)</div>';
-  html += '</div>';
-
-  // Histórico
-  if (hist.length > 0) {
-    html += '<div class="fin-secao-titulo" style="margin-top:20px;margin-bottom:8px">📊 Histórico de receitas</div>';
-    html += '<table class="elenco-tabela"><thead><tr><th>Rodada</th><th>TV/Rádio</th><th>Patrocínio</th><th>Matchday</th><th>Sócio</th><th>Premiação</th><th>Total</th></tr></thead><tbody>';
-    hist.slice().reverse().forEach(function(h) {
-      var tv=0,pat=0,md=0,soc=0,prem=0;
-      h.detalhes.forEach(function(d){
-        if(d.cat==='tv') tv=d.valor;
-        if(d.cat==='patrocinio') pat=d.valor;
-        if(d.cat==='matchday') md=d.valor;
-        if(d.cat==='socio') soc=d.valor;
-        if(d.cat==='premiacao') prem=d.valor;
-      });
-      html+='<tr><td>Rod. '+h.rodada+'</td><td>'+formatarDinheiro(tv)+'</td><td>'+formatarDinheiro(pat)+'</td>';
-      html+='<td>'+(md>0?formatarDinheiro(md):'-')+'</td><td>'+formatarDinheiro(soc)+'</td>';
-      html+='<td>'+(prem>0?formatarDinheiro(prem):'-')+'</td>';
-      html+='<td style="font-weight:700;color:var(--green)">'+formatarDinheiro(h.total)+'</td></tr>';
-    });
-    html += '</tbody></table>';
+  // Material esportivo
+  html += '<div class="fin-secao-titulo" style="margin-bottom:12px">👟 Material Esportivo</div>';
+  html += '<div class="receita-card" style="max-width:400px">';
+  if (me) {
+    var meAtivo = estado.rodadaAtual <= me.inicio_rodada + me.duracao*38;
+    html += '<div class="receita-card-header"><span class="receita-icon">👟</span>';
+    html += '<div><div class="receita-titulo">'+me.marca+'</div>';
+    html += '<div class="receita-desc">'+me.duracao+' anos · '+(meAtivo?'Ativo':'Expirado')+'</div></div></div>';
+    html += '<div style="margin-top:10px">';
+    html += '<div class="receita-val-item"><span class="receita-val-label">Valor anual</span><span class="receita-val receita-anual">'+formatarDinheiro(me.valor_anual)+'</span></div>';
+    html += '</div>';
+  } else {
+    var propMe = gerarPropostaMaterial(clube);
+    html += '<div class="receita-card-header"><span class="receita-icon">👟</span>';
+    html += '<div><div class="receita-titulo">Sem contrato de material</div></div></div>';
+    if (propMe) {
+      html += '<div style="margin-top:10px;background:rgba(79,142,247,.08);border:1px solid var(--accent);border-radius:8px;padding:10px;font-size:12px">';
+      html += '<div><strong>'+propMe.marca+'</strong> — '+formatarDinheiro(propMe.valor_anual)+'/ano · '+propMe.duracao+' anos</div>';
+      html += '<button class="btn-primario" style="margin-top:8px" onclick="aceitarMaterialEsportivo('+JSON.stringify(propMe)+')">✅ Aceitar</button>';
+      html += '</div>';
+    } else {
+      html += '<div class="receita-info" style="margin-top:10px">Aguardando proposta de material esportivo.</div>';
+    }
   }
-
   html += '</div>';
-  document.getElementById("main").innerHTML = html;
+  return html;
+}
+
+// ── Tab Histórico ──
+function renderReceitasHistorico(clube) {
+  var hist = clube.historico_receitas || [];
+  if (hist.length === 0) return '<div class="dash-empty">Nenhuma receita registrada ainda.</div>';
+
+  var html = '<table class="elenco-tabela"><thead><tr>';
+  html += '<th>Rodada</th><th>Tipo</th><th>Descrição</th><th>Valor</th>';
+  html += '</tr></thead><tbody>';
+  hist.slice().reverse().forEach(function(h) {
+    h.detalhes.forEach(function(d) {
+      var icone = d.cat==='tv'?'📺':d.cat==='matchday'?'🏟':d.cat==='socio'?'🎫':d.cat==='patrocinio'?'👕':d.cat==='naming'?'🏷':'💰';
+      html += '<tr><td>Rod.'+h.rodada+'</td><td>'+icone+'</td><td>'+d.desc+'</td>';
+      html += '<td style="color:var(--green);font-weight:700">'+formatarDinheiro(d.valor)+'</td></tr>';
+    });
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+// ── Handlers dos sliders ──
+function atualizarIngresso(val) {
+  var v = parseInt(val);
+  estado.meuClube.matchday.preco_ingresso = v;
+  // Atualizar display sem re-render total
+  var lbl = document.querySelector('label[for="slider-ingresso"], label + input#slider-ingresso');
+  document.querySelectorAll('label').forEach(function(l){
+    if (l.textContent.indexOf('Preço do ingresso')>=0) l.innerHTML = 'Preço do ingresso: <strong>'+formatarDinheiro(v)+'</strong>';
+  });
+  var calc = calcularMatchDay(estado.meuClube);
+  var cards = document.querySelectorAll('.fin-dre-valor');
+  // Simples — re-renderizar aba
+  mudarReceitasTab('matchday');
+}
+
+function atualizarMensalidade(val) {
+  var v = parseInt(val);
+  estado.meuClube.socio_torcedor.mensalidade = v;
+  mudarReceitasTab('socio');
 }
 </script>
 <script>// ════════════════════════════════════════
@@ -9460,6 +9896,7 @@ function navegarPara(aba) {
   if (abas[aba]) abas[aba]();
 }
 function renderElenco() {
+  if (!estado.meuClube) { navegarPara('dashboard'); return; }
   var clube   = estado.meuClube;
   var tecnico = estado.meuTecnico;
   var stats   = calcularForca(clube, tecnico);
@@ -9846,8 +10283,7 @@ function renderMercado() {
   html += '</div>';
 
   if (aba === "livres") {
-    html += '<h3 style="margin-bottom:12px;font-size:14px">Jogadores sem clube — sem multa rescisória</h3>';
-    html += renderMercadoLivres();
+    html += renderMercadoLivresHTML();
     html += '</div>';
     document.getElementById("main").innerHTML = html;
     return;
@@ -9865,6 +10301,28 @@ function renderMercado() {
 }
 
 function mudarMercadoAba(aba) { _mercadoAba = aba; renderMercado(); }
+
+function filtrarLivres(pos) {
+  var _maba = _mercadoAba;
+  _mercadoAba = "livres";
+  window._filtroLivresPos = (pos === "TODOS") ? null : pos;
+  renderMercado();
+  _mercadoAba = _maba;
+  // Reconstituir com filtro
+  var el = document.getElementById("main");
+  if (!el) return;
+  var html = '<div class="mercado-tela">';
+  html += '<div class="divisoes-tabs" style="margin-bottom:16px">';
+  ['disponiveis','livres','meus'].forEach(function(a){
+    var lbl = a==='disponiveis'?'🏪 Disponíveis':a==='livres'?'🆓 Jogadores Livres':'📤 Meu Elenco';
+    var cls = a==='livres'?' ativo':'';
+    html += '<button class="div-tab'+cls+'" onclick="mudarMercadoAba(\''+a+'\')" >'+lbl+'</button>';
+  });
+  html += '</div>';
+  html += renderMercadoLivresHTML(pos === "TODOS" ? null : pos);
+  html += '</div>';
+  el.innerHTML = html;
+}
 
 function renderMercadoMeus() {
   var clube = estado.meuClube;
