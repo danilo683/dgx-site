@@ -2817,6 +2817,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <button class="admin-tab" onclick="adminTab(this,'metas')">Metas</button>
             <button class="admin-tab" onclick="adminTab(this,'patrimonio')">Patrimônio</button>
             <button class="admin-tab" onclick="adminTab(this,'investimentos')">Investimentos</button>
+            <button class="admin-tab" onclick="adminTab(this,'metodo5030')">50/30/20</button>
           </div>
 
           <div class="admin-panel active" id="adminp-resumo">
@@ -3189,6 +3190,33 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
             </div>
             <div class="plano-vazio" id="admin-inv-vazio" style="display:none">Nenhum investimento registrado.</div>
+          </div>
+
+          <!-- 50/30/20 -->
+          <div class="admin-panel" id="adminp-metodo5030">
+            <div class="orc-loading" id="admin-metodo-loading">Carregando...</div>
+            <div id="admin-metodo-content" style="display:none">
+              <div class="metodo-pizzas">
+                <div class="metodo-pizza-col">
+                  <div class="metodo-pizza-titulo">Distribuição ideal</div>
+                  <div id="admin-metodo-pizza-ideal"></div>
+                  <div class="metodo-legenda">
+                    <div class="metodo-legenda-item"><div class="metodo-leg-dot essencial"></div><span>50% Essenciais</span></div>
+                    <div class="metodo-legenda-item"><div class="metodo-leg-dot nao-essencial"></div><span>30% Não essenciais</span></div>
+                    <div class="metodo-legenda-item"><div class="metodo-leg-dot investimento"></div><span>20% Investimentos</span></div>
+                  </div>
+                </div>
+                <div class="metodo-pizza-vs">VS</div>
+                <div class="metodo-pizza-col">
+                  <div class="metodo-pizza-titulo">Distribuição do cliente</div>
+                  <div id="admin-metodo-pizza-real"></div>
+                  <div id="admin-metodo-legenda-real"></div>
+                  <div class="plano-vazio" id="admin-metodo-sem-dados" style="display:none">Nenhuma classificação definida.</div>
+                </div>
+              </div>
+              <div class="metodo-cards" id="admin-metodo-cards"></div>
+              <div class="metodo-diagnostico" id="admin-metodo-diagnostico"></div>
+            </div>
           </div>
 
         </div>
@@ -5864,6 +5892,7 @@ function adminTab(btn, panel){
   if(panel==='metas') adminMetasCarregar();
   if(panel==='patrimonio') adminPatCarregar();
   if(panel==='investimentos') adminInvCarregar();
+  if(panel==='metodo5030') adminMetodoCarregar();
 }
 
 async function adminAbrirCliente(idx){
@@ -6473,6 +6502,99 @@ function adminOrcclassPizzaRenderizar(dados){
       <span style="color:var(--gray2);font-size:.62rem">${fmt(item.val)}</span>
     </div>`;
   }).join('');
+}
+
+// ── ADMIN: MÉTODO 50/30/20 ──
+async function adminMetodoCarregar(){
+  document.getElementById('admin-metodo-loading').style.display='block';
+  document.getElementById('admin-metodo-content').style.display='none';
+
+  const anoAtual = new Date().getFullYear();
+  const [despRes, recRes] = await Promise.all([
+    sb.from('orcamento').select('categoria,classificacao,previsto,grupo')
+      .eq('user_id', adminClienteAtualId).eq('ano', anoAtual).neq('grupo','__receitas'),
+    sb.from('orcamento').select('previsto')
+      .eq('user_id', adminClienteAtualId).eq('ano', anoAtual).eq('grupo','__receitas')
+  ]);
+
+  document.getElementById('admin-metodo-loading').style.display='none';
+  document.getElementById('admin-metodo-content').style.display='block';
+
+  const totais = { essencial:0, nao_essencial:0, investimento:0, total:0 };
+  (despRes.data||[]).forEach(r=>{
+    const val=Number(r.previsto||0); totais.total+=val;
+    if(r.classificacao==='essencial')          totais.essencial+=val;
+    else if(r.classificacao==='nao_essencial') totais.nao_essencial+=val;
+    else if(r.classificacao==='investimento')  totais.investimento+=val;
+  });
+
+  const totalRecAnual=(recRes.data||[]).reduce((a,r)=>a+Number(r.previsto||0),0);
+  const recMensal=totalRecAnual/12||1;
+  const despMensal=totais.total/12||1;
+  const base=Math.max(recMensal,despMensal);
+
+  const pctEss=base?totais.essencial/12/base:0;
+  const pctNao=base?totais.nao_essencial/12/base:0;
+  const pctInv=base?totais.investimento/12/base:0;
+  const temClass=totais.essencial+totais.nao_essencial+totais.investimento>0;
+  const fmt=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const pctFmt=v=>(v*100).toFixed(1)+'%';
+
+  // Pizza ideal
+  document.getElementById('admin-metodo-pizza-ideal').innerHTML=metodoPizzaSVG([
+    {val:50,cor:'#e05252',label:'50%'},{val:30,cor:'#f0c93a',label:'30%'},{val:20,cor:'#4ec98a',label:'20%'}
+  ],'50/30/20');
+
+  // Pizza real
+  if(!temClass){
+    document.getElementById('admin-metodo-pizza-real').innerHTML='';
+    document.getElementById('admin-metodo-sem-dados').style.display='block';
+    document.getElementById('admin-metodo-legenda-real').innerHTML='';
+  } else {
+    document.getElementById('admin-metodo-sem-dados').style.display='none';
+    const semClass=1-pctEss-pctNao-pctInv;
+    const itens=[
+      {val:pctEss*100,cor:'#e05252',label:pctFmt(pctEss)+' Essenciais'},
+      {val:pctNao*100,cor:'#f0c93a',label:pctFmt(pctNao)+' Não essenciais'},
+      {val:pctInv*100,cor:'#4ec98a',label:pctFmt(pctInv)+' Investimentos'},
+    ];
+    if(semClass>0.01) itens.push({val:semClass*100,cor:'#4b5563',label:pctFmt(semClass)+' Sem classe'});
+    document.getElementById('admin-metodo-pizza-real').innerHTML=metodoPizzaSVG(itens,pctFmt(pctEss)+'/'+pctFmt(pctNao)+'/'+pctFmt(pctInv));
+    document.getElementById('admin-metodo-legenda-real').innerHTML=itens.map(i=>`
+      <div class="metodo-legenda-item"><div style="width:10px;height:10px;border-radius:2px;background:${i.cor};flex-shrink:0"></div><span>${i.label}</span></div>`).join('');
+  }
+
+  // Cards
+  document.getElementById('admin-metodo-cards').innerHTML=[
+    {label:'Essenciais',ideal:50,real:pctEss*100,cor:'#e05252',vi:fmt(base*.5),vr:fmt(totais.essencial/12)},
+    {label:'Não essenciais',ideal:30,real:pctNao*100,cor:'#f0c93a',vi:fmt(base*.3),vr:fmt(totais.nao_essencial/12)},
+    {label:'Investimentos',ideal:20,real:pctInv*100,cor:'#4ec98a',vi:fmt(base*.2),vr:fmt(totais.investimento/12)},
+  ].map(c=>{
+    const diff=c.real-c.ideal;
+    const dcls=Math.abs(diff)<3?'ok':diff>0?'alto':'baixo';
+    const dlbl=Math.abs(diff)<3?'✓ No alvo':diff>0?`+${diff.toFixed(1)}% acima`:`${diff.toFixed(1)}% abaixo`;
+    return `<div class="metodo-card" style="border-top:3px solid ${c.cor}">
+      <div class="metodo-card-label">${c.label}</div>
+      <div class="metodo-card-linha"><span class="metodo-card-desc">Ideal</span><span class="metodo-card-val" style="color:${c.cor}">${c.ideal}% <small style="font-size:.7rem;font-weight:400;color:var(--gray)">${c.vi}/mês</small></span></div>
+      <div class="metodo-card-linha"><span class="metodo-card-desc">Orçamento cliente</span><span class="metodo-card-val" style="color:var(--white)">${c.real.toFixed(1)}% <small style="font-size:.7rem;font-weight:400;color:var(--gray)">${temClass?c.vr:'—'}/mês</small></span></div>
+      ${temClass?`<div style="margin-top:.6rem"><span class="metodo-card-diff ${dcls}">${dlbl}</span></div>`:''}
+    </div>`;
+  }).join('');
+
+  // Diagnóstico
+  if(temClass){
+    const msgs=[];
+    if(pctEss>.55) msgs.push(`<strong>Essenciais acima do ideal (${pctFmt(pctEss)}):</strong> Cliente comprometendo mais de 55% com gastos fixos.`);
+    else msgs.push(`<strong>Essenciais: ${pctFmt(pctEss)}</strong> — ${pctEss<=.55&&pctEss>=.4?'dentro da faixa saudável.':'abaixo de 40% — boa margem de manobra.'}`);
+    if(pctNao>.35) msgs.push(`<strong>Não essenciais elevados (${pctFmt(pctNao)}):</strong> Oportunidade de realocação para investimentos.`);
+    else msgs.push(`<strong>Não essenciais: ${pctFmt(pctNao)}</strong> — ${pctNao>=.15?'adequado.':'muito baixo — considerar qualidade de vida.'}`);
+    if(pctInv<.1) msgs.push(`<strong>Investimentos abaixo do ideal (${pctFmt(pctInv)}):</strong> Meta: 20% da renda. Faltam ${((.2-pctInv)*100).toFixed(1)} pontos percentuais.`);
+    else msgs.push(`<strong>Investimentos: ${pctFmt(pctInv)}</strong> — ${pctInv>=.2?'no alvo ou acima! Excelente.':'em progresso.'}`);
+    document.getElementById('admin-metodo-diagnostico').innerHTML=`<div class="metodo-diag-titulo">💡 Diagnóstico</div>${msgs.map(m=>`<div class="metodo-diag-item">${m}</div>`).join('')}`;
+    document.getElementById('admin-metodo-diagnostico').style.display='block';
+  } else {
+    document.getElementById('admin-metodo-diagnostico').style.display='none';
+  }
 }
 
 // ── ADMIN: CONQUISTAS ──
