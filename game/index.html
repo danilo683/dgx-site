@@ -7792,15 +7792,35 @@ function inicializarPaulista() {
     est.faseAtual = "grupos";
   });
 
-  // Bezinha: gerar jogos por grupo (turno+returno = 10 rodadas para 6 times)
+  // Bezinha: gerar jogos em rodadas round-robin (6 times = 5 rodadas ida + 5 volta)
+  // Cada rodada tem 3 jogos (todos os 6 times jogam 1x)
   GRUPOS_BEZINHA.forEach(function(g){
     var ids=g.clubes.map(function(c){return c.id;});
-    for(var i=0;i<ids.length;i++){
-      for(var j=i+1;j<ids.length;j++){
-        estadoPaulista.b1.jogos.push({div:"b1",grupo:g.letra,fase:"grupos",mId:ids[i],vId:ids[j],gM:null,gV:null,ok:false});
-        estadoPaulista.b1.jogos.push({div:"b1",grupo:g.letra,fase:"grupos",mId:ids[j],vId:ids[i],gM:null,gV:null,ok:false});
+    var n=ids.length; // 6
+    var lista=ids.slice();
+    // Round-robin: fixar o primeiro, rodar os demais
+    var rodadasIda=[];
+    for(var r=0;r<n-1;r++){
+      var rodada=[];
+      for(var i=0;i<n/2;i++){
+        rodada.push({mId:lista[i],vId:lista[n-1-i]});
       }
+      rodadasIda.push(rodada);
+      // Rotacionar: mover último para posição 1, manter [0] fixo
+      lista.splice(1,0,lista.pop());
     }
+    // Turno (ida)
+    rodadasIda.forEach(function(rodada,rIdx){
+      rodada.forEach(function(jogo){
+        estadoPaulista.b1.jogos.push({div:"b1",grupo:g.letra,fase:"grupos",rodada:rIdx,mId:jogo.mId,vId:jogo.vId,gM:null,gV:null,ok:false});
+      });
+    });
+    // Returno (volta: mandante e visitante trocados)
+    rodadasIda.forEach(function(rodada,rIdx){
+      rodada.forEach(function(jogo){
+        estadoPaulista.b1.jogos.push({div:"b1",grupo:g.letra,fase:"grupos",rodada:rIdx+(n-1),mId:jogo.vId,vId:jogo.mId,gM:null,gV:null,ok:false});
+      });
+    });
   });
   estadoPaulista.b1.faseAtual = "grupos";
 
@@ -7936,11 +7956,17 @@ function simularEventoPaulista(rodadaIdx) {
   if(estadoPaulista.b1.faseAtual==="grupos"){
     var todosB1=GRUPOS_BEZINHA.reduce(function(a,gr){return a.concat(gr.clubes);}, []);
     GRUPOS_BEZINHA.forEach(function(g){
-      // Simular 3 jogos por rodada (todos os times do grupo jogam 1 vez)
-      var pendentes=estadoPaulista.b1.jogos.filter(function(j){
-        return j.grupo===g.letra&&j.fase==="grupos"&&!j.ok;
-      }).slice(0, 3);
-      pendentes.forEach(function(pend){
+      // Encontrar a próxima rodada pendente deste grupo
+      var pendentes = estadoPaulista.b1.jogos.filter(function(j){
+        return j.grupo===g.letra && j.fase==="grupos" && !j.ok;
+      });
+      if (pendentes.length === 0) return;
+      // Pegar a rodada com número menor (próxima rodada)
+      var proxRodada = pendentes[0].rodada;
+      var jogosRodada = pendentes.filter(function(j){ return j.rodada===proxRodada; });
+      // Se não tem campo rodada (saves antigos), simular 3
+      if (jogosRodada.length === 0) jogosRodada = pendentes.slice(0, 3);
+      jogosRodada.forEach(function(pend){
         var r=simularJPaulista(pend.mId,pend.vId,todosB1);
         pend.gM=r.gM; pend.gV=r.gV; pend.ok=true;
       });
@@ -9659,14 +9685,19 @@ function simularRodada(idx) {
   var rodada = estado.calendario[idx];
   var meuId  = estado.meuClube.id;
   var meuTec = estado.meuTecnico;
+  var ehPaulista = estado.minhaDivisao && estado.minhaDivisao.indexOf("paulista_") === 0;
+
+  // Resultados vão para arrays separados por divisão
+  var arrResultados = ehPaulista ? (estado.resultadosPaulista || (estado.resultadosPaulista=[])) : estado.resultados;
 
   rodada.jogos.forEach(function(jogo) {
     var mandante  = buscarClubePorId(jogo.mandanteId);
     var visitante = buscarClubePorId(jogo.visitanteId);
+    if (!mandante || !visitante) return; // ignorar jogos com clubes inválidos
     var tecM = jogo.mandanteId  === meuId ? meuTec : null;
     var tecV = jogo.visitanteId === meuId ? meuTec : null;
     var r = simularPartidaSimples(mandante, visitante, tecM, tecV);
-    estado.resultados.push({
+    arrResultados.push({
       rodada: idx,
       mandanteId: jogo.mandanteId, visitanteId: jogo.visitanteId,
       golsMandante: r.golsMandante, golsVisitante: r.golsVisitante,
@@ -9700,6 +9731,8 @@ function renderTabela() {
   if (estado.minhaDivisao === "serieB" && estadoDivisoes.b.clubes) { _clubesTab = estadoDivisoes.b.clubes; _resultsTab = estadoDivisoes.b.resultados||estado.resultados; }
   else if (estado.minhaDivisao === "serieC" && estadoDivisoes.c.clubes) { _clubesTab = estadoDivisoes.c.clubes; _resultsTab = estadoDivisoes.c.resultados||estado.resultados; }
   else if (estado.minhaDivisao === "serieD" && estadoDivisoes.d.clubes) { _clubesTab = estadoDivisoes.d.clubes; _resultsTab = estadoDivisoes.d.resultados||estado.resultados; }
+  // Para times paulistas, resultados ficam em resultadosPaulista
+  if (estado.minhaDivisao && estado.minhaDivisao.indexOf("paulista_") === 0) { _resultsTab = estado.resultadosPaulista || []; }
   var tabela = calcularTabela(_clubesTab, _resultsTab);
   var meuId  = estado.meuClube.id;
 
