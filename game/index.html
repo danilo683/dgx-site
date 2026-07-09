@@ -5560,10 +5560,8 @@ function adicionarLanceFeed(lance) {
   if (lance.tipo === "substituicao") {
     atualizarListasLaterais();
   }
-  // Atualizar painel de stats (gols, cartões, etc)
-  if (lance.tipo==='gol'||lance.tipo==='amarelo'||lance.tipo==='vermelho') {
-    atualizarPainelStats();
-  }
+  // Atualizar painel de stats a cada lance
+  atualizarPainelStats();
 }
 
 function atualizarPainelStats() {
@@ -5599,23 +5597,31 @@ function _atualizarBarrasDOM() {
 }
 
 function _atualizarResumoDOM() {
-  var el = document.getElementById('stats-resumo');
+  var painel = document.getElementById('painel-stats');
+  if (!painel) return;
+
   var eventos = (jogoAtivo ? jogoAtivo.lancesExibidos||[] : []).filter(function(l){
     return l.tipo==='gol'||l.tipo==='amarelo'||l.tipo==='vermelho';
   });
+
+  // Garantir que a seção de resumo existe no painel
+  var el = document.getElementById('stats-resumo');
   if (!el) {
-    // Criar seção de resumo se não existe mas já há eventos
-    if (eventos.length > 0) {
-      var painel = document.getElementById('painel-stats');
-      if (painel) {
-        var sec = document.createElement('div');
-        sec.innerHTML = '<div class="stats-titulo" style="margin-top:6px">Resumo</div><div class="stats-eventos" id="stats-resumo"></div>';
-        painel.appendChild(sec);
-        el = document.getElementById('stats-resumo');
-      }
+    var titEl = document.getElementById('stats-resumo-titulo');
+    if (!titEl) {
+      var sec = document.createElement('div');
+      sec.id = 'stats-resumo-wrap';
+      sec.innerHTML = '<div class="stats-titulo" id="stats-resumo-titulo" style="margin-top:6px">Resumo</div><div class="stats-eventos" id="stats-resumo"></div>';
+      painel.appendChild(sec);
     }
-    if (!el) return;
+    el = document.getElementById('stats-resumo');
   }
+  if (!el) return;
+
+  // Mostrar/ocultar seção
+  var wrap = document.getElementById('stats-resumo-wrap');
+  if (wrap) wrap.style.display = eventos.length > 0 ? '' : 'none';
+
   el.innerHTML = '';
   eventos.forEach(function(l) {
     var icone = l.tipo==='gol'?'⚽':l.tipo==='amarelo'?'🟨':'🟥';
