@@ -1668,7 +1668,8 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  height: 540px;
+  min-height: 540px;
+  height: 100%;
 }
 
 .jogo-painel-feed .lances-lista {
@@ -1683,6 +1684,25 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   color: #c39bd3;
   font-style: italic;
 }
+
+/* Borda colorida por time */
+.lance-mandante { border-left: 3px solid #fb9 !important; }
+.lance-visitante { border-left: 3px solid #9be !important; }
+
+/* Lances mais espaçados e clean */
+.lance-item {
+  padding: 7px 10px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  border-bottom: 1px solid rgba(255,255,255,.04) !important;
+}
+.lance-min {
+  font-size: 11px !important;
+  min-width: 28px !important;
+  color: var(--accent) !important;
+  font-weight: 700 !important;
+}
+.lance-gol { font-weight: 700; }
 
 /* Fadiga barra no resultado */
 .fadiga-barra-wrap {
@@ -2375,7 +2395,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 /* ── Três painéis da partida ── */
 .jogo-tres-paineis {
   display: grid;
-  grid-template-columns: 200px 175px minmax(0, 400px) 175px 240px;
+  grid-template-columns: 190px 165px minmax(0, 380px) 165px 1fr;
   gap: 8px;
   margin-bottom: 12px;
   align-items: start;
@@ -5002,16 +5022,20 @@ function _renderPainelStats() {
   if (!jogoAtivo) return '<div class="jogo-painel-stats"></div>';
   var possM = jogoAtivo.posseMandante || 50;
   var possV = 100 - possM;
-  var cM = jogoAtivo.chutesM || 0;
-  var cV = jogoAtivo.chutesV || 0;
+  var cM  = jogoAtivo.chutesM    || 0;
+  var cV  = jogoAtivo.chutesV    || 0;
   var cgM = jogoAtivo.chutesGolM || 0;
   var cgV = jogoAtivo.chutesGolV || 0;
-  var maxC = Math.max(cM + cV, 1);
+  var gM  = jogoAtivo.golsM      || 0;
+  var gV  = jogoAtivo.golsV      || 0;
+  var maxC  = Math.max(cM  + cV,  1);
+  var maxCg = Math.max(cgM + cgV, 1);
+  var maxG  = Math.max(gM  + gV,  1);
 
   var html = '<div class="jogo-painel-stats" id="painel-stats">';
   html += '<div class="stats-titulo">📊 Estatísticas</div>';
 
-  // Posse de bola — gráfico de barra
+  // Posse de bola — barra com IDs para atualização via DOM
   html += '<div class="stats-posse-wrap">';
   html += '<div style="font-size:10px;color:var(--text2);text-align:center;margin-bottom:2px">Posse de bola</div>';
   html += '<div class="stats-posse-barra">';
@@ -5023,25 +5047,27 @@ function _renderPainelStats() {
   html += '<span id="posse-val-vis" style="color:#9be">'+possV+'%</span>';
   html += '</div></div>';
 
-  // Chutes
-  html += '<div class="stats-barra-wrap">';
-  html += _statsBarraRow('Chutes', cM, cV, maxC);
-  html += _statsBarraRow('No gol', cgM, cgV, Math.max(cM,cV,1));
-  html += _statsBarraRow('Gols', jogoAtivo.golsM||0, jogoAtivo.golsV||0, Math.max(jogoAtivo.golsM||0, jogoAtivo.golsV||0, 1));
+  // Barras com IDs individuais para DOM update a cada tick
+  html += '<div class="stats-barra-wrap" id="stats-barras">';
+  html += _statsBarraRowId('chutes', 'Chutes', cM,  cV,  maxC);
+  html += _statsBarraRowId('nogol',  'No gol', cgM, cgV, maxCg);
+  html += _statsBarraRowId('gols',   'Gols',   gM,  gV,  maxG);
   html += '</div>';
 
-  // Eventos importantes (gols, cartões, lesões)
+  // Resumo de eventos importantes (gols, assistências, cartões)
   var eventos = (jogoAtivo.lancesExibidos||[]).filter(function(l){
-    return l.tipo==='gol'||l.tipo==='amarelo'||l.tipo==='vermelho'||l.tipo==='lesao';
+    return l.tipo==='gol'||l.tipo==='amarelo'||l.tipo==='vermelho';
   });
   if (eventos.length > 0) {
-    html += '<div class="stats-titulo" style="margin-top:4px">Eventos</div>';
-    html += '<div class="stats-eventos">';
+    html += '<div class="stats-titulo" style="margin-top:6px">Resumo</div>';
+    html += '<div class="stats-eventos" id="stats-resumo">';
     eventos.forEach(function(l) {
-      var icone = l.tipo==='gol'?'⚽':l.tipo==='amarelo'?'🟨':l.tipo==='vermelho'?'🟥':'🤕';
+      var icone = l.tipo==='gol'?'⚽':l.tipo==='amarelo'?'🟨':'🟥';
+      // Texto curto: só nome do jogador e ação
+      var txt = l.texto.replace(/GOL! /,'').replace(/ para o .+\)/,'').replace(/Cartão amarelo! /,'').replace(/EXPULSO! /,'');
       html += '<div class="stats-evento-item">';
       html += '<span class="stats-evento-min">'+l.minuto+"'</span>";
-      html += '<span class="stats-evento-txt">'+icone+' '+l.texto+'</span>';
+      html += '<span class="stats-evento-txt">'+icone+' '+txt+'</span>';
       html += '</div>';
     });
     html += '</div>';
@@ -5049,6 +5075,19 @@ function _renderPainelStats() {
 
   html += '</div>';
   return html;
+}
+
+// Barra com IDs únicos para atualização via DOM (sem re-render total)
+function _statsBarraRowId(id, label, valM, valV, max) {
+  var pM = max > 0 ? Math.round((valM/max)*100) : 0;
+  var pV = max > 0 ? Math.round((valV/max)*100) : 0;
+  return '<div class="stats-barra-row">'+
+    '<span class="stats-barra-man-val" id="sb-'+id+'-m">'+valM+'</span>'+
+    '<div class="stats-barra-bg" style="position:relative"><div class="stats-barra-fill-man" id="sb-'+id+'-bm" style="width:'+pM+'%"></div></div>'+
+    '<span style="font-size:9px;color:var(--text2);text-align:center">'+label+'</span>'+
+    '<div class="stats-barra-bg" style="position:relative"><div class="stats-barra-fill-vis" id="sb-'+id+'-bv" style="width:'+pV+'%"></div></div>'+
+    '<span class="stats-barra-vis-val" id="sb-'+id+'-v">'+valV+'</span>'+
+    '</div>';
 }
 
 function _statsBarraRow(label, valM, valV, max) {
@@ -5134,7 +5173,6 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
 
   // Stats
   html += '<div class="jogo-stats-vivos">';
-  html += '<div class="stat-vivo"><span id="sv-chutes-m">0</span><span>Chutes</span><span id="sv-chutes-v">0</span></div>';
   html += '<div class="stat-vivo"><span id="sv-posse-m">50%</span><span>Posse</span><span id="sv-posse-v">50%</span></div>';
   html += '<div class="stat-vivo"><span id="sv-subs-m">0/5</span><span>Subs</span><span id="sv-subs-v">0/5</span></div>';
   html += '</div>';
@@ -5437,10 +5475,7 @@ function iniciarPartidaAoVivo() {
       if (lance.tipo === "chute" || lance.tipo === "gol") {
         if (lance.time === "mandante") chutesM++;
         else chutesV++;
-        var sm2 = document.getElementById("sv-chutes-m");
-        var sv2 = document.getElementById("sv-chutes-v");
-        if (sm2) sm2.textContent = chutesM;
-        if (sv2) sv2.textContent = chutesV;
+        // barras atualizadas via atualizarPainelStats()
       }
       lancesExibidos++;
     }
@@ -5489,6 +5524,9 @@ function adicionarLanceFeed(lance) {
   if (lance.tipo === "fim")         cls += " lance-fim";
   if (lance.tipo === "amarelo")     cls += " lance-amarelo";
   if (lance.tipo === "vermelho")    cls += " lance-vermelho";
+  // Borda colorida pelo time do lance
+  if (lance.time === 'mandante') cls += ' lance-mandante';
+  else if (lance.time === 'visitante') cls += ' lance-visitante';
   div.className = cls;
   div.innerHTML = '<span class="lance-min">' + lance.minuto + '\'</span><span class="lance-texto">' + lance.texto + '</span>';
   lista.appendChild(div);
@@ -5505,12 +5543,64 @@ function adicionarLanceFeed(lance) {
 }
 
 function atualizarPainelStats() {
-  var el = document.getElementById("painel-stats");
-  if (!el) return;
-  el.outerHTML = _renderPainelStats();
-  // outerHTML reconstrói o elemento — reselecionar e atualizar posse
-  var novoEl = document.getElementById("painel-stats");
-  if (novoEl) _atualizarPosseDOM();
+  // Atualizar barras via DOM (sem re-render total)
+  _atualizarBarrasDOM();
+  _atualizarPosseDOM();
+  _atualizarResumoDOM();
+}
+
+function _atualizarBarrasDOM() {
+  if (!jogoAtivo) return;
+  var cM  = jogoAtivo.chutesM    || 0, cV  = jogoAtivo.chutesV    || 0;
+  var cgM = jogoAtivo.chutesGolM || 0, cgV = jogoAtivo.chutesGolV || 0;
+  var gM  = jogoAtivo.golsM      || 0, gV  = jogoAtivo.golsV      || 0;
+  function upBarra(id, vM, vV, max) {
+    var pM = max>0?Math.round((vM/max)*100):0;
+    var pV = max>0?Math.round((vV/max)*100):0;
+    var em = document.getElementById('sb-'+id+'-m');
+    var ev = document.getElementById('sb-'+id+'-v');
+    var bm = document.getElementById('sb-'+id+'-bm');
+    var bv = document.getElementById('sb-'+id+'-bv');
+    if(em) em.textContent = vM;
+    if(ev) ev.textContent = vV;
+    if(bm) bm.style.width = pM+'%';
+    if(bv) bv.style.width = pV+'%';
+  }
+  var maxC  = Math.max(cM+cV, 1);
+  var maxCg = Math.max(cgM+cgV, 1);
+  var maxG  = Math.max(gM+gV, 1);
+  upBarra('chutes', cM, cV, maxC);
+  upBarra('nogol',  cgM, cgV, maxCg);
+  upBarra('gols',   gM, gV, maxG);
+}
+
+function _atualizarResumoDOM() {
+  var el = document.getElementById('stats-resumo');
+  var eventos = (jogoAtivo ? jogoAtivo.lancesExibidos||[] : []).filter(function(l){
+    return l.tipo==='gol'||l.tipo==='amarelo'||l.tipo==='vermelho';
+  });
+  if (!el) {
+    // Criar seção de resumo se não existe mas já há eventos
+    if (eventos.length > 0) {
+      var painel = document.getElementById('painel-stats');
+      if (painel) {
+        var sec = document.createElement('div');
+        sec.innerHTML = '<div class="stats-titulo" style="margin-top:6px">Resumo</div><div class="stats-eventos" id="stats-resumo"></div>';
+        painel.appendChild(sec);
+        el = document.getElementById('stats-resumo');
+      }
+    }
+    if (!el) return;
+  }
+  el.innerHTML = '';
+  eventos.forEach(function(l) {
+    var icone = l.tipo==='gol'?'⚽':l.tipo==='amarelo'?'🟨':'🟥';
+    var txt = l.texto.replace(/GOL! /,'').replace(/ para o .+\)/,'').replace(/Cartão amarelo! /,'').replace(/EXPULSO! /,'');
+    var div = document.createElement('div');
+    div.className = 'stats-evento-item';
+    div.innerHTML = '<span class="stats-evento-min">'+l.minuto+"'</span><span class='stats-evento-txt'>"+icone+' '+txt+'</span>';
+    el.appendChild(div);
+  });
 }
 
 function _atualizarPosseDOM() {
@@ -5540,16 +5630,27 @@ function finalizarPartida() {
   var visitante  = jogoAtivo.visitante;
   var lances     = jogoAtivo.lances;
   var meuClube   = estado.meuClube;
-  // meuEsc = titulares + substitutos que entraram
-  var titulares = euMandante ? jogoAtivo.escMandante : jogoAtivo.escVisitante;
-  var reservas  = euMandante ? jogoAtivo.reservasMandante : jogoAtivo.reservasVisitante;
-  var subsEntrou = (reservas || []).filter(function(j){ return j._entrouSub; });
-  var meuEsc = titulares.concat(subsEntrou);
-  var escInicial = titulares;
+  // escMandante/Visitante já contém os substitutos no lugar dos titulares
+  // Adicionar também os jogadores que saíram (para ter nota na tabela)
+  var escAtual   = euMandante ? jogoAtivo.escMandante    : jogoAtivo.escVisitante;
+  var saidosAtual= euMandante ? (jogoAtivo.saidosM||[])  : (jogoAtivo.saidosV||[]);
+  var reservas   = euMandante ? jogoAtivo.reservasMandante : jogoAtivo.reservasVisitante;
 
-  // Calcular notas (titulares + subs do adversário também)
-  var escMComSubs = jogoAtivo.escMandante.concat((jogoAtivo.reservasMandante||[]).filter(function(j){return j._entrouSub;}));
-  var escVComSubs = jogoAtivo.escVisitante.concat((jogoAtivo.reservasVisitante||[]).filter(function(j){return j._entrouSub;}));
+  // meuEsc = quem está em campo agora + quem saiu por substituição
+  var meuEsc = escAtual.slice().concat(saidosAtual.filter(function(j){
+    return !escAtual.find(function(e){ return e.id===j.id; });
+  }));
+  var escInicial = escAtual;
+
+  // Para calcular notas de todo mundo que participou (mandante e visitante)
+  var escMAtual = jogoAtivo.escMandante.slice().concat((jogoAtivo.saidosM||[]).filter(function(j){
+    return !jogoAtivo.escMandante.find(function(e){ return e.id===j.id; });
+  }));
+  var escVAtual = jogoAtivo.escVisitante.slice().concat((jogoAtivo.saidosV||[]).filter(function(j){
+    return !jogoAtivo.escVisitante.find(function(e){ return e.id===j.id; });
+  }));
+  var escMComSubs = escMAtual;
+  var escVComSubs = escVAtual;
   var notasM = calcularNotasJogadores(escMComSubs, lances, mandante, r, true);
   var notasV = calcularNotasJogadores(escVComSubs, lances, visitante, r, false);
   var minhasNotas = euMandante ? notasM : notasV;
@@ -5691,8 +5792,38 @@ function renderTelaResultadosRodada() {
   var ctx = window._posJogoCtx || {};
   var rodadaIdx = ctx.rodadaIdx || 0;
   var ehPaulista = estado.minhaDivisao && estado.minhaDivisao.indexOf('paulista_') === 0;
-  var arrRes = ehPaulista ? (estado.resultadosPaulista||[]) : estado.resultados;
-  var todosResultados = arrRes.filter(function(r){ return r.rodada===rodadaIdx; });
+
+  var todosResultados = [];
+
+  if (ehPaulista) {
+    // Para divisões paulistas, buscar diretamente dos jogos completados nesta rodada
+    var div = estado.minhaDivisao.replace('paulista_','');
+    var estDiv = div === 'b1' ? estadoPaulista.b1 : (estadoPaulista[div] || {});
+    var jogosDiv = estDiv.jogos || [];
+
+    // Jogos da Bezinha: campo rodada
+    if (div === 'b1') {
+      jogosDiv.filter(function(j){ return j.ok && j.fase==='grupos' && j.rodada === rodadaIdx; })
+        .forEach(function(j){
+          todosResultados.push({ mandanteId:j.mId, visitanteId:j.vId, golsMandante:j.gM, golsVisitante:j.gV, rodada:rodadaIdx });
+        });
+    } else {
+      // A1-A4: jogos com numero === rodadaIdx+1
+      jogosDiv.filter(function(j){ return j.ok && j.numero === rodadaIdx+1; })
+        .forEach(function(j){
+          todosResultados.push({ mandanteId:j.mandanteId||j.mId, visitanteId:j.visitanteId||j.vId, golsMandante:j.gM, golsVisitante:j.gV, rodada:rodadaIdx });
+        });
+    }
+    // Complementar com o jogo do manager (salvo em resultadosPaulista)
+    var doManager = (estado.resultadosPaulista||[]).filter(function(r){ return r.rodada===rodadaIdx; });
+    doManager.forEach(function(r){
+      if (!todosResultados.find(function(x){ return x.mandanteId===r.mandanteId && x.visitanteId===r.visitanteId; })) {
+        todosResultados.push(r);
+      }
+    });
+  } else {
+    todosResultados = estado.resultados.filter(function(r){ return r.rodada===rodadaIdx; });
+  }
 
   var html = '<div class="tela-resultado">';
   html += '<div class="fin-secao-titulo" style="font-size:18px;margin-bottom:16px">📋 Rodada '+(rodadaIdx+1)+' — Todos os resultados</div>';
@@ -5877,8 +6008,7 @@ function renderTelaJogoAtivo() {
   html += '</div>';
 
   html += '<div class="jogo-stats-vivos">';
-  html += '<div class="stat-vivo"><span id="sv-chutes-m">' + (jogoAtivo.chutesM||0) + '</span><span>Chutes</span><span id="sv-chutes-v">' + (jogoAtivo.chutesV||0) + '</span></div>';
-  html += '<div class="stat-vivo"><span id="sv-posse-m">50%</span><span>Posse</span><span id="sv-posse-v">50%</span></div>';
+  html += '<div class="stat-vivo"><span id="sv-posse-m">' + (jogoAtivo.posseMandante||50) + '%</span><span>Posse</span><span id="sv-posse-v">' + (100-(jogoAtivo.posseMandante||50)) + '%</span></div>';
   html += '<div class="stat-vivo"><span id="sv-subs-m">' + (jogoAtivo.subsM||0) + '/5</span><span>Subs</span><span id="sv-subs-v">' + (jogoAtivo.subsV||0) + '/5</span></div>';
   html += '</div>';
 
@@ -5902,6 +6032,8 @@ function renderTelaJogoAtivo() {
       if (lance.tipo==="substituicao") cls+=" lance-sub";
       if (lance.tipo==="intervalo") cls+=" lance-intervalo";
       if (lance.tipo==="fim") cls+=" lance-fim";
+      if (lance.time === 'mandante') cls += ' lance-mandante';
+      else if (lance.time === 'visitante') cls += ' lance-visitante';
       html += '<div class="'+cls+'"><span class="lance-min">'+lance.minuto+"'</span><span class='lance-texto'>"+lance.texto+'</span></div>';
     });
   } else {
@@ -5964,8 +6096,7 @@ function retomarPartidaTimer() {
       if (lance.tipo==="chute"||lance.tipo==="gol") {
         if(lance.time==="mandante") jogoAtivo.chutesM=(jogoAtivo.chutesM||0)+1;
         else jogoAtivo.chutesV=(jogoAtivo.chutesV||0)+1;
-        var sm=document.getElementById("sv-chutes-m"),sv=document.getElementById("sv-chutes-v");
-        if(sm) sm.textContent=jogoAtivo.chutesM; if(sv) sv.textContent=jogoAtivo.chutesV;
+        // barras atualizadas via atualizarPainelStats()
       }
       jogoAtivo.idxLance++;
     }
@@ -6277,8 +6408,9 @@ function renderFinanceiro() {
   html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">Folha mensal</div><div class="fin-dre-valor">' + formatarDinheiro(folha) + '</div></div>';
   html += '</div>';
 
-  // Gráfico de receitas e despesas
-  html += '<div class="fin-secao-titulo" style="margin-top:20px;margin-bottom:10px">📊 Receitas vs Despesas Mensais</div>';
+  // Gráfico financeiro interativo
+  html += '<div class="fin-secao-titulo" style="margin-top:20px;margin-bottom:4px">📊 Entradas e saídas</div>';
+  html += '<div style="font-size:11px;color:var(--text2);margin-bottom:10px">Barras espelhadas com linha de saldo acumulado · provisões em transparência</div>';
   html += renderGraficoFinanceiro(clube);
 
   // Botão de pagar dívida
@@ -6559,93 +6691,333 @@ function gerarRelatorioFinanceiroAnual() {
   return texto;
 }
 
-// ── Gráfico financeiro (canvas SVG) ──
+// ════════════════════════════════════════
+// GRÁFICO FINANCEIRO — Barras Espelhadas
+// Modo Mensal (dias do mês) ou Anual (meses do ano)
+// ════════════════════════════════════════
+
+var _graficoModo = 'mensal';   // 'mensal' | 'anual'
+var _graficoAno  = 2026;
+var _graficoMes  = 4;          // abril = 4
+
 function renderGraficoFinanceiro(clube) {
-  var histRec  = clube.historico_receitas  || [];
-  var histDesp = clube.historico_despesas  || [];
-  if (histRec.length === 0 && histDesp.length === 0) {
-    return '<div class="dash-empty">Dados insuficientes para o gráfico (disponível após o primeiro mês).</div>';
+  var html = '';
+  html += '<div class="fin-grafico-wrap" id="fin-grafico-wrap">';
+  html += _renderGraficoControles();
+  html += _renderGraficoSVG(clube);
+  html += '</div>';
+  return html;
+}
+
+function _renderGraficoControles() {
+  var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var html = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">';
+
+  // Toggle modo
+  html += '<div style="display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  html += '<button onclick="mudarGraficoModo(\'mensal\')" style="padding:5px 14px;font-size:12px;border:none;cursor:pointer;background:'+(_graficoModo==='mensal'?'var(--accent)':'var(--bg3)')+';color:'+(_graficoModo==='mensal'?'#fff':'var(--text2)')+'">Mensal</button>';
+  html += '<button onclick="mudarGraficoModo(\'anual\')" style="padding:5px 14px;font-size:12px;border:none;cursor:pointer;background:'+(_graficoModo==='anual'?'var(--accent)':'var(--bg3)')+';color:'+(_graficoModo==='anual'?'#fff':'var(--text2)')+'">Anual</button>';
+  html += '</div>';
+
+  if (_graficoModo === 'mensal') {
+    // Selector de mês
+    html += '<select onchange="mudarGraficoMes(this.value)" style="padding:4px 8px;font-size:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:5px">';
+    meses.forEach(function(m, i) {
+      html += '<option value="'+(i+1)+'"'+(_graficoMes===i+1?' selected':'')+'>'+m+' '+_graficoAno+'</option>';
+    });
+    html += '</select>';
   }
 
-  // Juntar por mês (usando rodada como proxy)
-  var meses = {};
-  histRec.forEach(function(h){
-    var m = Math.floor(h.rodada/4);
-    if (!meses[m]) meses[m] = {rec:0, desp:0};
-    meses[m].rec += h.total;
-  });
-  histDesp.forEach(function(h){
-    var m = Math.floor(h.rodada/4);
-    if (!meses[m]) meses[m] = {rec:0, desp:0};
-    meses[m].desp += Math.abs(h.total);
-  });
+  // Legenda
+  html += '<div style="display:flex;gap:14px;margin-left:auto;font-size:11px;align-items:center">';
+  html += '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#2dd4bf;border-radius:2px;display:inline-block"></span>Entradas</span>';
+  html += '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#f59e0b;border-radius:2px;display:inline-block"></span>Saídas</span>';
+  html += '<span style="display:flex;align-items:center;gap:4px"><span style="width:24px;height:2px;background:#4f8ef7;display:inline-block;border-radius:2px"></span>Saldo</span>';
+  html += '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:rgba(45,212,191,.25);border:1px dashed #2dd4bf;border-radius:2px;display:inline-block"></span>Provisão</span>';
+  html += '</div>';
 
-  var keys = Object.keys(meses).map(Number).sort(function(a,b){return a-b;});
-  if (keys.length === 0) return '<div class="dash-empty">Sem dados mensais ainda.</div>';
+  html += '</div>';
+  return html;
+}
 
-  var maxVal = keys.reduce(function(mx, k){ return Math.max(mx, meses[k].rec, meses[k].desp); }, 1);
-  var W = 600, H = 200, PAD = 40, BAR_W = Math.min(40, Math.floor((W-PAD*2)/keys.length/2 - 4));
-  var saldoAcum = (clube.caixa||0) - keys.reduce(function(s,k){return s + meses[k].rec - meses[k].desp;}, 0);
+function mudarGraficoModo(modo) {
+  _graficoModo = modo;
+  var el = document.getElementById('fin-grafico-wrap');
+  if (el) el.outerHTML = renderGraficoFinanceiro(estado.meuClube);
+}
 
-  var svg = '<svg viewBox="0 0 '+W+' '+(H+60)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px">';
+function mudarGraficoMes(mes) {
+  _graficoMes = parseInt(mes);
+  var el = document.getElementById('fin-grafico-wrap');
+  if (el) el.outerHTML = renderGraficoFinanceiro(estado.meuClube);
+}
 
-  // Grade
-  for (var gi = 0; gi <= 4; gi++) {
-    var gy = PAD + (H - PAD*2) * gi / 4;
-    svg += '<line x1="'+PAD+'" y1="'+gy+'" x2="'+(W-PAD)+'" y2="'+gy+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
-    svg += '<text x="'+(PAD-4)+'" y="'+(gy+4)+'" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="9">'+formatarDinheiro(maxVal*(4-gi)/4).replace('R$ ','')+'</text>';
+function _renderGraficoSVG(clube) {
+  var dados = _montarDadosGrafico(clube);
+  if (!dados || dados.length === 0) {
+    return '<div class="dash-empty" style="height:200px;display:flex;align-items:center;justify-content:center">Sem dados financeiros ainda</div>';
   }
 
-  var nomeMeses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var W = 900, H = 300, PAD_T = 20, PAD_B = 30, PAD_L = 70, PAD_R = 70;
+  var innerW = W - PAD_L - PAD_R;
+  var innerH = H - PAD_T - PAD_B;
+  var midY = PAD_T + innerH / 2;
+
+  // Calcular escala
+  var maxEntr = Math.max.apply(null, dados.map(function(d){ return d.entrada || 0; }));
+  var maxSaid = Math.max.apply(null, dados.map(function(d){ return d.saida || 0; }));
+  var maxVal  = Math.max(maxEntr, maxSaid, 1);
+  var halfH   = innerH / 2;
+
+  // Escala do saldo (eixo direito)
+  var saldos = dados.map(function(d){ return d.saldo; });
+  var minSaldo = Math.min.apply(null, saldos);
+  var maxSaldo = Math.max.apply(null, saldos);
+  var rangeSaldo = Math.max(maxSaldo - minSaldo, 1);
+
+  var n = dados.length;
+  var barW = Math.max(4, Math.floor((innerW / n) * 0.55));
+  var barGap = innerW / n;
+
+  function fmtK(v) {
+    if (Math.abs(v) >= 1000000) return 'R$ '+(v/1000000).toFixed(1)+'M';
+    if (Math.abs(v) >= 1000) return 'R$ '+(v/1000).toFixed(0)+'K';
+    return 'R$ '+Math.round(v);
+  }
+
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">';
+
+  // Fundo
+  svg += '<rect width="'+W+'" height="'+H+'" fill="transparent"/>';
+
+  // Linha central (zero)
+  svg += '<line x1="'+PAD_L+'" y1="'+midY+'" x2="'+(W-PAD_R)+'" y2="'+midY+'" stroke="rgba(255,255,255,.15)" stroke-width="1"/>';
+
+  // Grades horizontais
+  for (var gi = 1; gi <= 4; gi++) {
+    var gyT = midY - (halfH * gi / 4);
+    var gyB = midY + (halfH * gi / 4);
+    var gVal = maxVal * gi / 4;
+    svg += '<line x1="'+PAD_L+'" y1="'+gyT+'" x2="'+(W-PAD_R)+'" y2="'+gyT+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
+    svg += '<line x1="'+PAD_L+'" y1="'+gyB+'" x2="'+(W-PAD_R)+'" y2="'+gyB+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
+    // Labels eixo esquerdo (entradas cima, saídas baixo)
+    svg += '<text x="'+(PAD_L-6)+'" y="'+(gyT+4)+'" text-anchor="end" fill="rgba(255,255,255,.35)" font-size="9">'+fmtK(gVal)+'</text>';
+    svg += '<text x="'+(PAD_L-6)+'" y="'+(gyB+4)+'" text-anchor="end" fill="rgba(255,255,255,.35)" font-size="9">'+fmtK(gVal)+'</text>';
+  }
+  // Label "R$ 0"
+  svg += '<text x="'+(PAD_L-6)+'" y="'+(midY+4)+'" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="9">R$ 0</text>';
+
+  // Barras e labels X
   var pontosSaldo = [];
+  dados.forEach(function(d, i) {
+    var cx = PAD_L + i * barGap + barGap / 2;
+    var hEntr = d.entrada > 0 ? (d.entrada / maxVal) * halfH : 0;
+    var hSaid = d.saida  > 0 ? (d.saida  / maxVal) * halfH : 0;
+    var isProvisao = d.provisao;
+    var bx = cx - barW / 2;
 
-  keys.forEach(function(k, i) {
-    var x = PAD + (W-PAD*2) * i / Math.max(keys.length-1, 1);
-    var bx = PAD + i * ((W-PAD*2)/(keys.length)) + (i===0?2:0);
-    var hRec  = (meses[k].rec  / maxVal) * (H - PAD*2);
-    var hDesp = (meses[k].desp / maxVal) * (H - PAD*2);
-    var botY = H - PAD;
+    // Barra entrada (sobe acima do eixo)
+    if (d.entrada > 0) {
+      var fillEntr = isProvisao ? 'rgba(45,212,191,.22)' : 'rgba(45,212,191,.85)';
+      var strokeEntr = isProvisao ? '#2dd4bf' : 'none';
+      var dashEntr = isProvisao ? 'stroke-dasharray="4,3"' : '';
+      svg += '<rect x="'+bx+'" y="'+(midY-hEntr)+'" width="'+barW+'" height="'+hEntr+'" fill="'+fillEntr+'" rx="2" stroke="'+strokeEntr+'" stroke-width="'+(isProvisao?'1':'0')+'" '+dashEntr+'/>';
+    }
 
-    // Barra receita (verde)
-    svg += '<rect x="'+(bx)+'" y="'+(botY-hRec)+'" width="'+BAR_W+'" height="'+hRec+'" fill="rgba(46,204,113,.7)" rx="2"/>';
-    // Barra despesa (vermelha)
-    svg += '<rect x="'+(bx+BAR_W+2)+'" y="'+(botY-hDesp)+'" width="'+BAR_W+'" height="'+hDesp+'" fill="rgba(239,68,68,.7)" rx="2"/>';
+    // Barra saída (desce abaixo do eixo)
+    if (d.saida > 0) {
+      var fillSaid = isProvisao ? 'rgba(245,158,11,.22)' : 'rgba(245,158,11,.85)';
+      var strokeSaid = isProvisao ? '#f59e0b' : 'none';
+      var dashSaid = isProvisao ? 'stroke-dasharray="4,3"' : '';
+      svg += '<rect x="'+bx+'" y="'+midY+'" width="'+barW+'" height="'+hSaid+'" fill="'+fillSaid+'" rx="2" stroke="'+strokeSaid+'" stroke-width="'+(isProvisao?'1':'0')+'" '+dashSaid+'/>';
+    }
 
-    // Label mês
-    var mesNome = nomeMeses[k % 12] || ('M'+(k+1));
-    svg += '<text x="'+(bx+BAR_W)+'" y="'+(H-PAD+14)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="9">'+mesNome+'</text>';
+    // Label X
+    svg += '<text x="'+cx+'" y="'+(H-6)+'" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="9">'+d.label+'</text>';
 
-    // Calcular saldo acumulado
-    saldoAcum += meses[k].rec - meses[k].desp;
-    var sy = botY - ((saldoAcum / (maxVal*1.5)) * (H-PAD*2));
-    sy = Math.max(PAD, Math.min(botY, sy));
-    pontosSaldo.push({x: bx+BAR_W, y: sy});
+    // Ponto do saldo
+    var sy = midY - ((d.saldo - (minSaldo + maxSaldo)/2) / rangeSaldo) * (innerH * 0.6);
+    sy = Math.max(PAD_T+4, Math.min(H-PAD_B-4, sy));
+    pontosSaldo.push({ x: cx, y: sy, provisao: isProvisao });
   });
 
   // Linha de saldo
   if (pontosSaldo.length > 1) {
-    var path = 'M'+pontosSaldo[0].x+','+pontosSaldo[0].y;
-    for (var pi = 1; pi < pontosSaldo.length; pi++) {
-      path += ' L'+pontosSaldo[pi].x+','+pontosSaldo[pi].y;
-    }
-    svg += '<path d="'+path+'" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="4,2"/>';
-    pontosSaldo.forEach(function(p) {
-      svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="#4f8ef7"/>';
-    });
-  }
+    // Segmento real
+    var realPts = pontosSaldo.filter(function(p){ return !p.provisao; });
+    var provPts = pontosSaldo.filter(function(p){ return p.provisao; });
 
-  // Legenda
-  svg += '<rect x="'+PAD+'" y="'+(H+10)+'" width="12" height="8" fill="rgba(46,204,113,.7)" rx="2"/>';
-  svg += '<text x="'+(PAD+16)+'" y="'+(H+17)+'" fill="rgba(255,255,255,.7)" font-size="10">Receitas</text>';
-  svg += '<rect x="'+(PAD+80)+'" y="'+(H+10)+'" width="12" height="8" fill="rgba(239,68,68,.7)" rx="2"/>';
-  svg += '<text x="'+(PAD+96)+'" y="'+(H+17)+'" fill="rgba(255,255,255,.7)" font-size="10">Despesas</text>';
-  svg += '<line x1="'+(PAD+160)+'" y1="'+(H+14)+'" x2="'+(PAD+172)+'" y2="'+(H+14)+'" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="4,2"/>';
-  svg += '<circle cx="'+(PAD+160)+'" cy="'+(H+14)+'" r="3" fill="#4f8ef7"/>';
-  svg += '<text x="'+(PAD+176)+'" y="'+(H+17)+'" fill="rgba(255,255,255,.7)" font-size="10">Saldo</text>';
+    if (realPts.length > 0) {
+      var path = 'M'+realPts[0].x+','+realPts[0].y;
+      for (var pi = 1; pi < realPts.length; pi++) {
+        path += ' L'+realPts[pi].x+','+realPts[pi].y;
+      }
+      svg += '<path d="'+path+'" fill="none" stroke="#4f8ef7" stroke-width="2"/>';
+      realPts.forEach(function(p) {
+        svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="#4f8ef7"/>';
+      });
+    }
+
+    // Segmento provisão (tracejado)
+    if (provPts.length > 0 && realPts.length > 0) {
+      var lastReal = realPts[realPts.length-1];
+      var provPath = 'M'+lastReal.x+','+lastReal.y+' L'+provPts[0].x+','+provPts[0].y;
+      for (var pj = 1; pj < provPts.length; pj++) {
+        provPath += ' L'+provPts[pj].x+','+provPts[pj].y;
+      }
+      svg += '<path d="'+provPath+'" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="5,3" opacity=".55"/>';
+      provPts.forEach(function(p) {
+        svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="none" stroke="#4f8ef7" stroke-width="1.5" opacity=".55"/>';
+      });
+    }
+
+    // Labels eixo direito (saldo)
+    for (var si = 0; si <= 4; si++) {
+      var sv2 = minSaldo + (rangeSaldo * si / 4);
+      var sy2 = midY - ((sv2 - (minSaldo+maxSaldo)/2) / rangeSaldo) * (innerH * 0.6);
+      sy2 = Math.max(PAD_T, Math.min(H-PAD_B, sy2));
+      svg += '<text x="'+(W-PAD_R+6)+'" y="'+(sy2+4)+'" fill="rgba(79,142,247,.6)" font-size="9">'+fmtK(sv2)+'</text>';
+    }
+  }
 
   svg += '</svg>';
   return svg;
 }
+
+function _montarDadosGrafico(clube) {
+  if (_graficoModo === 'mensal') {
+    return _dadosMensais(clube);
+  } else {
+    return _dadosAnuais(clube);
+  }
+}
+
+function _dadosMensais(clube) {
+  // Dias do mês selecionado
+  var diasNoMes = new Date(_graficoAno, _graficoMes, 0).getDate();
+  var folha = clube.jogadores.reduce(function(s,j){ return s+(j.salario||0); }, 0);
+  var hist = clube.financeiro ? (clube.financeiro.historico || []) : [];
+
+  var dadosDia = [];
+  var saldoAcum = clube.caixa || 0;
+  var hoje = new Date();
+  var mesAtual = hoje.getMonth() + 1;
+  var anoAtual = hoje.getFullYear();
+
+  for (var d = 1; d <= diasNoMes; d++) {
+    var dataD = new Date(_graficoAno, _graficoMes - 1, d);
+    var isPassado = dataD <= hoje;
+    var isProvisao = !isPassado;
+
+    // Buscar eventos reais do histórico neste dia
+    var entradasDia = 0, saidasDia = 0;
+    hist.forEach(function(h) {
+      if (!h.data) return;
+      var hd = new Date(h.data);
+      if (hd.getDate()===d && hd.getMonth()===(_graficoMes-1) && hd.getFullYear()===_graficoAno) {
+        if (h.tipo==='receita') entradasDia += h.valor;
+        else saidasDia += Math.abs(h.valor);
+      }
+    });
+
+    // Provisões: dia 10 = folha
+    if (isProvisao) {
+      if (d === 10) saidasDia += folha;
+      // Match day: 3 jogos em casa por mês aprox
+      if (d % 7 === 0) {
+        if (typeof calcularMatchDay !== 'undefined') {
+          entradasDia += calcularMatchDay(clube).renda * 0.15;
+        }
+      }
+      // Sócio torcedor mensal (dia 1)
+      if (d === 1 && clube.socio_torcedor) {
+        entradasDia += clube.socio_torcedor.num_socios * clube.socio_torcedor.mensalidade / 30;
+      }
+      // Patrocínios por rodada
+      if (typeof calcularPatrociniosTotal !== 'undefined') {
+        entradasDia += calcularPatrociniosTotal(clube) / 4;
+      }
+    }
+
+    if (entradasDia > 0 || saidasDia > 0) {
+      saldoAcum += entradasDia - saidasDia;
+    }
+
+    dadosDia.push({
+      label: d < 10 ? '0'+d : ''+d,
+      entrada: Math.round(entradasDia),
+      saida: Math.round(saidasDia),
+      saldo: Math.round(saldoAcum),
+      provisao: isProvisao
+    });
+  }
+
+  return dadosDia;
+}
+
+function _dadosAnuais(clube) {
+  var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var folha = clube.jogadores.reduce(function(s,j){ return s+(j.salario||0); }, 0);
+  var hist = clube.financeiro ? (clube.financeiro.historico || []) : [];
+  var hoje = new Date();
+
+  var saldoAcum = clube.caixa || 0;
+  var dados = [];
+
+  for (var m = 0; m < 12; m++) {
+    var isMesPassado = (_graficoAno < hoje.getFullYear()) ||
+                       (_graficoAno === hoje.getFullYear() && m < hoje.getMonth());
+    var isMesAtual   = _graficoAno === hoje.getFullYear() && m === hoje.getMonth();
+    var isProvisao   = !isMesPassado && !isMesAtual;
+
+    var entrada = 0, saida = 0;
+
+    // Eventos reais do histórico
+    hist.forEach(function(h) {
+      if (!h.data) return;
+      var hd = new Date(h.data);
+      if (hd.getMonth()===m && hd.getFullYear()===_graficoAno) {
+        if (h.tipo==='receita') entrada += h.valor;
+        else saida += Math.abs(h.valor);
+      }
+    });
+
+    // Provisões mensais
+    if (isProvisao || isMesAtual) {
+      // Folha mensal
+      saida += folha;
+      // Cota TV (mês de abril)
+      if (m === 3 && typeof COTAS_TV !== 'undefined') {
+        entrada += COTAS_TV[estado.minhaDivisao] || 0;
+      }
+      // Sócio torcedor
+      if (clube.socio_torcedor) {
+        entrada += clube.socio_torcedor.num_socios * clube.socio_torcedor.mensalidade;
+      }
+      // Match day (~2 jogos em casa/mês)
+      if (typeof calcularMatchDay !== 'undefined') {
+        entrada += calcularMatchDay(clube).renda * 2;
+      }
+      // Patrocínios
+      if (typeof calcularPatrociniosTotal !== 'undefined') {
+        entrada += calcularPatrociniosTotal(clube) * 4; // 4 rodadas/mês
+      }
+    }
+
+    saldoAcum += entrada - saida;
+
+    dados.push({
+      label: meses[m],
+      entrada: Math.round(entrada),
+      saida: Math.round(saida),
+      saldo: Math.round(saldoAcum),
+      provisao: isProvisao
+    });
+  }
+
+  return dados;
+}
+
 </script>
 <script>// ════════════════════════════════════════
 // SISTEMA DE RECEITAS — v2
@@ -9106,10 +9478,12 @@ function renderBezinhaTela() {
 
     html += '<div class="div-tabela-wrap" style="margin-bottom:20px">';
     html += '<div class="fin-secao-titulo">Grupo '+g.letra+'</div>';
-    html += '<table class="elenco-tabela"><thead><tr>';
-    html += '<th style="width:28px">#</th><th>Clube</th>';
-    html += '<th>Pontos</th><th>Jogos</th><th>Vitórias</th><th>Empates</th><th>Derrotas</th>';
-    html += '<th>Gols Pró</th><th>Gols Contra</th><th>Saldo</th>';
+    html += '<table class="elenco-tabela" style="table-layout:fixed;width:100%"><thead><tr>';
+    html += '<th style="width:32px">#</th><th style="width:200px">Clube</th>';
+    html += '<th style="width:70px">Pontos</th><th style="width:60px">Jogos</th>';
+    html += '<th style="width:70px">Vitórias</th><th style="width:70px">Empates</th>';
+    html += '<th style="width:75px">Derrotas</th>';
+    html += '<th style="width:80px">Gols Pró</th><th style="width:90px">Gols Contra</th><th style="width:65px">Saldo</th>';
     html += '</tr></thead><tbody>';
     ranked.forEach(function(id, i) {
       var c = g.clubes.find(function(x){ return x.id===id; });
@@ -10347,7 +10721,7 @@ function renderElenco() {
 
     html += '<tr class="elenco-linha-clicavel" onclick="abrirFichaJogador(\'' + j.id + '\')" style="background:' + corLinha + ';border-left:3px solid ' + bordaEsq + '">';
     html += '<td>' + posLabel + '</td>';
-    html += '<td class="col-nome"><span class="flag-jogador">' + flag + '</span>' + j.nome + '</td>';
+    html += '<td><div class="col-nome"><span class="flag-jogador">' + flag + '</span>' + j.nome + statusHtml + '</div></td>';
     html += '<td class="col-centro ' + overallClasse(j.overall) + '">' + j.overall + '</td>';
     html += '<td class="col-centro">' + nota + '</td>';
     html += '<td class="col-centro">' + s.jogos + '</td>';
@@ -10357,7 +10731,7 @@ function renderElenco() {
     html += '<td class="col-centro" style="' + corContrato + '">' + contratoLabel + '</td>';
     html += '<td class="col-centro">' + formatarDinheiro(j.salario || 0) + '</td>';
     html += '<td class="col-centro">' + formatarDinheiro(j.valor_mercado || 0) + '</td>';
-    html += '<td class="col-centro">' + statusHtml + '</td>';
+    // statusHtml agora está dentro da col-nome
     html += '</tr>';
   });
 
@@ -10649,10 +11023,10 @@ function renderMercado() {
     document.getElementById("main").innerHTML = html;
     return;
   }
-  // aba disponiveis — continua no código original abaixo
-  html += renderMercadoDisponiveis();
-  html += '</div>';
-  document.getElementById("main").innerHTML = html;
+  // aba disponiveis — renderMercadoDisponiveis escreve no DOM diretamente
+  // Inserir as tabs primeiro, depois deixar renderMercadoDisponiveis completar
+  document.getElementById("main").innerHTML = html + '<div id="mercado-disponiveis-mount"></div></div>';
+  renderMercadoDisponiveis();
 }
 
 function mudarMercadoAba(aba) { _mercadoAba = aba; renderMercado(); }
@@ -10753,7 +11127,12 @@ function renderMercadoDisponiveis() {
     html += '</div>';
   }
 
-  document.getElementById("main").innerHTML = html;
+  var mount = document.getElementById("mercado-disponiveis-mount");
+  if (mount) {
+    mount.innerHTML = html;
+  } else {
+    document.getElementById("main").innerHTML = html;
+  }
 }
 
 function renderMercadoBusca() {
