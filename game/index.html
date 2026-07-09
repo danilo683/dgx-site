@@ -4063,8 +4063,20 @@ var TIPO_EVENTO = {
   JANELA_FECHA:  "janela_fecha",
   FIM_CONTRATO:  "fim_contrato",
   MENSAGEM:      "mensagem",
-  NOTICIA:       "noticia"
+  NOTICIA:       "noticia",
+  FINANCEIRO:    "financeiro"
 };
+
+// Encontrar índice da rodada mais próxima a uma data
+function rodadaMaisProxima(data) {
+  var best = 0, bestDiff = Infinity;
+  for (var i = 0; i < 38; i++) {
+    var d = dataRodada(i);
+    var diff = Math.abs(d - data);
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
+  }
+  return best;
+}
 
 // ── Gerar eventos da temporada ──
 function gerarEventos() {
@@ -4158,6 +4170,62 @@ function gerarEventos() {
     });
   });
 
+  // Eventos financeiros: dia 10 de cada mês = pagamento de salários
+  // Calcular quantos "dia 10" existem na temporada
+  var mesInicio = new Date(DATA_INICIO);
+  for (var mes = 0; mes < 12; mes++) {
+    var diaDez = new Date(mesInicio.getFullYear(), mesInicio.getMonth() + mes, 10);
+    if (diaDez < DATA_INICIO) continue; // antes do início da temporada
+    var rodaRef = rodadaMaisProxima(diaDez);
+    if (rodaRef >= 38) break;
+
+    eventos.push({
+      id: "folha_" + mes,
+      tipo: TIPO_EVENTO.FINANCEIRO,
+      subtipo: "folha",
+      rodada: rodaRef - 0.3, // processa ligeiramente antes da rodada
+      data: diaDez,
+      titulo: "📅 Pagamento de salários",
+      subtitulo: formatarData(diaDez),
+      descricao: "Dia 10 — Folha salarial do mês debitada do caixa.",
+      icone: "💸",
+      processado: false
+    });
+  }
+
+  // Evento de cota de TV — rodada 0 (1 semana antes = dia anterior ao início)
+  var dataCota = new Date(DATA_INICIO);
+  dataCota.setDate(dataCota.getDate() - 7);
+  eventos.push({
+    id: "cota_tv",
+    tipo: TIPO_EVENTO.FINANCEIRO,
+    subtipo: "cota_tv",
+    rodada: -0.5,
+    data: dataCota,
+    titulo: "📺 Cota de TV recebida",
+    subtitulo: formatarData(dataCota),
+    descricao: "Direitos de transmissão creditados antes do início do torneio.",
+    icone: "📺",
+    processado: false
+  });
+
+  // Relatório anual — rodada 0
+  var dataRelatorio = new Date(DATA_INICIO);
+  dataRelatorio.setDate(dataRelatorio.getDate() - 1);
+  eventos.push({
+    id: "relatorio_anual",
+    tipo: TIPO_EVENTO.MENSAGEM,
+    rodada: -0.4,
+    data: dataRelatorio,
+    titulo: "📊 Previsão financeira da temporada",
+    subtitulo: formatarData(dataRelatorio),
+    remetente: "Departamento Financeiro",
+    texto: "__RELATORIO_FINANCEIRO__", // preenchido dinamicamente
+    icone: "📊",
+    lida: false,
+    processado: false
+  });
+
   eventos.sort(function(a, b) {
     if (a.data && b.data) return a.data - b.data;
     return a.rodada - b.rodada;
@@ -4181,6 +4249,12 @@ function processarEvento(evento) {
   evento.processado = true;
 
   switch (evento.tipo) {
+    case TIPO_EVENTO.FINANCEIRO:
+      processarEventoFinanceiro(ev);
+      atualizarCalView(ev);
+      renderDashboard();
+      break;
+
     case TIPO_EVENTO.MENSAGEM:
       estado.inbox = estado.inbox || [];
       estado.inbox.push(evento);
@@ -6189,6 +6263,10 @@ function renderFinanceiro() {
   html += '<div class="fin-dre-card neutro"><div class="fin-dre-label">Folha mensal</div><div class="fin-dre-valor">' + formatarDinheiro(folha) + '</div></div>';
   html += '</div>';
 
+  // Gráfico de receitas e despesas
+  html += '<div class="fin-secao-titulo" style="margin-top:20px;margin-bottom:10px">📊 Receitas vs Despesas Mensais</div>';
+  html += renderGraficoFinanceiro(clube);
+
   // Botão de pagar dívida
   if (dividas < 0) {
     html += '<div class="fin-divida-acao">';
@@ -6312,6 +6390,247 @@ function confirmarPagamentoDivida() {
   adicionarNoticia("💳 Pagamento de " + formatarDinheiro(valor) + " realizado na dívida do clube.", estado.rodadaAtual);
   salvarJogo();
   renderFinanceiro();
+}
+
+
+// ════════════════════════════════════════
+// EVENTOS FINANCEIROS
+// ════════════════════════════════════════
+
+function processarEventoFinanceiro(ev) {
+  var clube = estado.meuClube;
+  if (!clube) return;
+
+  if (ev.subtipo === 'folha') {
+    // Calcular folha do mês
+    var folha = clube.jogadores.reduce(function(s,j){ return s+(j.salario||0); }, 0);
+    clube.caixa = (clube.caixa||0) - folha;
+    clube.budget = clube.caixa;
+
+    // Parcela automática de dívida (2%)
+    var parcela = 0;
+    if (clube.dividas && clube.dividas < 0) {
+      parcela = Math.round(Math.abs(clube.dividas) * 0.02);
+      parcela = Math.min(parcela, Math.max(0, clube.caixa * 0.25));
+      clube.caixa -= parcela;
+      clube.budget = clube.caixa;
+      clube.dividas = (clube.dividas||0) + parcela;
+    }
+
+    // Manutenção de infraestrutura
+    var infra = clube.infraestrutura || {};
+    var manutencao = ((infra.estadio||1)+(infra.ct||1)+(infra.base||1)) * 50000;
+    clube.caixa -= manutencao;
+    clube.budget = clube.caixa;
+
+    // Registrar no histórico de despesas
+    if (!clube.historico_despesas) clube.historico_despesas = [];
+    clube.historico_despesas.push({
+      rodada: estado.rodadaAtual,
+      mes: new Date(ev.data).getMonth() + 1,
+      folha: folha,
+      parcela_divida: parcela,
+      manutencao: manutencao,
+      total: -(folha + parcela + manutencao)
+    });
+    if (clube.historico_despesas.length > 12) clube.historico_despesas.shift();
+
+    // Alerta se caixa negativo
+    var total = folha + parcela + manutencao;
+    var msg = '💸 Folha paga: ' + formatarDinheiro(folha) +
+              (parcela > 0 ? ' · Dívida: ' + formatarDinheiro(parcela) : '') +
+              ' · Manutenção: ' + formatarDinheiro(manutencao) +
+              ' · Total: ' + formatarDinheiro(total) +
+              ' · Saldo: ' + formatarDinheiro(clube.caixa);
+
+    adicionarNoticia(msg, estado.rodadaAtual);
+    estado.inbox = estado.inbox || [];
+    estado.inbox.push({
+      id: 'folha_'+Date.now(),
+      titulo: '💸 Pagamento de salários — ' + formatarDinheiro(total),
+      remetente: 'Departamento Financeiro',
+      texto: msg + (clube.caixa < 0 ? ' ⚠️ ATENÇÃO: Caixa negativo! Venda jogadores urgente.' : ''),
+      lida: false
+    });
+
+    if (clube.caixa < 0) {
+      estado.inbox.push({
+        id: 'caixa_neg_'+Date.now(),
+        titulo: '🚨 Caixa negativo!',
+        remetente: 'Diretoria',
+        texto: 'Seu clube está com caixa negativo ('+formatarDinheiro(clube.caixa)+'). Isso pode resultar em penalidades. Venda jogadores ou corte custos imediatamente.',
+        lida: false
+      });
+    }
+
+  } else if (ev.subtipo === 'cota_tv') {
+    // Cota de TV
+    if (typeof pagarCotaTV !== 'undefined') {
+      var cota = pagarCotaTV(clube, estado.minhaDivisao||'serieD');
+      if (cota > 0) {
+        adicionarNoticia('📺 Cota de TV recebida: ' + formatarDinheiro(cota), estado.rodadaAtual);
+        estado.inbox.push({
+          id: 'tv_'+Date.now(),
+          titulo: '📺 Cota de TV creditada — ' + formatarDinheiro(cota),
+          remetente: 'CBF/FPF',
+          texto: 'Os direitos de transmissão da temporada foram creditados: ' + formatarDinheiro(cota) + '. Saldo atual: ' + formatarDinheiro(clube.caixa),
+          lida: false
+        });
+      }
+    }
+  }
+
+  salvarJogo();
+}
+
+// ── Gerar texto do relatório financeiro anual ──
+function gerarRelatorioFinanceiroAnual() {
+  var clube = estado.meuClube;
+  if (!clube) return '';
+  if (typeof inicializarContratosClube !== 'undefined') inicializarContratosClube(clube);
+
+  var div = estado.minhaDivisao || 'serieD';
+  var folha = clube.jogadores.reduce(function(s,j){return s+(j.salario||0);},0);
+  var cotaTV = (typeof COTAS_TV !== 'undefined') ? (COTAS_TV[div]||0) : 0;
+
+  // Patrocínios anuais
+  var patAnual = 0;
+  if (clube.patrocinios_camisa) {
+    ['frente','costas','mangas'].forEach(function(l){
+      (clube.patrocinios_camisa[l]||[]).forEach(function(p){ patAnual += p.valor_anual||0; });
+    });
+  }
+  if (clube.material_esportivo) patAnual += clube.material_esportivo.valor_anual||0;
+
+  // Naming rights
+  var namingAnual = clube.naming_rights ? (clube.naming_rights.valor_anual||0) : 0;
+
+  // Match day (estimado: 19 jogos em casa)
+  var mdEst = 0;
+  if (typeof calcularMatchDay !== 'undefined') {
+    mdEst = calcularMatchDay(clube).renda * 19;
+  }
+
+  // Sócio torcedor (anual)
+  var socioAnual = 0;
+  if (clube.socio_torcedor) {
+    socioAnual = clube.socio_torcedor.num_socios * clube.socio_torcedor.mensalidade * 12;
+  }
+
+  var recTotal = cotaTV + patAnual + namingAnual + mdEst + socioAnual;
+  var despTotal = folha * 12;
+  var resultado = recTotal - despTotal;
+
+  var br = '<br>';
+  var texto = '=== PREVISÃO FINANCEIRA ' + new Date().getFullYear() + ' ===' + br + br;
+  texto += '📥 RECEITAS PREVISTAS:' + br;
+  texto += '• Cota de TV (' + div + '): ' + formatarDinheiro(cotaTV) + ' (paga antes da Rodada 1)' + br;
+  texto += '• Patrocínios de camisa/material: ' + formatarDinheiro(patAnual) + '/ano (parcelas por rodada)' + br;
+  if (namingAnual > 0) texto += '• Naming Rights (' + clube.naming_rights.marca + '): ' + formatarDinheiro(namingAnual) + '/ano' + br;
+  texto += '• Match Day estimado (19 jogos em casa): ' + formatarDinheiro(mdEst) + br;
+  texto += '• Sócio Torcedor estimado: ' + formatarDinheiro(socioAnual) + '/ano' + br;
+  texto += '─────────────────' + br;
+  texto += '• TOTAL RECEITAS: ' + formatarDinheiro(recTotal) + br + br;
+  texto += '📤 DESPESAS PREVISTAS:' + br;
+  texto += '• Folha salarial mensal: ' + formatarDinheiro(folha) + ' (dia 10 de cada mês)' + br;
+  texto += '• Folha anual: ' + formatarDinheiro(folha * 12) + br;
+  if (clube.dividas && clube.dividas < 0) {
+    var parcelasAnuais = Math.round(Math.abs(clube.dividas)*0.02*12);
+    texto += '• Parcelas de dívida (2%/mês): ' + formatarDinheiro(parcelasAnuais) + '/ano' + br;
+  }
+  texto += '─────────────────' + br;
+  texto += '• TOTAL DESPESAS: ' + formatarDinheiro(despTotal) + br + br;
+  texto += (resultado >= 0 ? '✅' : '⚠️') + ' RESULTADO PREVISTO: ' + formatarDinheiro(resultado);
+
+  return texto;
+}
+
+// ── Gráfico financeiro (canvas SVG) ──
+function renderGraficoFinanceiro(clube) {
+  var histRec  = clube.historico_receitas  || [];
+  var histDesp = clube.historico_despesas  || [];
+  if (histRec.length === 0 && histDesp.length === 0) {
+    return '<div class="dash-empty">Dados insuficientes para o gráfico (disponível após o primeiro mês).</div>';
+  }
+
+  // Juntar por mês (usando rodada como proxy)
+  var meses = {};
+  histRec.forEach(function(h){
+    var m = Math.floor(h.rodada/4);
+    if (!meses[m]) meses[m] = {rec:0, desp:0};
+    meses[m].rec += h.total;
+  });
+  histDesp.forEach(function(h){
+    var m = Math.floor(h.rodada/4);
+    if (!meses[m]) meses[m] = {rec:0, desp:0};
+    meses[m].desp += Math.abs(h.total);
+  });
+
+  var keys = Object.keys(meses).map(Number).sort(function(a,b){return a-b;});
+  if (keys.length === 0) return '<div class="dash-empty">Sem dados mensais ainda.</div>';
+
+  var maxVal = keys.reduce(function(mx, k){ return Math.max(mx, meses[k].rec, meses[k].desp); }, 1);
+  var W = 600, H = 200, PAD = 40, BAR_W = Math.min(40, Math.floor((W-PAD*2)/keys.length/2 - 4));
+  var saldoAcum = (clube.caixa||0) - keys.reduce(function(s,k){return s + meses[k].rec - meses[k].desp;}, 0);
+
+  var svg = '<svg viewBox="0 0 '+W+' '+(H+60)+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px">';
+
+  // Grade
+  for (var gi = 0; gi <= 4; gi++) {
+    var gy = PAD + (H - PAD*2) * gi / 4;
+    svg += '<line x1="'+PAD+'" y1="'+gy+'" x2="'+(W-PAD)+'" y2="'+gy+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+    svg += '<text x="'+(PAD-4)+'" y="'+(gy+4)+'" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="9">'+formatarDinheiro(maxVal*(4-gi)/4).replace('R$ ','')+'</text>';
+  }
+
+  var nomeMeses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var pontosSaldo = [];
+
+  keys.forEach(function(k, i) {
+    var x = PAD + (W-PAD*2) * i / Math.max(keys.length-1, 1);
+    var bx = PAD + i * ((W-PAD*2)/(keys.length)) + (i===0?2:0);
+    var hRec  = (meses[k].rec  / maxVal) * (H - PAD*2);
+    var hDesp = (meses[k].desp / maxVal) * (H - PAD*2);
+    var botY = H - PAD;
+
+    // Barra receita (verde)
+    svg += '<rect x="'+(bx)+'" y="'+(botY-hRec)+'" width="'+BAR_W+'" height="'+hRec+'" fill="rgba(46,204,113,.7)" rx="2"/>';
+    // Barra despesa (vermelha)
+    svg += '<rect x="'+(bx+BAR_W+2)+'" y="'+(botY-hDesp)+'" width="'+BAR_W+'" height="'+hDesp+'" fill="rgba(239,68,68,.7)" rx="2"/>';
+
+    // Label mês
+    var mesNome = nomeMeses[k % 12] || ('M'+(k+1));
+    svg += '<text x="'+(bx+BAR_W)+'" y="'+(H-PAD+14)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="9">'+mesNome+'</text>';
+
+    // Calcular saldo acumulado
+    saldoAcum += meses[k].rec - meses[k].desp;
+    var sy = botY - ((saldoAcum / (maxVal*1.5)) * (H-PAD*2));
+    sy = Math.max(PAD, Math.min(botY, sy));
+    pontosSaldo.push({x: bx+BAR_W, y: sy});
+  });
+
+  // Linha de saldo
+  if (pontosSaldo.length > 1) {
+    var path = 'M'+pontosSaldo[0].x+','+pontosSaldo[0].y;
+    for (var pi = 1; pi < pontosSaldo.length; pi++) {
+      path += ' L'+pontosSaldo[pi].x+','+pontosSaldo[pi].y;
+    }
+    svg += '<path d="'+path+'" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="4,2"/>';
+    pontosSaldo.forEach(function(p) {
+      svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="#4f8ef7"/>';
+    });
+  }
+
+  // Legenda
+  svg += '<rect x="'+PAD+'" y="'+(H+10)+'" width="12" height="8" fill="rgba(46,204,113,.7)" rx="2"/>';
+  svg += '<text x="'+(PAD+16)+'" y="'+(H+17)+'" fill="rgba(255,255,255,.7)" font-size="10">Receitas</text>';
+  svg += '<rect x="'+(PAD+80)+'" y="'+(H+10)+'" width="12" height="8" fill="rgba(239,68,68,.7)" rx="2"/>';
+  svg += '<text x="'+(PAD+96)+'" y="'+(H+17)+'" fill="rgba(255,255,255,.7)" font-size="10">Despesas</text>';
+  svg += '<line x1="'+(PAD+160)+'" y1="'+(H+14)+'" x2="'+(PAD+172)+'" y2="'+(H+14)+'" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="4,2"/>';
+  svg += '<circle cx="'+(PAD+160)+'" cy="'+(H+14)+'" r="3" fill="#4f8ef7"/>';
+  svg += '<text x="'+(PAD+176)+'" y="'+(H+17)+'" fill="rgba(255,255,255,.7)" font-size="10">Saldo</text>';
+
+  svg += '</svg>';
+  return svg;
 }
 </script>
 <script>// ════════════════════════════════════════
