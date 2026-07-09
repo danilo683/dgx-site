@@ -2615,7 +2615,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
     <div id="sidebar-logo"><h1>⚽ Manager FC</h1>
       <div id="sidebar-info-block" class="sidebar-info hidden">
         <div class="sidebar-info-item"><strong id="sidebar-manager-nome"></strong>Manager</div>
-        <div class="sidebar-info-item"><strong id="sidebar-clube-nome"></strong>Clube</div>
+        <div class="sidebar-info-item"><strong id="sidebar-clube-none"></strong>Clube</div>
         <div class="sidebar-info-item"><strong id="sidebar-tecnico-nome"></strong>Técnico</div>
         <div class="sidebar-info-item" style="margin-top:6px"><span class="header-saldo" id="sidebar-saldo"></span></div>
       </div>
@@ -4382,42 +4382,68 @@ function adicionarNoticia(texto, rodada) {
 }
 </script>
 <script>// ════════════════════════════════════════
-// SISTEMA DE SAVE — localStorage
+// SISTEMA DE SAVE — v3
 // ════════════════════════════════════════
-var SAVE_KEY = "managerfc_save";
+var SAVE_KEY = "managerFC_save_v3";
 
 function salvarJogo() {
   try {
+    var clube = estado.meuClube;
+    if (!clube) return false;
+
     var save = {
-      versao: 1,
+      versao: 3,
       timestamp: Date.now(),
+      // Manager
       manager: estado.manager,
-      meuClubeId: estado.meuClube ? estado.meuClube.id : null,
-      meuTecnicoId: estado.meuTecnico ? estado.meuTecnico.id : null,
-      rodadaAtual: estado.rodadaAtual,
-      eventoAtual: estado.eventoAtual,
-      resultados: estado.resultados,
-      inbox: estado.inbox || [],
-      noticias: estado.noticias || [],
+      // Clube
+      meuClubeId:   clube.id,
+      minhaDivisao: estado.minhaDivisao || "serieA",
+      // Progresso
+      rodadaAtual:  estado.rodadaAtual,
+      eventoAtual:  estado.eventoAtual,
+      // Resultados
+      resultados:        estado.resultados || [],
+      resultadosPaulista: estado.resultadosPaulista || [],
+      // Comunicação
+      inbox:        estado.inbox || [],
+      noticias:     estado.noticias || [],
       feedNoticias: estado.feedNoticias || [],
-      baixas: estado.baixas || [],
-      calView: calView,
-      // Dados financeiros dos clubes
-      clubesBudget: CLUBES.map(function(c) {
-        return { id: c.id, budget: c.budget };
+      baixas:       estado.baixas || [],
+      calView:      calView,
+      // Financeiro completo do meu clube
+      clubeFinanceiro: {
+        caixa:              clube.caixa || clube.budget || 0,
+        dividas:            clube.dividas || 0,
+        budget:             clube.budget || clube.caixa || 0,
+        confianca_torcida:  clube.confianca_torcida || 50,
+        historico_receitas: clube.historico_receitas || [],
+        historico_despesas: clube.historico_despesas || [],
+        financeiro:         clube.financeiro || null,
+        // Contratos de receita
+        naming_rights:      clube.naming_rights || null,
+        patrocinios_camisa: clube.patrocinios_camisa || { frente:[], costas:[], mangas:[] },
+        material_esportivo: clube.material_esportivo || null,
+        matchday:           clube.matchday || null,
+        socio_torcedor:     clube.socio_torcedor || null,
+        cota_tv_paga:       clube.cota_tv_paga || false,
+        metas:              clube.metas || null,
+        _contratosInit:     clube._contratosInit || false
+      },
+      // Elenco completo
+      jogadoresMeuClube: clube.jogadores.map(function(j) {
+        return Object.assign({}, j);
       }),
-      // Jogadores transferidos (mudanças de clube)
-      transferencias: coletarTransferencias(),
-      // Contratos e valores dos jogadores do meu clube
-      jogadoresMeuClube: estado.meuClube ? estado.meuClube.jogadores.map(function(j) {
-        return {
-          id: j.id, clube_id: j.clube_id,
-          valor_mercado: j.valor_mercado, salario: j.salario,
-          clausula_rescisoria: j.clausula_rescisoria,
-          contrato_termino: j.contrato_termino
-        };
-      }) : []
+      // Técnico
+      meuTecnicoId:           estado.meuTecnico ? estado.meuTecnico.id : null,
+      meuTecnicoNome:         estado.meuTecnico ? estado.meuTecnico.nome : null,
+      meuTecnicoFormacao:     estado.meuTecnico ? estado.meuTecnico.formacao : null,
+      // Estado do Paulistão (jogos da Bezinha etc)
+      paulistaB1Jogos:   estadoPaulista.b1 ? (estadoPaulista.b1.jogos || []) : [],
+      paulistaB1Fase:    estadoPaulista.b1 ? (estadoPaulista.b1.faseAtual || "grupos") : "grupos",
+      paulistaB1Campeao: estadoPaulista.b1 ? estadoPaulista.b1.campeao : null
     };
+
     localStorage.setItem(SAVE_KEY, JSON.stringify(save));
     return true;
   } catch(e) {
@@ -4426,20 +4452,7 @@ function salvarJogo() {
   }
 }
 
-// Coleta todos os jogadores que mudaram de clube
-function coletarTransferencias() {
-  var result = [];
-  CLUBES.forEach(function(clube) {
-    clube.jogadores.forEach(function(j) {
-      if (j.clube_id && j.clube_id !== clube.id) {
-        result.push({ jogadorId: j.id, clubeAtualId: clube.id });
-      }
-    });
-  });
-  return result;
-}
-
-function temSave() {
+function temSaveDisponivel() {
   return !!localStorage.getItem(SAVE_KEY);
 }
 
@@ -4448,100 +4461,104 @@ function carregarJogo() {
     var raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     var save = JSON.parse(raw);
-
-    // Aceitar versão 1 ou 2, ou sem versão definida (salves antigos)
-    if (!save) return false;
+    if (!save || !save.meuClubeId) return false;
 
     // Restaurar estado básico
-    estado.manager      = save.manager || { nome: "Manager" };
-    estado.rodadaAtual  = save.rodadaAtual || 0;
-    estado.eventoAtual  = save.eventoAtual || 0;
-    estado.resultados   = save.resultados || [];
-    estado.inbox        = save.inbox || [];
-    estado.noticias     = save.noticias || [];
-    estado.feedNoticias = save.feedNoticias || [];
-    estado.baixas       = save.baixas || [];
-    estado.minhaDivisao = save.minhaDivisao || "serieA";
+    estado.manager       = save.manager || { nome: "Manager" };
+    estado.rodadaAtual   = save.rodadaAtual || 0;
+    estado.eventoAtual   = save.eventoAtual || 0;
+    estado.resultados    = save.resultados || [];
+    estado.resultadosPaulista = save.resultadosPaulista || [];
+    estado.inbox         = save.inbox || [];
+    estado.noticias      = save.noticias || [];
+    estado.feedNoticias  = save.feedNoticias || [];
+    estado.baixas        = save.baixas || [];
+    estado.minhaDivisao  = save.minhaDivisao || "serieA";
 
-    // Restaurar calView
     if (save.calView) {
       calView.mes = save.calView.mes;
       calView.ano = save.calView.ano;
     }
 
-    // Restaurar clube — buscar em todas as fontes
+    // Buscar clube em todas as fontes
     var clubeId = save.meuClubeId;
-    estado.meuClube = CLUBES.find(function(c){ return c.id === clubeId; });
+    estado.meuClube = CLUBES.find(function(c){ return c.id===clubeId; });
 
-    // Se não achou na Série A, inicializar divisões e buscar lá
     if (!estado.meuClube) {
       inicializarDivisoes();
-      if (estadoDivisoes.b.clubes) estado.meuClube = estadoDivisoes.b.clubes.find(function(c){ return c.id===clubeId; });
-      if (!estado.meuClube && estadoDivisoes.c.clubes) estado.meuClube = estadoDivisoes.c.clubes.find(function(c){ return c.id===clubeId; });
-      if (!estado.meuClube && estadoDivisoes.d.clubes) estado.meuClube = estadoDivisoes.d.clubes.find(function(c){ return c.id===clubeId; });
+      estado.meuClube = estadoDivisoes.b.clubes && estadoDivisoes.b.clubes.find(function(c){ return c.id===clubeId; });
+      if (!estado.meuClube) estado.meuClube = estadoDivisoes.c.clubes && estadoDivisoes.c.clubes.find(function(c){ return c.id===clubeId; });
+      if (!estado.meuClube) estado.meuClube = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){ return c.id===clubeId; });
     }
-    // Se não achou, buscar no Paulistão
     if (!estado.meuClube) {
       inicializarPaulista();
       estado.meuClube = clubePaulistaPorId(clubeId);
     }
-
     if (!estado.meuClube) {
       console.error("Clube não encontrado:", clubeId);
       return false;
     }
 
-    // Restaurar técnico
-    estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){ return t.id === save.meuTecnicoId; });
-    if (!estado.meuTecnico) estado.meuTecnico = TECNICOS_DISPONIVEIS[0];
-
-    // Restaurar financeiro do clube (novo sistema caixa/dividas)
+    // Restaurar financeiro completo
     if (save.clubeFinanceiro) {
-      estado.meuClube.caixa    = save.clubeFinanceiro.caixa   || save.clubeFinanceiro.budget || 500000;
-      estado.meuClube.dividas  = save.clubeFinanceiro.dividas  || 0;
-      estado.meuClube.budget   = estado.meuClube.caixa;
-      estado.meuClube.confianca_torcida    = save.clubeFinanceiro.confianca_torcida || 50;
-      estado.meuClube.historico_receitas   = save.clubeFinanceiro.historico_receitas || [];
-      estado.meuClube.historico_despesas   = save.clubeFinanceiro.historico_despesas || [];
-      estado.meuClube.receitas             = save.clubeFinanceiro.receitas || null;
-      estado.meuClube.metas                = save.clubeFinanceiro.metas || null;
-    } else if (save.clubesBudget) {
-      // Compatibilidade com save antigo
-      var cbEntry = save.clubesBudget.find(function(cb){ return cb.id === clubeId; });
-      if (cbEntry) {
-        estado.meuClube.caixa  = cbEntry.budget || cbEntry.caixa || 500000;
-        estado.meuClube.budget = estado.meuClube.caixa;
-      }
+      var cf = save.clubeFinanceiro;
+      estado.meuClube.caixa             = cf.caixa  || cf.budget || 500000;
+      estado.meuClube.dividas           = cf.dividas || 0;
+      estado.meuClube.budget            = estado.meuClube.caixa;
+      estado.meuClube.confianca_torcida = cf.confianca_torcida || 50;
+      estado.meuClube.historico_receitas = cf.historico_receitas || [];
+      estado.meuClube.historico_despesas = cf.historico_despesas || [];
+      if (cf.financeiro) estado.meuClube.financeiro = cf.financeiro;
+      estado.meuClube.naming_rights     = cf.naming_rights || null;
+      estado.meuClube.patrocinios_camisa= cf.patrocinios_camisa || { frente:[], costas:[], mangas:[] };
+      estado.meuClube.material_esportivo= cf.material_esportivo || null;
+      estado.meuClube.matchday          = cf.matchday || null;
+      estado.meuClube.socio_torcedor    = cf.socio_torcedor || null;
+      estado.meuClube.cota_tv_paga      = cf.cota_tv_paga || false;
+      estado.meuClube.metas             = cf.metas || null;
+      estado.meuClube._contratosInit    = cf._contratosInit || false;
     }
 
-    // Restaurar jogadores do meu clube
+    // Restaurar elenco completo
     if (save.jogadoresMeuClube && save.jogadoresMeuClube.length > 0) {
-      // Substituir elenco inteiro pelo salvo (mais confiável que merge)
-      estado.meuClube.jogadores = save.jogadoresMeuClube.filter(function(sj){
-        return !sj.clube_id || sj.clube_id === clubeId;
-      });
-      // Adicionar jogadores comprados que podem não ter clube_id
-      save.jogadoresMeuClube.forEach(function(sj) {
-        if (!estado.meuClube.jogadores.find(function(x){ return x.id===sj.id; })) {
-          estado.meuClube.jogadores.push(sj);
-        }
-      });
+      estado.meuClube.jogadores = save.jogadoresMeuClube;
     }
 
-    // Inicializar subsistemas se ainda não foram
+    // Restaurar técnico
+    if (save.meuTecnicoId) {
+      estado.meuTecnico = TECNICOS_DISPONIVEIS.find(function(t){ return t.id===save.meuTecnicoId; });
+    }
+    if (!estado.meuTecnico && save.meuTecnicoNome) {
+      estado.meuTecnico = {
+        id: save.meuTecnicoId || "tx",
+        nome: save.meuTecnicoNome,
+        formacao: save.meuTecnicoFormacao || "4-4-2",
+        pesos: {}
+      };
+    }
+    if (!estado.meuTecnico) estado.meuTecnico = getTecnicoClube(estado.meuClube) || TECNICOS_DISPONIVEIS[0];
+
+    // Inicializar subsistemas
     if (!estadoDivisoes.b.clubes) inicializarDivisoes();
     if (!estadoPaulista.a1.clubes) inicializarPaulista();
 
-    // Reconstruir calendário baseado na divisão
+    // Restaurar estado do Paulistão
+    if (save.paulistaB1Jogos && save.paulistaB1Jogos.length > 0) {
+      estadoPaulista.b1.jogos     = save.paulistaB1Jogos;
+      estadoPaulista.b1.faseAtual = save.paulistaB1Fase || "grupos";
+      estadoPaulista.b1.campeao   = save.paulistaB1Campeao || null;
+    }
+
+    // Reconstruir calendário
     var div = estado.minhaDivisao || "serieA";
-    if (div.indexOf("paulista") === 0) {
+    if (div.indexOf("paulista_") === 0) {
       estado.calendario = gerarCalendarioPaulista(div.replace("paulista_",""));
     } else {
-      var clubesCal = clubesParaCalendario ? clubesParaCalendario(div) : CLUBES;
+      var clubesCal = typeof clubesParaCalendario !== 'undefined' ? clubesParaCalendario(div) : CLUBES;
       estado.calendario = gerarCalendario(clubesCal.length >= 2 ? clubesCal : CLUBES);
     }
 
-    // Reconstruir eventos
+    // Reconstruir eventos e marcar processados
     estado.eventos = gerarEventos();
     for (var i = 0; i <= estado.eventoAtual; i++) {
       if (estado.eventos[i]) estado.eventos[i].processado = true;
@@ -4550,36 +4567,21 @@ function carregarJogo() {
     return true;
   } catch(e) {
     console.error("Erro ao carregar save:", e);
-    alert("Erro ao carregar o save: " + e.message + ". Iniciando novo jogo.");
     return false;
   }
 }
 
 function apagarSave() {
   localStorage.removeItem(SAVE_KEY);
+  // Limpar saves antigos também
+  localStorage.removeItem("managerFC_save");
+  localStorage.removeItem("managerFC_save_v2");
 }
 
-function formatarTimestamp(ts) {
-  var d = new Date(ts);
-  var dia  = d.getDate().toString().padStart(2, "0");
-  var mes  = (d.getMonth() + 1).toString().padStart(2, "0");
-  var hora = d.getHours().toString().padStart(2, "0");
-  var min  = d.getMinutes().toString().padStart(2, "0");
-  return dia + "/" + mes + "/" + d.getFullYear() + " às " + hora + ":" + min;
-}
-
-function infoSave() {
-  try {
-    var raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return null;
-    var save = JSON.parse(raw);
-    return {
-      manager: save.manager ? save.manager.nome : "?",
-      clube: save.meuClubeId || "?",
-      rodada: save.rodadaAtual || 0,
-      timestamp: save.timestamp ? formatarTimestamp(save.timestamp) : "?"
-    };
-  } catch(e) { return null; }
+// Compatibilidade: tentar carregar save antigo se não houver v3
+function temSaveAntigoDisponivel() {
+  return !!localStorage.getItem("managerFC_save") ||
+         !!localStorage.getItem("managerFC_save_v2");
 }
 </script>
 <script>// ════════════════════════════════════════
@@ -6960,58 +6962,94 @@ function _dadosAnuais(clube) {
   var folha = clube.jogadores.reduce(function(s,j){ return s+(j.salario||0); }, 0);
   var hist = clube.financeiro ? (clube.financeiro.historico || []) : [];
   var hoje = new Date();
+  var mesHoje = hoje.getMonth();   // 0-based
+  var anoHoje = hoje.getFullYear();
 
-  var saldoAcum = clube.caixa || 0;
+  // Receitas mensais estimadas
+  var recSocio = clube.socio_torcedor
+    ? clube.socio_torcedor.num_socios * clube.socio_torcedor.mensalidade : 0;
+  var recMatchDay = typeof calcularMatchDay !== 'undefined'
+    ? calcularMatchDay(clube).renda * 2 : 0;
+  var recPat = typeof calcularPatrociniosTotal !== 'undefined'
+    ? calcularPatrociniosTotal(clube) * 4 : 0;
+  var recTV = typeof COTAS_TV !== 'undefined'
+    ? (COTAS_TV[estado.minhaDivisao] || 0) : 0;
+
+  // Mês de início do torneio (April = 3 zero-based)
+  var DATA_INICIO_JOGO = new Date(2025, 3, 13); // abril 2025
+  var mesInicioJogo = DATA_INICIO_JOGO.getMonth(); // 3 = abril
+
+  var saldoCaixaAtual = clube.caixa || 0;
   var dados = [];
 
+  // Primeira passagem: construir dados de cada mês
+  var saldoAcum = saldoCaixaAtual;
+
+  // Calcular saldo estimado no início do ano projetando de trás para frente
+  // Para meses futuros projeta para frente; para passados usa caixa como âncora
+  var resultadoMensal = recSocio + recMatchDay + recPat - folha;
+
+  // Fase 1: passar por todos os meses e calcular entradas/saídas
+  var mesesDados = [];
   for (var m = 0; m < 12; m++) {
-    var isMesPassado = (_graficoAno < hoje.getFullYear()) ||
-                       (_graficoAno === hoje.getFullYear() && m < hoje.getMonth());
-    var isMesAtual   = _graficoAno === hoje.getFullYear() && m === hoje.getMonth();
-    var isProvisao   = !isMesPassado && !isMesAtual;
-
-    var entrada = 0, saida = 0;
-
-    // Eventos reais do histórico
+    var temDadosReais = false;
+    var entradaReal = 0, saidaReal = 0;
     hist.forEach(function(h) {
       if (!h.data) return;
       var hd = new Date(h.data);
       if (hd.getMonth()===m && hd.getFullYear()===_graficoAno) {
-        if (h.tipo==='receita') entrada += h.valor;
-        else saida += Math.abs(h.valor);
+        temDadosReais = true;
+        if (h.tipo==='receita') entradaReal += h.valor;
+        else saidaReal += Math.abs(h.valor);
       }
     });
 
-    // Provisões mensais
-    if (isProvisao || isMesAtual) {
-      // Folha mensal
-      saida += folha;
-      // Cota TV (mês de abril)
-      if (m === 3 && typeof COTAS_TV !== 'undefined') {
-        entrada += COTAS_TV[estado.minhaDivisao] || 0;
-      }
-      // Sócio torcedor
-      if (clube.socio_torcedor) {
-        entrada += clube.socio_torcedor.num_socios * clube.socio_torcedor.mensalidade;
-      }
-      // Match day (~2 jogos em casa/mês)
-      if (typeof calcularMatchDay !== 'undefined') {
-        entrada += calcularMatchDay(clube).renda * 2;
-      }
-      // Patrocínios
-      if (typeof calcularPatrociniosTotal !== 'undefined') {
-        entrada += calcularPatrociniosTotal(clube) * 4; // 4 rodadas/mês
-      }
+    var antesDoInicio = (m < mesInicioJogo);
+    var isProvisao = !temDadosReais;
+
+    var entrada = 0, saida = 0;
+    if (antesDoInicio) {
+      // Antes do início do jogo: sem barras, linha flat no caixa
+      entrada = 0; saida = 0;
+    } else if (temDadosReais) {
+      entrada = entradaReal; saida = saidaReal;
+    } else {
+      // Provisão
+      entrada = recSocio + recMatchDay + recPat;
+      saida   = folha;
+      if (m === mesInicioJogo) entrada += recTV; // cota TV no mês de início
     }
 
-    saldoAcum += entrada - saida;
+    mesesDados.push({ m:m, entrada:entrada, saida:saida, isProvisao:isProvisao, antesDoInicio:antesDoInicio });
+  }
 
+  // Fase 2: calcular saldo — âncora no mês atual, propagar nos dois sentidos
+  // Encontrar o mês atual nos dados
+  var saldoPorMes = {};
+  saldoPorMes[mesHoje] = saldoCaixaAtual;
+
+  // Projetar para frente (meses futuros)
+  for (var mf = mesHoje + 1; mf < 12; mf++) {
+    var prev = saldoPorMes[mf-1];
+    var d = mesesDados[mf];
+    saldoPorMes[mf] = Math.round(prev + d.entrada - d.saida);
+  }
+
+  // Projetar para trás (meses passados)
+  for (var mb = mesHoje - 1; mb >= 0; mb--) {
+    var next = saldoPorMes[mb+1];
+    var d2 = mesesDados[mb+1];
+    saldoPorMes[mb] = Math.round(next - d2.entrada + d2.saida);
+  }
+
+  for (var m2 = 0; m2 < 12; m2++) {
+    var d3 = mesesDados[m2];
     dados.push({
-      label: meses[m],
-      entrada: Math.round(entrada),
-      saida: Math.round(saida),
-      saldo: Math.round(saldoAcum),
-      provisao: isProvisao
+      label: meses[m2],
+      entrada: Math.round(d3.entrada),
+      saida:   Math.round(d3.saida),
+      saldo:   saldoPorMes[m2] !== undefined ? saldoPorMes[m2] : saldoCaixaAtual,
+      provisao: d3.isProvisao
     });
   }
 
