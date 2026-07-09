@@ -2615,7 +2615,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
     <div id="sidebar-logo"><h1>⚽ Manager FC</h1>
       <div id="sidebar-info-block" class="sidebar-info hidden">
         <div class="sidebar-info-item"><strong id="sidebar-manager-nome"></strong>Manager</div>
-        <div class="sidebar-info-item"><strong id="sidebar-clube-none"></strong>Clube</div>
+        <div class="sidebar-info-item"><strong id="sidebar-clube-nome"></strong>Clube</div>
         <div class="sidebar-info-item"><strong id="sidebar-tecnico-nome"></strong>Técnico</div>
         <div class="sidebar-info-item" style="margin-top:6px"><span class="header-saldo" id="sidebar-saldo"></span></div>
       </div>
@@ -4055,7 +4055,8 @@ function gerarCalendario(clubes) {
 }
 </script>
 <script>// ── Configuração de datas ──
-var DATA_INICIO = new Date(2025, 3, 13); // 13 abril 2025
+var DATA_INICIO = new Date(2026, 0, 1); // 1 janeiro 2026
+var DATA_INICIO_CAMPEONATOS = new Date(2026, 3, 5); // 5 abril 2026 — início dos campeonatos
 
 function dataRodada(rodadaIdx) {
   // Rodadas às quartas (3) e domingos (0), alternando
@@ -4195,7 +4196,7 @@ function gerarEventos() {
   var mesInicio = new Date(DATA_INICIO);
   for (var mes = 0; mes < 12; mes++) {
     var diaDez = new Date(mesInicio.getFullYear(), mesInicio.getMonth() + mes, 10);
-    if (diaDez < DATA_INICIO) continue; // antes do início da temporada
+    if (diaDez < DATA_INICIO) continue;
     var rodaRef = rodadaMaisProxima(diaDez);
     if (rodaRef >= 38) break;
 
@@ -6698,9 +6699,9 @@ function gerarRelatorioFinanceiroAnual() {
 // Modo Mensal (dias do mês) ou Anual (meses do ano)
 // ════════════════════════════════════════
 
-var _graficoModo = 'mensal';   // 'mensal' | 'anual'
+var _graficoModo = 'anual';    // 'mensal' | 'anual'
 var _graficoAno  = 2026;
-var _graficoMes  = 4;          // abril = 4
+var _graficoMes  = 1;          // janeiro = 1 (início do jogo)
 
 function renderGraficoFinanceiro(clube) {
   var html = '';
@@ -6902,13 +6903,16 @@ function _dadosMensais(clube) {
 
   var dadosDia = [];
   var saldoAcum = clube.caixa || 0;
-  var hoje = new Date();
-  var mesAtual = hoje.getMonth() + 1;
-  var anoAtual = hoje.getFullYear();
+  // Usar calendário do jogo
+  var rodadaAtual = estado.rodadaAtual || 0;
+  var mesJogoAtual = Math.floor(rodadaAtual / 4); // 0=jan, 1=fev...
+  var diaJogoEstimado = ((rodadaAtual % 4) / 4) * 28;
 
   for (var d = 1; d <= diasNoMes; d++) {
-    var dataD = new Date(_graficoAno, _graficoMes - 1, d);
-    var isPassado = dataD <= hoje;
+    // Dia "passado" se já foi no calendário do jogo
+    var mesGrafico = _graficoMes - 1; // 0-based
+    var isPassado = (mesGrafico < mesJogoAtual) ||
+                    (mesGrafico === mesJogoAtual && d <= diaJogoEstimado);
     var isProvisao = !isPassado;
 
     // Buscar eventos reais do histórico neste dia
@@ -6961,9 +6965,10 @@ function _dadosAnuais(clube) {
   var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   var folha = clube.jogadores.reduce(function(s,j){ return s+(j.salario||0); }, 0);
   var hist = clube.financeiro ? (clube.financeiro.historico || []) : [];
-  var hoje = new Date();
-  var mesHoje = hoje.getMonth();   // 0-based
-  var anoHoje = hoje.getFullYear();
+  // Usar calendário do jogo: rodada 0 = jan 2026, ~4 rodadas/mês
+  var rodadaJogo = estado.rodadaAtual || 0;
+  var mesHoje = Math.min(Math.floor(rodadaJogo / 4), 11); // 0=jan, 1=fev...
+  var anoHoje = 2026;
 
   // Receitas mensais estimadas
   var recSocio = clube.socio_torcedor
@@ -6975,9 +6980,8 @@ function _dadosAnuais(clube) {
   var recTV = typeof COTAS_TV !== 'undefined'
     ? (COTAS_TV[estado.minhaDivisao] || 0) : 0;
 
-  // Mês de início do torneio (April = 3 zero-based)
-  var DATA_INICIO_JOGO = new Date(2025, 3, 13); // abril 2025
-  var mesInicioJogo = DATA_INICIO_JOGO.getMonth(); // 3 = abril
+  // Campeonatos começam em abril 2026 (índice 3 zero-based)
+  var mesInicioJogo = 3; // abril
 
   var saldoCaixaAtual = clube.caixa || 0;
   var dados = [];
@@ -10514,6 +10518,143 @@ function comprarClube(id, aba) {
   selecionarClube(id, lista);
 }
 
+
+// ════════════════════════════════════════
+// TELA DE MANCHETE — Capa de jornal
+// ════════════════════════════════════════
+function renderMancheteJornal(clube, manager) {
+  // Frases sensacionalistas aleatórias
+  var manchetes = [
+    "CHEGA AO PODER!",
+    "O NOVO DONO DA BOLA!",
+    "A REVOLUÇÃO COMEÇA AGORA!",
+    "O MEGAINVESTIDOR QUE VAI MUDAR TUDO!",
+    "HISTÓRIA NOVA NA CIDADE!"
+  ];
+  var subs = [
+    "Empresário multimilionário assume o controle e promete títulos",
+    "Torcida nas ruas em festa — a era de ouro começa",
+    "Diretoria fica para trás, novo comando chega com ambição total",
+    "Especialistas debatem: será que dessa vez vai?",
+    "O projeto mais ousado do futebol paulista em anos"
+  ];
+  var manchete = manchetes[Math.floor(Math.random() * manchetes.length)];
+  var sub = subs[Math.floor(Math.random() * subs.length)];
+  var nomeManager = manager ? manager.nome.toUpperCase() : "MAGNATA";
+  var nomeClube = clube ? clube.nome.toUpperCase() : "CLUBE";
+
+  // Desabilitar nav durante manchete
+  ocultarNav();
+
+  var html = `
+  <div id="tela-manchete" style="
+    position:fixed;inset:0;z-index:9999;
+    background:#0a0a0a;
+    display:flex;align-items:center;justify-content:center;
+    animation:fadeInManchete .5s ease;
+  ">
+    <div style="width:860px;max-width:95vw;font-family:'Georgia',serif">
+
+      <!-- Cabeçalho do jornal -->
+      <div style="border-top:5px solid #e8c84a;border-bottom:2px solid #e8c84a;padding:8px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:0">
+        <span style="font-size:11px;color:#888;letter-spacing:2px">EDIÇÃO ESPECIAL</span>
+        <span style="font-size:24px;font-weight:900;color:#e8c84a;letter-spacing:4px;text-transform:uppercase">⚽ PLACAR TOTAL</span>
+        <span style="font-size:11px;color:#888;letter-spacing:2px">JANEIRO 2026</span>
+      </div>
+
+      <!-- Corpo do jornal -->
+      <div style="background:#111;border:1px solid #222;padding:32px 40px">
+
+        <!-- Manchete principal -->
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:13px;color:#e8c84a;letter-spacing:3px;margin-bottom:8px;text-transform:uppercase">TRANSFERÊNCIA DO ANO</div>
+          <div style="font-size:42px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:6px;text-shadow:0 2px 20px rgba(232,200,74,.3)">
+            ${nomeManager}
+          </div>
+          <div style="font-size:28px;color:#e8c84a;font-weight:700;margin-bottom:4px">${manchete}</div>
+          <div style="width:60px;height:3px;background:#e8c84a;margin:12px auto"></div>
+          <div style="font-size:20px;color:#ccc;font-weight:600;margin-top:10px">
+            Empresário assume o <span style="color:#e8c84a">${nomeClube}</span>
+          </div>
+        </div>
+
+        <!-- Linha divisória -->
+        <div style="border-top:1px solid #333;margin:20px 0"></div>
+
+        <!-- Grid de conteúdo -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+
+          <div style="grid-column:1/3">
+            <p style="font-size:15px;color:#bbb;line-height:1.8;margin:0">
+              Em uma das maiores surpresas da temporada, o empresário <strong style="color:#fff">${nomeManager}</strong>
+              confirmou hoje a compra do <strong style="color:#e8c84a">${nomeClube}</strong>. A transação, mantida em sigilo
+              por semanas, surpreendeu o meio esportivo e acendeu o ânimo da torcida.
+            </p>
+            <p style="font-size:14px;color:#999;line-height:1.7;margin-top:12px">
+              "${sub}", declarou uma fonte próxima ao novo proprietário, que não
+              quis comentar publicamente por enquanto. A imprensa aguarda a primeira entrevista.
+            </p>
+          </div>
+
+          <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:10px;color:#e8c44a;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid #2a2a2a;padding-bottom:6px">Outras manchetes</div>
+            <div style="font-size:11px;color:#888;line-height:1.5;border-bottom:1px solid #1f1f1f;padding-bottom:8px">📰 Torcida faz festa na porta do estádio</div>
+            <div style="font-size:11px;color:#888;line-height:1.5;border-bottom:1px solid #1f1f1f;padding-bottom:8px">📰 Diretoria antiga se manifesta em nota</div>
+            <div style="font-size:11px;color:#888;line-height:1.5;border-bottom:1px solid #1f1f1f;padding-bottom:8px">📰 Mercado aquecido: quem chega e quem sai?</div>
+            <div style="font-size:11px;color:#888;line-height:1.5">📰 Campeonato começa em abril — time está pronto?</div>
+          </div>
+
+        </div>
+
+        <!-- Rodapé com citação -->
+        <div style="margin-top:24px;padding:16px;background:#161616;border-left:4px solid #e8c44a;border-radius:0 6px 6px 0">
+          <div style="font-size:16px;color:#ddd;font-style:italic;line-height:1.6">
+            "Viemos para ganhar. O ${nomeClube} merece o melhor, e é isso que vamos entregar."
+          </div>
+          <div style="font-size:12px;color:#e8c44a;margin-top:6px">— ${nomeManager}, novo proprietário</div>
+        </div>
+
+      </div>
+
+      <!-- Botão para continuar -->
+      <div style="text-align:center;margin-top:24px">
+        <button onclick="fecharMancheteEIniciar()" style="
+          background:#e8c44a;color:#111;border:none;
+          padding:14px 48px;font-size:16px;font-weight:800;
+          border-radius:8px;cursor:pointer;letter-spacing:1px;
+          text-transform:uppercase;
+          transition:all .2s;
+        " onmouseover="this.style.background='#f5d460'" onmouseout="this.style.background='#e8c44a'">
+          ▶ Iniciar temporada 2026
+        </button>
+        <div style="font-size:11px;color:#555;margin-top:8px">Janeiro 2026 — Pré-temporada</div>
+      </div>
+    </div>
+  </div>
+  <style>
+    @keyframes fadeInManchete {
+      from { opacity:0; transform:scale(.97); }
+      to   { opacity:1; transform:scale(1); }
+    }
+  </style>`;
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function fecharMancheteEIniciar() {
+  var el = document.getElementById('tela-manchete');
+  if (el) {
+    el.style.transition = 'opacity .4s';
+    el.style.opacity = '0';
+    setTimeout(function() {
+      el.remove();
+      iniciarJogo();
+    }, 400);
+  } else {
+    iniciarJogo();
+  }
+}
+
 function detectarDivisaoClube(id) {
   if (CLUBES.find(function(c){return c.id===id;})) return "serieA";
   if ((estadoDivisoes.b.clubes||[]).find(function(c){return c.id===id;})) return "serieB";
@@ -10567,7 +10708,7 @@ function selecionarClube(id, lista) {
   }
 
   estado.meuTecnico = getTecnicoClube(estado.meuClube) || TECNICOS_DISPONIVEIS[0];
-  iniciarJogo();
+  renderMancheteJornal(estado.meuClube, estado.manager);
 }
 
 // ── Jogo principal ──
