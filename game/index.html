@@ -4584,6 +4584,27 @@ function temSaveAntigoDisponivel() {
   return !!localStorage.getItem("managerFC_save") ||
          !!localStorage.getItem("managerFC_save_v2");
 }
+
+// Retorna resumo do save para exibir na tela inicial
+function infoSave() {
+  // Tentar v3 primeiro
+  var raw = localStorage.getItem(SAVE_KEY);
+  // Fallback para saves antigos
+  if (!raw) raw = localStorage.getItem("managerFC_save_v2");
+  if (!raw) raw = localStorage.getItem("managerFC_save");
+  if (!raw) return null;
+  try {
+    var s = JSON.parse(raw);
+    if (!s || !s.meuClubeId) return null;
+    var ts = s.timestamp ? new Date(s.timestamp).toLocaleString('pt-BR') : '?';
+    return {
+      clube: s.meuClubeId,
+      manager: s.manager ? s.manager.nome : '?',
+      rodada: s.rodadaAtual || 0,
+      timestamp: ts
+    };
+  } catch(e) { return null; }
+}
 </script>
 <script>// ════════════════════════════════════════
 // MOTOR DE PARTIDA — escalação, lances, notas
