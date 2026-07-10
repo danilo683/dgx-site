@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Manager FC</title><style>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -5190,7 +5190,17 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   html += '<span class="placar-numeros" id="placar-numeros">0 – 0</span>';
   html += '<span class="jogo-tela-nome">' + visitante.nome + '</span>';
   html += '</div>';
+  // Público estimado
+  var _pubEst = 5000;
+  if (typeof calcularMatchDay !== 'undefined' && estado.meuClube) {
+    try { _pubEst = calcularMatchDay(estado.meuClube).publico; } catch(e) {}
+  } else if (estado.meuClube && estado.meuClube.matchday) {
+    _pubEst = Math.round((estado.meuClube.matchday.capacidade||15000)*0.6);
+  }
+  html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">';
   html += '<div class="jogo-tela-cronometro" id="cronometro">0\'</div>';
+  html += '<div style="font-size:10px;color:var(--text2)">👥 '+_pubEst.toLocaleString('pt-BR')+'</div>';
+  html += '</div>';
   html += '</div>';
 
   // Stats
@@ -6817,17 +6827,15 @@ function _renderGraficoSVG(clube) {
   var innerH = H - PAD_T - PAD_B;
   var midY = PAD_T + innerH / 2;
 
-  // Calcular escala
-  var maxEntr = Math.max.apply(null, dados.map(function(d){ return d.entrada || 0; }));
-  var maxSaid = Math.max.apply(null, dados.map(function(d){ return d.saida || 0; }));
-  var maxVal  = Math.max(maxEntr, maxSaid, 1);
-  var halfH   = innerH / 2;
-
-  // Escala do saldo (eixo direito)
-  var saldos = dados.map(function(d){ return d.saldo; });
-  var minSaldo = Math.min.apply(null, saldos);
+  // Calcular escala unificada (mesmo eixo para barras e saldo)
+  var maxEntr  = Math.max.apply(null, dados.map(function(d){ return d.entrada || 0; }));
+  var maxSaid  = Math.max.apply(null, dados.map(function(d){ return d.saida  || 0; }));
+  var saldos   = dados.map(function(d){ return d.saldo || 0; });
   var maxSaldo = Math.max.apply(null, saldos);
-  var rangeSaldo = Math.max(maxSaldo - minSaldo, 1);
+  var maxVal   = Math.max(maxEntr, maxSaid, maxSaldo * 0.3, 1); // saldo no mesmo eixo
+  var halfH    = innerH / 2;
+  // Saldo usa o mesmo eixo que as barras (escala = maxVal)
+  var minSaldo = 0; var rangeSaldo = Math.max(maxVal, 1);
 
   var n = dados.length;
   var barW = Math.max(4, Math.floor((innerW / n) * 0.55));
@@ -6890,7 +6898,8 @@ function _renderGraficoSVG(clube) {
     svg += '<text x="'+cx+'" y="'+(H-6)+'" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="9">'+d.label+'</text>';
 
     // Ponto do saldo
-    var sy = midY - ((d.saldo - (minSaldo + maxSaldo)/2) / rangeSaldo) * (innerH * 0.6);
+    // Saldo no mesmo eixo das barras (positivo sobe acima de midY, negativo desce)
+    var sy = midY - ((d.saldo || 0) / maxVal) * halfH;
     sy = Math.max(PAD_T+4, Math.min(H-PAD_B-4, sy));
     pontosSaldo.push({ x: cx, y: sy, provisao: isProvisao });
   });
@@ -6935,13 +6944,7 @@ function _renderGraficoSVG(clube) {
       segProv.forEach(function(p){ svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="none" stroke="#4f8ef7" stroke-width="1.5" opacity=".5"/>'; });
     }
 
-    // Labels eixo direito (saldo)
-    for (var si = 0; si <= 4; si++) {
-      var sv2 = minSaldo + (rangeSaldo * si / 4);
-      var sy2 = midY - ((sv2 - (minSaldo+maxSaldo)/2) / rangeSaldo) * (innerH * 0.6);
-      sy2 = Math.max(PAD_T, Math.min(H-PAD_B, sy2));
-      svg += '<text x="'+(W-PAD_R+6)+'" y="'+(sy2+4)+'" fill="rgba(79,142,247,.6)" font-size="9">'+fmtK(sv2)+'</text>';
-    }
+    // Saldo usa mesmo eixo esquerdo — nenhum label adicional necessário
   }
 
   svg += '</svg>';
@@ -7088,9 +7091,13 @@ function _dadosAnuais(clube) {
     mesesDados.push({ m:m, entrada:entrada, saida:saida, isProvisao:isProvisao, antesDoInicio:antesDoInicio });
   }
 
-  // Fase 2: calcular saldo — âncora no mês atual, propagar nos dois sentidos
-  // Encontrar o mês atual nos dados
+  // Fase 2: saldo — partir do caixa atual para o mês atual
+  // Projetar apenas para frente (não retroativamente para evitar saldo negativo artificial)
   var saldoPorMes = {};
+  // Para meses passados (jan até mesHoje-1), usar o caixa como base fixa
+  for (var mp = 0; mp < mesHoje; mp++) {
+    saldoPorMes[mp] = saldoCaixaAtual; // flat — sem dados históricos reais
+  }
   saldoPorMes[mesHoje] = saldoCaixaAtual;
 
   // Projetar para frente (meses futuros)
@@ -7098,13 +7105,6 @@ function _dadosAnuais(clube) {
     var prev = saldoPorMes[mf-1];
     var d = mesesDados[mf];
     saldoPorMes[mf] = Math.round(prev + d.entrada - d.saida);
-  }
-
-  // Projetar para trás (meses passados)
-  for (var mb = mesHoje - 1; mb >= 0; mb--) {
-    var next = saldoPorMes[mb+1];
-    var d2 = mesesDados[mb+1];
-    saldoPorMes[mb] = Math.round(next - d2.entrada + d2.saida);
   }
 
   for (var m2 = 0; m2 < 12; m2++) {
@@ -10866,12 +10866,19 @@ function iniciarJogo() {
   inicializarTorneios();
   salvarJogo();
 
-  // Forçar navegação para o dashboard
-  try {
-    navegarPara("dashboard");
-  } catch(e) {
-    document.getElementById("main").innerHTML = "<div style='padding:40px;color:red;font-size:14px'><strong>ERRO:</strong> " + e.message + "<br><pre style='font-size:11px;margin-top:8px'>" + e.stack + "</pre></div>";
-  }
+  // Navegar para o dashboard
+  setTimeout(function() {
+    try {
+      renderDashboard();
+      // Marcar Dashboard como ativo no menu
+      document.querySelectorAll("#sidebar-nav button").forEach(function(b){ b.classList.remove("ativo"); });
+      var btnDash = document.querySelector('#sidebar-nav button[data-aba="dashboard"]');
+      if (btnDash) btnDash.classList.add("ativo");
+    } catch(e) {
+      console.error("Erro ao renderizar dashboard:", e);
+      document.getElementById("main").innerHTML = "<div style='padding:40px;color:var(--red)'><strong>ERRO:</strong> " + e.message + "</div>";
+    }
+  }, 50);
 }
 
 function bloquearMenuPartida() {
@@ -11003,12 +11010,13 @@ function renderElenco() {
   });
   html += '</tr></thead><tbody>';
 
-  var flags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
+  var FLAGS_MAP = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
 
   jogadores.forEach(function(j) {
     var s    = j.stats || { jogos:0, gols:0, assistencias:0, nota_media:0 };
     var nota = s.jogos > 0 ? s.nota_media.toFixed(1) : '-';
-    var flag = flags[j.nacionalidade] || '🌍';
+    var nac  = j.nacionalidade || 'BR';
+    var flag = FLAGS_MAP[nac] || FLAGS_MAP['BR'];
     var rodadasRestantes = (j.contrato_termino || 0) - estado.rodadaAtual;
     var contratoLabel = rodadasRestantes > 0 ? 'Rod. ' + j.contrato_termino : '<span style="color:var(--red)">Vencido</span>';
     var corContrato   = rodadasRestantes <= 5 ? 'color:var(--yellow)' : '';
@@ -11026,7 +11034,7 @@ function renderElenco() {
 
     html += '<tr class="elenco-linha-clicavel" onclick="abrirFichaJogador(\'' + j.id + '\')" style="background:' + corLinha + ';border-left:3px solid ' + bordaEsq + '">';
     html += '<td>' + posLabel + '</td>';
-    html += '<td><div class="col-nome"><span class="flag-jogador">' + flag + '</span>' + j.nome + statusHtml + '</div></td>';
+    html += '<td><div class="col-nome"><span class="flag-jogador" style="display:inline-block;width:20px;text-align:center;font-size:14px">' + flag + '</span> ' + j.nome + statusHtml + '</div></td>';
     html += '<td class="col-centro ' + overallClasse(j.overall) + '">' + j.overall + '</td>';
     html += '<td class="col-centro">' + nota + '</td>';
     html += '<td class="col-centro">' + s.jogos + '</td>';
@@ -12358,7 +12366,15 @@ function renderBrasileirao() {
   if (ehB) { clubes=estadoDivisoes.b.clubes; resultados=estadoDivisoes.b.resultados; rodada=estadoDivisoes.b.rodadaAtual; }
   else if (ehC) { clubes=estadoDivisoes.c.clubes; resultados=estadoDivisoes.c.resultados; rodada=estadoDivisoes.c.rodadaAtual; }
   else if (ehD) { clubes=estadoDivisoes.d.clubes; resultados=estadoDivisoes.d.resultados; rodada=estadoDivisoes.d.rodadaAtual; }
-  else { clubes=CLUBES; resultados=estado.resultados; rodada=estado.rodadaAtual; }
+  else {
+    clubes=CLUBES;
+    // Filtrar só resultados de times da Série A (evitar times da Bezinha)
+    var clubeIds = CLUBES.map(function(c){return c.id;});
+    resultados = (estado.resultados||[]).filter(function(r){
+      return clubeIds.indexOf(r.mandanteId) >= 0 || clubeIds.indexOf(r.visitanteId) >= 0;
+    });
+    rodada=estado.rodadaAtual;
+  }
 
   var tabela = calcularTabela(clubes, resultados);
   var html = '<div class="divisoes-grid">';
