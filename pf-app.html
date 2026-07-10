@@ -3796,8 +3796,8 @@ async function inicioCarregarAlertas(){
     const semData = planoRows.filter(p=>!p.data_alvo).length;
     if(semData>0){
       alertas.push({
-        desc: `<strong>${semData} item${semData>1?'ns':''}</strong> no Plano de Ação sem data alvo definida`,
-        acao: ()=>irPara('inicio', null),
+        desc: `<strong>${semData} item${semData>1?'s':''}</strong> no Plano de Ação sem data alvo definida`,
+        acao: ()=>irPara('metas', document.querySelector('.menu-item[onclick*="metas"]')),
         label: 'Ver plano'
       });
     }
