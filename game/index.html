@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manager FC</title><style>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -1269,7 +1268,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
 
 .col-centro { text-align: center; }
 
-.flag-jogador { font-size: 15px; flex-shrink: 0; }
+.flag-jogador { font-size: 14px; flex-shrink: 0; display: inline-block; line-height: 1; width: 18px; text-align: center; }
 
 /* ── Grid dashboard com proporção ajustada ── */
 .dash-grid-top2 {
@@ -2607,8 +2606,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   transition: all .15s;
 }
 .btn-pos-filter:hover { background: var(--bg2); color: var(--text); }
-</style>
-</head>
+</style></head>
 <body>
 <div id="app">
   <div id="sidebar">
@@ -5548,9 +5546,26 @@ function adicionarLanceFeed(lance) {
   if (lance.tipo === "fim")         cls += " lance-fim";
   if (lance.tipo === "amarelo")     cls += " lance-amarelo";
   if (lance.tipo === "vermelho")    cls += " lance-vermelho";
-  // Borda colorida pelo time do lance
-  if (lance.time === 'mandante') cls += ' lance-mandante';
-  else if (lance.time === 'visitante') cls += ' lance-visitante';
+  // Borda e fundo colorido pela cor real do time
+  var corTime = null;
+  if (lance.time === 'mandante' && jogoAtivo && jogoAtivo.mandante) {
+    corTime = jogoAtivo.mandante.cor || '#fb9';
+  } else if (lance.time === 'visitante' && jogoAtivo && jogoAtivo.visitante) {
+    corTime = jogoAtivo.visitante.cor || '#9be';
+  }
+  if (corTime) {
+    div.style.borderLeft = '3px solid ' + corTime;
+    div.style.background = corTime.replace('#','rgba(').replace(')',',0.08)') ||
+      'rgba(79,142,247,0.06)';
+    // fallback limpo para hex
+    div.style.background = 'rgba(0,0,0,0)';
+    div.style.borderLeft = '3px solid ' + corTime;
+    // usar opacity em vez de rgba para preservar cores hex
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;background:'+corTime+';opacity:.07;border-radius:inherit;pointer-events:none';
+    div.style.position = 'relative';
+    div.appendChild(overlay);
+  }
   div.className = cls;
   div.innerHTML = '<span class="lance-min">' + lance.minuto + '\'</span><span class="lance-texto">' + lance.texto + '</span>';
   lista.appendChild(div);
@@ -5831,12 +5846,16 @@ function renderTelaResultadosRodada() {
     var estDiv = div === 'b1' ? estadoPaulista.b1 : (estadoPaulista[div] || {});
     var jogosDiv = estDiv.jogos || [];
 
-    // Jogos da Bezinha: campo rodada
     if (div === 'b1') {
-      jogosDiv.filter(function(j){ return j.ok && j.fase==='grupos' && j.rodada === rodadaIdx; })
-        .forEach(function(j){
-          todosResultados.push({ mandanteId:j.mId, visitanteId:j.vId, golsMandante:j.gM, golsVisitante:j.gV, rodada:rodadaIdx });
-        });
+      // Bezinha: pegar última rodada interna concluída (rodada = índice round-robin)
+      var _b1ok = jogosDiv.filter(function(j){ return j.ok && j.fase==='grupos'; });
+      var _rodMap = {};
+      _b1ok.forEach(function(j){ if(!_rodMap[j.rodada]) _rodMap[j.rodada]=[]; _rodMap[j.rodada].push(j); });
+      var _rKeys = Object.keys(_rodMap).map(Number).sort(function(a,b){return b-a;});
+      (_rKeys.length>0 ? _rodMap[_rKeys[0]] : []).forEach(function(j){
+        todosResultados.push({ mandanteId:j.mId, visitanteId:j.vId,
+          golsMandante:j.gM, golsVisitante:j.gV, rodada:rodadaIdx });
+      });
     } else {
       // A1-A4: jogos com numero === rodadaIdx+1
       jogosDiv.filter(function(j){ return j.ok && j.numero === rodadaIdx+1; })
@@ -6064,7 +6083,12 @@ function renderTelaJogoAtivo() {
       if (lance.tipo==="fim") cls+=" lance-fim";
       if (lance.time === 'mandante') cls += ' lance-mandante';
       else if (lance.time === 'visitante') cls += ' lance-visitante';
-      html += '<div class="'+cls+'"><span class="lance-min">'+lance.minuto+"'</span><span class='lance-texto'>"+lance.texto+'</span></div>';
+      // cor inline pela cor real do clube
+      var corT = '';
+      if (lance.time==='mandante' && jogoAtivo && jogoAtivo.mandante) corT = jogoAtivo.mandante.cor||'';
+      else if (lance.time==='visitante' && jogoAtivo && jogoAtivo.visitante) corT = jogoAtivo.visitante.cor||'';
+      var styleCorTime = corT ? 'border-left:3px solid '+corT+';' : '';
+      html += '<div class="'+cls+'" style="'+styleCorTime+'"><span class="lance-min">'+lance.minuto+"'</span><span class='lance-texto'>"+lance.texto+'</span></div>';
     });
   } else {
     html += '<div class="lance-vazio">Aguardando lances...</div>';
@@ -6871,34 +6895,44 @@ function _renderGraficoSVG(clube) {
     pontosSaldo.push({ x: cx, y: sy, provisao: isProvisao });
   });
 
-  // Linha de saldo
+  // Linha de saldo — sempre traçada, tracejada onde é provisão
   if (pontosSaldo.length > 1) {
-    // Segmento real
-    var realPts = pontosSaldo.filter(function(p){ return !p.provisao; });
-    var provPts = pontosSaldo.filter(function(p){ return p.provisao; });
+    // Construir path contínuo
+    var pathReal = '', pathProv = '', lastX = 0, lastY = 0;
+    var prevProv = pontosSaldo[0].provisao;
 
-    if (realPts.length > 0) {
-      var path = 'M'+realPts[0].x+','+realPts[0].y;
-      for (var pi = 1; pi < realPts.length; pi++) {
-        path += ' L'+realPts[pi].x+','+realPts[pi].y;
-      }
-      svg += '<path d="'+path+'" fill="none" stroke="#4f8ef7" stroke-width="2"/>';
-      realPts.forEach(function(p) {
-        svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="#4f8ef7"/>';
-      });
+    // Linha completa sólida (real) e tracejada (provisão)
+    var segReal = [], segProv = [];
+    pontosSaldo.forEach(function(p) {
+      if (!p.provisao) segReal.push(p);
+      else             segProv.push(p);
+    });
+
+    // Linha sólida — todos os pontos reais
+    if (segReal.length >= 2) {
+      var pr = 'M'+segReal[0].x+','+segReal[0].y;
+      for (var ri=1;ri<segReal.length;ri++) pr+=' L'+segReal[ri].x+','+segReal[ri].y;
+      svg += '<path d="'+pr+'" fill="none" stroke="#4f8ef7" stroke-width="2"/>';
+      segReal.forEach(function(p){ svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="#4f8ef7"/>'; });
+    } else if (segReal.length===1) {
+      svg += '<circle cx="'+segReal[0].x+'" cy="'+segReal[0].y+'" r="3" fill="#4f8ef7"/>';
     }
 
-    // Segmento provisão (tracejado)
-    if (provPts.length > 0 && realPts.length > 0) {
-      var lastReal = realPts[realPts.length-1];
-      var provPath = 'M'+lastReal.x+','+lastReal.y+' L'+provPts[0].x+','+provPts[0].y;
-      for (var pj = 1; pj < provPts.length; pj++) {
-        provPath += ' L'+provPts[pj].x+','+provPts[pj].y;
-      }
-      svg += '<path d="'+provPath+'" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="5,3" opacity=".55"/>';
-      provPts.forEach(function(p) {
-        svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="none" stroke="#4f8ef7" stroke-width="1.5" opacity=".55"/>';
-      });
+    // Linha tracejada — provisões, conectando ao último ponto real
+    if (segProv.length > 0) {
+      var anchor = segReal.length > 0 ? segReal[segReal.length-1] : pontosSaldo[0];
+      var pp = 'M'+anchor.x+','+anchor.y;
+      segProv.forEach(function(p){ pp+=' L'+p.x+','+p.y; });
+      svg += '<path d="'+pp+'" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="5,3" opacity=".5"/>';
+      segProv.forEach(function(p){ svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="none" stroke="#4f8ef7" stroke-width="1.5" opacity=".5"/>'; });
+    }
+
+    // Se tudo é provisão (início do jogo = jan), mostrar linha tracejada completa
+    if (segReal.length === 0 && segProv.length > 1) {
+      var pa = 'M'+segProv[0].x+','+segProv[0].y;
+      for (var pi2=1;pi2<segProv.length;pi2++) pa+=' L'+segProv[pi2].x+','+segProv[pi2].y;
+      svg += '<path d="'+pa+'" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="5,3" opacity=".5"/>';
+      segProv.forEach(function(p){ svg += '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="none" stroke="#4f8ef7" stroke-width="1.5" opacity=".5"/>'; });
     }
 
     // Labels eixo direito (saldo)
@@ -7007,10 +7041,10 @@ function _dadosAnuais(clube) {
   var recTV = typeof COTAS_TV !== 'undefined'
     ? (COTAS_TV[estado.minhaDivisao] || 0) : 0;
 
-  // Campeonatos começam em abril 2026 (índice 3 zero-based)
-  var mesInicioJogo = 3; // abril
+  // Pré-temporada começa em janeiro — financeiro mostra o ano todo
+  var mesInicioJogo = 0; // janeiro (mostrar todos os meses desde o início)
 
-  var saldoCaixaAtual = clube.caixa || 0;
+  var saldoCaixaAtual = parseFloat(clube.caixa || clube.budget || 0) || 0;
   var dados = [];
 
   // Primeira passagem: construir dados de cada mês
@@ -7883,11 +7917,14 @@ function gerarJogadoresFicticios(clubeId, overallBase) {
   var posicoes = ["GOL","GOL","LD","LD","ZAG","ZAG","ZAG","LE","LE","VOL","VOL","VOL","MEI","MEI","MEI","ATA","ATA","ATA","ATA","ATA","MEI","VOL","ZAG","LD","LE"];
   return posicoes.map(function(pos, i) {
     var ov = Math.max(40, Math.min(85, overallBase + Math.floor(Math.random()*10) - 5));
+    var nacs = ['BR','BR','BR','BR','BR','BR','BR','AR','AR','CO','UY','PT'];
+    var nac = nacs[Math.floor(Math.random()*nacs.length)];
     return {
       id: clubeId + "_j" + i,
       nome: "Jogador " + (i+1),
       posicao: pos,
       overall: ov,
+      nacionalidade: nac,
       stats: { jogos:0, gols:0, assistencias:0, nota_media:0 },
       valor_mercado: Math.round(ov * 8000),
       salario: Math.round(ov * 300),
@@ -9599,18 +9636,76 @@ function renderBezinhaTela() {
 }
 
 function renderCopaPaulistaTela(){
+  // Garantir inicialização
+  if (!estadoPaulista.a1.clubes) inicializarPaulista();
   var copa=estadoPaulista.copa;
+  if(!copa||!copa.clubes||copa.clubes.length===0){
+    return '<div class="dash-empty">Copa Paulista ainda não inicializada. Avance o calendário.</div>';
+  }
   var meuId=estado.meuClube.id;
   var html='<div class="torneio-conteudo">';
   if(copa.campeao){
     var camp=copa.clubes.find(function(c){return c.id===copa.campeao;});
     html+='<div class="torneio-campeao">☕ CAMPEÃO: '+(camp?camp.nome:"?")+'</div>';
   }
+
+  // Fase de grupos
+  var jogsGrupos=copa.jogos.filter(function(j){return j.fase==="grupos";});
+  if(jogsGrupos.length>0){
+    html+='<div class="fin-secao-titulo" style="margin-bottom:12px">Fase de Grupos</div>';
+    // Agrupar por letra do grupo
+    var grupos={};
+    jogsGrupos.forEach(function(j){
+      var g=j.grupo||"?";
+      if(!grupos[g]) grupos[g]=[];
+      grupos[g].push(j);
+    });
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">';
+    Object.keys(grupos).sort().forEach(function(g){
+      var clubesGrupo=copa.grupos
+        ? (copa.grupos.find(function(gr){return gr.letra===g;})||{clubeIds:[]}).clubeIds
+        : [];
+      html+='<div class="div-tabela-wrap">';
+      html+='<div class="fin-secao-titulo" style="font-size:12px;margin-bottom:8px">Grupo '+g+'</div>';
+      // Mini tabela
+      if(clubesGrupo.length>0){
+        var pts={};
+        clubesGrupo.forEach(function(id){pts[id]={p:0,j:0,gp:0,gc:0};});
+        grupos[g].filter(function(j){return j.ok;}).forEach(function(j){
+          if(pts[j.mId]){pts[j.mId].j++;pts[j.mId].gp+=j.gM;pts[j.mId].gc+=j.gV;if(j.gM>j.gV)pts[j.mId].p+=3;else if(j.gM===j.gV)pts[j.mId].p+=1;}
+          if(pts[j.vId]){pts[j.vId].j++;pts[j.vId].gp+=j.gV;pts[j.vId].gc+=j.gM;if(j.gV>j.gM)pts[j.vId].p+=3;else if(j.gM===j.gV)pts[j.vId].p+=1;}
+        });
+        var ranked=clubesGrupo.slice().sort(function(a,b){return (pts[b]?pts[b].p:0)-(pts[a]?pts[a].p:0);});
+        html+='<table class="elenco-tabela" style="font-size:11px"><thead><tr><th>#</th><th>Clube</th><th>Pts</th><th>J</th><th>SG</th></tr></thead><tbody>';
+        ranked.forEach(function(id,i){
+          var c=copa.clubes.find(function(x){return x.id===id;});
+          var p=pts[id]||{p:0,j:0,gp:0,gc:0};
+          var ehMeu=id===meuId;
+          var corPos=i<2?"color:var(--green)":"color:var(--red)";
+          html+='<tr'+(ehMeu?' style="background:rgba(79,142,247,.12)"':'')+'>'+
+            '<td style="'+corPos+'">'+(i+1)+'</td>'+
+            '<td>'+(c?'<span class="escudo-mini" style="background:'+(c.cor||"#555")+'">'+c.sigla+'</span>'+c.nome:"?")+'</td>'+
+            '<td style="font-weight:700;color:var(--accent)">'+p.p+'</td>'+
+            '<td>'+p.j+'</td>'+
+            '<td>'+((p.gp-p.gc)>=0?"+"+(p.gp-p.gc):(p.gp-p.gc))+'</td>'+
+            '</tr>';
+        });
+        html+='</tbody></table>';
+        html+='<div style="font-size:10px;color:var(--text2);margin-top:4px">🟢 Top 2 avançam</div>';
+      }
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+
+  // Mata-mata
   var fases=["oitavas","quartas","semi","final"];
+  var temMata=false;
   fases.forEach(function(f){
     var jogsFase=copa.jogos.filter(function(j){return j.fase===f;});
     if(jogsFase.length===0) return;
-    html+='<div class="torneio-fase"><div class="torneio-fase-titulo">'+{oitavas:"Oitavas",quartas:"Quartas",semi:"Semifinal",final:"Final"}[f]+'</div>';
+    if(!temMata){html+='<div class="fin-secao-titulo" style="margin-top:8px;margin-bottom:8px">Mata-mata</div>';temMata=true;}
+    html+='<div class="torneio-fase"><div class="torneio-fase-titulo">'+(f==="oitavas"?"Oitavas":f==="quartas"?"Quartas":f==="semi"?"Semifinal":"Final")+'</div>';
     jogsFase.forEach(function(j){
       var m=copa.clubes.find(function(c){return c.id===j.mId;});
       var v=copa.clubes.find(function(c){return c.id===j.vId;});
@@ -9623,6 +9718,7 @@ function renderCopaPaulistaTela(){
     });
     html+='</div>';
   });
+
   html+='</div>';
   return html;
 }
@@ -10675,6 +10771,9 @@ function fecharMancheteEIniciar() {
     el.style.opacity = '0';
     setTimeout(function() {
       el.remove();
+      // Limpar main antes de iniciar
+      var main = document.getElementById('main');
+      if (main) main.innerHTML = '';
       iniciarJogo();
     }, 400);
   } else {
@@ -12449,5 +12548,4 @@ function atualizarSaldo(){var s=estado.meuClube?formatarDinheiro(estado.meuClube
 setInterval(atualizarSaldo,2000);
 function salvarManual(){atualizarSaldo();var ok=salvarJogo();var btn=document.getElementById("btn-salvar");if(btn){btn.textContent=ok?"✅ Salvo!":"❌ Erro";btn.classList.add("salvo");setTimeout(function(){btn.textContent="💾 Salvar jogo";btn.classList.remove("salvo");},2000);}}
 var _origMostrarNav=mostrarNav;mostrarNav=function(){_origMostrarNav();var btn=document.getElementById("btn-salvar");if(btn)btn.classList.remove("hidden");atualizarSaldo();};
-</script>
-</body></html>
+</script></body></html>
