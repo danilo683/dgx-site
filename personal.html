@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área Pessoal · Auto Performance — DGX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #120e1e;
+  --bg2: #1a1430;
+  --bg3: #241b42;
+  --border: #352a5c;
+  --border2: #43357a;
+  --text: #f0edf8;
+  --text2: #9c93bd;
+  --accent: #a78bfa;
+  --accent-deep: #7c5cf0;
+  --accent-soft: rgba(167, 139, 250, .14);
+  --radius: 12px;
+  --display: 'Fraunces', Georgia, serif;
+  --body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  /* Áreas da vida */
+  --fin: #34d399;   /* Financeira */
+  --esp: #c4b5fd;   /* Espiritual */
+  --int: #60a5fa;   /* Intelectual */
+  --pro: #f59e0b;   /* Profissional */
+  --rel: #f472b6;   /* Relacionamentos */
+  --sau: #2dd4bf;   /* Saúde */
+  --est: #fb923c;   /* Estilo de Vida */
+}
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(18, 14, 30, .86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand img { height: 26px; width: auto; display: block; }
+.brand strong { font-family: var(--display); font-size: 17px; letter-spacing: .3px; line-height: 1; }
+.brand span { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 1.5px; line-height: 1; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; }
+nav a {
+  color: var(--text2); text-decoration: none; font-size: 13px;
+  padding: 6px 11px; border-radius: 8px; transition: color .15s, background .15s;
+}
+nav a:hover, nav a:focus-visible { color: var(--text); background: var(--bg3); }
+a:focus-visible, button:focus-visible, [contenteditable]:focus-visible,
+select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+main { max-width: 920px; margin: 0 auto; padding: 0 24px 120px; }
+
+/* ── Hero ── */
+.hero { padding: 68px 0 36px; position: relative; }
+.horizon-glow {
+  position: absolute; top: 0; left: -20%; right: -20%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
+  opacity: .55;
+}
+.hero .eyebrow { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.hero h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 5.5vw, 46px); line-height: 1.15; max-width: 680px; }
+.hero p { color: var(--text2); max-width: 580px; margin-top: 16px; }
+
+/* ── Seções ── */
+section { padding-top: 60px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.section-head h2 { font-family: var(--display); font-weight: 600; font-size: 26px; }
+.section-head .hint { font-size: 12.5px; color: var(--text2); }
+.section-intro { color: var(--text2); font-size: 14px; margin-bottom: 24px; max-width: 640px; }
+
+/* ── Seletor de áreas ── */
+.area-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; }
+.area-tab {
+  --c: var(--accent);
+  font-family: var(--body); font-size: 13px; font-weight: 500;
+  color: var(--text2); background: var(--bg2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 7px 14px 7px 10px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.area-tab::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.area-tab:hover { border-color: var(--c); color: var(--text); }
+.area-tab.active { border-color: var(--c); color: var(--text); background: color-mix(in srgb, var(--c) 12%, var(--bg2)); }
+
+/* ── Escada de VFs ── */
+.vf-ladder { position: relative; padding-left: 34px; }
+.vf-ladder::before {
+  content: ""; position: absolute; left: 10px; top: 8px; bottom: 8px; width: 2px;
+  background: linear-gradient(180deg, var(--vf-line, var(--accent)), transparent);
+}
+.vf-card {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+  transition: border-color .15s;
+}
+.vf-card:hover { border-color: var(--border2); }
+.vf-card::before {
+  content: ""; position: absolute; left: -30px; top: 26px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--vf-line, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--vf-line, var(--accent)) 16%, transparent);
+}
+.vf-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.vf-badge { font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--vf-line, var(--accent)); letter-spacing: .5px; min-width: 64px; }
+.vf-meta { font-size: 12px; color: var(--text2); background: var(--bg3); padding: 3px 10px; border-radius: 20px; }
+.vf-title { font-family: var(--display); font-size: 19px; font-weight: 600; padding: 2px 4px; border-radius: 6px; min-height: 1.4em; }
+.vf-text { color: var(--text2); font-size: 14.5px; margin-top: 6px; padding: 2px 4px; border-radius: 6px; min-height: 1.5em; white-space: pre-wrap; }
+
+[contenteditable] { cursor: text; }
+[contenteditable]:hover { background: rgba(255,255,255,.03); }
+[contenteditable]:focus { background: var(--bg3); outline: 1px solid var(--border); }
+[contenteditable]:empty::before { content: attr(data-placeholder); color: #5c527f; font-style: italic; }
+
+/* ── Botões ── */
+button, .btn {
+  font-family: var(--body); font-size: 13.5px; font-weight: 500;
+  background: var(--bg3); color: var(--text);
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 9px 16px; cursor: pointer; transition: background .15s, border-color .15s;
+}
+button:hover { background: #2d2254; border-color: var(--border2); }
+button.primary { background: var(--accent-deep); color: #fff; border-color: var(--accent-deep); font-weight: 600; }
+button.primary:hover { background: #8d70f5; }
+
+/* ── Hábitos ── */
+.habit-form { display: grid; grid-template-columns: 1fr 170px 130px auto; gap: 10px; margin: 4px 0 22px; }
+.habit-form input, .habit-form select, .diary-form input, .diary-form select, .diary-form textarea {
+  font-family: var(--body); font-size: 14px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px;
+}
+.habit-form input::placeholder, .diary-form input::placeholder, .diary-form textarea::placeholder { color: #5c527f; }
+.habit-list { display: flex; flex-direction: column; gap: 10px; }
+.habit-item {
+  --c: var(--accent);
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-left: 3px solid var(--c);
+  border-radius: 10px; padding: 12px 14px;
+}
+.habit-item .h-name { font-weight: 600; font-size: 14.5px; }
+.habit-item .h-meta { font-size: 12px; color: var(--text2); }
+.habit-item .h-body { flex: 1; min-width: 0; }
+.x-remove { background: none; border: none; color: var(--text2); font-size: 12px; padding: 4px 8px; cursor: pointer; border-radius: 6px; flex: none; }
+.x-remove:hover { color: #e57373; background: rgba(229, 115, 115, .08); }
+.list-empty { border: 1px dashed var(--border); border-radius: var(--radius); padding: 36px 24px; text-align: center; color: var(--text2); font-size: 14px; }
+
+/* ── Diário ── */
+.diary-form {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px;
+}
+.diary-row { display: grid; grid-template-columns: 150px 1fr; gap: 10px; }
+.diary-form textarea { resize: vertical; min-height: 70px; }
+.diary-form label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.diary-list { display: flex; flex-direction: column; gap: 14px; }
+.diary-entry {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.diary-entry .d-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.diary-entry .d-date { font-family: var(--display); font-weight: 600; font-size: 15px; }
+.diary-entry .d-feeling { font-size: 12px; background: var(--accent-soft); color: var(--accent); padding: 3px 10px; border-radius: 20px; }
+.diary-entry .d-grat { font-size: 13.5px; color: var(--text2); margin-bottom: 6px; }
+.diary-entry .d-grat strong { color: var(--text); font-weight: 600; }
+.diary-entry .d-text { font-size: 14px; white-space: pre-wrap; }
+.diary-entry .d-foot { margin-top: 8px; text-align: right; }
+
+/* ── Quadro dos Sonhos ── */
+.board-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 24px; }
+.dream-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.dream-card {
+  --c: var(--border);
+  background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--c);
+  border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column;
+}
+.dream-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: var(--bg3); }
+.dream-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.dream-caption { font-size: 13.5px; min-height: 1.4em; padding: 2px 4px; border-radius: 6px; }
+.dream-foot { display: flex; align-items: center; gap: 6px; margin-top: auto; flex-wrap: wrap; }
+.dream-foot select {
+  background: var(--bg3); color: var(--text2); border: 1px solid var(--border);
+  border-radius: 7px; font-size: 12px; padding: 4px 6px; font-family: var(--body); flex: 1; min-width: 0;
+}
+
+
+/* ── Metas & Tarefas (estilo Notion) ── */
+.view-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin: 4px 0 0; }
+.view-tab {
+  background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
+  color: var(--text2); font-size: 13.5px; padding: 8px 12px; cursor: pointer;
+}
+.view-tab:hover { background: rgba(255,255,255,.04); color: var(--text); }
+.view-tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+
+.goal-table { font-size: 13.5px; }
+.goal-row-head, .goal-row {
+  display: grid;
+  grid-template-columns: 34px minmax(180px,1fr) 130px 96px 96px 130px 30px;
+  align-items: center; gap: 8px;
+  padding: 0 6px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.goal-row-head {
+  color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px;
+  padding-top: 14px; padding-bottom: 6px;
+}
+.goal-row { min-height: 42px; cursor: pointer; transition: background .1s; }
+.goal-row:hover { background: rgba(255,255,255,.035); }
+.goal-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; margin-left: 6px; }
+.g-name { font-weight: 500; padding: 8px 4px; border-radius: 5px; min-width: 0; overflow-wrap: anywhere; }
+.goal-row.done .g-name { color: var(--text2); text-decoration: line-through; }
+.g-progress { display: flex; align-items: center; gap: 8px; }
+.g-progress .bar { flex: 1; height: 4px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.g-progress .bar span { display: block; height: 100%; background: var(--c, var(--accent)); }
+.g-progress .pct { font-size: 11.5px; color: var(--text2); min-width: 32px; text-align: right; }
+.g-due { font-size: 12.5px; color: var(--text2); }
+.g-due.overdue { color: #e88; }
+.g-stars { font-size: 11px; letter-spacing: -1px; white-space: nowrap; }
+.tag {
+  display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 4px;
+  background: color-mix(in srgb, var(--c, var(--accent)) 18%, var(--bg2));
+  color: var(--c, var(--accent));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.g-chevron { color: var(--text2); font-size: 11px; text-align: center; transition: transform .15s; }
+.goal-row.open .g-chevron { transform: rotate(90deg); }
+
+.goal-detail {
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.02);
+  padding: 14px 16px 16px 42px;
+}
+.goal-props { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.goal-props .prop { display: flex; flex-direction: column; gap: 4px; }
+.goal-props label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; }
+.goal-props select, .goal-props input[type="date"] {
+  font-family: var(--body); font-size: 13px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px;
+  color-scheme: dark;
+}
+.task-list { display: flex; flex-direction: column; gap: 2px; }
+.task-item { display: flex; align-items: center; gap: 10px; padding: 4px 4px; border-radius: 6px; }
+.task-item:hover { background: rgba(255,255,255,.03); }
+.task-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--c, var(--accent)); cursor: pointer; flex: none; }
+.task-item .t-name { flex: 1; font-size: 13.5px; padding: 2px 4px; border-radius: 5px; min-width: 0; }
+.task-item.done .t-name { color: var(--text2); text-decoration: line-through; }
+.task-add { display: flex; gap: 8px; margin-top: 8px; }
+.task-add input {
+  flex: 1; font-family: var(--body); font-size: 13px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px;
+}
+.task-add input::placeholder { color: #5c527f; }
+.goal-detail .detail-foot { margin-top: 12px; text-align: right; }
+.goal-new {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; color: var(--text2); font-size: 13.5px;
+  background: none; border: none; border-radius: 0; width: 100%; text-align: left; cursor: pointer;
+}
+.goal-new:hover { background: rgba(255,255,255,.035); color: var(--text); border-color: transparent; }
+
+@media (max-width: 700px) {
+  .goal-row-head, .goal-row { grid-template-columns: 30px 1fr 90px 30px; }
+  .goal-row-head .hc-prog, .goal-row-head .hc-due, .goal-row-head .hc-prio,
+  .goal-row .g-progress, .goal-row .g-due, .goal-row .g-stars { display: none; }
+  .goal-detail { padding-left: 16px; }
+}
+
+/* toast */
+#toast {
+  position: fixed; bottom: 22px; right: 22px; z-index: 50;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  font-size: 12.5px; padding: 8px 14px; border-radius: 8px;
+  opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30px; }
+
+@media (max-width: 700px) {
+  header { padding: 12px 16px; }
+  main { padding: 0 16px 100px; }
+  .vf-ladder { padding-left: 26px; }
+  .vf-card::before { left: -22px; }
+  .habit-form { grid-template-columns: 1fr; }
+  .diary-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><img src="/logo-dgx.png" alt="DGX" onerror="this.style.display='none'"><strong>DGX</strong><span>Área Pessoal</span></div>
+  <nav>
+    <a href="#visoes">Visões</a>
+    <a href="#metas">Metas</a>
+    <a href="#habitos">Hábitos</a>
+    <a href="#diario">Diário</a>
+    <a href="#sonhos">Sonhos</a>
+  </nav>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="horizon-glow" aria-hidden="true"></div>
+    <div class="eyebrow">Auto Performance</div>
+    <h1>Onde eu quero estar — em cada área da minha vida.</h1>
+    <p>Sete áreas, sete horizontes. Escolha uma área, mentalize como você estará nela em cada estágio e escreva. Tudo é editável e salvo automaticamente neste navegador.</p>
+  </div>
+
+  <section id="visoes">
+    <div class="section-head">
+      <h2>Visões de Futuro</h2>
+      <span class="hint">clique para editar · salva sozinho</span>
+    </div>
+    <p class="section-intro">Comece pela visão geral ou entre direto numa área. Leitura de cima para baixo: da VF20 até a VF1, cada horizonte mais curto é um degrau concreto rumo ao de cima.</p>
+    <div class="area-tabs" id="area-tabs" role="tablist"></div>
+    <div class="vf-ladder" id="vf-ladder"></div>
+  </section>
+
+
+  <section id="metas">
+    <div class="section-head">
+      <h2>Metas &amp; Tarefas</h2>
+      <span class="hint">visão → meta → tarefa · mesmo formato do seu Notion</span>
+    </div>
+    <p class="section-intro">Cada meta serve a uma visão. Clique numa linha para abrir os itens de ação, prazo, prioridade e horizonte.</p>
+    <div class="view-tabs" id="goal-views">
+      <button class="view-tab active" data-view="progresso">Em progresso</button>
+      <button class="view-tab" data-view="completadas">Completadas</button>
+      <button class="view-tab" data-view="todas">Todas</button>
+    </div>
+    <div class="goal-table">
+      <div class="goal-row-head">
+        <span>✓</span><span>Meta</span><span class="hc-prog">Progresso</span>
+        <span class="hc-due">Completar até</span><span class="hc-prio">Prioridade</span>
+        <span>Área</span><span></span>
+      </div>
+      <div id="goal-rows"></div>
+      <button class="goal-new" id="btn-add-goal">＋ Nova meta</button>
+    </div>
+    <div class="list-empty" id="goal-empty" style="margin-top:14px;">Nenhuma meta nesta visualização.</div>
+  </section>
+
+  <section id="habitos">
+    <div class="section-head">
+      <h2>Hábitos</h2>
+      <span class="hint">o que preciso desenvolver</span>
+    </div>
+    <p class="section-intro">Hábitos são as visões traduzidas em rotina. Ligue cada hábito à área que ele fortalece.</p>
+    <div class="habit-form">
+      <input id="habit-name" type="text" placeholder="Hábito (ex.: ler 20 min por dia)">
+      <select id="habit-area"></select>
+      <select id="habit-freq">
+        <option value="diário">Diário</option>
+        <option value="3x/semana">3x/semana</option>
+        <option value="semanal">Semanal</option>
+        <option value="mensal">Mensal</option>
+      </select>
+      <button class="primary" id="btn-add-habit">Adicionar</button>
+    </div>
+    <div class="habit-list" id="habit-list"></div>
+    <div class="list-empty" id="habit-empty">Nenhum hábito ainda. Qual é o primeiro que sustenta a sua VF1?</div>
+  </section>
+
+  <section id="diario">
+    <div class="section-head">
+      <h2>Diário</h2>
+      <span class="hint">sentimento do dia + gratidão</span>
+    </div>
+    <p class="section-intro">Nomeie o sentimento do dia, registre pelo que é grato e desabafe se precisar. Exporte quando quiser levar os registros para conversar com o Claude.</p>
+    <div class="diary-form">
+      <div class="diary-row">
+        <div>
+          <label for="diary-feeling">Sentimento</label><br>
+          <select id="diary-feeling" style="width:100%; margin-top:4px;">
+            <option>Grato</option><option>Motivado</option><option>Calmo</option>
+            <option>Alegre</option><option>Orgulhoso</option><option>Energizado</option>
+            <option>Cansado</option><option>Ansioso</option><option>Frustrado</option>
+            <option>Preocupado</option><option>Triste</option><option>Sobrecarregado</option>
+          </select>
+        </div>
+        <div>
+          <label for="diary-grat">Gratidão de hoje (1 a 3 coisas)</label><br>
+          <input id="diary-grat" type="text" style="width:100%; margin-top:4px;" placeholder="ex.: jogo com os amigos · saúde da família · novo cliente">
+        </div>
+      </div>
+      <label for="diary-text">Sobre o dia</label>
+      <textarea id="diary-text" placeholder="Como foi o dia? O que pesou, o que fluiu?"></textarea>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button class="primary" id="btn-add-diary">Registrar dia</button>
+      </div>
+    </div>
+    <div class="diary-list" id="diary-list"></div>
+    <div class="list-empty" id="diary-empty">Nenhum registro ainda. Que tal começar por hoje?</div>
+  </section>
+
+  <section id="sonhos">
+    <div class="section-head">
+      <h2>Quadro dos Sonhos</h2>
+      <span class="hint">as fotos ficam salvas neste navegador</span>
+    </div>
+    <div class="board-actions">
+      <button class="primary" id="btn-add-photo">+ Adicionar foto</button>
+      <button id="btn-export">Exportar backup</button>
+      <button id="btn-import">Importar backup</button>
+      <input type="file" id="file-photo" accept="image/*" multiple hidden>
+      <input type="file" id="file-import" accept="application/json" hidden>
+    </div>
+    <div class="dream-grid" id="dream-grid"></div>
+    <div class="list-empty" id="board-empty">Seu quadro ainda está vazio. Adicione a primeira foto de uma visão que você quer viver.</div>
+  </section>
+</main>
+
+<footer>DGX Consultoria · espaço pessoal de Danilo</footer>
+<div id="toast">Salvo</div>
+
+<script>
+(function () {
+  const BASE_YEAR = 2026;
+  const KEY = 'dgx-personal-v2';
+  const OLD_KEY = 'dgx-personal-v1';
+
+  const AREAS = [
+    { id: 'geral', label: 'Visão Geral',      color: 'var(--accent)' },
+    { id: 'fin',   label: 'Financeira',        color: 'var(--fin)' },
+    { id: 'esp',   label: 'Espiritual',        color: 'var(--esp)' },
+    { id: 'int',   label: 'Intelectual',       color: 'var(--int)' },
+    { id: 'pro',   label: 'Profissional',      color: 'var(--pro)' },
+    { id: 'rel',   label: 'Relacionamentos',   color: 'var(--rel)' },
+    { id: 'sau',   label: 'Saúde',             color: 'var(--sau)' },
+    { id: 'est',   label: 'Estilo de Vida',    color: 'var(--est)' },
+  ];
+
+  const HORIZONS = [
+    { id: 'vf20', label: 'VF20', years: 20 },
+    { id: 'vf10', label: 'VF10', years: 10 },
+    { id: 'vf5',  label: 'VF5',  years: 5 },
+    { id: 'vf4',  label: 'VF4',  years: 4 },
+    { id: 'vf3',  label: 'VF3',  years: 3 },
+    { id: 'vf2',  label: 'VF2',  years: 2 },
+    { id: 'vf1',  label: 'VF1',  years: 1 },
+  ];
+
+  // ── Estado ──
+  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [] };
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      state = Object.assign(state, JSON.parse(raw));
+    } else {
+      // migração da v1: visões antigas viram a "Visão Geral"
+      const old = localStorage.getItem(OLD_KEY);
+      if (old) {
+        const o = JSON.parse(old);
+        state.vfs.geral = o.vfs || {};
+        state.dreams = (o.dreams || []).map(d => Object.assign({ area: '' }, d));
+      }
+    }
+  } catch (e) { /* primeiro acesso ou armazenamento indisponível */ }
+
+  let toastTimer;
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 1200);
+    } catch (e) {
+      alert('Não consegui salvar — o armazenamento do navegador pode estar cheio. Exporte um backup e remova fotos antigas.');
+    }
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ── Abas de áreas + escada de VFs ──
+  let currentArea = 'geral';
+  const tabs = document.getElementById('area-tabs');
+  const ladder = document.getElementById('vf-ladder');
+
+  AREAS.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'area-tab' + (a.id === currentArea ? ' active' : '');
+    b.style.setProperty('--c', a.color);
+    b.textContent = a.label;
+    b.dataset.area = a.id;
+    b.setAttribute('role', 'tab');
+    b.addEventListener('click', () => {
+      currentArea = a.id;
+      tabs.querySelectorAll('.area-tab').forEach(x => x.classList.toggle('active', x.dataset.area === a.id));
+      renderLadder();
+    });
+    tabs.appendChild(b);
+  });
+
+  function renderLadder() {
+    const area = AREAS.find(a => a.id === currentArea);
+    ladder.style.setProperty('--vf-line', area.color);
+    ladder.innerHTML = '';
+    const areaData = state.vfs[currentArea] || {};
+    HORIZONS.forEach(h => {
+      const data = areaData[h.id] || { title: '', text: '' };
+      const year = BASE_YEAR + h.years;
+      const plural = h.years === 1 ? 'ano' : 'anos';
+      const card = document.createElement('article');
+      card.className = 'vf-card';
+      const ctx = currentArea === 'geral' ? 'sua vida' : ('a área ' + area.label);
+      card.innerHTML = `
+        <div class="vf-top">
+          <span class="vf-badge">${h.label}</span>
+          <span class="vf-meta">${year} · daqui a ${h.years} ${plural}</span>
+        </div>
+        <div class="vf-title" contenteditable="true" data-field="title" data-id="${h.id}"
+             data-placeholder="Título da visão de ${h.years} ${plural}"></div>
+        <div class="vf-text" contenteditable="true" data-field="text" data-id="${h.id}"
+             data-placeholder="Como está ${ctx} em ${year}?"></div>`;
+      card.querySelector('[data-field="title"]').textContent = data.title;
+      card.querySelector('[data-field="text"]').textContent = data.text;
+      ladder.appendChild(card);
+    });
+  }
+
+  ladder.addEventListener('blur', (ev) => {
+    const el = ev.target.closest('[contenteditable]');
+    if (!el) return;
+    const id = el.dataset.id, field = el.dataset.field;
+    state.vfs[currentArea] = state.vfs[currentArea] || {};
+    state.vfs[currentArea][id] = state.vfs[currentArea][id] || { title: '', text: '' };
+    state.vfs[currentArea][id][field] = el.innerText.trim();
+    save();
+  }, true);
+
+
+  // ── Metas & Tarefas (estilo Notion) ──
+  const goalRows = document.getElementById('goal-rows');
+  const goalEmpty = document.getElementById('goal-empty');
+  let goalView = 'progresso';
+  let openGoals = new Set();
+
+  // migração de prioridades antigas (alta/media/baixa → estrelas 1–5)
+  state.goals.forEach(g => {
+    if (typeof g.prio === 'string') g.prio = { alta: 5, media: 3, baixa: 2 }[g.prio] || 3;
+    if (g.done === undefined) g.done = false;
+    if (g.tipo === undefined) g.tipo = 'anual';
+    if (g.due === undefined) g.due = '';
+    if (g.doneAt === undefined) g.doneAt = '';
+  });
+
+  document.getElementById('goal-views').addEventListener('click', (ev) => {
+    const tab = ev.target.closest('.view-tab');
+    if (!tab) return;
+    goalView = tab.dataset.view;
+    document.querySelectorAll('#goal-views .view-tab').forEach(t => t.classList.toggle('active', t === tab));
+    renderGoals();
+  });
+
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function fmtBR(iso) { const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y; }
+  const stars = n => '⭐'.repeat(Math.max(1, Math.min(5, n)));
+
+  function renderGoals() {
+    goalRows.innerHTML = '';
+    let list = [...state.goals];
+    if (goalView === 'progresso') {
+      list = list.filter(g => !g.done).sort((a, b) => b.prio - a.prio);
+    } else if (goalView === 'completadas') {
+      list = list.filter(g => g.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
+    } else {
+      list.sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
+    }
+    goalEmpty.style.display = list.length ? 'none' : 'block';
+
+    list.forEach(g => {
+      const a = AREAS.find(x => x.id === g.area) || AREAS[0];
+      const h = HORIZONS.find(x => x.id === g.vf);
+      const total = g.tasks.length;
+      const doneT = g.tasks.filter(t => t.done).length;
+      const pct = total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
+      const isOpen = openGoals.has(g.id);
+      const overdue = g.due && !g.done && g.due < todayISO();
+
+      const row = document.createElement('div');
+      row.className = 'goal-row' + (g.done ? ' done' : '') + (isOpen ? ' open' : '');
+      row.dataset.id = g.id;
+      row.style.setProperty('--c', a.color);
+      row.innerHTML = `
+        <input type="checkbox" ${g.done ? 'checked' : ''} aria-label="Meta concluída">
+        <div class="g-name" contenteditable="true" data-placeholder="Nome da meta"></div>
+        <div class="g-progress"><div class="bar"><span style="width:${pct}%"></span></div><span class="pct">${pct}%</span></div>
+        <span class="g-due ${overdue ? 'overdue' : ''}">${g.due ? fmtBR(g.due) : '—'}</span>
+        <span class="g-stars" title="Prioridade ${g.prio} de 5">${stars(g.prio)}</span>
+        <span class="tag">${esc(a.label)}</span>
+        <span class="g-chevron">▶</span>`;
+      row.querySelector('.g-name').textContent = g.name;
+      goalRows.appendChild(row);
+
+      if (isOpen) {
+        const det = document.createElement('div');
+        det.className = 'goal-detail';
+        det.dataset.id = g.id;
+        det.style.setProperty('--c', a.color);
+        const areaOpts = AREAS.filter(x => x.id !== 'geral')
+          .map(x => `<option value="${x.id}" ${g.area === x.id ? 'selected' : ''}>${x.label}</option>`).join('');
+        const vfOpts = ['<option value="">—</option>'].concat(HORIZONS.slice().reverse()
+          .map(x => `<option value="${x.id}" ${g.vf === x.id ? 'selected' : ''}>${x.label} · ${BASE_YEAR + x.years}</option>`)).join('');
+        const prioOpts = [5, 4, 3, 2, 1].map(n => `<option value="${n}" ${g.prio === n ? 'selected' : ''}>${stars(n)}</option>`).join('');
+        det.innerHTML = `
+          <div class="goal-props">
+            <div class="prop"><label>Área</label><select data-prop="area">${areaOpts}</select></div>
+            <div class="prop"><label>Visão</label><select data-prop="vf">${vfOpts}</select></div>
+            <div class="prop"><label>Tipo</label><select data-prop="tipo">
+              <option value="anual" ${g.tipo === 'anual' ? 'selected' : ''}>🎯 Anual</option>
+              <option value="sazonal" ${g.tipo === 'sazonal' ? 'selected' : ''}>Sazonal</option>
+            </select></div>
+            <div class="prop"><label>Completar até</label><input type="date" data-prop="due" value="${g.due || ''}"></div>
+            <div class="prop"><label>Prioridade</label><select data-prop="prio">${prioOpts}</select></div>
+            ${g.done && g.doneAt ? `<div class="prop"><label>Completada em</label><span style="font-size:13px; padding-top:6px;">${fmtBR(g.doneAt)}</span></div>` : ''}
+          </div>
+          <div class="task-list"></div>
+          <div class="task-add">
+            <input type="text" placeholder="＋ Novo item de ação… (Enter para adicionar)">
+            <button type="button" class="t-add-btn">Adicionar</button>
+          </div>
+          <div class="detail-foot"><button class="x-remove g-remove" type="button">remover meta</button></div>`;
+        const tl = det.querySelector('.task-list');
+        g.tasks.forEach(t => {
+          const tr = document.createElement('div');
+          tr.className = 'task-item' + (t.done ? ' done' : '');
+          tr.dataset.tid = t.id;
+          tr.innerHTML = `<input type="checkbox" ${t.done ? 'checked' : ''}>
+            <span class="t-name" contenteditable="true"></span>
+            <button class="x-remove t-remove" type="button">×</button>`;
+          tr.querySelector('.t-name').textContent = t.name;
+          tl.appendChild(tr);
+        });
+        goalRows.appendChild(det);
+      }
+    });
+  }
+
+  document.getElementById('btn-add-goal').addEventListener('click', () => {
+    const g = {
+      id: 'g' + Date.now(),
+      name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual',
+      due: '', done: false, doneAt: '', tasks: [],
+    };
+    state.goals.push(g);
+    openGoals.add(g.id);
+    if (goalView === 'completadas') {
+      goalView = 'progresso';
+      document.querySelectorAll('#goal-views .view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === 'progresso'));
+    }
+    save(); renderGoals();
+    const el = goalRows.querySelector(`.goal-row[data-id="${g.id}"] .g-name`);
+    if (el) el.focus();
+  });
+
+  const gById = id => state.goals.find(g => g.id === id);
+
+  goalRows.addEventListener('click', (ev) => {
+    // abrir/fechar linha (evitando cliques em controles)
+    const row = ev.target.closest('.goal-row');
+    if (row && !ev.target.closest('input, [contenteditable], select, button')) {
+      const id = row.dataset.id;
+      openGoals.has(id) ? openGoals.delete(id) : openGoals.add(id);
+      renderGoals();
+      return;
+    }
+    const addBtn = ev.target.closest('.t-add-btn');
+    if (addBtn) {
+      const det = addBtn.closest('.goal-detail');
+      const input = det.querySelector('.task-add input');
+      const name = input.value.trim();
+      if (!name) return;
+      gById(det.dataset.id).tasks.push({ id: 't' + Date.now(), name, done: false });
+      save(); renderGoals();
+      goalRows.querySelector(`.goal-detail[data-id="${det.dataset.id}"] .task-add input`)?.focus();
+      return;
+    }
+    const tRemove = ev.target.closest('.t-remove');
+    if (tRemove) {
+      const det = tRemove.closest('.goal-detail');
+      const g = gById(det.dataset.id);
+      const tid = tRemove.closest('.task-item').dataset.tid;
+      g.tasks = g.tasks.filter(t => t.id !== tid);
+      save(); renderGoals();
+      return;
+    }
+    const gRemove = ev.target.closest('.g-remove');
+    if (gRemove) {
+      if (!confirm('Remover esta meta e todos os seus itens de ação?')) return;
+      const id = gRemove.closest('.goal-detail').dataset.id;
+      state.goals = state.goals.filter(g => g.id !== id);
+      openGoals.delete(id);
+      save(); renderGoals();
+    }
+  });
+
+  goalRows.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.target.matches('.task-add input')) {
+      ev.preventDefault();
+      ev.target.closest('.task-add').querySelector('.t-add-btn').click();
+    }
+    if (ev.key === 'Enter' && ev.target.matches('.g-name')) {
+      ev.preventDefault();
+      ev.target.blur();
+    }
+  });
+
+  goalRows.addEventListener('change', (ev) => {
+    const detProp = ev.target.closest('.goal-detail select, .goal-detail input[type="date"]');
+    if (detProp) {
+      const g = gById(detProp.closest('.goal-detail').dataset.id);
+      const prop = detProp.dataset.prop;
+      g[prop] = prop === 'prio' ? parseInt(detProp.value, 10) : detProp.value;
+      save(); renderGoals();
+      return;
+    }
+    const rowCb = ev.target.closest('.goal-row > input[type="checkbox"]');
+    if (rowCb) {
+      const g = gById(rowCb.closest('.goal-row').dataset.id);
+      g.done = rowCb.checked;
+      g.doneAt = g.done ? todayISO() : '';
+      save(); renderGoals();
+      return;
+    }
+    const tCb = ev.target.closest('.task-item input[type="checkbox"]');
+    if (tCb) {
+      const g = gById(tCb.closest('.goal-detail').dataset.id);
+      const t = g.tasks.find(x => x.id === tCb.closest('.task-item').dataset.tid);
+      if (t) { t.done = tCb.checked; save(); renderGoals(); }
+    }
+  });
+
+  goalRows.addEventListener('blur', (ev) => {
+    const el = ev.target.closest('[contenteditable]');
+    if (!el) return;
+    if (el.classList.contains('g-name')) {
+      const g = gById(el.closest('.goal-row').dataset.id);
+      if (g) { g.name = el.innerText.trim(); save(); }
+    } else if (el.classList.contains('t-name')) {
+      const g = gById(el.closest('.goal-detail').dataset.id);
+      const t = g && g.tasks.find(x => x.id === el.closest('.task-item').dataset.tid);
+      if (t) { t.name = el.innerText.trim(); save(); }
+    }
+  }, true);
+
+  // ── Hábitos ──
+  const habitList = document.getElementById('habit-list');
+  const habitEmpty = document.getElementById('habit-empty');
+  const habitArea = document.getElementById('habit-area');
+  AREAS.filter(a => a.id !== 'geral').forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.id; o.textContent = a.label;
+    habitArea.appendChild(o);
+  });
+
+  function renderHabits() {
+    habitList.innerHTML = '';
+    habitEmpty.style.display = state.habits.length ? 'none' : 'block';
+    state.habits.forEach(h => {
+      const a = AREAS.find(x => x.id === h.area) || AREAS[0];
+      const item = document.createElement('div');
+      item.className = 'habit-item';
+      item.style.setProperty('--c', a.color);
+      item.innerHTML = `
+        <div class="h-body">
+          <div class="h-name">${esc(h.name)}</div>
+          <div class="h-meta">${esc(a.label)} · ${esc(h.freq)}</div>
+        </div>
+        <button class="x-remove" data-id="${h.id}">remover</button>`;
+      habitList.appendChild(item);
+    });
+  }
+
+  document.getElementById('btn-add-habit').addEventListener('click', () => {
+    const name = document.getElementById('habit-name').value.trim();
+    if (!name) return;
+    state.habits.push({
+      id: 'h' + Date.now(),
+      name,
+      area: habitArea.value,
+      freq: document.getElementById('habit-freq').value,
+    });
+    document.getElementById('habit-name').value = '';
+    save(); renderHabits();
+  });
+
+  habitList.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.x-remove');
+    if (!btn) return;
+    state.habits = state.habits.filter(h => h.id !== btn.dataset.id);
+    save(); renderHabits();
+  });
+
+  // ── Diário ──
+  const diaryList = document.getElementById('diary-list');
+  const diaryEmpty = document.getElementById('diary-empty');
+
+  function fmtDate(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function renderDiary() {
+    diaryList.innerHTML = '';
+    diaryEmpty.style.display = state.diary.length ? 'none' : 'block';
+    [...state.diary].sort((a, b) => b.date.localeCompare(a.date) || (b.id > a.id ? 1 : -1)).forEach(e => {
+      const el = document.createElement('article');
+      el.className = 'diary-entry';
+      el.innerHTML = `
+        <div class="d-head">
+          <span class="d-date">${fmtDate(e.date)}</span>
+          <span class="d-feeling">${esc(e.feeling)}</span>
+        </div>
+        ${e.gratitude ? `<div class="d-grat"><strong>Gratidão:</strong> ${esc(e.gratitude)}</div>` : ''}
+        ${e.text ? `<div class="d-text">${esc(e.text)}</div>` : ''}
+        <div class="d-foot"><button class="x-remove" data-id="${e.id}">remover</button></div>`;
+      diaryList.appendChild(el);
+    });
+  }
+
+  document.getElementById('btn-add-diary').addEventListener('click', () => {
+    const feeling = document.getElementById('diary-feeling').value;
+    const gratitude = document.getElementById('diary-grat').value.trim();
+    const text = document.getElementById('diary-text').value.trim();
+    if (!gratitude && !text) { alert('Escreva ao menos a gratidão ou algo sobre o dia.'); return; }
+    const today = new Date();
+    const iso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    state.diary.push({ id: 'e' + Date.now(), date: iso, feeling, gratitude, text });
+    document.getElementById('diary-grat').value = '';
+    document.getElementById('diary-text').value = '';
+    save(); renderDiary();
+  });
+
+  diaryList.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.x-remove');
+    if (!btn) return;
+    if (!confirm('Remover este registro do diário?')) return;
+    state.diary = state.diary.filter(e => e.id !== btn.dataset.id);
+    save(); renderDiary();
+  });
+
+  // ── Quadro dos Sonhos ──
+  const grid = document.getElementById('dream-grid');
+  const boardEmpty = document.getElementById('board-empty');
+
+  function renderDreams() {
+    grid.innerHTML = '';
+    boardEmpty.style.display = state.dreams.length ? 'none' : 'block';
+    state.dreams.forEach(d => {
+      const a = AREAS.find(x => x.id === d.area);
+      const card = document.createElement('figure');
+      card.className = 'dream-card';
+      card.dataset.id = d.id;
+      if (a) card.style.setProperty('--c', a.color);
+      const areaOptions = ['<option value="">Área…</option>']
+        .concat(AREAS.filter(x => x.id !== 'geral').map(x => `<option value="${x.id}" ${d.area === x.id ? 'selected' : ''}>${x.label}</option>`)).join('');
+      const vfOptions = ['<option value="">VF…</option>']
+        .concat(HORIZONS.map(h => `<option value="${h.id}" ${d.vf === h.id ? 'selected' : ''}>${h.label}</option>`)).join('');
+      card.innerHTML = `
+        <img alt="">
+        <figcaption class="dream-body">
+          <div class="dream-caption" contenteditable="true" data-placeholder="Legenda do sonho"></div>
+          <div class="dream-foot">
+            <select data-kind="area" aria-label="Área da vida">${areaOptions}</select>
+            <select data-kind="vf" aria-label="Visão de futuro">${vfOptions}</select>
+            <button class="x-remove" type="button">remover</button>
+          </div>
+        </figcaption>`;
+      card.querySelector('img').src = d.img;
+      card.querySelector('.dream-caption').textContent = d.caption || '';
+      grid.appendChild(card);
+    });
+  }
+
+  grid.addEventListener('blur', (ev) => {
+    const el = ev.target.closest('.dream-caption');
+    if (!el) return;
+    const id = el.closest('.dream-card').dataset.id;
+    const d = state.dreams.find(x => x.id === id);
+    if (d) { d.caption = el.innerText.trim(); save(); }
+  }, true);
+
+  grid.addEventListener('change', (ev) => {
+    const sel = ev.target.closest('select');
+    if (!sel) return;
+    const id = sel.closest('.dream-card').dataset.id;
+    const d = state.dreams.find(x => x.id === id);
+    if (!d) return;
+    if (sel.dataset.kind === 'area') d.area = sel.value; else d.vf = sel.value;
+    save(); renderDreams();
+  });
+
+  grid.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.x-remove');
+    if (!btn) return;
+    const id = btn.closest('.dream-card').dataset.id;
+    if (!confirm('Remover esta foto do quadro?')) return;
+    state.dreams = state.dreams.filter(x => x.id !== id);
+    save(); renderDreams();
+  });
+
+  const filePhoto = document.getElementById('file-photo');
+  document.getElementById('btn-add-photo').addEventListener('click', () => filePhoto.click());
+  filePhoto.addEventListener('change', async () => {
+    for (const file of filePhoto.files) {
+      try {
+        const img = await compress(file, 1000, 0.82);
+        state.dreams.push({ id: 'd' + Date.now() + Math.random().toString(16).slice(2, 6), img, caption: '', vf: '', area: '' });
+      } catch (e) { alert('Não consegui ler a imagem "' + file.name + '".'); }
+    }
+    filePhoto.value = '';
+    save(); renderDreams();
+  });
+
+  function compress(file, maxSide, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const im = new Image();
+        im.onerror = reject;
+        im.onload = () => {
+          const scale = Math.min(1, maxSide / Math.max(im.width, im.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(im.width * scale);
+          c.height = Math.round(im.height * scale);
+          c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+          resolve(c.toDataURL('image/jpeg', quality));
+        };
+        im.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── Backup ──
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dgx-personal-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  const fileImport = document.getElementById('file-import');
+  document.getElementById('btn-import').addEventListener('click', () => fileImport.click());
+  fileImport.addEventListener('change', () => {
+    const f = fileImport.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const data = JSON.parse(r.result);
+        if (!data || typeof data !== 'object') throw new Error();
+        state = {
+          vfs: data.vfs || {},
+          dreams: Array.isArray(data.dreams) ? data.dreams : [],
+          habits: Array.isArray(data.habits) ? data.habits : [],
+          diary: Array.isArray(data.diary) ? data.diary : [],
+          goals: Array.isArray(data.goals) ? data.goals : [],
+        };
+        save();
+        location.reload();
+      } catch (e) { alert('Este arquivo não parece ser um backup válido.'); }
+    };
+    r.readAsText(f);
+    fileImport.value = '';
+  });
+
+  // ── Render inicial ──
+  renderLadder();
+  renderGoals();
+  renderHabits();
+  renderDiary();
+  renderDreams();
+})();
+</script>
+</body>
+</html>
