@@ -1038,6 +1038,26 @@ const IMP_NUM = ['qtd','valor_unitario','valor_total','desconto','valor_liquido'
   'reembolso_unit','reembolso_total','valor_recomp','valor_recomp_total','variacao_margem',
   'comissao_pct','comissao_valor'];
 
+// Limites numeric(precisão,escala) do fato_vendas — espelha o schema do Supabase.
+// Valor fora da faixa vira null em vez de estourar o INSERT inteiro (ex: markup
+// tende a infinito quando margem = 100%, caso real de itens vendidos ao custo).
+const IMP_LIMITES = {
+  qtd:[12,3], valor_unitario:[14,4], valor_total:[14,2], desconto:[14,2], valor_liquido:[14,2],
+  cmv_unit:[14,4], cmv_total:[14,2], margem:[10,6], markup:[10,4],
+  unit_gb:[14,4], valor_gb:[14,2], margem_gb:[10,6], markup_gb:[10,4],
+  reembolso_unit:[14,4], reembolso_total:[14,2], valor_recomp:[14,4], valor_recomp_total:[14,2],
+  variacao_margem:[10,6], comissao_pct:[10,6], comissao_valor:[14,2]
+};
+let impForaDeFaixa = 0;
+function impChecarFaixa(campo, v){
+  if (v === null) return v;
+  const lim = IMP_LIMITES[campo];
+  if (!lim) return v;
+  const max = Math.pow(10, lim[0] - lim[1]);
+  if (Math.abs(v) >= max) { impForaDeFaixa++; return null; }
+  return v;
+}
+
 function impInit(){
   const el = document.getElementById('imp-comp');
   if (el && !el.value) {
@@ -1148,12 +1168,13 @@ async function impLerArquivo(){
     const map = impLayout.mapeamento || {};
     const cfg = impLayout.config || {};
     const linhas = [], raws = [];
+    impForaDeFaixa = 0;
     for (const row of brutas) {
       const o = {};
       for (const campo in map) {
         const v = impResolverColuna(row, map[campo]);
         if (campo === 'data') o.data = impParseData(v);
-        else if (IMP_NUM.indexOf(campo) >= 0) o[campo] = impParseNum(v);
+        else if (IMP_NUM.indexOf(campo) >= 0) o[campo] = impChecarFaixa(campo, impParseNum(v));
         else o[campo] = impParseTxt(v);
       }
       // Descarta linhas vazias / de totalização
@@ -1164,7 +1185,8 @@ async function impLerArquivo(){
     if (!linhas.length) { st.textContent = 'Nenhuma linha válida encontrada na aba "' + abaNome + '"'; st.className = 'lanc-status erro'; return; }
     impLinhas = linhas; impRawLinhas = raws;
     impRenderConferencia(comp);
-    st.textContent = '✓ ' + linhas.length + ' linhas lidas (aba "' + abaNome + '")';
+    st.textContent = '✓ ' + linhas.length + ' linhas lidas (aba "' + abaNome + '")' +
+      (impForaDeFaixa > 0 ? ' · ' + impForaDeFaixa + ' valor(es) fora de faixa gravado(s) como nulo' : '');
   } catch (e) {
     st.textContent = 'Erro ao ler: ' + e.message; st.className = 'lanc-status erro';
   }
