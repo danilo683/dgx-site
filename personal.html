@@ -152,7 +152,7 @@ select:focus-visible, input:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
 
-main { max-width: 880px; margin: 0 auto; padding: 12px 32px 120px; }
+main { max-width: 1080px; margin: 0 auto; padding: 12px 32px 120px; }
 
 .horizon-glow {
   position: absolute; left: -10%; right: -10%; top: 0; height: 1px;
@@ -307,8 +307,8 @@ button.primary:hover { background: #8d70f5; }
 .goal-table { font-size: 13.5px; }
 .goal-row-head, .goal-row {
   display: grid;
-  grid-template-columns: 34px minmax(180px,1fr) 130px 96px 96px 130px 30px;
-  align-items: center; gap: 8px;
+  grid-template-columns: 34px minmax(200px,1fr) 190px 100px 96px 130px 30px;
+  align-items: center; gap: 10px;
   padding: 0 6px;
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
@@ -316,19 +316,23 @@ button.primary:hover { background: #8d70f5; }
   color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px;
   padding-top: 14px; padding-bottom: 6px;
 }
-.goal-row { min-height: 42px; cursor: pointer; transition: background .1s; }
+.goal-row { min-height: 46px; cursor: pointer; transition: background .1s; }
 .goal-row:hover { background: rgba(255,255,255,.035); }
 .goal-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; margin-left: 6px; }
 .g-name { font-weight: 500; padding: 8px 4px; border-radius: 5px; min-width: 0; overflow-wrap: anywhere; }
 .goal-row.done .g-name { color: var(--text2); text-decoration: line-through; }
-.g-progress { display: flex; align-items: center; gap: 8px; }
+.g-progress { display: flex; align-items: center; gap: 10px; }
 .g-progress .bar { flex: 1; height: 4px; background: var(--bg3); border-radius: 3px; overflow: hidden; position: relative; overflow: visible; }
 .g-progress .bar span { display: block; height: 100%; background: var(--c, var(--accent)); border-radius: 3px; overflow: hidden; }
 .g-progress .bar.has-pace::after {
   content: ""; position: absolute; top: -3px; bottom: -3px; left: var(--expected, 0%);
   width: 2px; background: rgba(255,255,255,.65); border-radius: 1px;
 }
-.g-progress .pct { font-size: 11.5px; color: var(--text2); min-width: 32px; text-align: right; }
+.g-pcts { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; min-width: 68px; line-height: 1.25; }
+.g-pcts .pct-real { font-size: 13px; font-weight: 700; color: var(--c, var(--accent)); }
+.g-pcts .pct-real.ahead { color: #4ec98a; }
+.g-pcts .pct-real.behind { color: #e57373; }
+.g-pcts .pct-esp { font-size: 10.5px; color: var(--text2); white-space: nowrap; }
 
 .pace-block { margin: 14px 0 2px; }
 .pace-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
@@ -885,6 +889,21 @@ function sairPersonal() {
     return { cls, text, expected };
   }
 
+  // Detalhe bruto (dias, R$ ou tarefas) para exibir como dica sobre o %, já que o rótulo principal agora é sempre percentual.
+  function rawDetail(g) {
+    if (g.kind === 'contador') {
+      const count = counterCount(g);
+      return g.target ? `${count} de ${g.target} ${g.unit || ''}`.trim() : `${count} ${g.unit || ''}`.trim();
+    }
+    if (g.kind === 'valor') {
+      const sum = g.entries.reduce((s, e) => s + e.amount, 0);
+      return g.target ? `${fmtBRL(sum)} de ${fmtBRL(g.target)}` : fmtBRL(sum);
+    }
+    const total = g.tasks.length;
+    const doneT = g.tasks.filter(t => t.done).length;
+    return total ? `${doneT} de ${total} tarefas` : 'sem tarefas';
+  }
+
   function renderGoals() {
     goalRows.innerHTML = '';
     let list = [...state.goals];
@@ -904,18 +923,11 @@ function sairPersonal() {
     list.forEach(g => {
       const a = AREAS.find(x => x.id === g.area) || AREAS[0];
       const h = HORIZONS.find(x => x.id === g.vf);
-      let pct, progLabel, progTitle = '';
-      pct = actualPct(g);
-      if (g.kind === 'contador') {
-        const count = counterCount(g);
-        progLabel = g.target ? `${count}/${g.target}` : `${count}`;
-      } else if (g.kind === 'valor') {
-        const sum = g.entries.reduce((s, e) => s + e.amount, 0);
-        progLabel = g.target ? `${Math.round(sum).toLocaleString('pt-BR')}/${Math.round(g.target).toLocaleString('pt-BR')}` : Math.round(sum).toLocaleString('pt-BR');
-        progTitle = g.target ? `${fmtBRL(sum)} de ${fmtBRL(g.target)}` : fmtBRL(sum);
-      } else {
-        progLabel = pct + '%';
-      }
+      const pct = actualPct(g);
+      const expected = expectedPct(g);
+      const progTitle = rawDetail(g);
+      const diff = pct - expected;
+      const paceCls = g.done ? '' : (diff >= 3 ? 'ahead' : diff <= -3 ? 'behind' : '');
       const isOpen = openGoals.has(g.id);
       const overdue = g.due && !g.done && g.due < todayISO();
 
@@ -926,7 +938,13 @@ function sairPersonal() {
       row.innerHTML = `
         <input type="checkbox" ${g.done ? 'checked' : ''} aria-label="Meta concluída">
         <div class="g-name" contenteditable="true" data-placeholder="Nome da meta"></div>
-        <div class="g-progress"><div class="bar${!g.done ? ' has-pace' : ''}" style="--expected:${expectedPct(g)}%"><span style="width:${pct}%"></span></div><span class="pct" title="${esc(progTitle)}">${progLabel}</span></div>
+        <div class="g-progress" title="${esc(progTitle)}">
+          <div class="bar${!g.done ? ' has-pace' : ''}" style="--expected:${expected}%"><span style="width:${pct}%"></span></div>
+          <div class="g-pcts">
+            <span class="pct-real ${paceCls}">${pct}%</span>
+            <span class="pct-esp">${g.done ? 'concluída' : expected + '% esperado'}</span>
+          </div>
+        </div>
         <span class="g-due ${overdue ? 'overdue' : ''}">${g.due ? fmtBR(g.due) : '—'}</span>
         <span class="g-stars" title="Prioridade ${g.prio} de 5">${stars(g.prio)}</span>
         <span class="tag">${esc(a.label)}</span>
@@ -1204,19 +1222,16 @@ function sairPersonal() {
     row.querySelector('.g-stars').title = `Prioridade ${g.prio} de 5`;
     row.querySelector('.tag').textContent = a.label;
     const pct = actualPct(g);
-    let progLabel;
-    if (g.kind === 'contador') {
-      const count = counterCount(g);
-      progLabel = g.target ? `${count}/${g.target}` : `${count}`;
-    } else if (g.kind === 'valor') {
-      const sum = g.entries.reduce((s, e) => s + e.amount, 0);
-      progLabel = g.target ? `${Math.round(sum).toLocaleString('pt-BR')}/${Math.round(g.target).toLocaleString('pt-BR')}` : Math.round(sum).toLocaleString('pt-BR');
-    } else {
-      progLabel = pct + '%';
-    }
+    const expected = expectedPct(g);
+    const diff = pct - expected;
+    const paceCls = g.done ? '' : (diff >= 3 ? 'ahead' : diff <= -3 ? 'behind' : '');
     row.querySelector('.g-progress .bar span').style.width = pct + '%';
-    row.querySelector('.g-progress .pct').textContent = progLabel;
-    row.querySelector('.g-progress .bar').style.setProperty('--expected', expectedPct(g) + '%');
+    row.querySelector('.g-progress .bar').style.setProperty('--expected', expected + '%');
+    row.querySelector('.g-progress').title = rawDetail(g);
+    const pctRealEl = row.querySelector('.pct-real');
+    pctRealEl.textContent = pct + '%';
+    pctRealEl.className = 'pct-real ' + paceCls;
+    row.querySelector('.pct-esp').textContent = g.done ? 'concluída' : expected + '% esperado';
     const det = goalRows.querySelector(`.goal-detail[data-id="${g.id}"]`);
     if (det) {
       det.style.setProperty('--c', a.color);
