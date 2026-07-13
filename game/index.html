@@ -10447,11 +10447,45 @@ function renderNoticias() {
   calendario: []
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+// ── Login ──
+function _mfcLogin_verificar(s){ return s === "danilo2026"; }
+
+function _mfcLogin_render() {
+  var sb = document.getElementById("sidebar");
+  var ct = document.getElementById("conteudo");
+  if (sb) sb.style.display = "none";
+  if (ct) ct.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:100vh";
+  document.getElementById("main").innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px 56px;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)"><div style="font-size:40px;margin-bottom:6px">⚽</div><div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:4px">Manager FC</div><div style="font-size:11px;color:var(--text2);margin-bottom:32px;text-transform:uppercase;letter-spacing:1px">Acesso restrito</div><div style="text-align:left;margin-bottom:14px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase">Senha</label><input type="password" id="mfc-pwd" placeholder="••••••••" style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;outline:none" onkeydown="if(event.key==='Enter')_mfcLogin_tentar()"></div><div id="mfc-err" style="color:var(--red);font-size:12px;height:16px;margin-bottom:10px"></div><button onclick="_mfcLogin_tentar()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Entrar</button></div>';
+  setTimeout(function(){ var e=document.getElementById("mfc-pwd"); if(e) e.focus(); }, 100);
+}
+
+function _mfcLogin_tentar() {
+  var s = (document.getElementById("mfc-pwd")||{}).value || "";
+  if (_mfcLogin_verificar(s)) {
+    sessionStorage.setItem("mfc_ok","1");
+    var sb=document.getElementById("sidebar"), ct=document.getElementById("conteudo");
+    if (sb) sb.style.display="";
+    if (ct) ct.style.cssText="";
+    _mfcApp_init();
+  } else {
+    var e=document.getElementById("mfc-err"); if(e) e.textContent="Senha incorreta.";
+    var p=document.getElementById("mfc-pwd"); if(p){p.value="";p.focus();}
+  }
+}
+
+function _mfcApp_init() {
   renderCriarManager();
   document.querySelectorAll("nav button[data-aba]").forEach(btn => {
     btn.addEventListener("click", () => navegarPara(btn.dataset.aba));
   });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (sessionStorage.getItem("mfc_ok") === "1") {
+    _mfcApp_init();
+  } else {
+    _mfcLogin_render();
+  }
 });
 
 // ── Tela 1: Criar manager ──
@@ -11166,8 +11200,22 @@ function simularRodada(idx) {
   var meuTec = estado.meuTecnico;
   var ehPaulista = estado.minhaDivisao && estado.minhaDivisao.indexOf("paulista_") === 0;
 
-  // Resultados vão para arrays separados por divisão
-  var arrResultados = ehPaulista ? (estado.resultadosPaulista || (estado.resultadosPaulista=[])) : estado.resultados;
+  // Resultados vão para o array correto conforme divisão
+  var arrResultados;
+  if (ehPaulista) {
+    arrResultados = estado.resultadosPaulista || (estado.resultadosPaulista = []);
+  } else if (estado.minhaDivisao === 'serieB') {
+    if (!estadoDivisoes.b.resultados) estadoDivisoes.b.resultados = [];
+    arrResultados = estadoDivisoes.b.resultados;
+  } else if (estado.minhaDivisao === 'serieC') {
+    if (!estadoDivisoes.c.resultados) estadoDivisoes.c.resultados = [];
+    arrResultados = estadoDivisoes.c.resultados;
+  } else if (estado.minhaDivisao === 'serieD') {
+    if (!estadoDivisoes.d.resultados) estadoDivisoes.d.resultados = [];
+    arrResultados = estadoDivisoes.d.resultados;
+  } else {
+    arrResultados = estado.resultados; // Série A
+  }
 
   rodada.jogos.forEach(function(jogo) {
     var mandante  = buscarClubePorId(jogo.mandanteId);
@@ -12363,9 +12411,9 @@ function renderBrasileirao() {
   var ehD = estadoDivisoes.d.clubes && estadoDivisoes.d.clubes.find(function(c){return c.id===meuId;});
 
   var clubes, resultados, rodada;
-  if (ehB) { clubes=estadoDivisoes.b.clubes; resultados=estadoDivisoes.b.resultados; rodada=estadoDivisoes.b.rodadaAtual; }
-  else if (ehC) { clubes=estadoDivisoes.c.clubes; resultados=estadoDivisoes.c.resultados; rodada=estadoDivisoes.c.rodadaAtual; }
-  else if (ehD) { clubes=estadoDivisoes.d.clubes; resultados=estadoDivisoes.d.resultados; rodada=estadoDivisoes.d.rodadaAtual; }
+  if (ehB) { clubes=estadoDivisoes.b.clubes; resultados=estadoDivisoes.b.resultados||estado.resultados; rodada=estadoDivisoes.b.rodadaAtual||estado.rodadaAtual; }
+  else if (ehC) { clubes=estadoDivisoes.c.clubes; resultados=estadoDivisoes.c.resultados||estado.resultados; rodada=estadoDivisoes.c.rodadaAtual||estado.rodadaAtual; }
+  else if (ehD) { clubes=estadoDivisoes.d.clubes; resultados=estadoDivisoes.d.resultados||estado.resultados; rodada=estadoDivisoes.d.rodadaAtual||estado.rodadaAtual; }
   else {
     clubes=CLUBES;
     // Filtrar só resultados de times da Série A (evitar times da Bezinha)
