@@ -357,6 +357,18 @@ button.primary:hover { background: #8d70f5; }
 }
 .task-add input::placeholder { color: #5c527f; }
 .goal-detail .detail-foot { margin-top: 12px; text-align: right; }
+.counter-block { margin-top: 4px; }
+.counter-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.counter-row input { width: 140px; }
+.counter-progress {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+  padding: 12px 14px; flex-wrap: wrap;
+}
+.counter-count { font-family: var(--display); font-size: 17px; font-weight: 600; }
+.counter-actions { display: flex; gap: 8px; }
+.counter-actions button { padding: 7px 14px; }
+.counter-hint { font-size: 12px; color: var(--text2); margin-top: 8px; }
 .goal-new {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px; color: var(--text2); font-size: 13.5px;
@@ -502,6 +514,13 @@ function sairPersonal() {
     <div class="section-head">
       <span class="hint">o que preciso desenvolver</span>
     </div>
+    <div class="view-tabs" id="habit-filters">
+      <button class="view-tab active" data-freq="todos">Todos</button>
+      <button class="view-tab" data-freq="diário">Diário</button>
+      <button class="view-tab" data-freq="3x/semana">3x/semana</button>
+      <button class="view-tab" data-freq="semanal">Semanal</button>
+      <button class="view-tab" data-freq="mensal">Mensal</button>
+    </div>
     <div class="habit-form">
       <input id="habit-name" type="text" placeholder="Hábito (ex.: ler 20 min por dia)">
       <select id="habit-area"></select>
@@ -514,7 +533,7 @@ function sairPersonal() {
       <button class="primary" id="btn-add-habit">Adicionar</button>
     </div>
     <div class="habit-list" id="habit-list"></div>
-    <div class="list-empty" id="habit-empty">Nenhum hábito ainda. Qual é o primeiro que sustenta a sua VF1?</div>
+    <div class="list-empty" id="habit-empty">Nenhum hábito nesta visualização.</div>
   </section>
 
   <section id="diario" class="page">
@@ -709,6 +728,10 @@ function sairPersonal() {
     if (g.tipo === undefined) g.tipo = 'anual';
     if (g.due === undefined) g.due = '';
     if (g.doneAt === undefined) g.doneAt = '';
+    if (g.kind === undefined) g.kind = 'checklist';
+    if (g.target === undefined) g.target = null;
+    if (g.unit === undefined) g.unit = '';
+    if (g.log === undefined) g.log = [];
   });
 
   document.getElementById('goal-views').addEventListener('click', (ev) => {
@@ -741,9 +764,17 @@ function sairPersonal() {
     list.forEach(g => {
       const a = AREAS.find(x => x.id === g.area) || AREAS[0];
       const h = HORIZONS.find(x => x.id === g.vf);
-      const total = g.tasks.length;
-      const doneT = g.tasks.filter(t => t.done).length;
-      const pct = total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
+      let pct, progLabel;
+      if (g.kind === 'contador') {
+        const count = g.log.length;
+        pct = g.target ? Math.min(100, Math.round(count / g.target * 100)) : (g.done ? 100 : 0);
+        progLabel = g.target ? `${count}/${g.target}` : `${count}`;
+      } else {
+        const total = g.tasks.length;
+        const doneT = g.tasks.filter(t => t.done).length;
+        pct = total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
+        progLabel = pct + '%';
+      }
       const isOpen = openGoals.has(g.id);
       const overdue = g.due && !g.done && g.due < todayISO();
 
@@ -754,7 +785,7 @@ function sairPersonal() {
       row.innerHTML = `
         <input type="checkbox" ${g.done ? 'checked' : ''} aria-label="Meta concluída">
         <div class="g-name" contenteditable="true" data-placeholder="Nome da meta"></div>
-        <div class="g-progress"><div class="bar"><span style="width:${pct}%"></span></div><span class="pct">${pct}%</span></div>
+        <div class="g-progress"><div class="bar"><span style="width:${pct}%"></span></div><span class="pct">${progLabel}</span></div>
         <span class="g-due ${overdue ? 'overdue' : ''}">${g.due ? fmtBR(g.due) : '—'}</span>
         <span class="g-stars" title="Prioridade ${g.prio} de 5">${stars(g.prio)}</span>
         <span class="tag">${esc(a.label)}</span>
@@ -776,6 +807,10 @@ function sairPersonal() {
           <div class="goal-props">
             <div class="prop"><label>Área</label><select data-prop="area">${areaOpts}</select></div>
             <div class="prop"><label>Visão</label><select data-prop="vf">${vfOpts}</select></div>
+            <div class="prop"><label>Como medir</label><select data-prop="kind">
+              <option value="checklist" ${g.kind === 'checklist' ? 'selected' : ''}>☑️ Checklist de tarefas</option>
+              <option value="contador" ${g.kind === 'contador' ? 'selected' : ''}>🔢 Contador numérico</option>
+            </select></div>
             <div class="prop"><label>Tipo</label><select data-prop="tipo">
               <option value="anual" ${g.tipo === 'anual' ? 'selected' : ''}>🎯 Anual</option>
               <option value="sazonal" ${g.tipo === 'sazonal' ? 'selected' : ''}>Sazonal</option>
@@ -784,12 +819,28 @@ function sairPersonal() {
             <div class="prop"><label>Prioridade</label><select data-prop="prio">${prioOpts}</select></div>
             ${g.done && g.doneAt ? `<div class="prop"><label>Completada em</label><span style="font-size:13px; padding-top:6px;">${fmtBR(g.doneAt)}</span></div>` : ''}
           </div>
+          ${g.kind === 'contador' ? `
+          <div class="counter-block">
+            <div class="counter-row">
+              <div class="prop"><label>Meta numérica</label><input type="number" min="1" class="counter-target" data-prop="target" value="${g.target || ''}" placeholder="200"></div>
+              <div class="prop"><label>Unidade</label><input type="text" class="counter-unit" data-prop="unit" value="${esc(g.unit)}" placeholder="dias na academia"></div>
+            </div>
+            <div class="counter-progress">
+              <div class="counter-count">${g.log.length}${g.target ? ' / ' + g.target : ''} ${esc(g.unit || '')}</div>
+              <div class="counter-actions">
+                <button type="button" class="c-dec">−1</button>
+                <button type="button" class="c-inc primary">${g.log.includes(todayISO()) ? '✓ Registrado hoje' : '+1 hoje'}</button>
+              </div>
+            </div>
+            <p class="counter-hint">Cada clique em "+1 hoje" registra um dia; clicar de novo no mesmo dia não conta duas vezes.</p>
+          </div>` : `
           <div class="task-list"></div>
           <div class="task-add">
             <input type="text" placeholder="＋ Novo item de ação… (Enter para adicionar)">
             <button type="button" class="t-add-btn">Adicionar</button>
-          </div>
+          </div>`}
           <div class="detail-foot"><button class="x-remove g-remove" type="button">remover meta</button></div>`;
+        if (g.kind !== 'contador') {
         const tl = det.querySelector('.task-list');
         g.tasks.forEach(t => {
           const tr = document.createElement('div');
@@ -801,6 +852,7 @@ function sairPersonal() {
           tr.querySelector('.t-name').textContent = t.name;
           tl.appendChild(tr);
         });
+        }
         goalRows.appendChild(det);
       }
     });
@@ -811,6 +863,7 @@ function sairPersonal() {
       id: 'g' + Date.now(),
       name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual',
       due: '', done: false, doneAt: '', tasks: [],
+      kind: 'checklist', target: null, unit: '', log: [],
     };
     state.goals.push(g);
     openGoals.add(g.id);
@@ -861,7 +914,39 @@ function sairPersonal() {
       state.goals = state.goals.filter(g => g.id !== id);
       openGoals.delete(id);
       save(); renderGoals();
+      return;
     }
+    const incBtn = ev.target.closest('.c-inc');
+    if (incBtn) {
+      const g = gById(incBtn.closest('.goal-detail').dataset.id);
+      const today = todayISO();
+      if (!g.log.includes(today)) g.log.push(today);
+      save(); renderGoals();
+      return;
+    }
+    const decBtn = ev.target.closest('.c-dec');
+    if (decBtn) {
+      const g = gById(decBtn.closest('.goal-detail').dataset.id);
+      const today = todayISO();
+      if (g.log.includes(today)) g.log = g.log.filter(d => d !== today);
+      else g.log.pop();
+      save(); renderGoals();
+    }
+  });
+
+  // Alvo/unidade do contador: atualiza sem recriar o campo (evita perder o foco ao digitar)
+  goalRows.addEventListener('input', (ev) => {
+    const el = ev.target.closest('.counter-target, .counter-unit');
+    if (!el) return;
+    const g = gById(el.closest('.goal-detail').dataset.id);
+    if (!g) return;
+    if (el.classList.contains('counter-target')) g.target = el.value ? parseInt(el.value, 10) : null;
+    else g.unit = el.value;
+    save();
+    updateRowSummary(g);
+    const det = el.closest('.goal-detail');
+    const countEl = det.querySelector('.counter-count');
+    if (countEl) countEl.textContent = `${g.log.length}${g.target ? ' / ' + g.target : ''} ${g.unit || ''}`.trim();
   });
 
   goalRows.addEventListener('keydown', (ev) => {
@@ -876,7 +961,7 @@ function sairPersonal() {
   });
 
   function updateRowSummary(g) {
-    // Atualiza só a linha resumo (sem recriar o input de data, para não perder o foco)
+    // Atualiza só a linha resumo (sem recriar inputs, para não perder o foco)
     const row = goalRows.querySelector(`.goal-row[data-id="${g.id}"]`);
     if (!row) return;
     const a = AREAS.find(x => x.id === g.area) || AREAS[0];
@@ -888,6 +973,19 @@ function sairPersonal() {
     row.querySelector('.g-stars').textContent = stars(g.prio);
     row.querySelector('.g-stars').title = `Prioridade ${g.prio} de 5`;
     row.querySelector('.tag').textContent = a.label;
+    let pct, progLabel;
+    if (g.kind === 'contador') {
+      const count = g.log.length;
+      pct = g.target ? Math.min(100, Math.round(count / g.target * 100)) : (g.done ? 100 : 0);
+      progLabel = g.target ? `${count}/${g.target}` : `${count}`;
+    } else {
+      const total = g.tasks.length;
+      const doneT = g.tasks.filter(t => t.done).length;
+      pct = total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
+      progLabel = pct + '%';
+    }
+    row.querySelector('.g-progress .bar span').style.width = pct + '%';
+    row.querySelector('.g-progress .pct').textContent = progLabel;
     const det = goalRows.querySelector(`.goal-detail[data-id="${g.id}"]`);
     if (det) det.style.setProperty('--c', a.color);
   }
@@ -908,7 +1006,9 @@ function sairPersonal() {
       const prop = detProp.dataset.prop;
       g[prop] = prop === 'prio' ? parseInt(detProp.value, 10) : detProp.value;
       save();
-      if (prop === 'area') { renderGoals(); } else { updateRowSummary(g); }
+      if (prop === 'area') { renderGoals(); }
+      else if (prop === 'kind') { renderGoals(); }
+      else { updateRowSummary(g); }
       return;
     }
     const rowCb = ev.target.closest('.goal-row > input[type="checkbox"]');
@@ -944,16 +1044,26 @@ function sairPersonal() {
   const habitList = document.getElementById('habit-list');
   const habitEmpty = document.getElementById('habit-empty');
   const habitArea = document.getElementById('habit-area');
+  let habitFilter = 'todos';
   AREAS.filter(a => a.id !== 'geral').forEach(a => {
     const o = document.createElement('option');
     o.value = a.id; o.textContent = a.label;
     habitArea.appendChild(o);
   });
 
+  document.getElementById('habit-filters').addEventListener('click', (ev) => {
+    const tab = ev.target.closest('.view-tab');
+    if (!tab) return;
+    habitFilter = tab.dataset.freq;
+    document.querySelectorAll('#habit-filters .view-tab').forEach(t => t.classList.toggle('active', t === tab));
+    renderHabits();
+  });
+
   function renderHabits() {
     habitList.innerHTML = '';
-    habitEmpty.style.display = state.habits.length ? 'none' : 'block';
-    state.habits.forEach(h => {
+    const list = habitFilter === 'todos' ? state.habits : state.habits.filter(h => h.freq === habitFilter);
+    habitEmpty.style.display = list.length ? 'none' : 'block';
+    list.forEach(h => {
       const a = AREAS.find(x => x.id === h.area) || AREAS[0];
       const item = document.createElement('div');
       item.className = 'habit-item';
