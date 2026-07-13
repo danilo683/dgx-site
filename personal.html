@@ -387,6 +387,13 @@ button.primary:hover { background: #8d70f5; }
   padding: 12px 14px; flex-wrap: wrap;
 }
 .counter-count { font-family: var(--display); font-size: 17px; font-weight: 600; }
+.counter-count-edit { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 17px; font-weight: 600; }
+.counter-count-input {
+  width: 76px; font-family: var(--display); font-size: 17px; font-weight: 600;
+  background: var(--bg2); color: var(--c, var(--accent)); text-align: center;
+  border: 1px solid var(--border); border-radius: 7px; padding: 4px 6px;
+}
+.counter-count-edit span { color: var(--text2); font-family: var(--body); font-size: 14px; font-weight: 400; }
 .counter-actions { display: flex; gap: 8px; }
 .counter-actions button { padding: 7px 14px; }
 .counter-hint { font-size: 12px; color: var(--text2); margin-top: 8px; }
@@ -796,12 +803,13 @@ function sairPersonal() {
     if (g.kind === undefined) g.kind = 'checklist';
     if (g.target === undefined) g.target = null;
     if (g.unit === undefined) g.unit = '';
-    if (g.log === undefined) g.log = [];
     if (g.entries === undefined) g.entries = [];
-    if (g.adjust === undefined) g.adjust = 0;
+    if (g.count === undefined) g.count = (Array.isArray(g.log) ? g.log.length : 0) + (g.adjust || 0);
+    delete g.log;
+    delete g.adjust;
   });
 
-  const counterCount = g => g.log.length + (g.adjust || 0);
+  const counterCount = g => g.count || 0;
 
   let goalSort = 'prio';
   let goalFilterArea = 'todas';
@@ -943,16 +951,18 @@ function sairPersonal() {
             <div class="counter-row">
               <div class="prop"><label>Meta numérica</label><input type="number" min="1" class="counter-target" data-prop="target" value="${g.target || ''}" placeholder="200"></div>
               <div class="prop"><label>Unidade</label><input type="text" class="counter-unit" data-prop="unit" value="${esc(g.unit)}" placeholder="dias na academia"></div>
-              <div class="prop"><label>Já feitos antes (ajuste)</label><input type="number" min="0" class="counter-adjust" data-prop="adjust" value="${g.adjust || ''}" placeholder="0"></div>
             </div>
             <div class="counter-progress">
-              <div class="counter-count">${counterCount(g)}${g.target ? ' / ' + g.target : ''} ${esc(g.unit || '')}</div>
+              <div class="counter-count-edit">
+                <input type="number" min="0" class="counter-count-input" data-prop="count" value="${counterCount(g)}">
+                <span class="counter-suffix">${g.target ? ' / ' + g.target : ''} ${esc(g.unit || '')}</span>
+              </div>
               <div class="counter-actions">
                 <button type="button" class="c-dec">−1</button>
-                <button type="button" class="c-inc primary">${g.log.includes(todayISO()) ? '✓ Registrado hoje' : '+1 hoje'}</button>
+                <button type="button" class="c-inc primary">+1</button>
               </div>
             </div>
-            <p class="counter-hint">"+1 hoje" registra um dia (não conta duas vezes no mesmo dia); use o "ajuste" para somar dias que você já tinha feito antes de começar a usar o site.</p>
+            <p class="counter-hint">Edite o número diretamente para partir de um saldo (ex.: já foram 137 vezes) — os botões +1/−1 são só para ajustes rápidos do dia a dia.</p>
           </div>`;
         } else if (g.kind === 'valor') {
           const sum = g.entries.reduce((s, e) => s + e.amount, 0);
@@ -1046,7 +1056,7 @@ function sairPersonal() {
       id: 'g' + Date.now(),
       name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual',
       due: '', done: false, doneAt: '', tasks: [],
-      kind: 'checklist', target: null, unit: '', log: [], entries: [], adjust: 0,
+      kind: 'checklist', target: null, unit: '', count: 0, entries: [],
     };
     state.goals.push(g);
     openGoals.add(g.id);
@@ -1102,17 +1112,14 @@ function sairPersonal() {
     const incBtn = ev.target.closest('.c-inc');
     if (incBtn) {
       const g = gById(incBtn.closest('.goal-detail').dataset.id);
-      const today = todayISO();
-      if (!g.log.includes(today)) g.log.push(today);
+      g.count = (g.count || 0) + 1;
       save(); renderGoals();
       return;
     }
     const decBtn = ev.target.closest('.c-dec');
     if (decBtn) {
       const g = gById(decBtn.closest('.goal-detail').dataset.id);
-      const today = todayISO();
-      if (g.log.includes(today)) g.log = g.log.filter(d => d !== today);
-      else g.log.pop();
+      g.count = Math.max(0, (g.count || 0) - 1);
       save(); renderGoals();
       return;
     }
@@ -1141,9 +1148,9 @@ function sairPersonal() {
     }
   });
 
-  // Alvo/unidade do contador e valor: atualiza sem recriar o campo (evita perder o foco ao digitar)
+  // Alvo/unidade/saldo do contador e valor: atualiza sem recriar o campo (evita perder o foco ao digitar)
   goalRows.addEventListener('input', (ev) => {
-    const el = ev.target.closest('.counter-target, .counter-unit, .counter-adjust, .value-target');
+    const el = ev.target.closest('.counter-target, .counter-unit, .counter-count-input, .value-target');
     if (!el) return;
     const det = el.closest('.goal-detail');
     const g = gById(det.dataset.id);
@@ -1152,8 +1159,8 @@ function sairPersonal() {
       g.target = el.value ? parseInt(el.value, 10) : null;
     } else if (el.classList.contains('counter-unit')) {
       g.unit = el.value;
-    } else if (el.classList.contains('counter-adjust')) {
-      g.adjust = el.value ? parseInt(el.value, 10) : 0;
+    } else if (el.classList.contains('counter-count-input')) {
+      g.count = el.value ? Math.max(0, parseInt(el.value, 10)) : 0;
     } else if (el.classList.contains('value-target')) {
       g.target = el.value ? parseFloat(el.value) : null;
       const sum = g.entries.reduce((s, e) => s + e.amount, 0);
@@ -1166,8 +1173,10 @@ function sairPersonal() {
     }
     save();
     updateRowSummary(g);
-    const countEl = det.querySelector('.counter-count');
-    if (countEl) countEl.textContent = `${counterCount(g)}${g.target ? ' / ' + g.target : ''} ${g.unit || ''}`.trim();
+    if (el.classList.contains('counter-target') || el.classList.contains('counter-unit')) {
+      const suffixEl = det.querySelector('.counter-suffix');
+      if (suffixEl) suffixEl.textContent = `${g.target ? ' / ' + g.target : ''} ${g.unit || ''}`.trim();
+    }
   });
 
   goalRows.addEventListener('keydown', (ev) => {
