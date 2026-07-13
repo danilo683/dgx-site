@@ -289,6 +289,14 @@ button.primary:hover { background: #8d70f5; }
 
 /* ── Metas & Tarefas (estilo Notion) ── */
 .view-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin: 4px 0 0; }
+.goal-controls { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin: 14px 0 18px; }
+.goal-controls .prop { display: flex; flex-direction: column; gap: 4px; }
+.goal-controls label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; }
+.goal-controls select {
+  font-family: var(--body); font-size: 13.5px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px;
+}
 .view-tab {
   background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
   color: var(--text2); font-size: 13.5px; padding: 8px 12px; cursor: pointer;
@@ -534,6 +542,22 @@ function sairPersonal() {
       <button class="view-tab" data-view="completadas">Completadas</button>
       <button class="view-tab" data-view="todas">Todas</button>
     </div>
+    <div class="goal-controls">
+      <div class="prop">
+        <label>Ordenar por</label>
+        <select id="goal-sort">
+          <option value="prio">Prioridade</option>
+          <option value="due">Data de conclusão</option>
+          <option value="progresso">Progresso</option>
+        </select>
+      </div>
+      <div class="prop">
+        <label>Área</label>
+        <select id="goal-filter-area">
+          <option value="todas">Todas as áreas</option>
+        </select>
+      </div>
+    </div>
     <div class="goal-table">
       <div class="goal-row-head">
         <span>✓</span><span>Meta</span><span class="hc-prog">Progresso</span>
@@ -774,6 +798,26 @@ function sairPersonal() {
     if (g.unit === undefined) g.unit = '';
     if (g.log === undefined) g.log = [];
     if (g.entries === undefined) g.entries = [];
+    if (g.adjust === undefined) g.adjust = 0;
+  });
+
+  const counterCount = g => g.log.length + (g.adjust || 0);
+
+  let goalSort = 'prio';
+  let goalFilterArea = 'todas';
+  const goalFilterAreaEl = document.getElementById('goal-filter-area');
+  AREAS.filter(a => a.id !== 'geral').forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.id; o.textContent = a.label;
+    goalFilterAreaEl.appendChild(o);
+  });
+  document.getElementById('goal-sort').addEventListener('change', (ev) => {
+    goalSort = ev.target.value;
+    renderGoals();
+  });
+  goalFilterAreaEl.addEventListener('change', (ev) => {
+    goalFilterArea = ev.target.value;
+    renderGoals();
   });
 
   document.getElementById('goal-views').addEventListener('click', (ev) => {
@@ -794,7 +838,7 @@ function sairPersonal() {
 
   function actualPct(g) {
     if (g.kind === 'contador') {
-      const count = g.log.length;
+      const count = counterCount(g);
       return g.target ? Math.min(100, Math.round(count / g.target * 100)) : (g.done ? 100 : 0);
     }
     if (g.kind === 'valor') {
@@ -836,12 +880,16 @@ function sairPersonal() {
   function renderGoals() {
     goalRows.innerHTML = '';
     let list = [...state.goals];
-    if (goalView === 'progresso') {
-      list = list.filter(g => !g.done).sort((a, b) => b.prio - a.prio);
-    } else if (goalView === 'completadas') {
-      list = list.filter(g => g.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
+    if (goalView === 'progresso') list = list.filter(g => !g.done);
+    else if (goalView === 'completadas') list = list.filter(g => g.done);
+    if (goalFilterArea !== 'todas') list = list.filter(g => g.area === goalFilterArea);
+
+    if (goalSort === 'due') {
+      list.sort((a, b) => (a.due || '9999-99-99').localeCompare(b.due || '9999-99-99'));
+    } else if (goalSort === 'progresso') {
+      list.sort((a, b) => actualPct(b) - actualPct(a));
     } else {
-      list.sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
+      list.sort((a, b) => b.prio - a.prio);
     }
     goalEmpty.style.display = list.length ? 'none' : 'block';
 
@@ -851,7 +899,7 @@ function sairPersonal() {
       let pct, progLabel, progTitle = '';
       pct = actualPct(g);
       if (g.kind === 'contador') {
-        const count = g.log.length;
+        const count = counterCount(g);
         progLabel = g.target ? `${count}/${g.target}` : `${count}`;
       } else if (g.kind === 'valor') {
         const sum = g.entries.reduce((s, e) => s + e.amount, 0);
@@ -895,15 +943,16 @@ function sairPersonal() {
             <div class="counter-row">
               <div class="prop"><label>Meta numérica</label><input type="number" min="1" class="counter-target" data-prop="target" value="${g.target || ''}" placeholder="200"></div>
               <div class="prop"><label>Unidade</label><input type="text" class="counter-unit" data-prop="unit" value="${esc(g.unit)}" placeholder="dias na academia"></div>
+              <div class="prop"><label>Já feitos antes (ajuste)</label><input type="number" min="0" class="counter-adjust" data-prop="adjust" value="${g.adjust || ''}" placeholder="0"></div>
             </div>
             <div class="counter-progress">
-              <div class="counter-count">${g.log.length}${g.target ? ' / ' + g.target : ''} ${esc(g.unit || '')}</div>
+              <div class="counter-count">${counterCount(g)}${g.target ? ' / ' + g.target : ''} ${esc(g.unit || '')}</div>
               <div class="counter-actions">
                 <button type="button" class="c-dec">−1</button>
                 <button type="button" class="c-inc primary">${g.log.includes(todayISO()) ? '✓ Registrado hoje' : '+1 hoje'}</button>
               </div>
             </div>
-            <p class="counter-hint">Cada clique em "+1 hoje" registra um dia; clicar de novo no mesmo dia não conta duas vezes.</p>
+            <p class="counter-hint">"+1 hoje" registra um dia (não conta duas vezes no mesmo dia); use o "ajuste" para somar dias que você já tinha feito antes de começar a usar o site.</p>
           </div>`;
         } else if (g.kind === 'valor') {
           const sum = g.entries.reduce((s, e) => s + e.amount, 0);
@@ -997,7 +1046,7 @@ function sairPersonal() {
       id: 'g' + Date.now(),
       name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual',
       due: '', done: false, doneAt: '', tasks: [],
-      kind: 'checklist', target: null, unit: '', log: [], entries: [],
+      kind: 'checklist', target: null, unit: '', log: [], entries: [], adjust: 0,
     };
     state.goals.push(g);
     openGoals.add(g.id);
@@ -1094,7 +1143,7 @@ function sairPersonal() {
 
   // Alvo/unidade do contador e valor: atualiza sem recriar o campo (evita perder o foco ao digitar)
   goalRows.addEventListener('input', (ev) => {
-    const el = ev.target.closest('.counter-target, .counter-unit, .value-target');
+    const el = ev.target.closest('.counter-target, .counter-unit, .counter-adjust, .value-target');
     if (!el) return;
     const det = el.closest('.goal-detail');
     const g = gById(det.dataset.id);
@@ -1103,6 +1152,8 @@ function sairPersonal() {
       g.target = el.value ? parseInt(el.value, 10) : null;
     } else if (el.classList.contains('counter-unit')) {
       g.unit = el.value;
+    } else if (el.classList.contains('counter-adjust')) {
+      g.adjust = el.value ? parseInt(el.value, 10) : 0;
     } else if (el.classList.contains('value-target')) {
       g.target = el.value ? parseFloat(el.value) : null;
       const sum = g.entries.reduce((s, e) => s + e.amount, 0);
@@ -1116,7 +1167,7 @@ function sairPersonal() {
     save();
     updateRowSummary(g);
     const countEl = det.querySelector('.counter-count');
-    if (countEl) countEl.textContent = `${g.log.length}${g.target ? ' / ' + g.target : ''} ${g.unit || ''}`.trim();
+    if (countEl) countEl.textContent = `${counterCount(g)}${g.target ? ' / ' + g.target : ''} ${g.unit || ''}`.trim();
   });
 
   goalRows.addEventListener('keydown', (ev) => {
@@ -1146,7 +1197,8 @@ function sairPersonal() {
     const pct = actualPct(g);
     let progLabel;
     if (g.kind === 'contador') {
-      progLabel = g.target ? `${g.log.length}/${g.target}` : `${g.log.length}`;
+      const count = counterCount(g);
+      progLabel = g.target ? `${count}/${g.target}` : `${count}`;
     } else if (g.kind === 'valor') {
       const sum = g.entries.reduce((s, e) => s + e.amount, 0);
       progLabel = g.target ? `${Math.round(sum).toLocaleString('pt-BR')}/${Math.round(g.target).toLocaleString('pt-BR')}` : Math.round(sum).toLocaleString('pt-BR');
