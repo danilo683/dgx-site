@@ -314,9 +314,22 @@ button.primary:hover { background: #8d70f5; }
 .g-name { font-weight: 500; padding: 8px 4px; border-radius: 5px; min-width: 0; overflow-wrap: anywhere; }
 .goal-row.done .g-name { color: var(--text2); text-decoration: line-through; }
 .g-progress { display: flex; align-items: center; gap: 8px; }
-.g-progress .bar { flex: 1; height: 4px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-.g-progress .bar span { display: block; height: 100%; background: var(--c, var(--accent)); }
+.g-progress .bar { flex: 1; height: 4px; background: var(--bg3); border-radius: 3px; overflow: hidden; position: relative; overflow: visible; }
+.g-progress .bar span { display: block; height: 100%; background: var(--c, var(--accent)); border-radius: 3px; overflow: hidden; }
+.g-progress .bar.has-pace::after {
+  content: ""; position: absolute; top: -3px; bottom: -3px; left: var(--expected, 0%);
+  width: 2px; background: rgba(255,255,255,.65); border-radius: 1px;
+}
 .g-progress .pct { font-size: 11.5px; color: var(--text2); min-width: 32px; text-align: right; }
+
+.pace-block { margin: 14px 0 2px; }
+.pace-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+.pace-bar-track { height: 6px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.pace-bar-fill { height: 100%; background: #8ab8f5; border-radius: 4px; }
+.pace-status { font-size: 13px; margin-top: 7px; }
+.pace-status.ahead { color: #4ec98a; }
+.pace-status.behind { color: #e57373; }
+.pace-status.even { color: var(--text2); }
 .g-due { font-size: 12.5px; color: var(--text2); }
 .g-due.overdue { color: #e88; }
 .g-stars { font-size: 11px; letter-spacing: -1px; white-space: nowrap; }
@@ -369,6 +382,34 @@ button.primary:hover { background: #8d70f5; }
 .counter-actions { display: flex; gap: 8px; }
 .counter-actions button { padding: 7px 14px; }
 .counter-hint { font-size: 12px; color: var(--text2); margin-top: 8px; }
+
+.value-block { margin-top: 4px; }
+.value-target-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.value-target-row input { width: 160px; }
+.value-summary {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+  padding: 12px 14px; font-size: 14px;
+}
+.value-summary strong { color: var(--c, var(--accent)); font-family: var(--display); font-size: 16px; }
+.value-progress { height: 5px; background: var(--bg3); border-radius: 4px; margin: 10px 0 4px; overflow: hidden; }
+.value-progress span { display: block; height: 100%; background: var(--c, var(--accent)); }
+.value-entries { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+.value-entry { display: flex; align-items: center; gap: 10px; padding: 5px 4px; border-radius: 6px; font-size: 13.5px; }
+.value-entry:hover { background: rgba(255,255,255,.03); }
+.value-entry .v-date { color: var(--text2); font-size: 12.5px; min-width: 64px; }
+.value-entry .v-amount { font-weight: 600; min-width: 90px; }
+.value-entry .v-note { flex: 1; color: var(--text2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.value-add { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.value-add input {
+  font-family: var(--body); font-size: 13px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px;
+  color-scheme: dark;
+}
+.value-add input[type="date"] { width: 130px; }
+.value-add input[type="number"] { width: 110px; }
+.value-add input[type="text"] { flex: 1; min-width: 120px; }
+.value-add input::placeholder { color: #5c527f; }
 .goal-new {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px; color: var(--text2); font-size: 13.5px;
@@ -732,6 +773,7 @@ function sairPersonal() {
     if (g.target === undefined) g.target = null;
     if (g.unit === undefined) g.unit = '';
     if (g.log === undefined) g.log = [];
+    if (g.entries === undefined) g.entries = [];
   });
 
   document.getElementById('goal-views').addEventListener('click', (ev) => {
@@ -748,6 +790,48 @@ function sairPersonal() {
   }
   function fmtBR(iso) { const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y; }
   const stars = n => '⭐'.repeat(Math.max(1, Math.min(5, n)));
+  const fmtBRL = n => (n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  function actualPct(g) {
+    if (g.kind === 'contador') {
+      const count = g.log.length;
+      return g.target ? Math.min(100, Math.round(count / g.target * 100)) : (g.done ? 100 : 0);
+    }
+    if (g.kind === 'valor') {
+      const sum = g.entries.reduce((s, e) => s + e.amount, 0);
+      return g.target ? Math.min(100, Math.round(sum / g.target * 100)) : (g.done ? 100 : 0);
+    }
+    const total = g.tasks.length;
+    const doneT = g.tasks.filter(t => t.done).length;
+    return total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
+  }
+
+  // Ritmo esperado: quanto % do período já passou até hoje (usa "Completar até" como fim;
+  // sem prazo definido, assume o ano corrente inteiro — igual ao exemplo "365x algo").
+  function expectedPct(g) {
+    const todayStr = todayISO();
+    const [ty, tm, td] = todayStr.split('-').map(Number);
+    const endStr = g.due || `${ty}-12-31`;
+    const [ey, em, ed] = endStr.split('-').map(Number);
+    const startMs = Date.UTC(ey, 0, 1);
+    const endMs = Date.UTC(ey, em - 1, ed);
+    const totalDays = Math.round((endMs - startMs) / 86400000) + 1;
+    if (totalDays <= 0) return 100;
+    const todayMs = Date.UTC(ty, tm - 1, td);
+    let elapsedDays = Math.round((todayMs - startMs) / 86400000) + 1;
+    elapsedDays = Math.max(0, Math.min(elapsedDays, totalDays));
+    return Math.round(elapsedDays / totalDays * 100);
+  }
+
+  function paceStatusHtml(g) {
+    const actual = actualPct(g);
+    const expected = expectedPct(g);
+    const diff = actual - expected;
+    let cls = 'even', text = `No ritmo 🎯 (${actual}% vs. ${expected}% esperado)`;
+    if (diff >= 3) cls = 'ahead', text = `${diff} pontos à frente do ritmo ✅ (${actual}% vs. ${expected}% esperado)`;
+    else if (diff <= -3) cls = 'behind', text = `${Math.abs(diff)} pontos atrás do ritmo ⚠️ (${actual}% vs. ${expected}% esperado)`;
+    return { cls, text, expected };
+  }
 
   function renderGoals() {
     goalRows.innerHTML = '';
@@ -764,15 +848,16 @@ function sairPersonal() {
     list.forEach(g => {
       const a = AREAS.find(x => x.id === g.area) || AREAS[0];
       const h = HORIZONS.find(x => x.id === g.vf);
-      let pct, progLabel;
+      let pct, progLabel, progTitle = '';
+      pct = actualPct(g);
       if (g.kind === 'contador') {
         const count = g.log.length;
-        pct = g.target ? Math.min(100, Math.round(count / g.target * 100)) : (g.done ? 100 : 0);
         progLabel = g.target ? `${count}/${g.target}` : `${count}`;
+      } else if (g.kind === 'valor') {
+        const sum = g.entries.reduce((s, e) => s + e.amount, 0);
+        progLabel = g.target ? `${Math.round(sum).toLocaleString('pt-BR')}/${Math.round(g.target).toLocaleString('pt-BR')}` : Math.round(sum).toLocaleString('pt-BR');
+        progTitle = g.target ? `${fmtBRL(sum)} de ${fmtBRL(g.target)}` : fmtBRL(sum);
       } else {
-        const total = g.tasks.length;
-        const doneT = g.tasks.filter(t => t.done).length;
-        pct = total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
         progLabel = pct + '%';
       }
       const isOpen = openGoals.has(g.id);
@@ -785,7 +870,7 @@ function sairPersonal() {
       row.innerHTML = `
         <input type="checkbox" ${g.done ? 'checked' : ''} aria-label="Meta concluída">
         <div class="g-name" contenteditable="true" data-placeholder="Nome da meta"></div>
-        <div class="g-progress"><div class="bar"><span style="width:${pct}%"></span></div><span class="pct">${progLabel}</span></div>
+        <div class="g-progress"><div class="bar${!g.done ? ' has-pace' : ''}" style="--expected:${expectedPct(g)}%"><span style="width:${pct}%"></span></div><span class="pct" title="${esc(progTitle)}">${progLabel}</span></div>
         <span class="g-due ${overdue ? 'overdue' : ''}">${g.due ? fmtBR(g.due) : '—'}</span>
         <span class="g-stars" title="Prioridade ${g.prio} de 5">${stars(g.prio)}</span>
         <span class="tag">${esc(a.label)}</span>
@@ -803,23 +888,9 @@ function sairPersonal() {
         const vfOpts = ['<option value="">—</option>'].concat(HORIZONS.slice().reverse()
           .map(x => `<option value="${x.id}" ${g.vf === x.id ? 'selected' : ''}>${x.label} · ${BASE_YEAR + x.years}</option>`)).join('');
         const prioOpts = [5, 4, 3, 2, 1].map(n => `<option value="${n}" ${g.prio === n ? 'selected' : ''}>${stars(n)}</option>`).join('');
-        det.innerHTML = `
-          <div class="goal-props">
-            <div class="prop"><label>Área</label><select data-prop="area">${areaOpts}</select></div>
-            <div class="prop"><label>Visão</label><select data-prop="vf">${vfOpts}</select></div>
-            <div class="prop"><label>Como medir</label><select data-prop="kind">
-              <option value="checklist" ${g.kind === 'checklist' ? 'selected' : ''}>☑️ Checklist de tarefas</option>
-              <option value="contador" ${g.kind === 'contador' ? 'selected' : ''}>🔢 Contador numérico</option>
-            </select></div>
-            <div class="prop"><label>Tipo</label><select data-prop="tipo">
-              <option value="anual" ${g.tipo === 'anual' ? 'selected' : ''}>🎯 Anual</option>
-              <option value="sazonal" ${g.tipo === 'sazonal' ? 'selected' : ''}>Sazonal</option>
-            </select></div>
-            <div class="prop"><label>Completar até</label><input type="date" data-prop="due" value="${g.due || ''}"></div>
-            <div class="prop"><label>Prioridade</label><select data-prop="prio">${prioOpts}</select></div>
-            ${g.done && g.doneAt ? `<div class="prop"><label>Completada em</label><span style="font-size:13px; padding-top:6px;">${fmtBR(g.doneAt)}</span></div>` : ''}
-          </div>
-          ${g.kind === 'contador' ? `
+        let bodyHtml;
+        if (g.kind === 'contador') {
+          bodyHtml = `
           <div class="counter-block">
             <div class="counter-row">
               <div class="prop"><label>Meta numérica</label><input type="number" min="1" class="counter-target" data-prop="target" value="${g.target || ''}" placeholder="200"></div>
@@ -833,14 +904,77 @@ function sairPersonal() {
               </div>
             </div>
             <p class="counter-hint">Cada clique em "+1 hoje" registra um dia; clicar de novo no mesmo dia não conta duas vezes.</p>
-          </div>` : `
+          </div>`;
+        } else if (g.kind === 'valor') {
+          const sum = g.entries.reduce((s, e) => s + e.amount, 0);
+          const pctV = g.target ? Math.min(100, Math.round(sum / g.target * 100)) : 0;
+          bodyHtml = `
+          <div class="value-block">
+            <div class="value-target-row">
+              <div class="prop"><label>Meta (R$)</label><input type="number" min="0" step="0.01" class="value-target" data-prop="target" value="${g.target || ''}" placeholder="7000"></div>
+            </div>
+            <div class="value-summary">
+              <strong>${esc(fmtBRL(sum))}</strong> são <strong>${g.target ? pctV + '%' : '—'}</strong> da meta${g.target ? ' de ' + esc(fmtBRL(g.target)) : ''}
+              <div class="value-progress"><span style="width:${pctV}%"></span></div>
+            </div>
+            <div class="value-entries"></div>
+            <div class="value-add">
+              <input type="date" class="v-date" value="${todayISO()}">
+              <input type="number" step="0.01" min="0" class="v-amount" placeholder="Valor recebido">
+              <input type="text" class="v-note" placeholder="Nota (opcional) — ex.: dividendos XPTO11">
+              <button type="button" class="primary v-add-btn">+ Adicionar</button>
+            </div>
+          </div>`;
+        } else {
+          bodyHtml = `
           <div class="task-list"></div>
           <div class="task-add">
             <input type="text" placeholder="＋ Novo item de ação… (Enter para adicionar)">
             <button type="button" class="t-add-btn">Adicionar</button>
-          </div>`}
+          </div>`;
+        }
+        det.innerHTML = `
+          <div class="goal-props">
+            <div class="prop"><label>Área</label><select data-prop="area">${areaOpts}</select></div>
+            <div class="prop"><label>Visão</label><select data-prop="vf">${vfOpts}</select></div>
+            <div class="prop"><label>Como medir</label><select data-prop="kind">
+              <option value="checklist" ${g.kind === 'checklist' ? 'selected' : ''}>☑️ Checklist de tarefas</option>
+              <option value="contador" ${g.kind === 'contador' ? 'selected' : ''}>🔢 Contador numérico</option>
+              <option value="valor" ${g.kind === 'valor' ? 'selected' : ''}>💰 Valor acumulado (R$)</option>
+            </select></div>
+            <div class="prop"><label>Tipo</label><select data-prop="tipo">
+              <option value="anual" ${g.tipo === 'anual' ? 'selected' : ''}>🎯 Anual</option>
+              <option value="sazonal" ${g.tipo === 'sazonal' ? 'selected' : ''}>Sazonal</option>
+            </select></div>
+            <div class="prop"><label>Completar até</label><input type="date" data-prop="due" value="${g.due || ''}"></div>
+            <div class="prop"><label>Prioridade</label><select data-prop="prio">${prioOpts}</select></div>
+            ${g.done && g.doneAt ? `<div class="prop"><label>Completada em</label><span style="font-size:13px; padding-top:6px;">${fmtBR(g.doneAt)}</span></div>` : ''}
+          </div>
+          ${!g.done ? (() => {
+            const p = paceStatusHtml(g);
+            return `<div class="pace-block">
+              <div class="pace-row"><span>Ritmo esperado hoje</span><span>${p.expected}%</span></div>
+              <div class="pace-bar-track"><div class="pace-bar-fill" style="width:${p.expected}%"></div></div>
+              <p class="pace-status ${p.cls}">${p.text}</p>
+            </div>`;
+          })() : ''}
+          ${bodyHtml}
           <div class="detail-foot"><button class="x-remove g-remove" type="button">remover meta</button></div>`;
-        if (g.kind !== 'contador') {
+        if (g.kind === 'valor') {
+          const el = det.querySelector('.value-entries');
+          [...g.entries].sort((a, b) => b.date.localeCompare(a.date)).forEach(e => {
+            const row = document.createElement('div');
+            row.className = 'value-entry';
+            row.dataset.eid = e.id;
+            row.innerHTML = `
+              <span class="v-date">${fmtBR(e.date)}</span>
+              <span class="v-amount">${esc(fmtBRL(e.amount))}</span>
+              <span class="v-note">${esc(e.note || '')}</span>
+              <button class="x-remove ve-remove" type="button">×</button>`;
+            el.appendChild(row);
+          });
+        }
+        if (g.kind !== 'contador' && g.kind !== 'valor') {
         const tl = det.querySelector('.task-list');
         g.tasks.forEach(t => {
           const tr = document.createElement('div');
@@ -863,7 +997,7 @@ function sairPersonal() {
       id: 'g' + Date.now(),
       name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual',
       due: '', done: false, doneAt: '', tasks: [],
-      kind: 'checklist', target: null, unit: '', log: [],
+      kind: 'checklist', target: null, unit: '', log: [], entries: [],
     };
     state.goals.push(g);
     openGoals.add(g.id);
@@ -931,20 +1065,56 @@ function sairPersonal() {
       if (g.log.includes(today)) g.log = g.log.filter(d => d !== today);
       else g.log.pop();
       save(); renderGoals();
+      return;
+    }
+    const vAddBtn = ev.target.closest('.v-add-btn');
+    if (vAddBtn) {
+      const det = vAddBtn.closest('.goal-detail');
+      const dateEl = det.querySelector('.v-date');
+      const amountEl = det.querySelector('.v-amount');
+      const noteEl = det.querySelector('.v-note');
+      const amount = parseFloat(amountEl.value);
+      if (!amount || amount <= 0) { amountEl.focus(); return; }
+      const g = gById(det.dataset.id);
+      g.entries.push({ id: 'v' + Date.now(), date: dateEl.value || todayISO(), amount, note: noteEl.value.trim() });
+      amountEl.value = ''; noteEl.value = '';
+      save(); renderGoals();
+      goalRows.querySelector(`.goal-detail[data-id="${det.dataset.id}"] .v-amount`)?.focus();
+      return;
+    }
+    const veRemove = ev.target.closest('.ve-remove');
+    if (veRemove) {
+      const det = veRemove.closest('.goal-detail');
+      const g = gById(det.dataset.id);
+      const eid = veRemove.closest('.value-entry').dataset.eid;
+      g.entries = g.entries.filter(e => e.id !== eid);
+      save(); renderGoals();
     }
   });
 
-  // Alvo/unidade do contador: atualiza sem recriar o campo (evita perder o foco ao digitar)
+  // Alvo/unidade do contador e valor: atualiza sem recriar o campo (evita perder o foco ao digitar)
   goalRows.addEventListener('input', (ev) => {
-    const el = ev.target.closest('.counter-target, .counter-unit');
+    const el = ev.target.closest('.counter-target, .counter-unit, .value-target');
     if (!el) return;
-    const g = gById(el.closest('.goal-detail').dataset.id);
+    const det = el.closest('.goal-detail');
+    const g = gById(det.dataset.id);
     if (!g) return;
-    if (el.classList.contains('counter-target')) g.target = el.value ? parseInt(el.value, 10) : null;
-    else g.unit = el.value;
+    if (el.classList.contains('counter-target')) {
+      g.target = el.value ? parseInt(el.value, 10) : null;
+    } else if (el.classList.contains('counter-unit')) {
+      g.unit = el.value;
+    } else if (el.classList.contains('value-target')) {
+      g.target = el.value ? parseFloat(el.value) : null;
+      const sum = g.entries.reduce((s, e) => s + e.amount, 0);
+      const pctV = g.target ? Math.min(100, Math.round(sum / g.target * 100)) : 0;
+      const summaryEl = det.querySelector('.value-summary');
+      if (summaryEl) {
+        summaryEl.innerHTML = `<strong>${esc(fmtBRL(sum))}</strong> são <strong>${g.target ? pctV + '%' : '—'}</strong> da meta${g.target ? ' de ' + esc(fmtBRL(g.target)) : ''}
+              <div class="value-progress"><span style="width:${pctV}%"></span></div>`;
+      }
+    }
     save();
     updateRowSummary(g);
-    const det = el.closest('.goal-detail');
     const countEl = det.querySelector('.counter-count');
     if (countEl) countEl.textContent = `${g.log.length}${g.target ? ' / ' + g.target : ''} ${g.unit || ''}`.trim();
   });
@@ -973,21 +1143,32 @@ function sairPersonal() {
     row.querySelector('.g-stars').textContent = stars(g.prio);
     row.querySelector('.g-stars').title = `Prioridade ${g.prio} de 5`;
     row.querySelector('.tag').textContent = a.label;
-    let pct, progLabel;
+    const pct = actualPct(g);
+    let progLabel;
     if (g.kind === 'contador') {
-      const count = g.log.length;
-      pct = g.target ? Math.min(100, Math.round(count / g.target * 100)) : (g.done ? 100 : 0);
-      progLabel = g.target ? `${count}/${g.target}` : `${count}`;
+      progLabel = g.target ? `${g.log.length}/${g.target}` : `${g.log.length}`;
+    } else if (g.kind === 'valor') {
+      const sum = g.entries.reduce((s, e) => s + e.amount, 0);
+      progLabel = g.target ? `${Math.round(sum).toLocaleString('pt-BR')}/${Math.round(g.target).toLocaleString('pt-BR')}` : Math.round(sum).toLocaleString('pt-BR');
     } else {
-      const total = g.tasks.length;
-      const doneT = g.tasks.filter(t => t.done).length;
-      pct = total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
       progLabel = pct + '%';
     }
     row.querySelector('.g-progress .bar span').style.width = pct + '%';
     row.querySelector('.g-progress .pct').textContent = progLabel;
+    row.querySelector('.g-progress .bar').style.setProperty('--expected', expectedPct(g) + '%');
     const det = goalRows.querySelector(`.goal-detail[data-id="${g.id}"]`);
-    if (det) det.style.setProperty('--c', a.color);
+    if (det) {
+      det.style.setProperty('--c', a.color);
+      const paceBlock = det.querySelector('.pace-block');
+      if (paceBlock && !g.done) {
+        const p = paceStatusHtml(g);
+        paceBlock.querySelector('.pace-row span:last-child').textContent = p.expected + '%';
+        paceBlock.querySelector('.pace-bar-fill').style.width = p.expected + '%';
+        const statusEl = paceBlock.querySelector('.pace-status');
+        statusEl.textContent = p.text;
+        statusEl.className = 'pace-status ' + p.cls;
+      }
+    }
   }
 
   goalRows.addEventListener('change', (ev) => {
