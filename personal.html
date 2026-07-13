@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="locked">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Área Pessoal · Auto Performance — DGX</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -50,6 +51,83 @@ body {
   min-height: 100vh;
 }
 
+
+/* ── Bloqueio de acesso (admin) ── */
+html.locked .layout, html.locked .topbar, html.locked footer { display: none; }
+.auth-gate {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: var(--bg); color: var(--text2);
+  align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+  font-size: 14px;
+}
+html.locked .auth-gate { display: flex; }
+.auth-gate .spin {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Layout: sidebar + conteúdo ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 30;
+  width: 240px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 20px 12px 16px;
+  transition: transform .2s ease;
+}
+.sb-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 18px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.sb-brand img { height: 26px; width: auto; display: block; }
+.sb-brand div strong { font-family: var(--display); font-size: 16px; display: block; line-height: 1.2; }
+.sb-brand div span { font-size: 10.5px; color: var(--text2); text-transform: uppercase; letter-spacing: 1.4px; }
+.sb-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.sb-link {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text2); text-decoration: none; font-size: 14px;
+  padding: 9px 10px; border-radius: 8px;
+  transition: background .12s, color .12s;
+}
+.sb-link .ico { width: 20px; text-align: center; font-size: 15px; flex: none; }
+.sb-link:hover { background: rgba(255,255,255,.05); color: var(--text); }
+.sb-link.active { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+.sb-foot { border-top: 1px solid var(--border); padding-top: 10px; }
+.sb-link.sair { color: #d98a8a; }
+.sb-link.sair:hover { background: rgba(229,115,115,.1); color: #e57373; }
+
+.topbar {
+  display: none; position: sticky; top: 0; z-index: 25;
+  background: rgba(18, 14, 30, .88); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px; align-items: center; gap: 12px;
+}
+.topbar .burger {
+  background: none; border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 16px; padding: 6px 11px; cursor: pointer;
+}
+.topbar strong { font-family: var(--display); font-size: 16px; }
+.sb-overlay { display: none; position: fixed; inset: 0; z-index: 29; background: rgba(0,0,0,.45); }
+
+.content { flex: 1; margin-left: 240px; min-width: 0; }
+
+.page { display: none; }
+.page.active { display: block; }
+.page-head { padding: 42px 0 6px; position: relative; }
+.page-head .eyebrow { font-size: 11.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.page-head h1 { font-family: var(--display); font-weight: 600; font-size: clamp(26px, 4vw, 36px); line-height: 1.15; }
+.page-head p { color: var(--text2); max-width: 600px; margin-top: 10px; font-size: 14.5px; }
+
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  body.sb-open .sidebar { transform: translateX(0); }
+  body.sb-open .sb-overlay { display: block; }
+  .topbar { display: flex; }
+  .content { margin-left: 0; }
+}
+
 /* ── Header ── */
 header {
   position: sticky; top: 0; z-index: 20;
@@ -74,23 +152,17 @@ select:focus-visible, input:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
 
-main { max-width: 920px; margin: 0 auto; padding: 0 24px 120px; }
+main { max-width: 880px; margin: 0 auto; padding: 12px 32px 120px; }
 
-/* ── Hero ── */
-.hero { padding: 68px 0 36px; position: relative; }
 .horizon-glow {
-  position: absolute; top: 0; left: -20%; right: -20%; height: 1px;
+  position: absolute; left: -10%; right: -10%; top: 0; height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
-  opacity: .55;
+  opacity: .5;
 }
-.hero .eyebrow { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
-.hero h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 5.5vw, 46px); line-height: 1.15; max-width: 680px; }
-.hero p { color: var(--text2); max-width: 580px; margin-top: 16px; }
 
 /* ── Seções ── */
-section { padding-top: 60px; }
-.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-.section-head h2 { font-family: var(--display); font-weight: 600; font-size: 26px; }
+section { padding-top: 26px; }
+.section-head { display: flex; justify-content: flex-end; margin: 16px 0 8px; }
 .section-head .hint { font-size: 12.5px; color: var(--text2); }
 .section-intro { color: var(--text2); font-size: 14px; margin-bottom: 24px; max-width: 640px; }
 
@@ -323,42 +395,87 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
 </head>
 <body>
 
-<header>
-  <div class="brand"><img src="/logo-dgx.png" alt="DGX" onerror="this.style.display='none'"><strong>DGX</strong><span>Área Pessoal</span></div>
-  <nav>
-    <a href="#visoes">Visões</a>
-    <a href="#metas">Metas</a>
-    <a href="#habitos">Hábitos</a>
-    <a href="#diario">Diário</a>
-    <a href="#sonhos">Sonhos</a>
-  </nav>
-</header>
+<div class="auth-gate" aria-live="polite">
+  <div class="spin" aria-hidden="true"></div>
+  Verificando acesso…
+</div>
+<script>
+const SUPABASE_URL = 'https://mixsehmmwvrbpndavvhp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-<main>
-  <div class="hero">
-    <div class="horizon-glow" aria-hidden="true"></div>
-    <div class="eyebrow">Auto Performance</div>
-    <h1>Onde eu quero estar — em cada área da minha vida.</h1>
-    <p>Sete áreas, sete horizontes. Escolha uma área, mentalize como você estará nela em cada estágio e escreva. Tudo é editável e salvo automaticamente neste navegador.</p>
-  </div>
+(async function guard() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.replace('/clientes'); return; }
+    const { data: profile } = await sb.from('profiles')
+      .select('is_admin,tipo').eq('id', session.user.id).single();
+    if (!profile || (!profile.is_admin && profile.tipo !== 'admin')) {
+      window.location.replace('/clientes'); return;
+    }
+    document.documentElement.classList.remove('locked');
+  } catch (e) {
+    window.location.replace('/clientes');
+  }
+})();
 
-  <section id="visoes">
+function sairPersonal() {
+  sb.auth.signOut().finally(() => window.location.replace('/clientes'));
+}
+</script>
+
+<div class="topbar">
+  <button class="burger" id="btn-burger" aria-label="Abrir menu">☰</button>
+  <strong id="topbar-title">Visões de Futuro</strong>
+</div>
+<div class="sb-overlay" id="sb-overlay"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <img src="/logo-dgx.png" alt="DGX" onerror="this.style.display='none'">
+      <div><strong>Danilo</strong><span>Área Pessoal</span></div>
+    </div>
+    <nav class="sb-nav" id="sb-nav">
+      <a class="sb-link" href="#visoes" data-page="visoes"><span class="ico">🔭</span>Visões de Futuro</a>
+      <a class="sb-link" href="#metas" data-page="metas"><span class="ico">🎯</span>Metas &amp; Tarefas</a>
+      <a class="sb-link" href="#habitos" data-page="habitos"><span class="ico">🔁</span>Hábitos</a>
+      <a class="sb-link" href="#diario" data-page="diario"><span class="ico">📓</span>Diário</a>
+      <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
+    </nav>
+    <div class="sb-foot">
+      <a class="sb-link sair" href="#" onclick="sairPersonal(); return false;"><span class="ico">⏻</span>Sair</a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <main>
+
+  <section id="visoes" class="page">
+    <div class="page-head">
+      <div class="horizon-glow" aria-hidden="true"></div>
+      <div class="eyebrow">Auto Performance</div>
+      <h1>Onde eu quero estar — em cada área da minha vida.</h1>
+      <p>Sete áreas, sete horizontes. Escolha uma área, mentalize como você estará nela em cada estágio e escreva.</p>
+    </div>
     <div class="section-head">
-      <h2>Visões de Futuro</h2>
       <span class="hint">clique para editar · salva sozinho</span>
     </div>
-    <p class="section-intro">Comece pela visão geral ou entre direto numa área. Leitura de cima para baixo: da VF20 até a VF1, cada horizonte mais curto é um degrau concreto rumo ao de cima.</p>
+    <p class="section-intro">Leitura de cima para baixo: da VF20 até a VF1, cada horizonte mais curto é um degrau concreto rumo ao de cima.</p>
     <div class="area-tabs" id="area-tabs" role="tablist"></div>
     <div class="vf-ladder" id="vf-ladder"></div>
   </section>
 
-
-  <section id="metas">
-    <div class="section-head">
-      <h2>Metas &amp; Tarefas</h2>
-      <span class="hint">visão → meta → tarefa · mesmo formato do seu Notion</span>
+  <section id="metas" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Execução</div>
+      <h1>Metas &amp; Tarefas</h1>
+      <p>Cada meta serve a uma visão; cada tarefa é um passo executável. Mesmo formato do seu Notion.</p>
     </div>
-    <p class="section-intro">Cada meta serve a uma visão. Clique numa linha para abrir os itens de ação, prazo, prioridade e horizonte.</p>
+    <div class="section-head">
+      <span class="hint">visão → meta → tarefa</span>
+    </div>
+    <p class="section-intro">Clique numa linha para abrir os itens de ação, prazo, prioridade e horizonte.</p>
     <div class="view-tabs" id="goal-views">
       <button class="view-tab active" data-view="progresso">Em progresso</button>
       <button class="view-tab" data-view="completadas">Completadas</button>
@@ -376,12 +493,15 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
     <div class="list-empty" id="goal-empty" style="margin-top:14px;">Nenhuma meta nesta visualização.</div>
   </section>
 
-  <section id="habitos">
+  <section id="habitos" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Rotina</div>
+      <h1>Hábitos</h1>
+      <p>Hábitos são as visões traduzidas em rotina. Ligue cada hábito à área que ele fortalece.</p>
+    </div>
     <div class="section-head">
-      <h2>Hábitos</h2>
       <span class="hint">o que preciso desenvolver</span>
     </div>
-    <p class="section-intro">Hábitos são as visões traduzidas em rotina. Ligue cada hábito à área que ele fortalece.</p>
     <div class="habit-form">
       <input id="habit-name" type="text" placeholder="Hábito (ex.: ler 20 min por dia)">
       <select id="habit-area"></select>
@@ -397,12 +517,16 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
     <div class="list-empty" id="habit-empty">Nenhum hábito ainda. Qual é o primeiro que sustenta a sua VF1?</div>
   </section>
 
-  <section id="diario">
+  <section id="diario" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Consciência</div>
+      <h1>Diário</h1>
+      <p>Nomeie o sentimento do dia, registre pelo que é grato e desabafe se precisar.</p>
+    </div>
     <div class="section-head">
-      <h2>Diário</h2>
       <span class="hint">sentimento do dia + gratidão</span>
     </div>
-    <p class="section-intro">Nomeie o sentimento do dia, registre pelo que é grato e desabafe se precisar. Exporte quando quiser levar os registros para conversar com o Claude.</p>
+    <p class="section-intro">Exporte quando quiser levar os registros para conversar com o Claude.</p>
     <div class="diary-form">
       <div class="diary-row">
         <div>
@@ -429,9 +553,13 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
     <div class="list-empty" id="diary-empty">Nenhum registro ainda. Que tal começar por hoje?</div>
   </section>
 
-  <section id="sonhos">
+  <section id="sonhos" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Inspiração</div>
+      <h1>Quadro dos Sonhos</h1>
+      <p>Imagens das visões que você quer viver — ligadas às áreas e aos horizontes.</p>
+    </div>
     <div class="section-head">
-      <h2>Quadro dos Sonhos</h2>
       <span class="hint">as fotos ficam salvas neste navegador</span>
     </div>
     <div class="board-actions">
@@ -444,7 +572,10 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
     <div class="dream-grid" id="dream-grid"></div>
     <div class="list-empty" id="board-empty">Seu quadro ainda está vazio. Adicione a primeira foto de uma visão que você quer viver.</div>
   </section>
-</main>
+
+    </main>
+  </div>
+</div>
 
 <footer>DGX Consultoria · espaço pessoal de Danilo</footer>
 <div id="toast">Salvo</div>
@@ -744,13 +875,40 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
     }
   });
 
+  function updateRowSummary(g) {
+    // Atualiza só a linha resumo (sem recriar o input de data, para não perder o foco)
+    const row = goalRows.querySelector(`.goal-row[data-id="${g.id}"]`);
+    if (!row) return;
+    const a = AREAS.find(x => x.id === g.area) || AREAS[0];
+    row.style.setProperty('--c', a.color);
+    const overdue = g.due && !g.done && g.due < todayISO();
+    const dueEl = row.querySelector('.g-due');
+    dueEl.textContent = g.due ? fmtBR(g.due) : '—';
+    dueEl.classList.toggle('overdue', overdue);
+    row.querySelector('.g-stars').textContent = stars(g.prio);
+    row.querySelector('.g-stars').title = `Prioridade ${g.prio} de 5`;
+    row.querySelector('.tag').textContent = a.label;
+    const det = goalRows.querySelector(`.goal-detail[data-id="${g.id}"]`);
+    if (det) det.style.setProperty('--c', a.color);
+  }
+
   goalRows.addEventListener('change', (ev) => {
-    const detProp = ev.target.closest('.goal-detail select, .goal-detail input[type="date"]');
+    const dateProp = ev.target.closest('.goal-detail input[type="date"]');
+    if (dateProp) {
+      // Data: só atualiza estado + resumo da linha, sem recriar o input (evita perder o foco ao digitar)
+      const g = gById(dateProp.closest('.goal-detail').dataset.id);
+      g.due = dateProp.value;
+      save();
+      updateRowSummary(g);
+      return;
+    }
+    const detProp = ev.target.closest('.goal-detail select');
     if (detProp) {
       const g = gById(detProp.closest('.goal-detail').dataset.id);
       const prop = detProp.dataset.prop;
       g[prop] = prop === 'prio' ? parseInt(detProp.value, 10) : detProp.value;
-      save(); renderGoals();
+      save();
+      if (prop === 'area') { renderGoals(); } else { updateRowSummary(g); }
       return;
     }
     const rowCb = ev.target.closest('.goal-row > input[type="checkbox"]');
@@ -1006,6 +1164,21 @@ footer { text-align: center; color: #5c527f; font-size: 12px; padding: 60px 0 30
     r.readAsText(f);
     fileImport.value = '';
   });
+
+  // ── Navegação entre páginas ──
+  const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos' };
+  function showPage(id) {
+    if (!PAGES[id]) id = 'visoes';
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
+    document.querySelectorAll('.sb-link[data-page]').forEach(l => l.classList.toggle('active', l.dataset.page === id));
+    document.getElementById('topbar-title').textContent = PAGES[id];
+    document.body.classList.remove('sb-open');
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
+  document.getElementById('btn-burger').addEventListener('click', () => document.body.classList.toggle('sb-open'));
+  document.getElementById('sb-overlay').addEventListener('click', () => document.body.classList.remove('sb-open'));
+  showPage(location.hash.slice(1) || 'visoes');
 
   // ── Render inicial ──
   renderLadder();
