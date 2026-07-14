@@ -453,13 +453,12 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
       </div>
 
       <div id="imp-conferencia" style="display:none">
-        <div class="cons-kpi-row" style="grid-template-columns:repeat(5,1fr)">
+        <div class="cons-kpi-row" id="imp-kpis-fixos" style="grid-template-columns:repeat(2,1fr);max-width:420px;margin-bottom:.75rem">
           <div class="cons-kpi"><div class="cons-kpi-label">Linhas lidas</div><div class="cons-kpi-value" id="ik-linhas">—</div><div class="cons-kpi-sub">itens de NF/pedido</div></div>
-          <div class="cons-kpi"><div class="cons-kpi-label">Vendas (líquido)</div><div class="cons-kpi-value" id="ik-vendas">—</div><div class="cons-kpi-sub" id="ik-vendas-sub">—</div></div>
-          <div class="cons-kpi"><div class="cons-kpi-label">Bonificações</div><div class="cons-kpi-value" id="ik-bonif">—</div><div class="cons-kpi-sub" id="ik-bonif-sub">—</div></div>
-          <div class="cons-kpi"><div class="cons-kpi-label">Devoluções</div><div class="cons-kpi-value" id="ik-dev">—</div><div class="cons-kpi-sub" id="ik-dev-sub">valor líquido</div></div>
           <div class="cons-kpi"><div class="cons-kpi-label">Fora da competência</div><div class="cons-kpi-value" id="ik-fora">—</div><div class="cons-kpi-sub">linhas com data em outro mês</div></div>
         </div>
+        <div class="cons-kpi-row" id="imp-kpis-tipo" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"></div>
+
 
         <div class="cons-card">
           <div class="cons-card-header">
@@ -1192,24 +1191,42 @@ async function impLerArquivo(){
   }
 }
 
+// Rótulos amigáveis para os tipos de operação conhecidos.
+// Qualquer valor fora desta lista aparece com o texto bruto (nunca é
+// silenciosamente somado a outro balde — cada tipo tem seu próprio card).
+const IMP_TIPO_LABEL = {
+  venda: 'Vendas',
+  bonificacao: 'Bonificações',
+  devolucao: 'Devoluções (venda)',
+  devolucao_compra: 'Devoluções (compra)'
+};
+
 function impRenderConferencia(comp){
-  const grp = { venda:{n:0,v:0,q:0}, bonificacao:{n:0,v:0,q:0}, devolucao:{n:0,v:0,q:0} };
+  const grp = {};
   let fora = 0;
   for (const l of impLinhas) {
-    const g = grp[l.tipo_operacao] || grp.venda;
-    g.n++; g.v += l.valor_liquido || 0; g.q += l.qtd || 0;
+    const t = l.tipo_operacao || 'venda';
+    if (!grp[t]) grp[t] = { n: 0, v: 0, q: 0 };
+    grp[t].n++; grp[t].v += l.valor_liquido || 0; grp[t].q += l.qtd || 0;
     if (!l.data || l.data.slice(0, 7) !== comp) fora++;
   }
   document.getElementById('ik-linhas').textContent = impLinhas.length;
-  document.getElementById('ik-vendas').textContent = fmtMoeda(grp.venda.v);
-  document.getElementById('ik-vendas-sub').textContent = grp.venda.n + ' linhas · ' + grp.venda.q.toLocaleString('pt-BR') + ' un';
-  document.getElementById('ik-bonif').textContent = grp.bonificacao.n;
-  document.getElementById('ik-bonif-sub').textContent = grp.bonificacao.q.toLocaleString('pt-BR') + ' un · ' + fmtMoeda(grp.bonificacao.v);
-  document.getElementById('ik-dev').textContent = grp.devolucao.n;
-  document.getElementById('ik-dev-sub').textContent = fmtMoeda(grp.devolucao.v);
   const foraEl = document.getElementById('ik-fora');
   foraEl.textContent = fora;
   foraEl.style.color = fora > 0 ? '#b35900' : 'var(--text)';
+
+  // Ordena: 'venda' sempre primeiro, depois por quantidade de linhas desc
+  const tipos = Object.keys(grp).sort((a, b) => {
+    if (a === 'venda') return -1; if (b === 'venda') return 1;
+    return grp[b].n - grp[a].n;
+  });
+  document.getElementById('imp-kpis-tipo').innerHTML = tipos.map(t => {
+    const g = grp[t];
+    const label = IMP_TIPO_LABEL[t] || t;
+    return '<div class="cons-kpi"><div class="cons-kpi-label">' + label + '</div>' +
+      '<div class="cons-kpi-value">' + fmtMoeda(g.v) + '</div>' +
+      '<div class="cons-kpi-sub">' + g.n + ' linhas · ' + g.q.toLocaleString('pt-BR') + ' un</div></div>';
+  }).join('');
 
   const cols = ['data','nf','tipo_operacao','cliente_nome','sku','produto','qtd','valor_liquido','margem'];
   document.getElementById('imp-amostra-head').innerHTML = cols.map(c => '<th>' + c.replace('_', ' ') + '</th>').join('');
