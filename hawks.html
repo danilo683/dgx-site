@@ -136,6 +136,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #loadingScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A2B3E}
 .spinner{width:40px;height:40px;border:3px solid rgba(0,180,216,0.2);border-top-color:#00B4D8;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.bi-filters{display:flex;align-items:center;gap:10px;margin-bottom:1.1rem;flex-wrap:wrap}
+.bi-filters label{font-size:11px;color:#6B8BAA;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.bi-filters select{font-size:13px;padding:6px 12px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;cursor:pointer;outline:none;max-width:220px}
+.bi-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,180,216,0.15);color:#00B4D8;font-weight:600}
 </style>
 </head>
 <body>
@@ -197,9 +201,9 @@ var sb=supabase.createClient('https://mixsehmmwvrbpndavvhp.supabase.co','eyJhbGc
 // ── DADOS (serão populados do Supabase) ──────────────────────
 var V = {
   meses:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
-  canal:{salao:[],loja:[],func:[]},
+  canal:{salao:[],loja:[],func:[],outros:[]},
   cat:{hc:[],pr:[],co:[],qu:[]},
-  vol:{salao:[],loja:[],func:[]}
+  vol:{salao:[],loja:[],func:[],outros:[]}
 };
 var MG = { meses:[], receitaLiq:[], cmv:[], margemBruta:[] };
 var DRE_DADOS = { meses:[], recBruta:[], devDevolucoes:[], impVendas:[], cmv:[],
@@ -208,7 +212,139 @@ var DRE_DADOS = { meses:[], recBruta:[], devDevolucoes:[], impVendas:[], cmv:[],
 var DFC_DADOS = [];
 var MESES_COM_DADOS = [];
 
+// ── BASE ÚNICA (fato_vendas) — Fase A do BI ──────────────────
+var FV_HAWKS = [];              // linhas item-a-item carregadas do Supabase
+var TOP_PRODUTOS = [];          // ranking calculado a partir do filtro atual
+var VENDEDORES_DISPONIVEIS = [];
+var filtroVendedorAtual = 'todos';
+var filtroCanalAtual = 'todos';
+
 function n(v){return v!==null&&v!==undefined ? parseFloat(v) : null;}
+
+// Remove acentos e normaliza para comparação (SALÃO/Salao/salão -> SALAO)
+function semAcento(s){ return (s||'').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function normTipologia(t){
+  var s = semAcento(t);
+  if (s.indexOf('SALAO') >= 0) return 'salao';
+  if (s.indexOf('LOJA') >= 0) return 'loja';
+  if (s.indexOf('FUNCION') >= 0) return 'func';
+  return 'outros';
+}
+function normGrupo(g){
+  var s = semAcento(g);
+  if (s.indexOf('HOME') >= 0) return 'hc';
+  if (s.indexOf('COLORA') >= 0) return 'co';
+  if (s.indexOf('PROFISSIONAL') >= 0) return 'pr';
+  if (s.indexOf('QUIMIC') >= 0) return 'qu';
+  return 'outros';
+}
+
+// Busca paginada — o Supabase limita ~1000 linhas por request
+async function fetchFatoVendas(clienteId){
+  var all = [], from = 0, pageSize = 1000;
+  while (true) {
+    var res = await sb.from('fato_vendas')
+      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,margem')
+      .eq('cliente_id', clienteId)
+      .range(from, from + pageSize - 1);
+    if (res.error) { console.error('fetchFatoVendas', res.error); break; }
+    var data = res.data;
+    if (!data || !data.length) break;
+    all = all.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
+}
+
+// Agrega item-a-item em canal/categoria/volume por mês + ranking de produtos.
+// Só considera tipo_operacao = 'venda' (bonificações e devoluções ficam fora
+// das métricas comerciais, mesmo critério usado na conferência de importação).
+function agregarFatoVendas(rows, filtroVendedor, filtroCanal){
+  var canal = { salao:Array(12).fill(null), loja:Array(12).fill(null), func:Array(12).fill(null), outros:Array(12).fill(null) };
+  var vol   = { salao:Array(12).fill(null), loja:Array(12).fill(null), func:Array(12).fill(null), outros:Array(12).fill(null) };
+  var cat   = { hc:Array(12).fill(null), pr:Array(12).fill(null), co:Array(12).fill(null), qu:Array(12).fill(null) };
+  var produtosMap = {};
+  var vendedoresSet = {};
+
+  rows.forEach(function(r){
+    if (r.tipo_operacao !== 'venda') return;
+    if (r.vendedor) vendedoresSet[r.vendedor] = true;
+    if (filtroVendedor !== 'todos' && r.vendedor !== filtroVendedor) return;
+    var c = normTipologia(r.tipologia);
+    if (filtroCanal !== 'todos' && c !== filtroCanal) return;
+    var mi = parseInt(r.competencia.split('-')[1], 10) - 1;
+    if (mi < 0 || mi > 11) return;
+    var val = parseFloat(r.valor_liquido) || 0;
+    var qtd = parseFloat(r.qtd) || 0;
+
+    canal[c][mi] = (canal[c][mi] || 0) + val;
+    vol[c][mi] = (vol[c][mi] || 0) + qtd;
+
+    var g = normGrupo(r.grupo);
+    if (cat[g] !== undefined) cat[g][mi] = (cat[g][mi] || 0) + val;
+
+    var sku = r.sku || '(sem SKU)';
+    if (!produtosMap[sku]) produtosMap[sku] = { produto: r.produto || sku, qtd:0, valor:0, cmv:0 };
+    produtosMap[sku].qtd += qtd;
+    produtosMap[sku].valor += val;
+    produtosMap[sku].cmv += (parseFloat(r.cmv_total) || 0);
+  });
+
+  var topProdutos = Object.keys(produtosMap).map(function(k){
+    var p = produtosMap[k];
+    return { sku:k, produto:p.produto, qtd:p.qtd, valor:p.valor, margem: p.valor ? (p.valor - p.cmv) / p.valor : null };
+  }).sort(function(a,b){ return b.valor - a.valor; }).slice(0, 10);
+
+  return { canal:canal, vol:vol, cat:cat, topProdutos:topProdutos, vendedores: Object.keys(vendedoresSet).sort() };
+}
+
+// Margem sempre no agregado total (sem filtro de vendedor/canal) — visão gerencial da empresa
+function agregarMargem(rows){
+  var porMes = {};
+  rows.forEach(function(r){
+    if (r.tipo_operacao !== 'venda') return;
+    var partes = r.competencia.split('-');
+    var mi = parseInt(partes[1], 10) - 1;
+    var ano = partes[0];
+    var key = mi + '|' + ano;
+    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, rl:0, cmv:0 };
+    porMes[key].rl += parseFloat(r.valor_liquido) || 0;
+    porMes[key].cmv += parseFloat(r.cmv_total) || 0;
+  });
+  var chaves = Object.keys(porMes).sort(function(a,b){
+    var pa = porMes[a], pb = porMes[b];
+    return (pa.ano - pb.ano) || (pa.mi - pb.mi);
+  });
+  var MESES_L = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var MG2 = { meses:[], receitaLiq:[], cmv:[], margemBruta:[] };
+  chaves.forEach(function(k){
+    var p = porMes[k];
+    MG2.meses.push(MESES_L[p.mi] + '/' + String(p.ano).slice(2));
+    MG2.receitaLiq.push(p.rl);
+    MG2.cmv.push(p.cmv);
+    MG2.margemBruta.push(p.rl - p.cmv);
+  });
+  return MG2;
+}
+
+function refreshVendasEMargem(){
+  var agg = agregarFatoVendas(FV_HAWKS, filtroVendedorAtual, filtroCanalAtual);
+  V.canal = agg.canal; V.vol = agg.vol; V.cat = agg.cat;
+  TOP_PRODUTOS = agg.topProdutos;
+  VENDEDORES_DISPONIVEIS = agg.vendedores;
+  MG = agregarMargem(FV_HAWKS);
+
+  // Período dinâmico da topbar a partir dos meses com dado real
+  var idxComDado = [];
+  V.meses.forEach(function(_, i){ if (V.canal.salao[i]!==null || V.canal.loja[i]!==null || V.canal.func[i]!==null || V.canal.outros[i]!==null) idxComDado.push(i); });
+  if (idxComDado.length) {
+    periods.vendas = V.meses[idxComDado[0]] + ' \u2013 ' + V.meses[idxComDado[idxComDado.length-1]] + ' 2026';
+  }
+  if (MG.meses.length) {
+    periods.margem = MG.meses[0] + ' \u2013 ' + MG.meses[MG.meses.length-1];
+  }
+}
 
 async function carregarDadosHawks() {
   const MESES_LABEL = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -218,49 +354,12 @@ async function carregarDadosHawks() {
     return { ano: parseInt(parts[0]), mes: parseInt(parts[1]) - 1, dia: parseInt(parts[2]) };
   };
 
-  // VENDAS
-  const {data:vendas} = await sb.from('dash_vendas').select('*')
-    .eq('cliente_id','hawks').order('competencia',{ascending:true});
-  if (vendas && vendas.length) {
-    // Reinicia arrays de 12 posições com null
-    ['salao','loja','func'].forEach(k => V.canal[k] = Array(12).fill(null));
-    ['hc','pr','co','qu'].forEach(k => V.cat[k] = Array(12).fill(null));
-    ['salao','loja','func'].forEach(k => V.vol[k] = Array(12).fill(null));
-    vendas.forEach(function(r) {
-      var mi = parseComp(r.competencia).mes;
-      V.canal.salao[mi] = n(r.canal_salao);
-      V.canal.loja[mi]  = n(r.canal_loja);
-      V.canal.func[mi]  = n(r.canal_func);
-      V.cat.hc[mi] = n(r.cat_homecare);
-      V.cat.pr[mi] = n(r.cat_profissional);
-      V.cat.co[mi] = n(r.cat_coloracao);
-      V.cat.qu[mi] = n(r.cat_quimica);
-      V.vol.salao[mi] = n(r.vol_salao);
-      V.vol.loja[mi]  = n(r.vol_loja);
-      V.vol.func[mi]  = n(r.vol_func);
-    });
-  }
+  // VENDAS + MARGEM — agora vêm da base única (fato_vendas), item a item.
+  // Substitui as antigas tabelas agregadas dash_vendas / dash_margem.
+  FV_HAWKS = await fetchFatoVendas('hawks');
+  refreshVendasEMargem();
 
-  // MARGEM
-  const {data:margem} = await sb.from('dash_margem').select('*')
-    .eq('cliente_id','hawks').order('competencia',{ascending:true});
-  if (margem && margem.length) {
-    MG.meses = []; MG.receitaLiq = []; MG.cmv = []; MG.margemBruta = [];
-    margem.forEach(function(r) {
-      // Só incluir meses com receita líquida válida (> 0)
-      var rl = n(r.receita_liquida);
-      var mb = n(r.margem_bruta);
-      if (!rl && !mb) return; // pula meses sem dados
-      var pc = parseComp(r.competencia);
-      MG.meses.push(MESES_LABEL[pc.mes]+'/'+String(pc.ano).slice(2));
-      MG.receitaLiq.push(rl);
-      const cmvH = n(r.cmv_liquido);
-      MG.cmv.push(cmvH !== 0 ? Math.abs(cmvH) : Math.abs(rl - mb));
-      MG.margemBruta.push(mb);
-    });
-  }
-
-  // DRE
+  // DRE — segue alimentado pelos Lançamentos manuais (ainda não migrado para a base única)
   const {data:dre} = await sb.from('dash_dre').select('*')
     .eq('cliente_id','hawks').order('competencia',{ascending:true});
   if (dre && dre.length) {
@@ -286,7 +385,7 @@ async function carregarDadosHawks() {
     });
   }
 
-  // DFC
+  // DFC — segue alimentado pelos Lançamentos manuais (ainda não migrado para a base única)
   const {data:dfc} = await sb.from('dash_dfc').select('*')
     .eq('cliente_id','hawks').order('competencia',{ascending:true});
   DFC_DADOS = Array(12).fill(null);
@@ -309,17 +408,7 @@ async function carregarDadosHawks() {
     });
   }
 
-  // Atualiza período na topbar
-  if (vendas && vendas.length > 1) {
-    var primeiro = parseComp(vendas[0].competencia);
-    var ultimo = parseComp(vendas[vendas.length-1].competencia);
-    periods.vendas = MESES_LABEL[primeiro.mes]+' \u2013 '+MESES_LABEL[ultimo.mes]+' '+ultimo.ano;
-    periods.dre = periods.vendas;
-  }
-  if (margem && margem.length > 1) {
-    var p = parseComp(margem[0].competencia), u = parseComp(margem[margem.length-1].competencia);
-    periods.margem = MESES_LABEL[p.mes]+' \u2013 '+MESES_LABEL[u.mes]+' '+u.ano;
-  }
+  if (dre && dre.length > 1) periods.dre = DRE_DADOS.meses[0] + ' \u2013 ' + DRE_DADOS.meses[DRE_DADOS.meses.length-1];
   if (dfc && dfc.length > 1) {
     var p2 = parseComp(dfc[0].competencia), u2 = parseComp(dfc[dfc.length-1].competencia);
     periods.dfc = MESES_LABEL[p2.mes]+' \u2013 '+MESES_LABEL[u2.mes]+' '+u2.ano;
@@ -355,49 +444,100 @@ function renderPage(page){
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
-var V={meses:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],canal:{salao:[],loja:[],func:[]},cat:{hc:[],pr:[],co:[],qu:[]},vol:{salao:[],loja:[],func:[]}};
 function buildVendasTable(rowDefs,totais,fmt){var meses=V.meses;var hasData=meses.map(function(_,i){return totais[i]!==null&&totais[i]>0;});var html='<div style="overflow-x:auto;margin-top:14px"><table class="v-table"><thead><tr><th>Linha</th>'+meses.map(function(m,i){return '<th'+(hasData[i]?'':' class="v-empty"')+'>'+m+'</th><th'+(hasData[i]?'':' class="v-empty"')+' style="color:#aab">%</th>';}).join('')+'<th>Total</th><th style="color:#aab">%</th></tr></thead><tbody>';rowDefs.forEach(function(r){var tot=r.data.reduce(function(a,b){return a+(b||0);},0);var grandTotal=totais.reduce(function(a,b){return a+(b||0);},0);html+='<tr><td><span class="v-dot" style="background:'+r.color+'"></span>'+r.label+'</td>'+meses.map(function(_,i){var v=r.data[i];var t=totais[i];var pct=(v!==null&&t)?(v/t*100).toFixed(1)+'%':'--';return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(v!==null?fmt(v):'--')+'</td>'+'<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">'+pct+'</td>';}).join('')+'<td class="v-total">'+fmt(tot)+'</td>'+'<td class="v-pct">'+(grandTotal>0?(tot/grandTotal*100).toFixed(1)+'%':'--')+'</td></tr>';});html+='<tr class="v-tot-row"><td>Total</td>'+meses.map(function(_,i){var t=totais[i];return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(t!==null?fmt(t):'--')+'</td>'+'<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">100%</td>';}).join('')+'<td class="v-total">'+fmt(totais.reduce(function(a,b){return a+(b||0);},0))+'</td>'+'<td class="v-pct">100%</td></tr>';html+='</tbody></table></div>';return html;}
+
+function vendasFiltrosHTML(){
+  var opVendedor = '<option value="todos"'+(filtroVendedorAtual==='todos'?' selected':'')+'>Todos os vendedores</option>'
+    + VENDEDORES_DISPONIVEIS.map(function(v){return '<option value="'+v.replace(/"/g,'&quot;')+'"'+(filtroVendedorAtual===v?' selected':'')+'>'+v+'</option>';}).join('');
+  var canais = [['todos','Todos os canais'],['salao','Sal\u00e3o'],['loja','Loja'],['func','Funcion\u00e1rio']];
+  var opCanal = canais.map(function(c){return '<option value="'+c[0]+'"'+(filtroCanalAtual===c[0]?' selected':'')+'>'+c[1]+'</option>';}).join('');
+  return '<div class="bi-filters">'
+    +'<label>Vendedor</label><select id="bi-sel-vendedor" onchange="vendasFiltroMudou()">'+opVendedor+'</select>'
+    +'<label>Canal</label><select id="bi-sel-canal" onchange="vendasFiltroMudou()">'+opCanal+'</select>'
+    +(filtroVendedorAtual!=='todos'||filtroCanalAtual!=='todos' ? '<span class="bi-tag">Filtro ativo</span>' : '')
+    +'</div>';
+}
+function vendasFiltroMudou(){
+  filtroVendedorAtual = document.getElementById('bi-sel-vendedor').value;
+  filtroCanalAtual = document.getElementById('bi-sel-canal').value;
+  var agg = agregarFatoVendas(FV_HAWKS, filtroVendedorAtual, filtroCanalAtual);
+  V.canal = agg.canal; V.vol = agg.vol; V.cat = agg.cat; TOP_PRODUTOS = agg.topProdutos;
+  document.getElementById('content').innerHTML = vendasHTML();
+  initVendas();
+}
+function topProdutosHTML(){
+  if (!TOP_PRODUTOS.length) return '';
+  var fR2=function(v){return'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var rows = TOP_PRODUTOS.map(function(p){
+    var mg = p.margem!==null ? (p.margem*100).toFixed(1)+'%' : '\u2014';
+    return '<tr><td>'+p.sku+'</td><td style="text-align:left">'+p.produto+'</td><td>'+p.qtd.toLocaleString('pt-BR')+'</td><td>'+fR2(p.valor)+'</td><td>'+mg+'</td></tr>';
+  }).join('');
+  return '<div class="chart-card"><div class="chart-title">Top 10 produtos por receita l\u00edquida</div><div class="chart-sub">Considerando os filtros selecionados acima</div>'
+    +'<div style="overflow-x:auto"><table class="dre-table"><thead><tr><th>SKU</th><th style="text-align:left">Produto</th><th>Qtd.</th><th>Receita l\u00edquida</th><th>Margem</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
 function vendasHTML(){
   var fR=function(v){return'R$ '+Math.round(v/1000)+'K';};
   var fN=function(v){return v.toLocaleString('pt-BR');};
-  var totCanal=V.meses.map(function(_,i){var s=V.canal.salao[i],l=V.canal.loja[i],f=V.canal.func[i];return(s===null&&l===null&&f===null)?null:(s||0)+(l||0)+(f||0);});
+  var totCanal=V.meses.map(function(_,i){var s=V.canal.salao[i],l=V.canal.loja[i],f=V.canal.func[i],o=V.canal.outros[i];return(s===null&&l===null&&f===null&&o===null)?null:(s||0)+(l||0)+(f||0)+(o||0);});
   var totCat=V.meses.map(function(_,i){var h=V.cat.hc[i],p=V.cat.pr[i],c=V.cat.co[i],q=V.cat.qu[i];return(h===null&&p===null&&c===null&&q===null)?null:(h||0)+(p||0)+(c||0)+(q||0);});
-  var totVol=V.meses.map(function(_,i){var s=V.vol.salao[i],l=V.vol.loja[i],f=V.vol.func[i];return(s===null&&l===null&&f===null)?null:(s||0)+(l||0)+(f||0);});
-  var tabelaCanal=buildVendasTable([{label:'Sal\u00e3o',color:'#00B4D8',data:V.canal.salao},{label:'Loja',color:'#1E2D40',data:V.canal.loja},{label:'Funcion\u00e1rio',color:'#5B8DB8',data:V.canal.func}],totCanal,fR);
+  var totVol=V.meses.map(function(_,i){var s=V.vol.salao[i],l=V.vol.loja[i],f=V.vol.func[i],o=V.vol.outros[i];return(s===null&&l===null&&f===null&&o===null)?null:(s||0)+(l||0)+(f||0)+(o||0);});
+  var temOutrosCanal = V.canal.outros.some(function(v){return v!==null && v>0;});
+  var canalRows=[{label:'Sal\u00e3o',color:'#00B4D8',data:V.canal.salao},{label:'Loja',color:'#1E2D40',data:V.canal.loja},{label:'Funcion\u00e1rio',color:'#5B8DB8',data:V.canal.func}];
+  var volRows=[{label:'Sal\u00e3o',color:'#00B4D8',data:V.vol.salao},{label:'Loja',color:'#1E2D40',data:V.vol.loja},{label:'Funcion\u00e1rio',color:'#5B8DB8',data:V.vol.func}];
+  if (temOutrosCanal) { canalRows.push({label:'Outros',color:'#A8C8E0',data:V.canal.outros}); volRows.push({label:'Outros',color:'#A8C8E0',data:V.vol.outros}); }
+  var tabelaCanal=buildVendasTable(canalRows,totCanal,fR);
   var tabelaCat=buildVendasTable([{label:'Home Care',color:'#00B4D8',data:V.cat.hc},{label:'Profissional',color:'#1E2D40',data:V.cat.pr},{label:'Colora\u00e7\u00e3o',color:'#5B8DB8',data:V.cat.co},{label:'Qu\u00edmica',color:'#A8C8E0',data:V.cat.qu}],totCat,fR);
-  var tabelaVol=buildVendasTable([{label:'Sal\u00e3o',color:'#00B4D8',data:V.vol.salao},{label:'Loja',color:'#1E2D40',data:V.vol.loja},{label:'Funcion\u00e1rio',color:'#5B8DB8',data:V.vol.func}],totVol,fN);
+  var tabelaVol=buildVendasTable(volRows,totVol,fN);
   var recTotal=totCanal.reduce(function(a,b){return a+(b||0);},0);
   var volTotalAcum=totVol.reduce(function(a,b){return a+(b||0);},0);
   var melhorMes='\u2014',melhorVal=0;
   V.meses.forEach(function(m,i){if(totCanal[i]&&totCanal[i]>melhorVal){melhorVal=totCanal[i];melhorMes=m;}});
-  var salaoPct=recTotal?Math.round(V.canal.salao.reduce(function(a,b){return a+(b||0);},0)/recTotal*100):62;
+  var salaoTotal=V.canal.salao.reduce(function(a,b){return a+(b||0);},0);
+  var salaoPct=recTotal?Math.round(salaoTotal/recTotal*100):0;
+  var canalLiderNome='Sal\u00e3o', canalLiderPct=salaoPct;
+  ['loja','func','outros'].forEach(function(k,idx){
+    var labels={loja:'Loja',func:'Funcion\u00e1rio',outros:'Outros'};
+    var tot=V.canal[k].reduce(function(a,b){return a+(b||0);},0);
+    var pct=recTotal?Math.round(tot/recTotal*100):0;
+    if (tot>salaoTotal) { canalLiderNome=labels[k]; canalLiderPct=pct; }
+  });
   var fK=function(v){return v>=1e6?'R$ '+(v/1e6).toFixed(2)+'M':'R$ '+Math.round(v/1000)+'K';};
-  return'<div class="kpi-grid">'
+  return vendasFiltrosHTML()
+    +'<div class="kpi-grid">'
     +'<div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">'+fK(recTotal)+'</div><div class="kpi-sub">'+periods.vendas+'</div></div>'
     +'<div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">'+volTotalAcum.toLocaleString('pt-BR')+'</div><div class="kpi-sub">unidades pedidas</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Canal l\u00edder</div><div class="kpi-value" style="font-size:17px">Sal\u00e3o</div><div class="kpi-sub kpi-hi">~'+salaoPct+'% da receita</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Canal l\u00edder</div><div class="kpi-value" style="font-size:17px">'+canalLiderNome+'</div><div class="kpi-sub kpi-hi">~'+canalLiderPct+'% da receita</div></div>'
     +'<div class="kpi"><div class="kpi-label">Melhor m\u00eas</div><div class="kpi-value" style="font-size:17px">'+melhorMes+'</div><div class="kpi-sub kpi-hi">'+fK(melhorVal)+' \u00b7 receita bruta</div></div>'
     +'</div>'
     +'<div class="chart-card"><div class="chart-title">Receita bruta por canal \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras empilhadas em R$</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Sal\u00e3o</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcion\u00e1rio</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartCanal"></canvas></div>'+tabelaCanal+'</div>'
     +'<div class="chart-card"><div class="chart-title">Receita por categoria \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Linhas com valor em R$</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Colora\u00e7\u00e3o</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Qu\u00edmica</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div>'+tabelaCat+'</div>'
     +'<div class="chart-card"><div class="chart-title">Volume de unidades por canal \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras empilhadas em unidades</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Sal\u00e3o</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcion\u00e1rio</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol"></canvas></div>'+tabelaVol+'</div>'
+    +topProdutosHTML()
     +'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
 }
 function initVendas(){
   ['chartCanal','chartCat','chartVol'].forEach(function(id){var c=Chart.getChart(id);if(c)c.destroy();});
   setTimeout(function(){
-    var gc='rgba(255,255,255,0.07)',tc='#8BA0B0',months=['Janeiro','Fevereiro','Mar\u00e7o'];
-    var cD={s:V.canal.salao.slice(0,3),l:V.canal.loja.slice(0,3),f:V.canal.func.slice(0,3)};
-    var catD={hc:V.cat.hc.slice(0,3),p:V.cat.pr.slice(0,3),c:V.cat.co.slice(0,3),q:V.cat.qu.slice(0,3)};
-    var vD={s:V.vol.salao.slice(0,3),l:V.vol.loja.slice(0,3),f:V.vol.func.slice(0,3)};
+    // Meses ativos = qualquer mês com dado em pelo menos um canal (dinâmico, sem hardcode)
+    var idxAtivos=[];
+    V.meses.forEach(function(_,i){
+      if (V.canal.salao[i]!==null||V.canal.loja[i]!==null||V.canal.func[i]!==null||V.canal.outros[i]!==null) idxAtivos.push(i);
+    });
+    if (!idxAtivos.length) idxAtivos=[0,1,2];
+    var MESES_FULL_LOCAL=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var months=idxAtivos.map(function(i){return MESES_FULL_LOCAL[i];});
+    var gc='rgba(255,255,255,0.07)',tc='#8BA0B0';
+    var cD={s:idxAtivos.map(function(i){return V.canal.salao[i];}),l:idxAtivos.map(function(i){return V.canal.loja[i];}),f:idxAtivos.map(function(i){return V.canal.func[i];})};
+    var catD={hc:idxAtivos.map(function(i){return V.cat.hc[i];}),p:idxAtivos.map(function(i){return V.cat.pr[i];}),c:idxAtivos.map(function(i){return V.cat.co[i];}),q:idxAtivos.map(function(i){return V.cat.qu[i];})};
+    var vD={s:idxAtivos.map(function(i){return V.vol.salao[i];}),l:idxAtivos.map(function(i){return V.vol.loja[i];}),f:idxAtivos.map(function(i){return V.vol.func[i];})};
     var fR=function(v){return'R$ '+Math.round(v/1000)+'K';};
     var fN=function(v){return v.toLocaleString('pt-BR');};
-    var pct=function(v,t){return(v/t*100).toFixed(0)+'%';};
+    var pct=function(v,t){return t?(v/t*100).toFixed(0)+'%':'0%';};
     function sTot(data){return data.datasets[0].data.map(function(_,i){return data.datasets.reduce(function(s,ds){return s+(ds.data[i]||0);},0);});}
     function barPlugin(fIn,fTop){return{id:'bp'+Math.random(),afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data,tots=sTot(data);data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(bar,i){var val=ds.data[i];if(!val)return;var h=Math.abs(bar.base-bar.y);if(h<16)return;var cx=bar.x,cy=(bar.y+bar.base)/2,p=pct(val,tots[i]);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(p,cx,cy+7);}else{ctx.font='500 10px sans-serif';ctx.fillText(p,cx,cy);}ctx.restore();});});},afterDraw:function(chart){var ctx=chart.ctx,data=chart.data,sc=chart.scales,tots=sTot(data);ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#E2EAF4';ctx.textAlign='center';tots.forEach(function(t,i){ctx.fillText(fTop(t),sc.x.getPixelForValue(i),sc.y.getPixelForValue(t)-8);});ctx.restore();}};}
     var CC=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
-    var rT=months.map(function(_,i){return cD.s[i]+cD.l[i]+cD.f[i];});
-    var pp={id:'pp',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i],p=pct(val,rT[i]),above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);ctx.restore();});});}};
+    var rT=months.map(function(_,i){return (cD.s[i]||0)+(cD.l[i]||0)+(cD.f[i]||0);});
+    var pp={id:'pp',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i];if(val===null||val===undefined)return;var p=pct(val,rT[i]),above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);ctx.restore();});});}};
     new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:cD.s,backgroundColor:'#00B4D8',stack:'a'},{label:'Loja',data:cD.l,backgroundColor:'#1E2D40',stack:'a'},{label:'Funcion\u00e1rio',data:cD.f,backgroundColor:'#5B8DB8',stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
     new Chart(document.getElementById('chartCat'),{type:'line',plugins:[pp],data:{labels:months,datasets:[{label:'Home Care',data:catD.hc,borderColor:'#00B4D8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Profissional',data:catD.p,borderColor:'#1E2D40',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Colora\u00e7\u00e3o',data:catD.c,borderColor:'#5B8DB8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Qu\u00edmica',data:catD.q,borderColor:'#A8C8E0',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
     new Chart(document.getElementById('chartVol'),{type:'bar',plugins:[barPlugin(fN,fN)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:vD.s,backgroundColor:'#00B4D8',stack:'c'},{label:'Loja',data:vD.l,backgroundColor:'#1E2D40',stack:'c'},{label:'Funcion\u00e1rio',data:vD.f,backgroundColor:'#5B8DB8',stack:'c'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
@@ -451,13 +591,23 @@ function dreHTML(){
   h+='<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
   return h;
 }
-var MG={meses:[],receitaLiq:[],cmv:[],margemBruta:[]};
-function margemHTML(){var pctM=MG.receitaLiq.map(function(rl,i){return parseFloat(((rl-MG.cmv[i])/rl*100).toFixed(1));});var avgM=(pctM.reduce(function(a,b){return a+b;},0)/pctM.length).toFixed(1);var totalRL=MG.receitaLiq.reduce(function(a,b){return a+b;},0);var totalMB=MG.margemBruta.reduce(function(a,b){return a+b;},0);var totalCMV=MG.cmv.reduce(function(a,b){return a+b;},0);var avgMgFrac=parseFloat(avgM)/100;var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'\u2014';var fR=function(v){return'R$ '+(v>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">Jan \u2013 Abr 2026</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia Jan \u2013 Abr</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';}
+function margemHTML(){
+  if (!MG.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
+  var pctM=MG.receitaLiq.map(function(rl,i){return rl?parseFloat(((MG.margemBruta[i])/rl*100).toFixed(1)):0;});
+  var avgM=(pctM.reduce(function(a,b){return a+b;},0)/pctM.length).toFixed(1);
+  var totalRL=MG.receitaLiq.reduce(function(a,b){return a+b;},0);
+  var totalMB=MG.margemBruta.reduce(function(a,b){return a+b;},0);
+  var totalCMV=MG.cmv.reduce(function(a,b){return a+b;},0);
+  var avgMgFrac=parseFloat(avgM)/100;
+  var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'\u2014';
+  var fR=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};
+  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
+}
 function initMargem(){
   var existing=Chart.getChart('chartMargem');if(existing)existing.destroy();
+  if (!MG.meses.length) return;
   setTimeout(function(){
     var tc='#6b7a8d',gc='rgba(0,0,0,0.07)';
-    // % Margem calculada diretamente de margemBruta/receitaLiq (mais precisa)
     var pctM=MG.receitaLiq.map(function(rl,i){
       if(!rl||rl===0) return 0;
       return parseFloat((MG.margemBruta[i]/rl*100).toFixed(1));
