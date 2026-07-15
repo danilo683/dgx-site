@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -298,17 +299,23 @@ function agregarFatoVendas(rows, filtroVendedor, filtroCanal){
 }
 
 // Margem sempre no agregado total (sem filtro de vendedor/canal) — visão gerencial da empresa
+// Margem Bruta precisa bater exatamente com o DRE — mesma fórmula:
+// CMV líquido = Custo Produto (venda) − Política Comercial (todas as linhas)
 function agregarMargem(rows){
   var porMes = {};
   rows.forEach(function(r){
-    if (r.tipo_operacao !== 'venda') return;
     var partes = r.competencia.split('-');
     var mi = parseInt(partes[1], 10) - 1;
     var ano = partes[0];
     var key = mi + '|' + ano;
-    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, rl:0, cmv:0 };
-    porMes[key].rl += parseFloat(r.valor_liquido) || 0;
-    porMes[key].cmv += parseFloat(r.cmv_total) || 0;
+    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, rl:0, custoProduto:0, politica:0 };
+    if (r.tipo_operacao === 'venda') {
+      porMes[key].rl += parseFloat(r.valor_liquido) || 0;
+      porMes[key].custoProduto += parseFloat(r.cmv_total) || 0;
+    }
+    // Política Comercial soma reembolso_total de TODAS as linhas, sem
+    // filtro de tipo — mesmo critério usado no DRE (agregarDRETopline).
+    porMes[key].politica += parseFloat(r.reembolso_total) || 0;
   });
   var chaves = Object.keys(porMes).sort(function(a,b){
     var pa = porMes[a], pb = porMes[b];
@@ -318,10 +325,11 @@ function agregarMargem(rows){
   var MG2 = { meses:[], receitaLiq:[], cmv:[], margemBruta:[] };
   chaves.forEach(function(k){
     var p = porMes[k];
+    var cmvLiquido = p.custoProduto - p.politica; // custo líquido de política comercial
     MG2.meses.push(MESES_L[p.mi] + '/' + String(p.ano).slice(2));
     MG2.receitaLiq.push(p.rl);
-    MG2.cmv.push(p.cmv);
-    MG2.margemBruta.push(p.rl - p.cmv);
+    MG2.cmv.push(cmvLiquido);
+    MG2.margemBruta.push(p.rl - cmvLiquido);
   });
   return MG2;
 }
