@@ -206,9 +206,7 @@ var V = {
   vol:{salao:[],loja:[],func:[],outros:[]}
 };
 var MG = { meses:[], receitaLiq:[], cmv:[], margemBruta:[] };
-var DRE_DADOS = { meses:[], recBruta:[], devDevolucoes:[], impVendas:[], cmv:[],
-  despPessoal:[], despProLabore:[], despMkt:[], despComissoes:[], despLogistica:[],
-  despOcupacao:[], despGerais:[], despTerceiros:[], despImpostos:[], recFinanc:[], despFinanc:[] };
+var DRE_TOPLINE = { meses:[] };
 var DFC_DADOS = [];
 var MESES_COM_DADOS = [];
 
@@ -328,6 +326,63 @@ function agregarMargem(rows){
   return MG2;
 }
 
+// DRE — replica exatamente as fórmulas da aba TOP Line da planilha
+// (validado célula a célula contra a fórmula original do Excel):
+//   Receita Bruta      = SUM(valor_liquido, venda) + SUM(vlr_desconto, venda)
+//   Descontos/Abatim.  = -SUM(vlr_desconto, venda)
+//   Receita Líquida    = SUM(valor_liquido, venda)   [= Receita Bruta + Descontos]
+//   Custo Produto      = -SUM(cmv_total, venda)
+//   Política Comercial = SUM(reembolso_total, TODAS as linhas — sem filtro de tipo)
+//   Margem Bruta       = Receita Líquida + Custo Produto + Política Comercial
+// Trocas/Devoluções e Impostos sobre Vendas (ICMS/PIS/COFINS/Simples) aparecem
+// como 0 na própria TOP Line de origem (não computados pelo Danilo neste
+// nível) — mantidos como linhas informativas zeradas para fidelidade ao DRE.
+function agregarDRETopline(rows){
+  var porMes = {};
+  rows.forEach(function(r){
+    var partes = r.competencia.split('-');
+    var mi = parseInt(partes[1], 10) - 1, ano = partes[0];
+    var key = mi + '|' + ano;
+    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, volume:0, receitaLiquida:0, vlrDesconto:0, custoProduto:0, politicaComercial:0 };
+    var m = porMes[key];
+    if (r.tipo_operacao === 'venda' || r.tipo_operacao === 'bonificacao') {
+      m.volume += parseFloat(r.qtd) || 0;
+    }
+    if (r.tipo_operacao === 'venda') {
+      m.receitaLiquida += parseFloat(r.valor_liquido) || 0;
+      m.vlrDesconto += parseFloat(r.vlr_desconto) || 0;
+      m.custoProduto += parseFloat(r.cmv_total) || 0;
+    }
+    // Política Comercial (verbas de ciclo) soma reembolso_total de TODAS as
+    // linhas, sem filtro de tipo — assim está na fórmula original da TOP Line.
+    m.politicaComercial += parseFloat(r.reembolso_total) || 0;
+  });
+  var chaves = Object.keys(porMes).sort(function(a,b){
+    var pa = porMes[a], pb = porMes[b];
+    return (pa.ano - pb.ano) || (pa.mi - pb.mi);
+  });
+  var MESES_L = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var D = { meses:[], volume:[], receitaBruta:[], descontosAbatimentos:[], receitaLiquida:[], custoProduto:[], politicaComercial:[], cmvTotal:[], margemBruta:[] };
+  chaves.forEach(function(k){
+    var m = porMes[k];
+    var receitaBruta = m.receitaLiquida + m.vlrDesconto;
+    var descontos = -m.vlrDesconto;
+    var custoProduto = -m.custoProduto;
+    var cmvTotal = custoProduto + m.politicaComercial;
+    var margemBruta = m.receitaLiquida + cmvTotal;
+    D.meses.push(MESES_L[m.mi] + '/' + String(m.ano).slice(2));
+    D.volume.push(m.volume);
+    D.receitaBruta.push(receitaBruta);
+    D.descontosAbatimentos.push(descontos);
+    D.receitaLiquida.push(m.receitaLiquida);
+    D.custoProduto.push(custoProduto);
+    D.politicaComercial.push(m.politicaComercial);
+    D.cmvTotal.push(cmvTotal);
+    D.margemBruta.push(margemBruta);
+  });
+  return D;
+}
+
 function refreshVendasEMargem(){
   var agg = agregarFatoVendas(FV_HAWKS, filtroVendedorAtual, filtroCanalAtual);
   V.canal = agg.canal; V.vol = agg.vol; V.cat = agg.cat;
@@ -359,31 +414,12 @@ async function carregarDadosHawks() {
   FV_HAWKS = await fetchFatoVendas('hawks');
   refreshVendasEMargem();
 
-  // DRE — segue alimentado pelos Lançamentos manuais (ainda não migrado para a base única)
-  const {data:dre} = await sb.from('dash_dre').select('*')
-    .eq('cliente_id','hawks').order('competencia',{ascending:true});
-  if (dre && dre.length) {
-    Object.keys(DRE_DADOS).forEach(k => DRE_DADOS[k] = []);
-    dre.forEach(function(r) {
-      var pd = parseComp(r.competencia);
-      DRE_DADOS.meses.push(MESES_LABEL[pd.mes]+'/'+String(pd.ano).slice(2));
-      DRE_DADOS.recBruta.push(n(r.rec_bruta));
-      DRE_DADOS.devDevolucoes.push(n(r.dev_devolucoes));
-      DRE_DADOS.impVendas.push(n(r.imp_vendas));
-      DRE_DADOS.cmv.push(n(r.cmv));
-      DRE_DADOS.despPessoal.push(n(r.desp_pessoal));
-      DRE_DADOS.despProLabore.push(n(r.desp_prolabore));
-      DRE_DADOS.despMkt.push(n(r.desp_mkt));
-      DRE_DADOS.despComissoes.push(n(r.desp_comissoes));
-      DRE_DADOS.despLogistica.push(n(r.desp_logistica));
-      DRE_DADOS.despOcupacao.push(n(r.desp_ocupacao));
-      DRE_DADOS.despGerais.push(n(r.desp_gerais));
-      DRE_DADOS.despTerceiros.push(n(r.desp_terceiros));
-      DRE_DADOS.despImpostos.push(n(r.desp_impostos));
-      DRE_DADOS.recFinanc.push(n(r.rec_financ)||0);
-      DRE_DADOS.despFinanc.push(n(r.desp_financ)||0);
-    });
-  }
+  // DRE — agora recalculado a partir da base única (fato_vendas), replicando
+  // exatamente as fórmulas da aba TOP Line da planilha (Receita Bruta até
+  // Margem Bruta). Despesas operacionais/EBITDA/Lucro Líquido não constam na
+  // TOP Line — removidos por ora, a critério do Danilo.
+  DRE_TOPLINE = agregarDRETopline(FV_HAWKS);
+  if (DRE_TOPLINE.meses.length) periods.dre = DRE_TOPLINE.meses[0] + ' \u2013 ' + DRE_TOPLINE.meses[DRE_TOPLINE.meses.length-1];
 
   // DFC — segue alimentado pelos Lançamentos manuais (ainda não migrado para a base única)
   const {data:dfc} = await sb.from('dash_dfc').select('*')
@@ -408,7 +444,6 @@ async function carregarDadosHawks() {
     });
   }
 
-  if (dre && dre.length > 1) periods.dre = DRE_DADOS.meses[0] + ' \u2013 ' + DRE_DADOS.meses[DRE_DADOS.meses.length-1];
   if (dfc && dfc.length > 1) {
     var p2 = parseComp(dfc[0].competencia), u2 = parseComp(dfc[dfc.length-1].competencia);
     periods.dfc = MESES_LABEL[p2.mes]+' \u2013 '+MESES_LABEL[u2.mes]+' '+u2.ano;
@@ -538,55 +573,49 @@ function initVendas(){
     var CC=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
     var rT=months.map(function(_,i){return (cD.s[i]||0)+(cD.l[i]||0)+(cD.f[i]||0);});
     var pp={id:'pp',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i];if(val===null||val===undefined)return;var p=pct(val,rT[i]),above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(p,pt.x,pt.y+oy+12);ctx.restore();});});}};
-    new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:cD.s,backgroundColor:'#00B4D8',stack:'a'},{label:'Loja',data:cD.l,backgroundColor:'#1E2D40',stack:'a'},{label:'Funcion\u00e1rio',data:cD.f,backgroundColor:'#5B8DB8',stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
+    var maxCanal = Math.max.apply(null, rT.concat([1]));
+    new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:cD.s,backgroundColor:'#00B4D8',stack:'a'},{label:'Loja',data:cD.l,backgroundColor:'#1E2D40',stack:'a'},{label:'Funcion\u00e1rio',data:cD.f,backgroundColor:'#5B8DB8',stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:26}},plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,suggestedMax:maxCanal*1.18,ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
     new Chart(document.getElementById('chartCat'),{type:'line',plugins:[pp],data:{labels:months,datasets:[{label:'Home Care',data:catD.hc,borderColor:'#00B4D8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Profissional',data:catD.p,borderColor:'#1E2D40',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Colora\u00e7\u00e3o',data:catD.c,borderColor:'#5B8DB8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Qu\u00edmica',data:catD.q,borderColor:'#A8C8E0',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
-    new Chart(document.getElementById('chartVol'),{type:'bar',plugins:[barPlugin(fN,fN)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:vD.s,backgroundColor:'#00B4D8',stack:'c'},{label:'Loja',data:vD.l,backgroundColor:'#1E2D40',stack:'c'},{label:'Funcion\u00e1rio',data:vD.f,backgroundColor:'#5B8DB8',stack:'c'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
+    var vTot=months.map(function(_,i){return (vD.s[i]||0)+(vD.l[i]||0)+(vD.f[i]||0);});
+    var maxVol = Math.max.apply(null, vTot.concat([1]));
+    new Chart(document.getElementById('chartVol'),{type:'bar',plugins:[barPlugin(fN,fN)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:vD.s,backgroundColor:'#00B4D8',stack:'c'},{label:'Loja',data:vD.l,backgroundColor:'#1E2D40',stack:'c'},{label:'Funcion\u00e1rio',data:vD.f,backgroundColor:'#5B8DB8',stack:'c'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:26}},plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,suggestedMax:maxVol*1.18,ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
   },100);
 }
 function dreHTML(){
-  var D=DRE_DADOS; var n=D.meses.length;
+  var D=DRE_TOPLINE; var n=D.meses.length;
+  if(!n) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado importado ainda para calcular o DRE.</div>';
   function fv(v){return(!v&&v!==0)||v===0?'\u2014':'R$ '+Math.abs(Math.round(v)).toLocaleString('pt-BR');}
+  function fpct(v,base){return base?((v/base*100).toFixed(1)+'%'):'\u2014';}
   function cls(v){return(!v&&v!==0)||v===0?'':v>0?' class="positive"':' class="negative"';}
-  function row(lbl,vals,rowcls){rowcls=rowcls||'';var tot=vals.reduce(function(a,b){return a+(b||0);},0);
-    return'<tr class="'+rowcls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+cls(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+cls(tot)+'>'+fv(tot)+'</td></tr>';}
-  if(!n) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de DRE cadastrado.</div>';
-  var recLiq=D.meses.map(function(_,i){return D.recBruta[i]+D.devDevolucoes[i]+D.impVendas[i];});
-  var lucBruto=recLiq.map(function(v,i){return v+D.cmv[i];});
-  var despOp=D.meses.map(function(_,i){return D.despPessoal[i]+D.despProLabore[i]+D.despMkt[i]+D.despComissoes[i]+D.despLogistica[i]+D.despOcupacao[i]+D.despGerais[i]+D.despTerceiros[i]+D.despImpostos[i];});
-  var ebitda=lucBruto.map(function(v,i){return v+despOp[i];});
-  var lucLiq=ebitda.map(function(v,i){return v+D.recFinanc[i]+D.despFinanc[i];});
-  var totRL=recLiq.reduce(function(a,b){return a+b;},0);
-  var totLB=lucBruto.reduce(function(a,b){return a+b;},0);
-  var totLL=lucLiq.reduce(function(a,b){return a+b;},0);
+  // rowRL: linha monetária com coluna extra de %RL por mês (estilo TOP Line)
+  function rowRL(lbl,vals,rowcls){rowcls=rowcls||'';
+    var tot=vals.reduce(function(a,b){return a+(b||0);},0);
+    var totRL=D.receitaLiquida.reduce(function(a,b){return a+b;},0);
+    return'<tr class="'+rowcls+'"><td>'+lbl+'</td>'+vals.map(function(v,i){
+      return'<td'+cls(v)+'>'+fv(v)+'</td><td class="v-pct">'+fpct(v,D.receitaLiquida[i])+'</td>';
+    }).join('')+'<td'+cls(tot)+'>'+fv(tot)+'</td><td class="v-pct">'+fpct(tot,totRL)+'</td></tr>';}
+  // rowFixo: linhas informativas sempre zeradas na fonte (Trocas/Impostos) — mostradas por transparência
+  function rowFixo(lbl){var z=D.meses.map(function(){return 0;});
+    return'<tr><td>'+lbl+'</td>'+z.map(function(){return'<td>R$ 0</td><td class="v-pct">0,0%</td>';}).join('')+'<td>R$ 0</td><td class="v-pct">0,0%</td></tr>';}
+  var totRL=D.receitaLiquida.reduce(function(a,b){return a+b;},0);
+  var totMB=D.margemBruta.reduce(function(a,b){return a+b;},0);
+  var totVol=D.volume.reduce(function(a,b){return a+b;},0);
   var fK=function(v){return'R$ '+(Math.abs(v)>=1e6?(v<0?'-':'')+(Math.abs(v)/1e6).toFixed(2)+'M':Math.round(Math.abs(v)/1e3)+'K');};
   var h='<div class="kpi-grid">'
     +'<div class="kpi"><div class="kpi-label">Receita L\u00edquida acum.</div><div class="kpi-value">'+fK(totRL)+'</div><div class="kpi-sub">'+D.meses[0]+' \u2013 '+D.meses[n-1]+'</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Lucro Bruto acum.</div><div class="kpi-value" style="color:'+(totLB>=0?'#2ECC71':'#e24b4a')+'">'+fK(totLB)+'</div><div class="kpi-sub">Mg. bruta: '+(totRL?(totLB/totRL*100).toFixed(1):'0')+'%</div></div>'
-    +'<div class="kpi"><div class="kpi-label">EBITDA acum.</div><div class="kpi-value" style="color:'+(ebitda.reduce(function(a,b){return a+b;},0)>=0?'#2ECC71':'#e24b4a')+'">'+fK(ebitda.reduce(function(a,b){return a+b;},0))+'</div><div class="kpi-sub">Resultado operacional</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Lucro L\u00edquido acum.</div><div class="kpi-value" style="color:'+(totLL>=0?'#2ECC71':'#e24b4a')+'">'+fK(totLL)+'</div><div class="kpi-sub">Mg. l\u00edq.: '+(totRL?(totLL/totRL*100).toFixed(1):'0')+'%</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Volume acum.</div><div class="kpi-value">'+totVol.toLocaleString('pt-BR')+'</div><div class="kpi-sub">unidades (vendas + bonifica\u00e7\u00f5es)</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value" style="color:'+(totMB>=0?'#2ECC71':'#e24b4a')+'">'+fK(totMB)+'</div><div class="kpi-sub">Mg. bruta: '+(totRL?(totMB/totRL*100).toFixed(1):'0')+'%</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Custo Produto acum.</div><div class="kpi-value" style="color:#c0392b">'+fK(D.custoProduto.reduce(function(a,b){return a+b;},0))+'</div><div class="kpi-sub">CMV + Pol\u00edtica Comercial</div></div>'
     +'</div>';
-  h+='<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:260px">Descri\u00e7\u00e3o</th>'+D.meses.map(function(m){return'<th style="min-width:110px">'+m+'</th>';}).join('')+'<th style="min-width:110px">Acum.</th></tr></thead><tbody>';
-  h+=row('(+) Receita Bruta',D.recBruta,'subtotal');
-  h+=row('(-) Devolu\u00e7\u00f5es / Descontos',D.devDevolucoes,'negative');
-  h+=row('(-) Impostos s/ Vendas',D.impVendas,'negative');
-  h+=row('= Receita L\u00edquida',recLiq,'highlight');
-  h+=row('(-) CMV \u2014 Custo Mercadoria',D.cmv,'negative');
-  h+=row('= Lucro Bruto',lucBruto,'highlight');
-  h+='<tr class="separator"><td colspan="'+(n+2)+'"></td></tr>';
-  h+=row('(-) Pessoal',D.despPessoal,'negative');
-  h+=row('(-) Pr\u00f3-labore',D.despProLabore,'negative');
-  h+=row('(-) Marketing',D.despMkt,'negative');
-  h+=row('(-) Comiss\u00f5es',D.despComissoes,'negative');
-  h+=row('(-) Log\u00edstica',D.despLogistica,'negative');
-  h+=row('(-) Ocupa\u00e7\u00e3o',D.despOcupacao,'negative');
-  h+=row('(-) Gerais',D.despGerais,'negative');
-  h+=row('(-) Terceiros',D.despTerceiros,'negative');
-  h+=row('(-) Impostos operacionais',D.despImpostos,'negative');
-  h+=row('= EBITDA',ebitda,'highlight');
-  h+='<tr class="separator"><td colspan="'+(n+2)+'"></td></tr>';
-  h+=row('(+) Receitas financeiras',D.recFinanc);
-  h+=row('(-) Despesas financeiras',D.despFinanc,'negative');
-  h+=row('= LUCRO L\u00cdQUIDO',lucLiq,'highlight');
+  h+='<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE (Receita Bruta \u2192 Margem Bruta) \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div><div class="chart-sub">Calculado a partir da base \u00fanica de vendas, espelhando a l\u00f3gica da aba TOP Line. Despesas operacionais e Lucro L\u00edquido n\u00e3o constam aqui \u2014 seguem fora do DRE por enquanto.</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:240px">Descri\u00e7\u00e3o</th>'+D.meses.map(function(m){return'<th style="min-width:100px">'+m+'</th><th style="min-width:55px">%RL</th>';}).join('')+'<th style="min-width:100px">Acum.</th><th style="min-width:55px">%RL</th></tr></thead><tbody>';
+  h+=rowRL('(+) Receita Bruta',D.receitaBruta,'subtotal');
+  h+=rowRL('(-) Descontos e Abatimentos',D.descontosAbatimentos,'negative');
+  h+=rowFixo('(-) Trocas e Devolu\u00e7\u00f5es');
+  h+=rowFixo('(-) Impostos sobre Vendas (ICMS/PIS/COFINS/Simples)');
+  h+=rowRL('= Receita L\u00edquida',D.receitaLiquida,'highlight');
+  h+=rowRL('(-) Custo Produto (CMV)',D.custoProduto,'negative');
+  h+=rowRL('(+) Pol\u00edtica Comercial (verbas de ciclo)',D.politicaComercial);
+  h+=rowRL('= Margem Bruta',D.margemBruta,'highlight');
   h+='</tbody></table></div></div>';
   h+='<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
   return h;
