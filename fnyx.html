@@ -64,9 +64,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .v-table td.v-empty{color:rgba(255,255,255,0.15)!important}
 .v-table td.v-total{font-weight:600;color:#E2EAF4}
 .v-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.dre-nav{display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px;width:fit-content;margin-bottom:1rem}
-.dre-nav-btn{padding:7px 22px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#6B8BAA;border-radius:6px;transition:all .15s}
-.dre-nav-btn.active{background:#0F1923;color:#E2EAF4;border:0.5px solid #1F3044}
 .dre-outer{background:#162230;border:0.5px solid #1F3044;border-radius:10px;overflow:auto;margin-bottom:.5rem;max-height:520px}
 .dre-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
 .dre-tbl thead{position:sticky;top:0;z-index:2}
@@ -114,6 +111,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-pos{color:#00D4DA!important}
 .dfc-neg{color:#C8B89A!important}
 .confidential{text-align:center;font-size:11px;color:#6B8BAA;margin-top:1.5rem;padding-bottom:1rem}
+.bi-filters{display:flex;align-items:center;gap:10px;margin-bottom:1.1rem;flex-wrap:wrap}
+.bi-filters label{font-size:11px;color:#6B8BAA;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.bi-filters select{font-size:13px;padding:6px 12px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;cursor:pointer;outline:none;max-width:220px}
+.bi-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,180,216,0.15);color:#00B4D8;font-weight:600}
 </style>
 </head>
 <body>
@@ -161,72 +162,189 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 var sb=supabase.createClient('https://mixsehmmwvrbpndavvhp.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw');
 
+// ── VENDAS/MARGEM/DRE — agora vêm da base única (fato_vendas) ──
 var V={meses:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
   canal:{salao:[],perfumaria:[],outros:[]},
   cat:{homecare:[],coloracao:[],tratamento:[],outros:[]},
   volTotal:[]};
-var MG={meses:[],receitaBruta:[],cmvBruto:[],politicaComercial:[],cmvLiquido:[],margBruta:[]};
-var DRE={meses:[],recBruta:[],devDevolucoes:[],impVendas:[],cmv:[],
-  despPessoal:[],despProLabore:[],despMkt:[],despComissoes:[],despLogistica:[],
-  despOcupacao:[],despGerais:[],despTerceiros:[],despImpostos:[],recFinanc:[],despFinanc:[]};
+var DRE_TOPLINE = { meses:[] };   // Receita Bruta -> Margem Bruta (mesma base do Margem)
+
+var FV_FNYX = [];
+var TOP_PRODUTOS = [];
+var VENDEDORES_DISPONIVEIS = [];
+var filtroVendedorAtual = 'todos';
+var filtroCanalAtual = 'todos';
+
+function nf(v){return v!==null&&v!==undefined?parseFloat(v):0;}
+function semAcento(s){ return (s||'').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+// Tipologia real da Fnyx: SALÃO / PERFUMARIA-LOJA-COSMÉTICO / OUTROS
+function normTipologia(t){
+  var s = semAcento(t);
+  if (s.indexOf('SALAO') >= 0) return 'salao';
+  if (s.indexOf('PERFUMARIA') >= 0 || s.indexOf('LOJA') >= 0) return 'perfumaria';
+  return 'outros';
+}
+// Grupo real da Fnyx tem muitas subcategorias — agrupamos nos 4 baldes do dashboard
+function normGrupo(g){
+  var s = semAcento(g);
+  if (s.indexOf('HOME') >= 0) return 'homecare';
+  if (s.indexOf('COLORA') >= 0) return 'coloracao';
+  if (s.indexOf('TRATAMENTO') >= 0) return 'tratamento';
+  return 'outros'; // Tonalizante, Matizador, Água Oxigenada, Pó Descolorante, Revolution, Linha Profissional, Miracle, Queratina, Mask, Cursos...
+}
+
+async function fetchFatoVendas(clienteId){
+  var all = [], from = 0, pageSize = 1000;
+  while (true) {
+    var res = await sb.from('fato_vendas')
+      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,desconto,cmv_total,reembolso_total,margem')
+      .eq('cliente_id', clienteId)
+      .range(from, from + pageSize - 1);
+    if (res.error) { console.error('fetchFatoVendas', res.error); break; }
+    var data = res.data;
+    if (!data || !data.length) break;
+    all = all.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
+}
+
+// Agrega item-a-item em canal/categoria/volume por mês + ranking de produtos.
+// Considera só tipo_operacao = 'venda' (bonificações e devoluções ficam fora
+// das métricas comerciais de Vendas, mesmo critério usado na Hawks).
+function agregarFatoVendas(rows, filtroVendedor, filtroCanal){
+  var canal = { salao:Array(12).fill(null), perfumaria:Array(12).fill(null), outros:Array(12).fill(null) };
+  var cat   = { homecare:Array(12).fill(null), coloracao:Array(12).fill(null), tratamento:Array(12).fill(null), outros:Array(12).fill(null) };
+  var volTotal = Array(12).fill(null);
+  var produtosMap = {};
+  var vendedoresSet = {};
+
+  rows.forEach(function(r){
+    if (r.tipo_operacao !== 'venda') return;
+    if (r.vendedor) vendedoresSet[r.vendedor] = true;
+    if (filtroVendedor !== 'todos' && r.vendedor !== filtroVendedor) return;
+    var c = normTipologia(r.tipologia);
+    if (filtroCanal !== 'todos' && c !== filtroCanal) return;
+    var mi = parseInt(r.competencia.split('-')[1], 10) - 1;
+    if (mi < 0 || mi > 11) return;
+    var val = parseFloat(r.valor_liquido) || 0;
+    var qtd = parseFloat(r.qtd) || 0;
+
+    canal[c][mi] = (canal[c][mi] || 0) + val;
+    volTotal[mi] = (volTotal[mi] || 0) + qtd;
+
+    var g = normGrupo(r.grupo);
+    cat[g][mi] = (cat[g][mi] || 0) + val;
+
+    var sku = r.sku || '(sem SKU)';
+    if (!produtosMap[sku]) produtosMap[sku] = { produto: r.produto || sku, qtd:0, valor:0, cmv:0 };
+    produtosMap[sku].qtd += qtd;
+    produtosMap[sku].valor += val;
+    produtosMap[sku].cmv += (parseFloat(r.cmv_total) || 0);
+  });
+
+  var topProdutos = Object.keys(produtosMap).map(function(k){
+    var p = produtosMap[k];
+    return { sku:k, produto:p.produto, qtd:p.qtd, valor:p.valor, margem: p.valor ? (p.valor - p.cmv) / p.valor : null };
+  }).sort(function(a,b){ return b.valor - a.valor; }).slice(0, 10);
+
+  return { canal:canal, cat:cat, volTotal:volTotal, topProdutos:topProdutos, vendedores: Object.keys(vendedoresSet).sort() };
+}
+
+// DRE/Margem — replica exatamente as fórmulas da aba TOP Line da Fnyx
+// (validado célula a célula contra a fórmula original do Excel):
+//   Receita Bruta      = SUM(valor_liquido, venda) + SUM(desconto, venda)
+//   Descontos/Abatim.  = -(SUM(desconto, venda) + SUM(cmv_total, bonificação))
+//   Trocas/Devoluções  = SUM(valor_liquido, devolução)  [já vem negativo na origem]
+//   Receita Líquida    = Receita Bruta + Descontos + Trocas
+//   Custo Produto      = -(SUM(cmv_total, venda) + SUM(cmv_total, devolução))
+//   Política Comercial = SUM(reembolso_total, venda)  [só "venda", diferente da Hawks]
+//   Margem Bruta       = Receita Líquida + Custo Produto + Política Comercial
+// Diferente da Hawks: aqui devolução É uma devolução de venda real (cliente
+// final) e por isso entra no DRE — confirmado (Razão Social = pessoa física).
+function agregarDRETopline(rows){
+  var porMes = {};
+  rows.forEach(function(r){
+    var partes = r.competencia.split('-');
+    var mi = parseInt(partes[1], 10) - 1, ano = partes[0];
+    var key = mi + '|' + ano;
+    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, volume:0, recLiqVenda:0, descVenda:0, trocasDev:0, cmvVenda:0, cmvDev:0, cmvBonif:0, politica:0 };
+    var m = porMes[key];
+    if (r.tipo_operacao === 'venda' || r.tipo_operacao === 'bonificacao' || r.tipo_operacao === 'devolucao') {
+      m.volume += parseFloat(r.qtd) || 0;
+    }
+    if (r.tipo_operacao === 'venda') {
+      m.recLiqVenda += parseFloat(r.valor_liquido) || 0;
+      m.descVenda += parseFloat(r.desconto) || 0;
+      m.cmvVenda += parseFloat(r.cmv_total) || 0;
+      m.politica += parseFloat(r.reembolso_total) || 0;
+    } else if (r.tipo_operacao === 'bonificacao') {
+      m.cmvBonif += parseFloat(r.cmv_total) || 0;
+    } else if (r.tipo_operacao === 'devolucao') {
+      m.trocasDev += parseFloat(r.valor_liquido) || 0;
+      m.cmvDev += parseFloat(r.cmv_total) || 0;
+    }
+  });
+  var chaves = Object.keys(porMes).sort(function(a,b){
+    var pa = porMes[a], pb = porMes[b];
+    return (pa.ano - pb.ano) || (pa.mi - pb.mi);
+  });
+  var MESES_L = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var D = { meses:[], volume:[], receitaBruta:[], descontosAbatimentos:[], trocasDevolucoes:[], receitaLiquida:[], custoProduto:[], politicaComercial:[], cmvTotal:[], margemBruta:[] };
+  chaves.forEach(function(k){
+    var m = porMes[k];
+    var receitaBruta = m.recLiqVenda + m.descVenda;
+    var descontos = -(m.descVenda + m.cmvBonif);
+    var trocas = m.trocasDev;
+    var receitaLiquida = receitaBruta + descontos + trocas;
+    var custoProduto = -(m.cmvVenda + m.cmvDev);
+    var cmvTotal = custoProduto + m.politica;
+    var margemBruta = receitaLiquida + cmvTotal;
+    D.meses.push(MESES_L[m.mi] + '/' + String(m.ano).slice(2));
+    D.volume.push(m.volume);
+    D.receitaBruta.push(receitaBruta);
+    D.descontosAbatimentos.push(descontos);
+    D.trocasDevolucoes.push(trocas);
+    D.receitaLiquida.push(receitaLiquida);
+    D.custoProduto.push(custoProduto);
+    D.politicaComercial.push(m.politica);
+    D.cmvTotal.push(cmvTotal);
+    D.margemBruta.push(margemBruta);
+  });
+  return D;
+}
+
+function refreshVendasEMargem(){
+  var agg = agregarFatoVendas(FV_FNYX, filtroVendedorAtual, filtroCanalAtual);
+  V.canal = agg.canal; V.cat = agg.cat; V.volTotal = agg.volTotal;
+  TOP_PRODUTOS = agg.topProdutos;
+  VENDEDORES_DISPONIVEIS = agg.vendedores;
+  DRE_TOPLINE = agregarDRETopline(FV_FNYX);
+
+  var idxComDado = [];
+  V.meses.forEach(function(_, i){ if (V.canal.salao[i]!==null || V.canal.perfumaria[i]!==null || V.canal.outros[i]!==null) idxComDado.push(i); });
+  if (idxComDado.length) periods.vendas = V.meses[idxComDado[0]] + ' \u2013 ' + V.meses[idxComDado[idxComDado.length-1]] + ' 2026';
+  if (DRE_TOPLINE.meses.length) { periods.margem = DRE_TOPLINE.meses[0] + ' \u2013 ' + DRE_TOPLINE.meses[DRE_TOPLINE.meses.length-1]; periods.dre = periods.margem; }
+}
+
+// ── DFC — segue manual (Lançamentos), fora do escopo desta fase ──
 var DD={meses:[],caixaInicial:[],recVendas:[],jurosMultas:[],outrasEntOp:[],
   pgtoTruss:[],pgtoNaoTruss:[],pgtoPessoal:[],pgtoProLabore:[],pgtoMkt:[],
   pgtoComissoes:[],pgtoLogistica:[],pgtoOcupacao:[],pgtoGerais:[],pgtoTerceiros:[],
   pgtoImpostos:[],entInvest:[],saiInvest:[],emprestimos:[],pgtoFinanc:[],
   caixaOp:[],caixaInv:[],caixaFin:[],resultado:[],caixaFinal:[]};
 
-function nf(v){return v!==null&&v!==undefined?parseFloat(v):0;}
-
 async function carregarDadosFnyx(){
-  const ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  function lbl(d){return ML[new Date(d).getMonth()]+'/'+String(new Date(d).getFullYear()).slice(2);}
-
-  const{data:vendas}=await sb.from('dash_vendas').select('*').eq('cliente_id','fnyx').order('competencia',{ascending:true});
-  if(vendas&&vendas.length){
-    ['salao','perfumaria','outros'].forEach(k=>V.canal[k]=Array(12).fill(null));
-    ['homecare','coloracao','tratamento','outros'].forEach(k=>V.cat[k]=Array(12).fill(null));
-    V.volTotal=Array(12).fill(null);
-    vendas.forEach(function(r){
-      var mi=new Date(r.competencia).getMonth();
-      V.canal.salao[mi]=nf(r.canal_salao); V.canal.perfumaria[mi]=nf(r.canal_loja)||nf(r.canal_perfumaria);
-      V.cat.homecare[mi]=nf(r.cat_homecare); V.cat.coloracao[mi]=nf(r.cat_coloracao);
-      V.cat.tratamento[mi]=nf(r.cat_tratamento); V.cat.outros[mi]=nf(r.cat_outros);
-      V.volTotal[mi]=nf(r.vol_total);
-    });
-  }
-
-  const{data:margem}=await sb.from('dash_margem').select('*').eq('cliente_id','fnyx').order('competencia',{ascending:true});
-  if(margem&&margem.length){
-    MG.meses=[]; MG.receitaBruta=[]; MG.cmvBruto=[]; MG.politicaComercial=[]; MG.cmvLiquido=[]; MG.margBruta=[];
-    margem.forEach(function(r){
-      MG.meses.push(lbl(r.competencia));
-      MG.receitaBruta.push(nf(r.receita_bruta));
-      MG.cmvBruto.push(nf(r.cmv_bruto));
-      MG.politicaComercial.push(nf(r.politica_comercial));
-      MG.cmvLiquido.push(nf(r.cmv_liquido));
-      MG.margBruta.push(nf(r.margem_bruta));
-    });
-  }
-
-  const{data:dre}=await sb.from('dash_dre').select('*').eq('cliente_id','fnyx').order('competencia',{ascending:true});
-  if(dre&&dre.length){
-    Object.keys(DRE).forEach(k=>DRE[k]=[]);
-    dre.forEach(function(r){
-      DRE.meses.push(lbl(r.competencia));
-      DRE.recBruta.push(nf(r.rec_bruta)); DRE.devDevolucoes.push(nf(r.dev_devolucoes));
-      DRE.impVendas.push(nf(r.imp_vendas)); DRE.cmv.push(nf(r.cmv));
-      DRE.despPessoal.push(nf(r.desp_pessoal)); DRE.despProLabore.push(nf(r.desp_prolabore));
-      DRE.despMkt.push(nf(r.desp_mkt)); DRE.despComissoes.push(nf(r.desp_comissoes));
-      DRE.despLogistica.push(nf(r.desp_logistica)); DRE.despOcupacao.push(nf(r.desp_ocupacao));
-      DRE.despGerais.push(nf(r.desp_gerais)); DRE.despTerceiros.push(nf(r.desp_terceiros));
-      DRE.despImpostos.push(nf(r.desp_impostos)); DRE.recFinanc.push(nf(r.rec_financ));
-      DRE.despFinanc.push(nf(r.desp_financ));
-    });
-  }
+  FV_FNYX = await fetchFatoVendas('fnyx');
+  refreshVendasEMargem();
 
   const{data:dfc}=await sb.from('dash_dfc').select('*').eq('cliente_id','fnyx').order('competencia',{ascending:true});
   if(dfc&&dfc.length){
     Object.keys(DD).forEach(k=>DD[k]=[]);
+    const ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    function lbl(d){var p=d.split('-');return ML[parseInt(p[1],10)-1]+'/'+p[0].slice(2);}
     dfc.forEach(function(r){
       DD.meses.push(lbl(r.competencia));
       DD.caixaInicial.push(nf(r.caixa_inicial)); DD.recVendas.push(nf(r.rec_vendas));
@@ -246,10 +364,8 @@ async function carregarDadosFnyx(){
       DD.resultado.push(fcOp+fcInv+fcFin);
       DD.caixaFinal.push(nf(r.caixa_inicial)+fcOp+fcInv+fcFin);
     });
+    if(dfc.length>1) periods.dfc = DD.meses[0] + ' \u2013 ' + DD.meses[DD.meses.length-1];
   }
-
-  if(vendas&&vendas.length>1){var p=new Date(vendas[0].competencia),u=new Date(vendas[vendas.length-1].competencia);periods.vendas=ML[p.getMonth()]+' – '+ML[u.getMonth()]+' '+u.getFullYear();periods.margem=periods.vendas;}
-  if(dfc&&dfc.length>1){var p2=new Date(dfc[0].competencia),u2=new Date(dfc[dfc.length-1].competencia);periods.dfc=ML[p2.getMonth()]+' – '+ML[u2.getMonth()]+' '+u2.getFullYear();periods.dre=periods.dfc;}
 }
 
 document.addEventListener('DOMContentLoaded',async function(){
@@ -270,7 +386,7 @@ document.addEventListener('DOMContentLoaded',async function(){
 });
 function doLogout(){sb.auth.signOut().then(function(){window.location.href='/clientes';});}
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});if(el)el.classList.add('active');renderPage(page);}
-var periods={vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Abr 2026',dfc:'Jan – Abr 2026'};
+var periods={vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Mar 2026',dfc:'Jan – Abr 2026'};
 function renderPage(page){
   var titles={vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE — Resultado do Exercício',dfc:'DFC — Fluxo de Caixa'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
@@ -278,81 +394,182 @@ function renderPage(page){
   var c=document.getElementById('content');
   if(page==='vendas'){c.innerHTML=vendasHTML();setTimeout(initVendas,80);}
   else if(page==='margem'){c.innerHTML=margemHTML();setTimeout(initMargem,80);}
-  else if(page==='dre'){c.innerHTML=dreHTML();setTimeout(initDRE,80);}
+  else if(page==='dre'){c.innerHTML=dreHTML();}
   else if(page==='dfc'){c.innerHTML=dfcHTML();setTimeout(initDFC,80);}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">🔒</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 function fR(v){return'R$ '+Math.round(v/1000)+'K';}
 function fN(v){return Math.round(v).toLocaleString('pt-BR');}
 function buildVendasTable(rowDefs,totais,fmt){var meses=V.meses;var hasData=meses.map(function(_,i){return totais[i]!==null&&totais[i]>0;});var html='<div style="overflow-x:auto;margin-top:14px"><table class="v-table"><thead><tr><th>Linha</th>'+meses.map(function(m,i){return'<th'+(hasData[i]?'':' class="v-empty"')+'>'+m+'</th><th style="color:#aab"'+(hasData[i]?'':' class="v-empty"')+'>%</th>';}).join('')+'<th>Total</th><th style="color:#aab">%</th></tr></thead><tbody>';rowDefs.forEach(function(r){var tot=r.data.reduce(function(a,b){return a+(b||0);},0);var grandTotal=totais.reduce(function(a,b){return a+(b||0);},0);html+='<tr><td><span class="v-dot" style="background:'+r.color+'"></span>'+r.label+'</td>'+meses.map(function(_,i){var v=r.data[i];var t=totais[i];var pct=(v!==null&&t)?(v/t*100).toFixed(1)+'%':'—';return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(v!==null?fmt(v):'—')+'</td><td class="v-pct'+(hasData[i]?'"':' v-empty"')+'>'+pct+'</td>';}).join('')+'<td class="v-total">'+fmt(tot)+'</td><td class="v-pct">'+(grandTotal>0?(tot/grandTotal*100).toFixed(1)+'%':'—')+'</td></tr>';});var tot=totais.reduce(function(a,b){return a+(b||0);},0);html+='<tr class="v-tot-row"><td>Total</td>'+meses.map(function(_,i){var t=totais[i];return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(t!==null?fmt(t):'—')+'</td><td class="v-pct">100%</td>';}).join('')+'<td class="v-total">'+fmt(tot)+'</td><td class="v-pct">100%</td></tr>';html+='</tbody></table></div>';return html;}
+
+function vendasFiltrosHTML(){
+  var opVendedor = '<option value="todos"'+(filtroVendedorAtual==='todos'?' selected':'')+'>Todos os vendedores</option>'
+    + VENDEDORES_DISPONIVEIS.map(function(v){return '<option value="'+v.replace(/"/g,'&quot;')+'"'+(filtroVendedorAtual===v?' selected':'')+'>'+v+'</option>';}).join('');
+  var canais = [['todos','Todos os canais'],['salao','Sal\u00e3o'],['perfumaria','Perfumaria/Loja']];
+  var opCanal = canais.map(function(c){return '<option value="'+c[0]+'"'+(filtroCanalAtual===c[0]?' selected':'')+'>'+c[1]+'</option>';}).join('');
+  return '<div class="bi-filters">'
+    +'<label>Vendedor</label><select id="bi-sel-vendedor" onchange="vendasFiltroMudou()">'+opVendedor+'</select>'
+    +'<label>Canal</label><select id="bi-sel-canal" onchange="vendasFiltroMudou()">'+opCanal+'</select>'
+    +(filtroVendedorAtual!=='todos'||filtroCanalAtual!=='todos' ? '<span class="bi-tag">Filtro ativo</span>' : '')
+    +'</div>';
+}
+function vendasFiltroMudou(){
+  filtroVendedorAtual = document.getElementById('bi-sel-vendedor').value;
+  filtroCanalAtual = document.getElementById('bi-sel-canal').value;
+  var agg = agregarFatoVendas(FV_FNYX, filtroVendedorAtual, filtroCanalAtual);
+  V.canal = agg.canal; V.cat = agg.cat; V.volTotal = agg.volTotal; TOP_PRODUTOS = agg.topProdutos;
+  document.getElementById('content').innerHTML = vendasHTML();
+  initVendas();
+}
+function topProdutosHTML(){
+  if (!TOP_PRODUTOS.length) return '';
+  var fR2=function(v){return'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var rows = TOP_PRODUTOS.map(function(p){
+    var mg = p.margem!==null ? (p.margem*100).toFixed(1)+'%' : '\u2014';
+    return '<tr><td>'+p.sku+'</td><td style="text-align:left">'+p.produto+'</td><td>'+p.qtd.toLocaleString('pt-BR')+'</td><td>'+fR2(p.valor)+'</td><td>'+mg+'</td></tr>';
+  }).join('');
+  return '<div class="chart-card"><div class="chart-title">Top 10 produtos por receita l\u00edquida</div><div class="chart-sub">Considerando os filtros selecionados acima</div>'
+    +'<div style="overflow-x:auto"><table class="dre-tbl"><thead><tr><th style="text-align:left">SKU</th><th style="text-align:left">Produto</th><th>Qtd.</th><th>Receita l\u00edquida</th><th>Margem</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
 function vendasHTML(){
   var totCanal=V.meses.map(function(_,i){var s=V.canal.salao[i],p=V.canal.perfumaria[i],o=V.canal.outros[i];return(s===null&&p===null&&o===null)?null:(s||0)+(p||0)+(o||0);});
   var totCat=V.meses.map(function(_,i){var h=V.cat.homecare[i],c=V.cat.coloracao[i],t=V.cat.tratamento[i],o=V.cat.outros[i];return(h===null&&c===null&&t===null&&o===null)?null:(h||0)+(c||0)+(t||0)+(o||0);});
-  var tabelaCanal=buildVendasTable([{label:'Salão',color:'#00B4D8',data:V.canal.salao},{label:'Perfumaria/Loja',color:'#1E2D40',data:V.canal.perfumaria}],totCanal,fR);
-  var tabelaCat=buildVendasTable([{label:'Home Care',color:'#00B4D8',data:V.cat.homecare},{label:'Coloração',color:'#1E2D40',data:V.cat.coloracao},{label:'Tratamento',color:'#5B8DB8',data:V.cat.tratamento},{label:'Outros',color:'#A8C8E0',data:V.cat.outros}],totCat,fR);
+  var temOutrosCanal = V.canal.outros.some(function(v){return v!==null && v>0;});
+  var canalRows=[{label:'Sal\u00e3o',color:'#00B4D8',data:V.canal.salao},{label:'Perfumaria/Loja',color:'#1E2D40',data:V.canal.perfumaria}];
+  if (temOutrosCanal) canalRows.push({label:'Outros',color:'#A8C8E0',data:V.canal.outros});
+  var tabelaCanal=buildVendasTable(canalRows,totCanal,fR);
+  var tabelaCat=buildVendasTable([{label:'Home Care',color:'#00B4D8',data:V.cat.homecare},{label:'Colora\u00e7\u00e3o',color:'#1E2D40',data:V.cat.coloracao},{label:'Tratamento',color:'#5B8DB8',data:V.cat.tratamento},{label:'Outros',color:'#A8C8E0',data:V.cat.outros}],totCat,fR);
   var recTotal=totCanal.reduce(function(a,b){return a+(b||0);},0);
   var volTotal=V.volTotal.reduce(function(a,b){return a+(b||0);},0);
   var melhorMes='—'; var melhorVal=0;
   V.meses.forEach(function(m,i){if(totCanal[i]&&totCanal[i]>melhorVal){melhorVal=totCanal[i];melhorMes=m;}});
   var fK=function(v){return v>=1e6?'R$ '+(v/1e6).toFixed(2)+'M':'R$ '+Math.round(v/1000)+'K';};
-  var salaoPct=recTotal?Math.round(V.canal.salao.reduce(function(a,b){return a+(b||0);},0)/recTotal*100):85;
-  return'<div class="kpi-grid">'
+  var salaoTotal = V.canal.salao.reduce(function(a,b){return a+(b||0);},0);
+  var salaoPct=recTotal?Math.round(salaoTotal/recTotal*100):0;
+  return vendasFiltrosHTML()
+    +'<div class="kpi-grid">'
     +'<div class="kpi"><div class="kpi-label">Receita bruta acumulada</div><div class="kpi-value">'+fK(recTotal)+'</div><div class="kpi-sub">'+periods.vendas+'</div></div>'
     +'<div class="kpi"><div class="kpi-label">Volume total</div><div class="kpi-value">'+volTotal.toLocaleString('pt-BR')+'</div><div class="kpi-sub">unidades pedidas</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Canal líder</div><div class="kpi-value" style="font-size:17px">Salão</div><div class="kpi-sub kpi-hi">~'+salaoPct+'% da receita</div></div>'
-    +'<div class="kpi"><div class="kpi-label">Melhor mês</div><div class="kpi-value" style="font-size:17px">'+melhorMes+'</div><div class="kpi-sub kpi-hi">'+fK(melhorVal)+' de receita bruta</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Canal l\u00edder</div><div class="kpi-value" style="font-size:17px">Sal\u00e3o</div><div class="kpi-sub kpi-hi">~'+salaoPct+'% da receita</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Melhor m\u00eas</div><div class="kpi-value" style="font-size:17px">'+melhorMes+'</div><div class="kpi-sub kpi-hi">'+fK(melhorVal)+' de receita bruta</div></div>'
     +'</div>'
-    +'<div class="chart-card"><div class="chart-title">Receita bruta por canal — mês a mês</div><div class="chart-sub">Barras empilhadas em R$</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Salão</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Perfumaria/Loja</span></div><div style="height:250px;position:relative"><canvas id="chartCanal"></canvas></div>'+tabelaCanal+'</div>'
-    +'<div class="chart-card"><div class="chart-title">Receita por categoria — mês a mês</div><div class="chart-sub">Linhas com valor em R$</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Coloração</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Tratamento</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Outros</span></div><div style="height:280px;position:relative"><canvas id="chartCat"></canvas></div>'+tabelaCat+'</div>'
-    +'<div class="chart-card"><div class="chart-title">Volume de unidades total — mês a mês</div><div class="chart-sub">Unidades pedidas por mês</div><div style="height:200px;position:relative"><canvas id="chartVol"></canvas></div></div>'
-    +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · Não compartilhar</div>';
+    +'<div class="chart-card"><div class="chart-title">Receita bruta por canal — m\u00eas a m\u00eas</div><div class="chart-sub">Barras empilhadas em R$</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Sal\u00e3o</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Perfumaria/Loja</span></div><div style="height:250px;position:relative"><canvas id="chartCanal"></canvas></div>'+tabelaCanal+'</div>'
+    +'<div class="chart-card"><div class="chart-title">Receita por categoria — m\u00eas a m\u00eas</div><div class="chart-sub">Linhas com valor em R$</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Colora\u00e7\u00e3o</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Tratamento</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Outros</span></div><div style="height:280px;position:relative"><canvas id="chartCat"></canvas></div>'+tabelaCat+'</div>'
+    +'<div class="chart-card"><div class="chart-title">Volume de unidades total — m\u00eas a m\u00eas</div><div class="chart-sub">Unidades pedidas por m\u00eas</div><div style="height:200px;position:relative"><canvas id="chartVol"></canvas></div></div>'
+    +topProdutosHTML()
+    +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
 }
 function initVendas(){
   ['chartCanal','chartCat','chartVol'].forEach(function(id){var c=Chart.getChart(id);if(c)c.destroy();});
-  var gc='rgba(255,255,255,0.07)',tc='#8BA0B0',months=['Janeiro','Fevereiro','Março'];
+  var idxAtivos=[];
+  V.meses.forEach(function(_,i){ if (V.canal.salao[i]!==null||V.canal.perfumaria[i]!==null||V.canal.outros[i]!==null) idxAtivos.push(i); });
+  if (!idxAtivos.length) idxAtivos=[0,1,2];
+  var MESES_FULL_LOCAL=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var months=idxAtivos.map(function(i){return MESES_FULL_LOCAL[i];});
+  var gc='rgba(255,255,255,0.07)',tc='#8BA0B0';
   function barTotals(datasets){return months.map(function(_,i){return datasets.reduce(function(s,ds){return s+(ds.data[i]||0);},0);});}
-  function barPlugin(fIn,fTop){return{id:'bp'+Math.random(),afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data,tots=barTotals(data.datasets);data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(bar,i){var val=ds.data[i];if(!val)return;var h=Math.abs(bar.base-bar.y);if(h<16)return;var cx=bar.x,cy=(bar.y+bar.base)/2,pct=(val/tots[i]*100).toFixed(0)+'%';ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(pct,cx,cy+7);}else{ctx.font='500 10px sans-serif';ctx.fillText(pct,cx,cy);}ctx.restore();});});},afterDraw:function(chart){var ctx=chart.ctx,tots=barTotals(chart.data.datasets),sc=chart.scales;ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#333';ctx.textAlign='center';tots.forEach(function(t,i){ctx.fillText(fTop(t),sc.x.getPixelForValue(i),sc.y.getPixelForValue(t)-8);});ctx.restore();}};}
-  var cD={s:V.canal.salao.slice(0,3),p:V.canal.perfumaria.slice(0,3)};
-  var catD={h:V.cat.homecare.slice(0,3),c:V.cat.coloracao.slice(0,3),t:V.cat.tratamento.slice(0,3),o:V.cat.outros.slice(0,3)};
-  var totCatM=months.map(function(_,i){return catD.h[i]+catD.c[i]+catD.t[i]+catD.o[i];});
-  var ppCat={id:'ppCat',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i],pct=(val/totCatM[i]*100).toFixed(0)+'%',above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=[{c:'#00B4D8'},{c:'#1E2D40'},{c:'#5B8DB8'},{c:'#A8C8E0'}][di].c;ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(pct,pt.x,pt.y+oy+12);ctx.restore();});});}};
-  new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Salão',data:cD.s,backgroundColor:'#00B4D8',stack:'a'},{label:'Perfumaria/Loja',data:cD.p,backgroundColor:'#1E2D40',stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
-  new Chart(document.getElementById('chartCat'),{type:'line',plugins:[ppCat],data:{labels:months,datasets:[{label:'Home Care',data:catD.h,borderColor:'#00B4D8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Coloração',data:catD.c,borderColor:'#1E2D40',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Tratamento',data:catD.t,borderColor:'#5B8DB8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Outros',data:catD.o,borderColor:'#A8C8E0',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
-  new Chart(document.getElementById('chartVol'),{type:'bar',data:{labels:months,datasets:[{label:'Volume',data:V.volTotal.slice(0,3),backgroundColor:'#00B4D8',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
+  function barPlugin(fIn,fTop){return{id:'bp'+Math.random(),afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data,tots=barTotals(data.datasets);data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(bar,i){var val=ds.data[i];if(!val)return;var h=Math.abs(bar.base-bar.y);if(h<16)return;var cx=bar.x,cy=(bar.y+bar.base)/2,pct=(tots[i]?(val/tots[i]*100).toFixed(0):'0')+'%';ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';if(h>38){ctx.font='500 11px sans-serif';ctx.fillText(fIn(val),cx,cy-7);ctx.font='400 10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(pct,cx,cy+7);}else{ctx.font='500 10px sans-serif';ctx.fillText(pct,cx,cy);}ctx.restore();});});},afterDraw:function(chart){var ctx=chart.ctx,tots=barTotals(chart.data.datasets),sc=chart.scales;ctx.save();ctx.font='500 11px sans-serif';ctx.fillStyle='#E2EAF4';ctx.textAlign='center';tots.forEach(function(t,i){ctx.fillText(fTop(t),sc.x.getPixelForValue(i),sc.y.getPixelForValue(t)-8);});ctx.restore();}};}
+  var cD={s:idxAtivos.map(function(i){return V.canal.salao[i];}),p:idxAtivos.map(function(i){return V.canal.perfumaria[i];})};
+  var catD={h:idxAtivos.map(function(i){return V.cat.homecare[i];}),c:idxAtivos.map(function(i){return V.cat.coloracao[i];}),t:idxAtivos.map(function(i){return V.cat.tratamento[i];}),o:idxAtivos.map(function(i){return V.cat.outros[i];})};
+  var volD=idxAtivos.map(function(i){return V.volTotal[i];});
+  var totCatM=months.map(function(_,i){return (catD.h[i]||0)+(catD.c[i]||0)+(catD.t[i]||0)+(catD.o[i]||0);});
+  var CC=['#00B4D8','#1E2D40','#5B8DB8','#A8C8E0'];
+  var ppCat={id:'ppCat',afterDatasetsDraw:function(chart){var ctx=chart.ctx,data=chart.data;data.datasets.forEach(function(ds,di){chart.getDatasetMeta(di).data.forEach(function(pt,i){var val=ds.data[i];if(val===null||val===undefined)return;var pct=(totCatM[i]?(val/totCatM[i]*100).toFixed(0):'0')+'%',above=di<2,oy=above?-22:14;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=CC[di];ctx.font='500 10px sans-serif';ctx.fillText(fR(val),pt.x,pt.y+oy);ctx.fillStyle='rgba(80,80,80,0.85)';ctx.font='400 10px sans-serif';ctx.fillText(pct,pt.x,pt.y+oy+12);ctx.restore();});});}};
+  new Chart(document.getElementById('chartCanal'),{type:'bar',plugins:[barPlugin(fR,fR)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:cD.s,backgroundColor:'#00B4D8',stack:'a'},{label:'Perfumaria/Loja',data:cD.p,backgroundColor:'#1E2D40',stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
+  new Chart(document.getElementById('chartCat'),{type:'line',plugins:[ppCat],data:{labels:months,datasets:[{label:'Home Care',data:catD.h,borderColor:'#00B4D8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#00B4D8',borderWidth:2.5},{label:'Colora\u00e7\u00e3o',data:catD.c,borderColor:'#1E2D40',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#1E2D40',borderWidth:2.5},{label:'Tratamento',data:catD.t,borderColor:'#5B8DB8',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#5B8DB8',borderWidth:2.5},{label:'Outros',data:catD.o,borderColor:'#A8C8E0',fill:false,tension:0.35,pointRadius:6,pointBackgroundColor:'#A8C8E0',borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:20}},plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:fR},grid:{color:gc}}}}});
+  new Chart(document.getElementById('chartVol'),{type:'bar',data:{labels:months,datasets:[{label:'Volume',data:volD,backgroundColor:'#00B4D8',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
 }
-var MG={meses:['Jan/26','Fev/26','Mar/26'],receitaBruta:[339114,333502,258585],cmvBruto:[-264340,-241334,-173811],politicaComercial:[31510,28302,24154],cmvLiquido:[-232830,-213032,-149657],margBruta:[106284,120470,108928]};
-function margemHTML(){var totRB=MG.receitaBruta.reduce(function(a,b){return a+b;},0);var totCMV=MG.cmvLiquido.reduce(function(a,b){return a+b;},0);var totMB=MG.margBruta.reduce(function(a,b){return a+b;},0);var avgMg=(totMB/totRB*100).toFixed(1);var avgMgFrac=parseFloat(avgMg)/100;var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'—';var fK=function(v){var a=Math.abs(v);return(v<0?'-':'')+'R$ '+Math.round(a/1000)+'K';};return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita Bruta acum.</div><div class="mg-kpi-value">'+fK(totRB)+'</div><div class="mg-kpi-sub">Jan – Mar 2026</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV líquido acum.</div><div class="mg-kpi-value" style="color:#c0392b">'+fK(totCMV)+'</div><div class="mg-kpi-sub">Após política comercial</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value" style="color:#006d8f">'+fK(totMB)+'</div><div class="mg-kpi-sub">Rec. Bruta + CMV liq.</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta média</div><div class="mg-kpi-value" style="color:#006d8f">'+avgMg+'%</div><div class="mg-kpi-sub">Média Jan – Mar</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup médio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 ÷ (1 − margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita Bruta, CMV e Margem Bruta — mês a mês</div><div class="chart-sub">Barras: Rec. Bruta (azul) e CMV líquido (vermelho) · Linha verde: % Margem Bruta</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Receita Bruta</span><span class="leg"><span class="leg-dot" style="background:#c0392b"></span>CMV Líquido</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div style="height:300px;position:relative"><canvas id="chartMargem"></canvas></div></div>'+'<div class="chart-card"><div class="chart-title">Evolução da % Margem Bruta</div><div class="chart-sub">A margem subiu de 31,3% em janeiro para 42,1% em março</div><div style="height:180px;position:relative"><canvas id="chartMgEvol"></canvas></div></div>'+'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · Não compartilhar</div>';}
+
+// ============================================================
+// MARGEM — mesma base de dados do DRE (Receita Bruta -> Margem Bruta),
+// apresentada no estilo visual original de Margem da Fnyx.
+// ============================================================
+function margemHTML(){
+  var D = DRE_TOPLINE;
+  if (!D.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
+  var totRB=D.receitaBruta.reduce(function(a,b){return a+b;},0);
+  var totCMV=D.cmvTotal.reduce(function(a,b){return a+b;},0);
+  var totMB=D.margemBruta.reduce(function(a,b){return a+b;},0);
+  var avgMg=totRB?(totMB/totRB*100).toFixed(1):'0';
+  var avgMgFrac=parseFloat(avgMg)/100;
+  var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'—';
+  var fK=function(v){var a=Math.abs(v);return(v<0?'-':'')+'R$ '+(a>=1e6?(a/1e6).toFixed(2)+'M':Math.round(a/1000)+'K');};
+  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita Bruta acum.</div><div class="mg-kpi-value">'+fK(totRB)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV l\u00edquido acum.</div><div class="mg-kpi-value" style="color:#c0392b">'+fK(totCMV)+'</div><div class="mg-kpi-sub">Ap\u00f3s pol\u00edtica comercial</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value" style="color:#006d8f">'+fK(totMB)+'</div><div class="mg-kpi-sub">Rec. Bruta + CMV liq.</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value" style="color:#006d8f">'+avgMg+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'
+  +'<div class="chart-card"><div class="chart-title">Receita Bruta, CMV e Margem Bruta — m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Rec. Bruta (azul) e CMV l\u00edquido (vermelho) · Linha verde: % Margem Bruta</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Receita Bruta</span><span class="leg"><span class="leg-dot" style="background:#c0392b"></span>CMV L\u00edquido</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div style="height:300px;position:relative"><canvas id="chartMargem"></canvas></div></div>'
+  +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
+}
 function initMargem(){
-  destroyChart('chartMargem');destroyChart('chartMgEvol');
+  destroyChart('chartMargem');
+  var D = DRE_TOPLINE;
+  if (!D.meses.length) return;
   var tc='#6b7a8d',gc='rgba(0,0,0,0.07)';
-  var pctM=MG.receitaBruta.map(function(rb,i){return parseFloat((MG.margBruta[i]/rb*100).toFixed(1));});
+  var pctM=D.receitaBruta.map(function(rb,i){return rb?parseFloat((D.margemBruta[i]/rb*100).toFixed(1)):0;});
+  var pctMin=Math.max(0, Math.floor(Math.min.apply(null,pctM)-5));
+  var pctMax=Math.ceil(Math.max.apply(null,pctM)+5);
   var fK=function(v){return'R$ '+Math.round(Math.abs(v)/1000)+'K';};
   var annotPlugin={id:'annotMargem',afterDatasetsDraw:function(chart){var ctx=chart.ctx;chart.getDatasetMeta(0).data.forEach(function(bar,i){ctx.save();ctx.font='600 11px sans-serif';ctx.fillStyle='#2ECC71';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(pctM[i].toFixed(1)+'%',bar.x,bar.y-4);ctx.restore();});}};
-  new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:MG.meses,datasets:[{label:'Receita Bruta',data:MG.receitaBruta,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV Líquido',data:MG.cmvLiquido.map(function(v){return Math.abs(v);}),backgroundColor:'#c0392b',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fK(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:25,max:50,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
-  new Chart(document.getElementById('chartMgEvol'),{type:'line',data:{labels:MG.meses,datasets:[{label:'% Margem Bruta',data:pctM,borderColor:'#00B4D8',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#00B4D8',pointBorderColor:'#fff',pointBorderWidth:2,fill:true,backgroundColor:'rgba(0,180,216,0.08)',tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{min:25,max:50,grid:{color:gc},ticks:{color:tc,callback:function(v){return v+'%';}}}}}});
+  new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:D.meses,datasets:[{label:'Receita Bruta',data:D.receitaBruta,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV L\u00edquido',data:D.cmvTotal.map(function(v){return Math.abs(v);}),backgroundColor:'#c0392b',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fK(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:pctMin,max:pctMax,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
 }
-function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
-var DRE={meses:['Jan/26','Fev/26','Mar/26','Abr/26'],recBruta:[527420,348260,505320,516140],devDevolucoes:[-18460,-12090,-17690,-18090],impVendas:[-52740,-34830,-50530,-51610],cmv:[-316380,-208960,-303190,-309690],despPessoal:[-60962,-56153,-57599,-24847],despProLabore:[-16001,-16013,-8200,-9563],despMkt:[-838,-11036,-1432,-3216],despComissoes:[0,0,0,-39019],despLogistica:[-6722,-6775,-6362,-6641],despOcupacao:[-6201,-5488,-6901,-6416],despGerais:[-7774,-11586,-11125,-13214],despTerceiros:[-21445,-9292,-13277,-7789],despImpostos:[-6213,-5460,-4300,-7711],recFinanc:[0,0,0,0],despFinanc:[-27037,-4184,-52983,-43453]};
-function dreCalc(){var D=DRE,res={};res.recLiq=D.meses.map(function(_,i){return D.recBruta[i]+D.devDevolucoes[i]+D.impVendas[i];});res.lucBruto=res.recLiq.map(function(v,i){return v+D.cmv[i];});res.despOpTotal=D.meses.map(function(_,i){return D.despPessoal[i]+D.despProLabore[i]+D.despMkt[i]+D.despComissoes[i]+D.despLogistica[i]+D.despOcupacao[i]+D.despGerais[i]+D.despTerceiros[i]+D.despImpostos[i];});res.ebitda=res.lucBruto.map(function(v,i){return v+res.despOpTotal[i];});res.resFinanc=D.meses.map(function(_,i){return D.recFinanc[i]+D.despFinanc[i];});res.lucLiq=res.ebitda.map(function(v,i){return v+res.resFinanc[i];});res.margBruta=res.lucBruto.map(function(v,i){return res.recLiq[i]?v/res.recLiq[i]:0;});res.margEbitda=res.ebitda.map(function(v,i){return res.recLiq[i]?v/res.recLiq[i]:0;});res.margLiq=res.lucLiq.map(function(v,i){return res.recLiq[i]?v/res.recLiq[i]:0;});return res;}
+
+// ============================================================
+// DRE — Receita Bruta -> Margem Bruta, calculado a partir da base
+// única. Despesas operacionais/EBITDA/Lucro L\u00edquido n\u00e3o constam
+// na TOP Line (mesma decis\u00e3o tomada para a Hawks) — removidos por
+// ora; a antiga se\u00e7\u00e3o mostrava dados de demonstra\u00e7\u00e3o, n\u00e3o reais.
+// ============================================================
 function fmtK(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';return(v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');}
 function pct(v){return(v*100).toFixed(1)+'%';}
-function dreHTML(){return'<div class="dre-nav"><button class="dre-nav-btn active" onclick="dreSetView(\'mensal\',this)">Mensal</button><button class="dre-nav-btn" onclick="dreSetView(\'acumulado\',this)">Acumulado</button></div><div id="dre-mensal"><div class="kpi-grid" id="dre-kpis"></div><div class="chart-card"><div class="chart-title">Receita Líquida, Lucro Bruto e Lucro Líquido</div><div class="chart-sub">Evolução mensal</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1a6fa8"></span>Rec. Líquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Luc. Bruto</span><span class="leg"><span class="leg-dot" style="background:#0a7c59"></span>EBITDA</span><span class="leg"><span class="leg-dot" style="background:#c0392b"></span>Luc. Líquido</span></div><div style="height:220px;position:relative"><canvas id="dre-receitas-chart"></canvas></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px"><div class="chart-card" style="margin-bottom:0"><div class="chart-title">Margens (%)</div><div class="chart-sub">Bruta · EBITDA · Líquida</div><div style="height:180px;position:relative"><canvas id="dre-margens-chart"></canvas></div></div><div class="chart-card" style="margin-bottom:0"><div class="chart-title">Composição das despesas</div><div class="chart-sub">Distribuição por categoria</div><div style="height:180px;position:relative"><canvas id="dre-desp-pizza"></canvas></div></div></div><div class="dre-outer"><table class="dre-tbl" id="dre-tabela"></table></div></div><div id="dre-acumulado" style="display:none"><div class="kpi-grid" id="dre-kpis-acum"></div><div class="chart-card"><div class="chart-title">Cascata de resultado — Jan–Abr</div><div class="chart-sub">Da Receita Bruta ao Lucro Líquido</div><div style="height:250px;position:relative"><canvas id="dre-waterfall"></canvas></div></div></div><div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · Não compartilhar</div>';}
-function initDRE(){var R=dreCalc();renderDREKPIs(R);renderDREReceitas(R);renderDREMargens(R);renderDREDespPizza();renderDRETabela(R);}
-function renderDREKPIs(R){var i=3;var kpis=[{label:'Receita Líq. Abr/26',value:R.recLiq[i],sub:'Após devoluções e impostos',color:'#1a6fa8'},{label:'Lucro Bruto Abr/26',value:R.lucBruto[i],sub:'Marg. bruta: '+pct(R.margBruta[i]),color:R.lucBruto[i]>=0?'#0a7c59':'#c0392b'},{label:'EBITDA Abr/26',value:R.ebitda[i],sub:'Marg. EBITDA: '+pct(R.margEbitda[i]),color:R.ebitda[i]>=0?'#0a7c59':'#c0392b'},{label:'Lucro Líq. Abr/26',value:R.lucLiq[i],sub:'Marg. líq.: '+pct(R.margLiq[i]),color:R.lucLiq[i]>=0?'#0a7c59':'#c0392b'}];document.getElementById('dre-kpis').innerHTML=kpis.map(function(k){return'<div class="kpi" style="border-left-color:'+k.color+'"><div class="kpi-label">'+k.label+'</div><div class="kpi-value" style="color:'+k.color+'">'+fmtK(k.value)+'</div><div class="kpi-sub">'+k.sub+'</div></div>';}).join('');}
-function renderDREReceitas(R){destroyChart('dre-receitas-chart');new Chart(document.getElementById('dre-receitas-chart'),{type:'bar',data:{labels:DRE.meses,datasets:[{label:'Rec. Líquida',data:R.recLiq,backgroundColor:'rgba(26,111,168,0.18)',borderColor:'#1a6fa8',borderWidth:2,borderRadius:4,order:2},{label:'Luc. Bruto',data:R.lucBruto,backgroundColor:'rgba(0,180,216,0.18)',borderColor:'#00B4D8',borderWidth:2,borderRadius:4,order:2},{label:'EBITDA',data:R.ebitda,type:'line',borderColor:'#0a7c59',borderWidth:2.5,pointRadius:5,pointBackgroundColor:R.ebitda.map(function(v){return v>=0?'#0a7c59':'#c0392b';}),fill:false,order:1},{label:'Luc. Líquido',data:R.lucLiq,type:'line',borderColor:'#c0392b',borderDash:[5,3],borderWidth:2,pointRadius:5,pointBackgroundColor:R.lucLiq.map(function(v){return v>=0?'#0a7c59':'#c0392b';}),fill:false,order:1}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6b7a8d',callback:function(v){return fmtK(v);}}}}}});}
-function renderDREMargens(R){destroyChart('dre-margens-chart');new Chart(document.getElementById('dre-margens-chart'),{type:'line',data:{labels:DRE.meses,datasets:[{label:'Mg. Bruta',data:R.margBruta.map(function(v){return+(v*100).toFixed(1);}),borderColor:'#00B4D8',borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#00B4D8',fill:false,tension:0.3},{label:'Mg. EBITDA',data:R.margEbitda.map(function(v){return+(v*100).toFixed(1);}),borderColor:'#0a7c59',borderWidth:2,pointRadius:5,pointBackgroundColor:'#0a7c59',fill:false,tension:0.3},{label:'Mg. Líq.',data:R.margLiq.map(function(v){return+(v*100).toFixed(1);}),borderColor:'#c0392b',borderDash:[5,3],borderWidth:2,pointRadius:5,pointBackgroundColor:'#c0392b',fill:false,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#6b7a8d',boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6b7a8d',callback:function(v){return v+'%';}}}}}});}
-function renderDREDespPizza(){var D=DRE;var cats=[{label:'Pessoal+Pró-lab.',value:Math.abs(D.despPessoal.reduce(function(a,b){return a+b;},0)+D.despProLabore.reduce(function(a,b){return a+b;},0)),color:'#1a6fa8'},{label:'Comissões',value:Math.abs(D.despComissoes.reduce(function(a,b){return a+b;},0)),color:'#00B4D8'},{label:'Terceiros',value:Math.abs(D.despTerceiros.reduce(function(a,b){return a+b;},0)),color:'#6DB8D8'},{label:'Impostos op.',value:Math.abs(D.despImpostos.reduce(function(a,b){return a+b;},0)),color:'#f39c12'},{label:'Logística',value:Math.abs(D.despLogistica.reduce(function(a,b){return a+b;},0)),color:'#2ecc71'},{label:'Gerais',value:Math.abs(D.despGerais.reduce(function(a,b){return a+b;},0)),color:'#9b59b6'},{label:'Ocupação',value:Math.abs(D.despOcupacao.reduce(function(a,b){return a+b;},0)),color:'#e67e22'},{label:'Marketing',value:Math.abs(D.despMkt.reduce(function(a,b){return a+b;},0)),color:'#e74c3c'}];destroyChart('dre-desp-pizza');new Chart(document.getElementById('dre-desp-pizza'),{type:'doughnut',data:{labels:cats.map(function(c){return c.label;}),datasets:[{data:cats.map(function(c){return c.value;}),backgroundColor:cats.map(function(c){return c.color;}),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{font:{size:10},color:'#6b7a8d',boxWidth:10,padding:6}}}}});}
-function renderDRETabela(R){var D=DRE,n=D.meses.length;function fv(v){return v===0?'—':fmtK(v);}function cls(v){return v===0?'':v>0?' class="pos"':' class="neg"';}function row(lbl,vals,rowcls){rowcls=rowcls||'';var tot=vals.reduce(function(a,b){return a+b;},0);return'<tr class="'+rowcls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+cls(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+cls(tot)+'>'+fv(tot)+'</td></tr>';}function pctRow(lbl,vals,baseVals){var tot=vals.reduce(function(a,b){return a+b;},0),totB=baseVals.reduce(function(a,b){return a+b;},0);return'<tr class="dre-pct"><td>'+lbl+'</td>'+vals.map(function(v,i){return'<td>'+(baseVals[i]?pct(v/baseVals[i]):'—')+'</td>';}).join('')+'<td>'+(totB?pct(tot/totB):'—')+'</td></tr>';}var h='<thead><tr><th style="min-width:260px;text-align:left">Linha</th>'+D.meses.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Acum.</th></tr></thead><tbody>';h+='<tr class="dre-grp"><td colspan="'+(n+2)+'">Receita</td></tr>';h+=row('(+) Receita Bruta',D.recBruta);h+=row('(-) Devoluções',D.devDevolucoes);h+=row('(-) Impostos s/ vendas',D.impVendas);h+=row('= Receita Líquida',R.recLiq,'dre-sub');h+=pctRow('% s/ Rec. Bruta',R.recLiq,D.recBruta);h+='<tr class="dre-grp"><td colspan="'+(n+2)+'">Custo</td></tr>';h+=row('(-) CMV',D.cmv);h+=row('= Lucro Bruto',R.lucBruto,'dre-sub');h+=pctRow('Margem bruta',R.lucBruto,R.recLiq);h+='<tr class="dre-grp"><td colspan="'+(n+2)+'">Despesas Operacionais</td></tr>';h+=row('(-) Pessoal',D.despPessoal);h+=row('(-) Pró-labore',D.despProLabore);h+=row('(-) Marketing',D.despMkt);h+=row('(-) Comissões',D.despComissoes);h+=row('(-) Logística',D.despLogistica);h+=row('(-) Ocupação',D.despOcupacao);h+=row('(-) Gerais',D.despGerais);h+=row('(-) Terceiros',D.despTerceiros);h+=row('(-) Impostos operacionais',D.despImpostos);h+=row('= EBITDA',R.ebitda,'dre-sub');h+=pctRow('Margem EBITDA',R.ebitda,R.recLiq);h+='<tr class="dre-grp"><td colspan="'+(n+2)+'">Resultado Financeiro</td></tr>';h+=row('(+) Receitas financeiras',D.recFinanc);h+=row('(-) Despesas financeiras',D.despFinanc);h+=row('= Res. Financeiro',R.resFinanc,'dre-sub');h+=row('= LUCRO LÍQUIDO',R.lucLiq,'dre-tot');h+=pctRow('Margem líquida',R.lucLiq,R.recLiq);h+='</tbody>';document.getElementById('dre-tabela').innerHTML=h;}
-function dreSetView(v,el){document.getElementById('dre-mensal').style.display=v==='mensal'?'':'none';document.getElementById('dre-acumulado').style.display=v==='acumulado'?'':'none';document.querySelectorAll('.dre-nav-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');if(v==='acumulado'){var R=dreCalc(),D=DRE;var recLiqT=R.recLiq.reduce(function(a,b){return a+b;},0),lucBrutoT=R.lucBruto.reduce(function(a,b){return a+b;},0),ebitdaT=R.ebitda.reduce(function(a,b){return a+b;},0),lucLiqT=R.lucLiq.reduce(function(a,b){return a+b;},0),recBrutaT=D.recBruta.reduce(function(a,b){return a+b;},0);var kpis=[{label:'Receita Bruta Acum.',value:recBrutaT,sub:'Jan–Abr 2026',color:'#1a6fa8'},{label:'Lucro Bruto Acum.',value:lucBrutoT,sub:'Mg. bruta: '+pct(lucBrutoT/recLiqT),color:lucBrutoT>=0?'#0a7c59':'#c0392b'},{label:'EBITDA Acum.',value:ebitdaT,sub:'Mg. EBITDA: '+pct(ebitdaT/recLiqT),color:ebitdaT>=0?'#0a7c59':'#c0392b'},{label:'Lucro Líq. Acum.',value:lucLiqT,sub:'Mg. líq.: '+pct(lucLiqT/recLiqT),color:lucLiqT>=0?'#0a7c59':'#c0392b'}];document.getElementById('dre-kpis-acum').innerHTML=kpis.map(function(k){return'<div class="kpi" style="border-left-color:'+k.color+'"><div class="kpi-label">'+k.label+'</div><div class="kpi-value" style="color:'+k.color+'">'+fmtK(k.value)+'</div><div class="kpi-sub">'+k.sub+'</div></div>';}).join('');setTimeout(function(){destroyChart('dre-waterfall');var cmvT=D.cmv.reduce(function(a,b){return a+b;},0),despOpT=R.despOpTotal.reduce(function(a,b){return a+b;},0),despFinT=R.resFinanc.reduce(function(a,b){return a+b;},0),devT=D.devDevolucoes.reduce(function(a,b){return a+b;},0)+D.impVendas.reduce(function(a,b){return a+b;},0);var items=[{label:'Rec. Bruta',value:recBrutaT,type:'pos'},{label:'Ded. receita',value:devT,type:'neg'},{label:'CMV',value:cmvT,type:'neg'},{label:'Luc. Bruto',value:lucBrutoT,type:'sub'},{label:'Desp. Op.',value:despOpT,type:'neg'},{label:'EBITDA',value:ebitdaT,type:'sub'},{label:'Res. Financ.',value:despFinT,type:'neg'},{label:'Luc. Líq.',value:lucLiqT,type:'tot'}];var C1='#1a6fa8',C2='#c0392b',C3='#00B4D8',C5='#1E2D40';var starts=[],bars=[],colors=[],run=0;items.forEach(function(v){if(v.type==='pos'){starts.push(0);bars.push(v.value);run=v.value;}else if(v.type==='sub'||v.type==='tot'){starts.push(0);bars.push(run);}else{starts.push(run+v.value);bars.push(Math.abs(v.value));run+=v.value;}colors.push(v.type==='pos'?C1:v.type==='neg'?C2:v.type==='sub'?C3:C5);});new Chart(document.getElementById('dre-waterfall'),{type:'bar',data:{labels:items.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:4,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6b7a8d'},stacked:true},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6b7a8d',callback:function(v){return fmtK(v);}},stacked:true}}}});},100);}}
+function dreHTML(){
+  var D = DRE_TOPLINE;
+  if (!D.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado importado ainda para calcular o DRE.</div>';
+  var n = D.meses.length;
+  function fv(v){return v===0?'\u2014':fmtK(v);}
+  function cls(v){return v===0?'':v>0?' class="pos"':' class="neg"';}
+  function row(lbl,vals,rowcls){rowcls=rowcls||'';var tot=vals.reduce(function(a,b){return a+b;},0);
+    return'<tr class="'+rowcls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+cls(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+cls(tot)+'>'+fv(tot)+'</td></tr>';}
+  function pctRow(lbl,vals,baseVals){var tot=vals.reduce(function(a,b){return a+b;},0),totB=baseVals.reduce(function(a,b){return a+b;},0);
+    return'<tr class="dre-pct"><td>'+lbl+'</td>'+vals.map(function(v,i){return'<td>'+(baseVals[i]?pct(v/baseVals[i]):'\u2014')+'</td>';}).join('')+'<td>'+(totB?pct(tot/totB):'\u2014')+'</td></tr>';}
+  var totRB=D.receitaBruta.reduce(function(a,b){return a+b;},0);
+  var totRL=D.receitaLiquida.reduce(function(a,b){return a+b;},0);
+  var totMB=D.margemBruta.reduce(function(a,b){return a+b;},0);
+  var totVol=D.volume.reduce(function(a,b){return a+b;},0);
+  var h='<div class="kpi-grid">'
+    +'<div class="kpi"><div class="kpi-label">Receita L\u00edquida acum.</div><div class="kpi-value">'+fmtK(totRL)+'</div><div class="kpi-sub">'+D.meses[0]+' \u2013 '+D.meses[n-1]+'</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Volume acum.</div><div class="kpi-value">'+Math.round(totVol).toLocaleString('pt-BR')+'</div><div class="kpi-sub">unidades (venda + bonif. + devolu\u00e7\u00e3o)</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value" style="color:'+(totMB>=0?'#2ECC71':'#e24b4a')+'">'+fmtK(totMB)+'</div><div class="kpi-sub">Mg. bruta: '+(totRL?(totMB/totRL*100).toFixed(1):'0')+'%</div></div>'
+    +'<div class="kpi"><div class="kpi-label">Custo Produto acum.</div><div class="kpi-value" style="color:#c0392b">'+fmtK(D.custoProduto.reduce(function(a,b){return a+b;},0))+'</div><div class="kpi-sub">CMV + Pol\u00edtica Comercial</div></div>'
+    +'</div>';
+  h+='<div class="chart-card"><div class="chart-title">DRE (Receita Bruta \u2192 Margem Bruta) \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div><div class="chart-sub">Calculado a partir da base \u00fanica de vendas, espelhando a l\u00f3gica da aba TOP Line. Despesas operacionais e Lucro L\u00edquido n\u00e3o constam aqui \u2014 fora do DRE por enquanto.</div></div>';
+  h+='<div class="dre-outer"><table class="dre-tbl"><thead><tr><th style="min-width:240px;text-align:left">Linha</th>'+D.meses.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Acum.</th></tr></thead><tbody>';
+  h+=row('(+) Receita Bruta',D.receitaBruta);
+  h+=row('(-) Descontos e Abatimentos',D.descontosAbatimentos);
+  h+=row('(-) Trocas e Devolu\u00e7\u00f5es',D.trocasDevolucoes);
+  h+=row('(-) Impostos sobre Vendas',D.meses.map(function(){return 0;}));
+  h+=row('= Receita L\u00edquida',D.receitaLiquida,'dre-sub');
+  h+=pctRow('% s/ Receita Bruta',D.receitaLiquida,D.receitaBruta);
+  h+=row('(-) Custo Produto (CMV)',D.custoProduto);
+  h+=row('(+) Pol\u00edtica Comercial (verbas de ciclo)',D.politicaComercial);
+  h+=row('= Margem Bruta',D.margemBruta,'dre-tot');
+  h+=pctRow('Margem bruta %',D.margemBruta,D.receitaLiquida);
+  h+='</tbody></table></div>';
+  h+='<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
+  return h;
+}
+function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
+
+// ============================================================
+// DFC — segue manual (Lançamentos), inalterado nesta fase
+// ============================================================
 function fmtDFC(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';return(v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');}
-function dfcHTML(){return'<div class="dfc-nav"><button class="dfc-nav-btn active" onclick="dfcSetView(\'mensal\',this)">Mensal</button><button class="dfc-nav-btn" onclick="dfcSetView(\'acumulado\',this)">Acumulado</button></div><div id="dfc-mensal"><div class="dfc-kpi-grid" id="dfc-kpis"></div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall — Composição do saldo</div><div class="dfc-chart-sub">Saldo inicial → entradas → saídas → saldo final (Jan–Abr acumulado)</div><div style="height:230px;position:relative"><canvas id="dfc-waterfall"></canvas></div></div><div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e saídas mensais</div><div class="dfc-chart-sub">Barras espelhadas · linha de saldo bancário</div><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Entradas</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Saídas</span><span class="dfc-leg"><span class="dfc-leg-line" style="background:#2C6BE0"></span>Saldo bancário</span></div><div style="height:220px;position:relative"><canvas id="dfc-espelhado"></canvas></div></div><div class="dfc-chart-card"><div class="dfc-chart-title">Resultado líquido mensal</div><div class="dfc-chart-sub">Positivo em ciano · negativo em creme</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-bar"></canvas></div></div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela"></table></div></div><div id="dfc-acumulado" style="display:none"><div class="dfc-kpi-grid"><div class="dfc-kpi" style="border-left-color:#00D4DA"><div class="dfc-kpi-label">Total entradas Jan–Abr</div><div class="dfc-kpi-value" style="color:#00D4DA">R$ 1,59M</div><div class="dfc-kpi-sub">Recebimentos operacionais</div></div><div class="dfc-kpi" style="border-left-color:#C8B89A"><div class="dfc-kpi-label">Total saídas Jan–Abr</div><div class="dfc-kpi-value" style="color:#C8B89A">-R$ 1,74M</div><div class="dfc-kpi-sub">Pagamentos realizados</div></div><div class="dfc-kpi" style="border-left-color:#C8B89A"><div class="dfc-kpi-label">Resultado acumulado</div><div class="dfc-kpi-value" style="color:#C8B89A">-R$ 150K</div><div class="dfc-kpi-sub">Variação líquida</div></div><div class="dfc-kpi" style="border-left-color:#C8B89A"><div class="dfc-kpi-label">Saldo final Abr/26</div><div class="dfc-kpi-value" style="color:#C8B89A">-R$ 57K</div><div class="dfc-kpi-sub">Posição bancária negativa</div></div></div><div class="dfc-chart-card"><div class="dfc-chart-title">Evolução do saldo bancário</div><div class="dfc-chart-sub">Saldo ao final de cada mês</div><div style="height:220px;position:relative"><canvas id="dfc-evolucao"></canvas></div></div><div class="dfc-chart-card"><div class="dfc-chart-title">Composição por atividade</div><div class="dfc-chart-sub">Caixa Operacional · Investimento · Financiamento</div><div style="height:200px;position:relative"><canvas id="dfc-composicao"></canvas></div></div></div><div class="confidential" style="color:#4A6580">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · Não compartilhar</div>';}
-function initDFC(){renderDFCKPIs();renderDFCWaterfall();renderDFCEspelhado();renderDFCSaldoBar();renderDFCTabela();}
-function renderDFCKPIs(){var D=DD;var entTotal=D.recVendas.reduce(function(a,b){return a+b;},0)+D.emprestimos.reduce(function(a,b){return a+b;},0);var saiTotal=D.meses.map(function(_,i){return Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoProLabore[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]);}).reduce(function(a,b){return a+b;},0);var res=D.resultado.reduce(function(a,b){return a+b;},0);var kpis=[{label:'Total entradas',value:entTotal,sub:'Jan–Abr 2026',color:'#00D4DA'},{label:'Total saídas',value:-saiTotal,sub:'Jan–Abr 2026',color:'#C8B89A'},{label:'Resultado acumulado',value:res,sub:'Variação líquida',color:res>=0?'#00D4DA':'#C8B89A'},{label:'Saldo final Abr/26',value:D.caixaFinal[3],sub:'Posição bancária',color:D.caixaFinal[3]>=0?'#00D4DA':'#C8B89A'}];document.getElementById('dfc-kpis').innerHTML=kpis.map(function(k){return'<div class="dfc-kpi" style="border-left-color:'+k.color+'"><div class="dfc-kpi-label">'+k.label+'</div><div class="dfc-kpi-value" style="color:'+k.color+'">'+fmtDFC(k.value)+'</div><div class="dfc-kpi-sub">'+k.sub+'</div></div>';}).join('');}
-function renderDFCWaterfall(){var D=DD,CYAN='#00D4DA',BEIGE='#C8B89A',INI='#2C6BE0',TOT='#007B80';var entOp=D.recVendas.reduce(function(a,b){return a+b;},0);var captacoes=D.emprestimos.reduce(function(a,b){return a+b;},0);var saiTruss=Math.abs(D.pgtoTruss.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoNaoTruss.reduce(function(a,b){return a+b;},0));var saiDesp=Math.abs(D.pgtoPessoal.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoProLabore.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoMkt.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoComissoes.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoLogistica.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoOcupacao.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoGerais.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoTerceiros.reduce(function(a,b){return a+b;},0));var saiImp=Math.abs(D.pgtoImpostos.reduce(function(a,b){return a+b;},0));var saiFinanc=Math.abs(D.pgtoFinanc.reduce(function(a,b){return a+b;},0));var saldoIni=D.caixaInicial[0],saldoFim=D.caixaFinal[3];var items=[{label:'Saldo inicial',value:saldoIni,type:'ini'},{label:'Rec. vendas',value:entOp,type:'pos'},{label:'Captações',value:captacoes,type:'pos'},{label:'Pgto. fornec.',value:-saiTruss,type:'neg'},{label:'Desp. operac.',value:-saiDesp,type:'neg'},{label:'Impostos',value:-saiImp,type:'neg'},{label:'Financiamentos',value:-saiFinanc,type:'neg'},{label:'Saldo final',value:saldoFim,type:'tot'}];var starts=[],bars=[],colors=[],run=0;items.forEach(function(v){if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}else if(v.type==='pos'){starts.push(run);bars.push(v.value);}else{starts.push(run+v.value);bars.push(-v.value);}if(v.type!=='tot')run+=v.value;colors.push(v.type==='ini'?INI:v.type==='tot'?TOT:v.type==='pos'?CYAN:BEIGE);});destroyChart('dfc-waterfall');new Chart(document.getElementById('dfc-waterfall'),{type:'bar',data:{labels:items.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return items[c.dataIndex].label+': '+fmtDFC(items[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:11}},stacked:true},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},stacked:true}}}});}
-function renderDFCEspelhado(){var D=DD;var ent=D.meses.map(function(_,i){return D.recVendas[i]+D.emprestimos[i];});var sai=D.meses.map(function(_,i){return-(Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoProLabore[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]));});destroyChart('dfc-espelhado');new Chart(document.getElementById('dfc-espelhado'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Entradas',data:ent,backgroundColor:'#00D4DA',borderRadius:{topLeft:3,topRight:3,bottomLeft:0,bottomRight:0},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},{label:'Saídas',data:sai,backgroundColor:'#C8B89A',borderRadius:{topLeft:0,topRight:0,bottomLeft:3,bottomRight:3},borderSkipped:false,order:2,stack:'flow',barPercentage:0.6,categoryPercentage:0.7},{label:'Saldo bancário',data:D.caixaFinal,type:'line',borderColor:'#2C6BE0',borderWidth:2,pointRadius:5,pointBackgroundColor:'#2C6BE0',fill:false,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}}},y2:{position:'right',grid:{display:false},ticks:{color:'#2C6BE0',font:{size:11},callback:function(v){return fmtDFC(v);}}}}}});}
+function dfcHTML(){
+  if (!DD.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de DFC cadastrado (Lan\u00e7amentos).</div>';
+  return'<div class="dfc-kpi-grid" id="dfc-kpis"></div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall — Composi\u00e7\u00e3o do saldo</div><div class="dfc-chart-sub">Saldo inicial \u2192 entradas \u2192 sa\u00eddas \u2192 saldo final</div><div style="height:230px;position:relative"><canvas id="dfc-waterfall"></canvas></div></div><div class="dfc-chart-card"><div class="dfc-chart-title">Resultado l\u00edquido mensal</div><div class="dfc-chart-sub">Positivo em ciano · negativo em creme</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-bar"></canvas></div></div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela"></table></div><div class="confidential" style="color:#4A6580">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
+}
+function initDFC(){renderDFCKPIs();renderDFCWaterfall();renderDFCSaldoBar();renderDFCTabela();}
+function renderDFCKPIs(){var D=DD;var i=D.meses.length-1;var entTotal=D.recVendas.reduce(function(a,b){return a+b;},0)+D.emprestimos.reduce(function(a,b){return a+b;},0);var saiTotal=D.meses.map(function(_,i){return Math.abs(D.pgtoTruss[i])+Math.abs(D.pgtoNaoTruss[i])+Math.abs(D.pgtoPessoal[i])+Math.abs(D.pgtoProLabore[i])+Math.abs(D.pgtoMkt[i])+Math.abs(D.pgtoComissoes[i])+Math.abs(D.pgtoLogistica[i])+Math.abs(D.pgtoOcupacao[i])+Math.abs(D.pgtoGerais[i])+Math.abs(D.pgtoTerceiros[i])+Math.abs(D.pgtoImpostos[i])+Math.abs(D.pgtoFinanc[i]);}).reduce(function(a,b){return a+b;},0);var res=D.resultado.reduce(function(a,b){return a+b;},0);var kpis=[{label:'Total entradas',value:entTotal,sub:periods.dfc,color:'#00D4DA'},{label:'Total sa\u00eddas',value:-saiTotal,sub:periods.dfc,color:'#C8B89A'},{label:'Resultado acumulado',value:res,sub:'Varia\u00e7\u00e3o l\u00edquida',color:res>=0?'#00D4DA':'#C8B89A'},{label:'Saldo final',value:D.caixaFinal[i],sub:'Posi\u00e7\u00e3o banc\u00e1ria',color:D.caixaFinal[i]>=0?'#00D4DA':'#C8B89A'}];document.getElementById('dfc-kpis').innerHTML=kpis.map(function(k){return'<div class="dfc-kpi" style="border-left-color:'+k.color+'"><div class="dfc-kpi-label">'+k.label+'</div><div class="dfc-kpi-value" style="color:'+k.color+'">'+fmtDFC(k.value)+'</div><div class="dfc-kpi-sub">'+k.sub+'</div></div>';}).join('');}
+function renderDFCWaterfall(){var D=DD,CYAN='#00D4DA',BEIGE='#C8B89A',INI='#2C6BE0',TOT='#007B80';var i=D.meses.length-1;var entOp=D.recVendas.reduce(function(a,b){return a+b;},0);var captacoes=D.emprestimos.reduce(function(a,b){return a+b;},0);var saiTruss=Math.abs(D.pgtoTruss.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoNaoTruss.reduce(function(a,b){return a+b;},0));var saiDesp=Math.abs(D.pgtoPessoal.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoProLabore.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoMkt.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoComissoes.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoLogistica.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoOcupacao.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoGerais.reduce(function(a,b){return a+b;},0))+Math.abs(D.pgtoTerceiros.reduce(function(a,b){return a+b;},0));var saiImp=Math.abs(D.pgtoImpostos.reduce(function(a,b){return a+b;},0));var saiFinanc=Math.abs(D.pgtoFinanc.reduce(function(a,b){return a+b;},0));var saldoIni=D.caixaInicial[0],saldoFim=D.caixaFinal[i];var items=[{label:'Saldo inicial',value:saldoIni,type:'ini'},{label:'Rec. vendas',value:entOp,type:'pos'},{label:'Capta\u00e7\u00f5es',value:captacoes,type:'pos'},{label:'Pgto. fornec.',value:-saiTruss,type:'neg'},{label:'Desp. operac.',value:-saiDesp,type:'neg'},{label:'Impostos',value:-saiImp,type:'neg'},{label:'Financiamentos',value:-saiFinanc,type:'neg'},{label:'Saldo final',value:saldoFim,type:'tot'}];var starts=[],bars=[],colors=[],run=0;items.forEach(function(v){if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}else if(v.type==='pos'){starts.push(run);bars.push(v.value);}else{starts.push(run+v.value);bars.push(-v.value);}if(v.type!=='tot')run+=v.value;colors.push(v.type==='ini'?INI:v.type==='tot'?TOT:v.type==='pos'?CYAN:BEIGE);});destroyChart('dfc-waterfall');new Chart(document.getElementById('dfc-waterfall'),{type:'bar',data:{labels:items.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return items[c.dataIndex].label+': '+fmtDFC(items[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:11}},stacked:true},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},stacked:true}}}});}
 function renderDFCSaldoBar(){var D=DD;destroyChart('dfc-saldo-bar');new Chart(document.getElementById('dfc-saldo-bar'),{type:'bar',data:{labels:D.meses,datasets:[{label:'Resultado',data:D.resultado,backgroundColor:D.resultado.map(function(v){return v>=0?'#00D4DA':'#C8B89A';}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA',font:{size:12}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',font:{size:11},callback:function(v){return fmtDFC(v);}},border:{display:false}}}}});}
-function renderDFCTabela(){var D=DD,n=D.meses.length;function fv(v){return v===0?'—':fmtDFC(v);}function tc(v){return v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}function row(lbl,vals,cls){cls=cls||'';var tot=vals.reduce(function(a,b){return a+b;},0);return'<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+tc(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+tc(tot)+'>'+fv(tot)+'</td></tr>';}var h='<thead><tr><th style="min-width:240px;text-align:left">Linha</th>'+D.meses.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';h+=row('Saldo inicial',D.caixaInicial,'dfc-ini');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';h+=row('Recebimentos de vendas (ST)',D.recVendas);h+=row('Pgto. compras Truss (SI)',D.pgtoTruss);h+=row('Pgto. fornecedores não Truss',D.pgtoNaoTruss);h+=row('Pgto. despesas com pessoal',D.pgtoPessoal);h+=row('Pgto. pró-labore',D.pgtoProLabore);h+=row('Pgto. despesas comerciais (Mkt)',D.pgtoMkt);h+=row('Pgto. comissões',D.pgtoComissoes);h+=row('Pgto. despesas logísticas',D.pgtoLogistica);h+=row('Pgto. taxa de ocupação',D.pgtoOcupacao);h+=row('Pgto. despesas gerais',D.pgtoGerais);h+=row('Serviços de terceiros',D.pgtoTerceiros);h+=row('Pgto. impostos',D.pgtoImpostos);h+=row('= Caixa Operacional',D.caixaOp,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';h+=row('Entradas de investimento',D.entInvest);h+=row('Saídas de investimento (CAPEX)',D.saiInvest);h+=row('= Caixa de Investimento',D.caixaInv,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';h+=row('Empréstimos tomados',D.emprestimos);h+=row('Pgto. financiamentos bancários',D.pgtoFinanc);h+=row('= Caixa de Financiamento',D.caixaFin,'dfc-sub');h+=row('= Resultado do mês',D.resultado,'dfc-tot');h+=row('Saldo final (bancário)',D.caixaFinal,'dfc-ini');h+='</tbody>';document.getElementById('dfc-tabela').innerHTML=h;}
-function dfcSetView(v,el){document.getElementById('dfc-mensal').style.display=v==='mensal'?'':'none';document.getElementById('dfc-acumulado').style.display=v==='acumulado'?'':'none';document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');if(v==='acumulado'){setTimeout(function(){destroyChart('dfc-evolucao');new Chart(document.getElementById('dfc-evolucao'),{type:'line',data:{labels:DD.meses,datasets:[{label:'Saldo bancário',data:DD.caixaFinal,borderColor:'#C8B89A',backgroundColor:'rgba(200,184,154,0.1)',borderWidth:2.5,pointRadius:6,pointBackgroundColor:DD.caixaFinal.map(function(v){return v>=0?'#00D4DA':'#C8B89A';}),fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtDFC(v);}}}}}});destroyChart('dfc-composicao');new Chart(document.getElementById('dfc-composicao'),{type:'bar',data:{labels:DD.meses,datasets:[{label:'Operacional',data:DD.caixaOp,backgroundColor:'#00D4DA',borderRadius:3,stack:'a'},{label:'Investimento',data:DD.caixaInv,backgroundColor:'#5B8DB8',borderRadius:3,stack:'a'},{label:'Financiamento',data:DD.caixaFin,backgroundColor:'#2C6BE0',borderRadius:3,stack:'a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6B8BAA',font:{size:11}}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6B8BAA'}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtDFC(v);}}}}}});},100);}}
+function renderDFCTabela(){var D=DD,n=D.meses.length;function fv(v){return v===0?'—':fmtDFC(v);}function tc(v){return v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}function row(lbl,vals,cls){cls=cls||'';var tot=vals.reduce(function(a,b){return a+b;},0);return'<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+tc(v)+'>'+fv(v)+'</td>';}).join('')+'<td'+tc(tot)+'>'+fv(tot)+'</td></tr>';}var h='<thead><tr><th style="min-width:240px;text-align:left">Linha</th>'+D.meses.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';h+=row('Saldo inicial',D.caixaInicial,'dfc-ini');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';h+=row('Recebimentos de vendas',D.recVendas);h+=row('Pgto. compras Truss',D.pgtoTruss);h+=row('Pgto. fornecedores n\u00e3o Truss',D.pgtoNaoTruss);h+=row('Pgto. despesas com pessoal',D.pgtoPessoal);h+=row('Pgto. pr\u00f3-labore',D.pgtoProLabore);h+=row('Pgto. despesas comerciais (Mkt)',D.pgtoMkt);h+=row('Pgto. comiss\u00f5es',D.pgtoComissoes);h+=row('Pgto. despesas log\u00edsticas',D.pgtoLogistica);h+=row('Pgto. taxa de ocupa\u00e7\u00e3o',D.pgtoOcupacao);h+=row('Pgto. despesas gerais',D.pgtoGerais);h+=row('Servi\u00e7os de terceiros',D.pgtoTerceiros);h+=row('Pgto. impostos',D.pgtoImpostos);h+=row('= Caixa Operacional',D.caixaOp,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';h+=row('Entradas de investimento',D.entInvest);h+=row('Sa\u00eddas de investimento (CAPEX)',D.saiInvest);h+=row('= Caixa de Investimento',D.caixaInv,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';h+=row('Empr\u00e9stimos tomados',D.emprestimos);h+=row('Pgto. financiamentos banc\u00e1rios',D.pgtoFinanc);h+=row('= Caixa de Financiamento',D.caixaFin,'dfc-sub');h+=row('= Resultado do m\u00eas',D.resultado,'dfc-tot');h+=row('Saldo final (banc\u00e1rio)',D.caixaFinal,'dfc-ini');h+='</tbody>';document.getElementById('dfc-tabela').innerHTML=h;}
 </script>
 </body>
 </html>
