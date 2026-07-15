@@ -242,7 +242,7 @@ async function fetchFatoVendas(clienteId){
   var all = [], from = 0, pageSize = 1000;
   while (true) {
     var res = await sb.from('fato_vendas')
-      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,margem')
+      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem')
       .eq('cliente_id', clienteId)
       .range(from, from + pageSize - 1);
     if (res.error) { console.error('fetchFatoVendas', res.error); break; }
