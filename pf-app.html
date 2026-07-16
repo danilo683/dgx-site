@@ -1479,7 +1479,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="orc-loading" id="lanc-orc-loading">Carregando...</div>
             <div class="orc-table-wrap" id="lanc-orc-wrap" style="display:none;max-height:none">
               <table class="lanc-orc-table" id="lanc-orc-table">
-                <thead><tr><th>Categoria</th><th style="text-align:right">Orçado</th><th style="text-align:right">Realizado</th><th style="text-align:right">Diferença</th></tr></thead>
+                <thead><tr><th>Categoria</th><th style="text-align:right">Orçado</th><th style="text-align:right;color:var(--gold)">Extrato</th><th style="text-align:right;color:#7c9cff">Cartão</th><th style="text-align:right">Diferença</th></tr></thead>
                 <tbody id="lanc-orc-tbody"></tbody>
               </table>
             </div>
@@ -1489,10 +1489,16 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="lanc-col-lista">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
               <div class="lanc-col-titulo" style="margin:0">Lançamentos do mês</div>
-              <button class="orc-btn-config" onclick="csvImportAbrirModal()" style="font-size:.7rem">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Importar CSV
-              </button>
+              <div style="display:flex;gap:.4rem">
+                <button class="orc-btn-config" onclick="csvImportAbrirModal('extrato')" style="font-size:.7rem">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Importar Extrato
+                </button>
+                <button class="orc-btn-config" onclick="csvImportAbrirModal('cartao')" style="font-size:.7rem;border-color:rgba(124,156,255,0.4);color:#7c9cff">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  Importar Fatura
+                </button>
+              </div>
             </div>
 
             <div class="add-lancamento" style="margin-top:0">
@@ -1524,11 +1530,27 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         <div class="overlay" id="overlay-csv-import">
           <div class="modal" style="max-width:900px;width:95vw">
             <button class="modal-close" onclick="fecharOverlay('overlay-csv-import')">×</button>
-            <div class="modal-title">Importar extrato CSV</div>
+            <div class="modal-title" id="csv-modal-titulo">Importar extrato CSV</div>
 
             <!-- Etapa 1: Upload -->
             <div id="csv-step-1">
-              <p style="font-size:.8rem;color:var(--gray);margin-bottom:1rem">Selecione o arquivo CSV exportado do seu banco. A IA vai analisar cada lançamento e sugerir o tipo e categoria automaticamente.</p>
+              <p id="csv-step1-desc" style="font-size:.8rem;color:var(--gray);margin-bottom:1rem"></p>
+
+              <!-- Campo de vencimento (só cartão) -->
+              <div id="csv-vencimento-wrap" style="display:none;margin-bottom:1rem;background:rgba(124,156,255,0.06);border:1px solid rgba(124,156,255,0.2);padding:.9rem 1.1rem;border-left:3px solid #7c9cff">
+                <div style="font-size:.72rem;font-weight:700;color:#7c9cff;margin-bottom:.6rem;letter-spacing:.06em;text-transform:uppercase">📅 Data de vencimento da fatura</div>
+                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+                  <div class="diag-field" style="margin:0;flex:0 0 200px">
+                    <label class="diag-label">Vencimento da fatura</label>
+                    <input class="diag-input" type="date" id="csv-data-vencimento">
+                  </div>
+                  <div style="font-size:.72rem;color:var(--gray);line-height:1.6;flex:1">
+                    Todos os lançamentos desta fatura serão contabilizados nesta data.<br>
+                    <span style="color:#7c9cff">Compras parceladas: apenas a parcela do mês já estará no CSV com o valor correto.</span>
+                  </div>
+                </div>
+              </div>
+
               <div class="csv-upload-area" id="csv-upload-area" onclick="document.getElementById('csv-file-input').click()">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold);margin-bottom:.8rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <div style="font-size:.85rem;color:var(--white);font-weight:600">Clique para selecionar o CSV</div>
@@ -1536,12 +1558,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <input type="file" id="csv-file-input" accept=".csv,.txt" style="display:none" onchange="csvLerArquivo(this)">
               </div>
 
-              <div style="margin-top:1rem;background:var(--navy3);border:1px solid var(--border);padding:.8rem 1rem;font-size:.72rem;color:var(--gray);line-height:1.7">
-                <strong style="color:var(--white);display:block;margin-bottom:.3rem">💡 Dica: como exportar o CSV</strong>
-                O arquivo deve ter colunas de <strong style="color:var(--gold)">Data</strong>, <strong style="color:var(--gold)">Descrição</strong> e <strong style="color:var(--gold)">Valor</strong>.
-                A maioria dos bancos exporta neste formato em "Extrato" → "Exportar" → "CSV".<br>
-                Nubank, Inter, C6, Itaú, Bradesco e Santander são compatíveis.
-              </div>
+              <div id="csv-dica" style="margin-top:1rem;background:var(--navy3);border:1px solid var(--border);padding:.8rem 1rem;font-size:.72rem;color:var(--gray);line-height:1.7"></div>
             </div>
 
             <!-- Etapa 2: Revisão -->
@@ -1550,6 +1567,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <div>
                   <div style="font-size:.85rem;font-weight:600;color:var(--white)">Revise os lançamentos sugeridos</div>
                   <div style="font-size:.72rem;color:var(--gray);margin-top:.2rem">A IA classificou cada item. Ajuste o que precisar e confirme.</div>
+                  <div id="csv-venc-info" style="display:none;font-size:.72rem;color:#7c9cff;margin-top:.3rem"></div>
                 </div>
                 <div style="display:flex;gap:.6rem;align-items:center">
                   <span id="csv-contagem" style="font-size:.72rem;color:var(--gray)"></span>
@@ -1569,7 +1587,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <table class="inv-table" id="csv-tabela">
                   <thead><tr>
                     <th style="width:36px;text-align:center"><input type="checkbox" id="csv-check-all" onchange="csvToggleAll(this)" style="cursor:pointer"></th>
-                    <th style="text-align:left">Data</th>
+                    <th id="csv-col-data-titulo" style="text-align:left">Data</th>
                     <th style="text-align:left">Descrição original</th>
                     <th style="text-align:right">Valor (R$)</th>
                     <th>Tipo</th>
@@ -3797,7 +3815,7 @@ async function inicioCarregarAlertas(){
     if(semData>0){
       alertas.push({
         desc: `<strong>${semData} item${semData>1?'s':''}</strong> no Plano de Ação sem data alvo definida`,
-        acao: ()=>irPara('metas', document.querySelector('.menu-item[onclick*="metas"]')),
+        acao: ()=>{ irPara('inicio', document.querySelector('.menu-item[onclick*="inicio"]')); },
         label: 'Ver plano'
       });
     }
@@ -4027,9 +4045,30 @@ function cronoRenderListas(){
 // ══════════════════════════════════════════════
 // IMPORTAÇÃO CSV COM IA
 // ══════════════════════════════════════════════
-let csvLinhas = []; // linhas parseadas do CSV
+let csvLinhas = [];
+let csvModo = 'extrato'; // 'extrato' ou 'cartao'
 
-function csvImportAbrirModal(){
+function csvImportAbrirModal(modo){
+  csvModo = modo || 'extrato';
+  const isCartao = csvModo === 'cartao';
+
+  document.getElementById('csv-modal-titulo').textContent = isCartao ? 'Importar fatura do cartão' : 'Importar extrato bancário';
+  document.getElementById('csv-step1-desc').textContent = isCartao
+    ? 'Selecione o CSV exportado da fatura do seu cartão. Informe a data de vencimento — todos os lançamentos serão contabilizados nessa data.'
+    : 'Selecione o arquivo CSV exportado do seu banco. A IA vai sugerir o tipo e categoria de cada lançamento.';
+
+  document.getElementById('csv-vencimento-wrap').style.display = isCartao ? 'block' : 'none';
+  document.getElementById('csv-data-vencimento').value = '';
+
+  document.getElementById('csv-dica').innerHTML = isCartao
+    ? `<strong style="color:var(--white);display:block;margin-bottom:.3rem">💡 Dica: como exportar a fatura</strong>
+       Acesse o app do cartão → Fatura → Exportar → CSV. A data de cada compra no arquivo <strong style="color:#7c9cff">não</strong> é usada — usamos apenas a data de vencimento que você informar acima.<br>
+       Nubank, XP, C6, Itaú e Santander são compatíveis.`
+    : `<strong style="color:var(--white);display:block;margin-bottom:.3rem">💡 Dica: como exportar o CSV</strong>
+       O arquivo deve ter colunas de <strong style="color:var(--gold)">Data</strong>, <strong style="color:var(--gold)">Descrição</strong> e <strong style="color:var(--gold)">Valor</strong>.
+       A maioria dos bancos exporta em "Extrato" → "Exportar" → "CSV".<br>
+       Nubank, Inter, C6, Itaú, Bradesco e Santander são compatíveis.`;
+
   csvVoltarStep1();
   abrirOverlay('overlay-csv-import');
 }
@@ -4042,6 +4081,12 @@ function csvVoltarStep1(){
 }
 
 function csvLerArquivo(input){
+  const isCartao = csvModo === 'cartao';
+  if(isCartao && !document.getElementById('csv-data-vencimento').value){
+    alert('Informe a data de vencimento da fatura antes de selecionar o arquivo.');
+    input.value='';
+    return;
+  }
   const file = input.files[0];
   if(!file) return;
   const reader = new FileReader();
@@ -4050,41 +4095,47 @@ function csvLerArquivo(input){
 }
 
 function csvParsear(texto){
-  // Detecta separador (vírgula, ponto-e-vírgula ou tab)
+  const isCartao = csvModo === 'cartao';
+  const dataVencimento = isCartao ? document.getElementById('csv-data-vencimento').value : null;
+
   const sep = texto.includes(';') ? ';' : texto.includes('\t') ? '\t' : ',';
   const linhas = texto.split(/\r?\n/).filter(l=>l.trim());
   const header = linhas[0].split(sep).map(h=>h.replace(/['"]/g,'').trim().toLowerCase());
 
-  // Mapear colunas possíveis
-  const colData  = header.findIndex(h=>/data|date|dt/.test(h));
-  const colDesc  = header.findIndex(h=>/desc|hist|memo|lançamento|lancamento|narrat/.test(h));
-  const colVal   = header.findIndex(h=>/valor|value|amount|quantia|debit|credit/.test(h));
-  const colTipo  = header.findIndex(h=>/tipo|type|operac/.test(h));
+  const colData = header.findIndex(h=>/data|date|dt/.test(h));
+  const colDesc = header.findIndex(h=>/desc|hist|memo|lançamento|lancamento|narrat|title|name/.test(h));
+  const colVal  = header.findIndex(h=>/valor|value|amount|quantia|debit|credit|total/.test(h));
 
-  if(colData===-1 || colDesc===-1 || colVal===-1){
-    alert('Não consegui identificar as colunas de Data, Descrição e Valor no arquivo. Verifique se o CSV está no formato correto.');
+  // Para cartão, data não é obrigatória (usamos vencimento)
+  if(colDesc===-1 || colVal===-1){
+    alert('Não consegui identificar as colunas de Descrição e Valor no arquivo.');
     return;
   }
 
   const dados = [];
   for(let i=1; i<linhas.length; i++){
     const cols = linhas[i].split(sep).map(c=>c.replace(/['"]/g,'').trim());
-    if(cols.length < 3) continue;
-    const dataRaw = cols[colData] || '';
+    if(cols.length < 2) continue;
+    const dataRaw = colData>=0 ? (cols[colData]||'') : '';
     const desc    = cols[colDesc] || '';
-    const valRaw  = (cols[colVal] || '').replace(/\./g,'').replace(',','.');
+    const valRaw  = (cols[colVal]||'').replace(/\./g,'').replace(',','.');
     const val     = Math.abs(parseFloat(valRaw));
     if(!desc || isNaN(val) || val===0) continue;
 
-    // Normalizar data para YYYY-MM-DD
-    let data = dataRaw;
-    const dmY = dataRaw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-    if(dmY) data = `${dmY[3].length===2?'20'+dmY[3]:dmY[3]}-${dmY[2].padStart(2,'0')}-${dmY[1].padStart(2,'0')}`;
+    // Para extrato: normalizar data; para cartão: usar vencimento
+    let data = dataVencimento || dataRaw;
+    if(!isCartao || !dataVencimento){
+      const dmY = dataRaw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+      if(dmY) data = `${dmY[3].length===2?'20'+dmY[3]:dmY[3]}-${dmY[2].padStart(2,'0')}-${dmY[1].padStart(2,'0')}`;
+    }
 
-    dados.push({ data, desc, val, tipo:'', categoria:'', descLancar:desc, incluir:true });
+    dados.push({ data, dataOriginal:dataRaw, desc, val, tipo:'despesa', categoria:'', descLancar:desc, incluir:true });
   }
 
   if(!dados.length){ alert('Nenhum lançamento válido encontrado no arquivo.'); return; }
+
+  // Para cartão: todos são despesa por padrão (faturas não têm receitas)
+  if(isCartao) dados.forEach(d=>{ d.tipo='despesa'; });
 
   csvLinhas = dados;
   document.getElementById('csv-step-1').style.display='none';
@@ -4092,12 +4143,26 @@ function csvParsear(texto){
   document.getElementById('csv-ia-loading').style.display='flex';
   document.getElementById('csv-tabela-wrap').style.display='none';
 
+  // Info de vencimento no step 2
+  const vencEl = document.getElementById('csv-venc-info');
+  if(isCartao && dataVencimento){
+    vencEl.style.display='block';
+    vencEl.textContent = `📅 Todos os lançamentos serão contabilizados em ${new Date(dataVencimento+'T00:00:00').toLocaleDateString('pt-BR')} (vencimento da fatura)`;
+  } else {
+    vencEl.style.display='none';
+  }
+
+  // Ajustar cabeçalho da coluna data
+  const colDataTitulo = document.getElementById('csv-col-data-titulo');
+  if(colDataTitulo) colDataTitulo.textContent = isCartao ? 'Vencimento' : 'Data';
+
   csvClassificarComIA();
 }
 
 async function csvClassificarComIA(){
   const statusEl = document.getElementById('csv-ia-status');
   statusEl.textContent = 'Enviando para análise...';
+  const isCartao = csvModo === 'cartao';
 
   const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
     ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
@@ -4109,29 +4174,23 @@ async function csvClassificarComIA(){
 
   try {
     statusEl.textContent = 'IA classificando os lançamentos...';
-
     const { data: { session } } = await sb.auth.getSession();
-
     const res = await fetch(
       'https://mixsehmmwvrbpndavvhp.supabase.co/functions/v1/classificar-lancamentos',
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
         body: JSON.stringify({
           lancamentos: csvLinhas.map((l,i)=>({i:i+1, data:l.data, desc:l.desc, val:l.val})),
           categorias_receita: recLabels,
-          categorias_despesa: despLabels
+          categorias_despesa: despLabels,
+          modo: csvModo  // informa a edge function se é extrato ou cartão
         })
       }
     );
-
     const json = await res.json();
     const resultado = json.resultado || [];
-
-    resultado.forEach((item) => {
+    resultado.forEach(item=>{
       if(csvLinhas[item.i-1]){
         csvLinhas[item.i-1].tipo      = item.tipo || 'despesa';
         csvLinhas[item.i-1].categoria = item.categoria || 'Outros';
@@ -4139,15 +4198,30 @@ async function csvClassificarComIA(){
     });
   } catch(e){
     console.warn('Erro IA:', e);
-    csvLinhas.forEach(l=>{ if(!l.tipo){ l.tipo='despesa'; l.categoria='Outros'; } });
+    csvLinhas.forEach(l=>{
+      if(!l.tipo){
+        // Detecção local de pagamento de fatura como fallback
+        l.tipo = csvDetectarPagamentoFatura(l.desc) ? 'pagamento_fatura' : 'despesa';
+        l.categoria = l.tipo==='pagamento_fatura' ? 'Pagamento de fatura' : 'Outros';
+      }
+    });
   }
 
   document.getElementById('csv-ia-loading').style.display='none';
   csvRenderTabela();
 }
 
+// Detecção local de pagamento de fatura (fallback sem IA)
+function csvDetectarPagamentoFatura(desc){
+  const d = desc.toLowerCase();
+  return /pagamento\s*(de\s*)?(fatura|cartao|cartão)|fatura\s*(nubank|itau|bradesco|santander|xp|c6|inter|caixa|next|pan)|pgto\s*fatura|pagto\s*fatura|bill\s*payment/.test(d);
+}
+
 function csvRenderTabela(){
-  const tipoOpts = ['receita','despesa','investimento','transferencia'];
+  const isCartao = csvModo === 'cartao';
+  const tipoOpts = isCartao
+    ? ['despesa','investimento','pagamento_fatura']
+    : ['receita','despesa','investimento','transferencia','pagamento_fatura'];
   const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
     ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
   const despLabels = [];
@@ -4155,27 +4229,41 @@ function csvRenderTabela(){
     const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
     despLabels.push(...g.itens,...(gDados.extras||[]));
   });
-  const todasCats = [...recLabels, ...despLabels];
+  const todasCats = [...recLabels, ...despLabels, 'Pagamento de fatura'];
+
+  const tipoLabels = {
+    receita:'Receita', despesa:'Despesa', investimento:'Investimento',
+    transferencia:'Transferência', pagamento_fatura:'Pgto. Fatura'
+  };
 
   document.getElementById('csv-tabela-body').innerHTML = csvLinhas.map((l,i)=>{
-    const dt = l.data ? new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR') : l.data;
-    const tipoSel = tipoOpts.map(t=>`<option value="${t}"${l.tipo===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
+    const dt = l.data ? new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR') : '—';
+    const isPgtoFatura = l.tipo === 'pagamento_fatura';
+    const rowStyle = isPgtoFatura ? 'opacity:.55;background:rgba(154,160,168,0.04)' : '';
+    const tipoSel = tipoOpts.map(t=>`<option value="${t}"${l.tipo===t?' selected':''}>${tipoLabels[t]||t}</option>`).join('');
     const catSel  = todasCats.map(c=>`<option value="${escapeHtml(c)}"${l.categoria===c?' selected':''}>${escapeHtml(c)}</option>`).join('');
-    return `<tr id="csv-row-${i}" class="${l.incluir?'':'csv-row-removida'}">
+    const pgtoNote = isPgtoFatura
+      ? `<span style="font-size:.58rem;background:rgba(154,160,168,0.15);color:var(--gray);padding:.1rem .4rem;border-radius:3px;margin-left:.4rem;font-weight:700">IGNORADO NO REALIZADO</span>`
+      : '';
+    return `<tr id="csv-row-${i}" class="${l.incluir?'':'csv-row-removida'}" style="${rowStyle}">
       <td><input type="checkbox" ${l.incluir?'checked':''} onchange="csvToggleRow(${i},this)" style="cursor:pointer"></td>
       <td style="white-space:nowrap;color:var(--gray)">${dt}</td>
-      <td style="color:var(--gray2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(l.desc)}">${escapeHtml(l.desc)}</td>
+      <td style="color:var(--gray2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(l.desc)}">${escapeHtml(l.desc)}${pgtoNote}</td>
       <td style="text-align:right;font-weight:600;color:var(--white)">R$ ${l.val.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-      <td><select onchange="csvLinhas[${i}].tipo=this.value;csvAtualizarCatOptions(${i})">${tipoSel}</select></td>
-      <td><select id="csv-cat-${i}" onchange="csvLinhas[${i}].categoria=this.value"><option value="${escapeHtml(l.categoria)}" selected>${escapeHtml(l.categoria)}</option>${catSel}</select></td>
+      <td><select onchange="csvLinhas[${i}].tipo=this.value;csvLinhas[${i}].categoria=this.value==='pagamento_fatura'?'Pagamento de fatura':csvLinhas[${i}].categoria;csvAtualizarCatOptions(${i})">${tipoSel}</select></td>
+      <td><select id="csv-cat-${i}" onchange="csvLinhas[${i}].categoria=this.value">${catSel}</select></td>
       <td><input type="text" value="${escapeHtml(l.descLancar)}" oninput="csvLinhas[${i}].descLancar=this.value" style="min-width:150px"></td>
     </tr>`;
   }).join('');
 
   const total = csvLinhas.length;
-  document.getElementById('csv-contagem').textContent = `${total} lançamento${total!==1?'s':''} encontrado${total!==1?'s':''}`;
+  const pgtoCount = csvLinhas.filter(l=>l.tipo==='pagamento_fatura').length;
+  let contagem = `${total} lançamento${total!==1?'s':''}`;
+  if(pgtoCount>0) contagem += ` · <span style="color:var(--gray)">${pgtoCount} pgto. fatura (não conta no realizado)</span>`;
+  document.getElementById('csv-contagem').innerHTML = contagem;
   document.getElementById('csv-tabela-wrap').style.display='block';
 }
+
 
 function csvToggleRow(i, cb){
   csvLinhas[i].incluir = cb.checked;
@@ -4222,7 +4310,8 @@ async function csvConfirmarImport(){
       descricao: l.descLancar || l.desc,
       tipo: l.tipo,
       categoria: l.categoria,
-      valor: l.val
+      valor: l.val,
+      origem: csvModo  // 'extrato' ou 'cartao'
     }));
 
     const { error } = await sb.from('extrato').insert(rows);
@@ -4257,7 +4346,7 @@ async function carregarExtrato(){
     extratoAtual=[];
   } else {
     extratoAtual = (data||[]).map(r=>({
-      id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor)
+      id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato'
     }));
   }
 
@@ -4340,41 +4429,52 @@ async function lancCarregarOrcado(){
   lancRenderOrcadoRealizado();
 }
 
-function lancRealizadoCategoria(categoria, tipo){
+function lancRealizadoCategoria(categoria, tipo, origem){
   return lancItemsDoMes()
-    .filter(l=>l.cat===categoria && l.tipo===tipo)
+    .filter(l=>l.cat===categoria && l.tipo===tipo && l.tipo!=='pagamento_fatura' && (origem ? l.origem===origem : true))
     .reduce((a,l)=>a+l.val,0);
 }
 
 function lancRenderOrcadoRealizado(){
-  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
   let html = '';
 
-  // ── Receitas ── (sempre mostra todas, mesmo sem valores)
   const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
     ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
 
-  html += `<tr class="lanc-grupo-row receita"><td colspan="4">Receitas</td></tr>`;
+  // Receitas (sem cartão)
+  html += `<tr class="lanc-grupo-row receita"><td colspan="5">Receitas</td></tr>`;
   recLabels.forEach(lb=>{
-    const orc = lancOrcadoCache[lb] || 0;
+    const orc  = lancOrcadoCache[lb] || 0;
     const real = lancRealizadoCategoria(lb, 'receita');
     const diff = real - orc;
     const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
-    html += `<tr><td class="lanc-cat-nome">${escapeHtml(lb)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--green)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
+    html += `<tr><td class="lanc-cat-nome">${escapeHtml(lb)}</td>
+      <td style="text-align:right">${fmt(orc)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(real)}</td>
+      <td style="text-align:right;color:var(--gray2)">—</td>
+      <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
   });
 
-  // ── Despesas ── (sempre mostra todas as categorias do Raio X)
+  // Despesas com separação Extrato / Cartão
   RX_DESPESAS_GRUPOS.forEach(g=>{
     const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
     const itens = [...g.itens, ...(gDados.extras||[])];
-
-    html += `<tr class="lanc-grupo-row"><td colspan="4">${g.label}</td></tr>`;
+    html += `<tr class="lanc-grupo-row"><td colspan="5">${g.label}</td></tr>`;
     itens.forEach(item=>{
-      const orc = lancOrcadoCache[item] || 0;
-      const real = lancRealizadoCategoria(item, 'despesa');
-      const diff = orc - real; // despesa: sobrou (positivo) ou estourou (negativo)
-      const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
-      html += `<tr><td class="lanc-cat-nome">${escapeHtml(item)}</td><td style="text-align:right">${fmt(orc)}</td><td style="text-align:right;color:var(--gold)">${fmt(real)}</td><td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
+      const orc      = lancOrcadoCache[item] || 0;
+      const realExt  = lancRealizadoCategoria(item, 'despesa', 'extrato');
+      const realCart = lancRealizadoCategoria(item, 'despesa', 'cartao');
+      const realTot  = realExt + realCart;
+      const diff     = orc - realTot;
+      const diffCls  = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
+      html += `<tr>
+        <td class="lanc-cat-nome">${escapeHtml(item)}</td>
+        <td style="text-align:right">${fmt(orc)}</td>
+        <td style="text-align:right;color:var(--gold)">${realExt?fmt(realExt):'—'}</td>
+        <td style="text-align:right;color:#7c9cff">${realCart?fmt(realCart):'—'}</td>
+        <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td>
+      </tr>`;
     });
   });
 
@@ -4389,14 +4489,16 @@ function renderExtrato(){
   items.sort((a,b)=>b.data.localeCompare(a.data));
   if(items.length===0){tbody.innerHTML='';document.getElementById('extrato-table').style.display='none';empty.style.display='block';return}
   document.getElementById('extrato-table').style.display='table';empty.style.display='none';
-  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.'};
+  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.',pagamento_fatura:'Pgto. Fatura'};
   tbody.innerHTML=items.map(l=>{
     const data=new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR');
     const isPos=l.tipo==='receita', isNeg=l.tipo==='despesa';
     const sinal=isPos?'+':isNeg?'-':'';
     const cls=isPos?'val-positivo':isNeg?'val-negativo':'';
     const val=l.val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    return `<tr><td>${data}</td><td>${escapeHtml(l.desc)}</td><td><span class="badge-type badge-${l.tipo}">${nomes[l.tipo]}</span></td><td style="color:var(--gray)">${escapeHtml(l.cat)}</td><td style="text-align:right" class="${cls}">${sinal} R$ ${val}</td><td style="text-align:right"><button class="lanc-row-del" onclick="lancExcluirLancamento(${l.id})">×</button></td></tr>`;
+    const origemBadge = l.origem==='cartao' ? '<span style="font-size:.55rem;background:rgba(124,156,255,0.15);color:#7c9cff;padding:.1rem .35rem;border-radius:3px;margin-left:.3rem;font-weight:700">CARTÃO</span>' : '';
+    const pgtoFaturaBadge = l.tipo==='pagamento_fatura' ? '<span style="font-size:.55rem;background:rgba(154,160,168,0.12);color:var(--gray);padding:.1rem .35rem;border-radius:3px;margin-left:.3rem;font-weight:700">NÃO CONTA</span>' : '';
+    return `<tr style="${l.tipo==='pagamento_fatura'?'opacity:.6':''}"><td>${data}</td><td>${escapeHtml(l.desc)}${origemBadge}${pgtoFaturaBadge}</td><td><span class="badge-type badge-${l.tipo==='pagamento_fatura'?'transferencia':l.tipo}">${nomes[l.tipo]}</span></td><td style="color:var(--gray)">${escapeHtml(l.cat)}</td><td style="text-align:right" class="${cls}">${sinal} R$ ${val}</td><td style="text-align:right"><button class="lanc-row-del" onclick="lancExcluirLancamento(${l.id})">×</button></td></tr>`;
   }).join('');
 }
 
@@ -5029,14 +5131,14 @@ async function adicionarLancamento(){
 
   const { data: row, error } = await sb.from('extrato').insert({
     user_id: usuarioAtual.id,
-    data, descricao: desc, tipo, categoria: cat, valor: val
+    data, descricao: desc, tipo, categoria: cat, valor: val, origem: 'extrato'
   }).select().single();
 
   btn.textContent=original; btn.disabled=false;
 
   if(error){ alert('Erro ao salvar lançamento: '+error.message); return; }
 
-  extratoAtual.push({id:row.id, data:row.data, desc:row.descricao, tipo:row.tipo, cat:row.categoria, val:Number(row.valor)});
+  extratoAtual.push({id:row.id, data:row.data, desc:row.descricao, tipo:row.tipo, cat:row.categoria, val:Number(row.valor), origem:'extrato'});
   document.getElementById('add-desc').value='';
   document.getElementById('add-val').value='';
 
@@ -6952,7 +7054,7 @@ function adminLancRenderTabela(){
   if(!filtrados.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
 
-  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.'};
+  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.',pagamento_fatura:'Pgto. Fatura'};
   tbody.innerHTML = filtrados.map(l=>{
     const dt = new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR');
     const isPos=l.tipo==='receita', isNeg=l.tipo==='despesa';
@@ -7300,7 +7402,7 @@ function adminRenderExtrato(extrato){
   }
   document.getElementById('admin-extrato-table').style.display='table';
   empty.style.display='none';
-  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.'};
+  const nomes={receita:'Receita',despesa:'Despesa',investimento:'Invest.',transferencia:'Transf.',pagamento_fatura:'Pgto. Fatura'};
   tbody.innerHTML = extrato.map(l=>{
     const data=new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR');
     const isPos=l.tipo==='receita', isNeg=l.tipo==='despesa';
