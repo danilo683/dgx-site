@@ -638,6 +638,34 @@ function dreHTML(){
   h+='<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
   return h;
 }
+// Markup a partir da % de margem bruta (fração 0-1). 1 / (1 - margem)
+function calcMarkup(pctFrac){
+  return (pctFrac>0 && pctFrac<1) ? (1/(1-pctFrac)) : null;
+}
+// Tabela mensal da aba Margem: Receita Líquida, CMV, Margem Bruta, % Margem e Markup por mês
+function buildMargemTable(pctM){
+  var fR2=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000).toLocaleString('pt-BR')+'K');};
+  var meses=MG.meses;
+  var totalRL=MG.receitaLiq.reduce(function(a,b){return a+b;},0);
+  var totalCMV=MG.cmv.reduce(function(a,b){return a+b;},0);
+  var totalMB=MG.margemBruta.reduce(function(a,b){return a+b;},0);
+  var pctTotal=totalRL?(totalMB/totalRL*100):0;
+  var markupTotal=calcMarkup(pctTotal/100);
+  var markupPorMes=pctM.map(function(p){return calcMarkup(p/100);});
+  function rowMoney(lbl,vals,tot,cls){cls=cls||'';return'<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td>'+fR2(v)+'</td>';}).join('')+'<td class="v-total">'+fR2(tot)+'</td></tr>';}
+  function rowPct(lbl,vals,tot){return'<tr><td>'+lbl+'</td>'+vals.map(function(v){return'<td class="v-pct">'+v.toFixed(1)+'%</td>';}).join('')+'<td class="v-pct">'+tot.toFixed(1)+'%</td></tr>';}
+  function rowMarkup(lbl,vals,tot){return'<tr><td>'+lbl+'</td>'+vals.map(function(v){return'<td>'+(v!==null?v.toFixed(2)+'x':'\u2014')+'</td>';}).join('')+'<td class="v-total">'+(tot!==null?tot.toFixed(2)+'x':'\u2014')+'</td></tr>';}
+  var html='<div style="overflow-x:auto;margin-top:14px"><table class="v-table"><thead><tr><th>Linha</th>'
+    +meses.map(function(m){return'<th>'+m+'</th>';}).join('')
+    +'<th>Total / M\u00e9dia</th></tr></thead><tbody>';
+  html+=rowMoney('Receita L\u00edquida',MG.receitaLiq,totalRL);
+  html+=rowMoney('CMV',MG.cmv,totalCMV);
+  html+=rowMoney('Margem Bruta',MG.margemBruta,totalMB,'v-tot-row');
+  html+=rowPct('% Margem Bruta',pctM,pctTotal);
+  html+=rowMarkup('Markup',markupPorMes,markupTotal);
+  html+='</tbody></table></div>';
+  return html;
+}
 function margemHTML(){
   if (!MG.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
   var pctM=MG.receitaLiq.map(function(rl,i){return rl?parseFloat(((MG.margemBruta[i])/rl*100).toFixed(1)):0;});
@@ -648,7 +676,8 @@ function margemHTML(){
   var avgMgFrac=parseFloat(avgM)/100;
   var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'\u2014';
   var fR=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};
-  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
+  var tabelaMargem=buildMargemTable(pctM);
+  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+tabelaMargem+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
 }
 function initMargem(){
   var existing=Chart.getChart('chartMargem');if(existing)existing.destroy();
@@ -674,10 +703,16 @@ function initMargem(){
         ctx.save();ctx.font='600 11px sans-serif';ctx.fillStyle='#00B4D8';ctx.textAlign='center';ctx.textBaseline='bottom';
         ctx.fillText(fR(MG.cmv[i]),bar.x,bar.y-6);ctx.restore();
       });
-      // % Margem Bruta centralizado exatamente na bolinha da linha
+      // % Margem Bruta centralizado exatamente na bolinha da linha, com o
+      // markup do mês (1 / (1 - margem)) logo abaixo
       chart.getDatasetMeta(2).data.forEach(function(pt,i){
         ctx.save();ctx.font='700 11px sans-serif';ctx.fillStyle='#2ECC71';ctx.textAlign='center';ctx.textBaseline='bottom';
         ctx.fillText(pctM[i].toFixed(1)+'%',pt.x,pt.y-10);ctx.restore();
+        var mk=calcMarkup(pctM[i]/100);
+        if(mk!==null){
+          ctx.save();ctx.font='500 9px sans-serif';ctx.fillStyle='rgba(46,204,113,0.7)';ctx.textAlign='center';ctx.textBaseline='top';
+          ctx.fillText(mk.toFixed(2)+'x',pt.x,pt.y+10);ctx.restore();
+        }
       });
     }};
     new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:MG.meses,datasets:[{label:'Receita L\u00edquida',data:MG.receitaLiq,backgroundColor:'#1E2D40',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV',data:MG.cmv,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:34}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{suggestedMax:maxBar*1.16,grid:{color:gc},ticks:{color:tc,callback:function(v){return fR(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:pctMin,max:pctMax,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
