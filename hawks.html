@@ -207,7 +207,7 @@ var V = {
 };
 var MG = { meses:[], receitaLiq:[], cmv:[], margemBruta:[] };
 var DRE_TOPLINE = { meses:[] };
-var DFC_DADOS = [];
+var DFC_DADOS = {};
 var MESES_COM_DADOS = [];
 
 // ── BASE ÚNICA (fato_vendas) — Fase A do BI ──────────────────
@@ -428,16 +428,20 @@ async function carregarDadosHawks() {
   DRE_TOPLINE = agregarDRETopline(FV_HAWKS);
   if (DRE_TOPLINE.meses.length) periods.dre = DRE_TOPLINE.meses[0] + ' \u2013 ' + DRE_TOPLINE.meses[DRE_TOPLINE.meses.length-1];
 
-  // DFC — segue alimentado pelos Lançamentos manuais (ainda não migrado para a base única)
+  // DFC — segue alimentado pelos Lançamentos (agora agregados via Apps Script).
+  // Chave por "YYYY-MM" (não por mês 0-11) para não confundir anos diferentes
+  // (ex.: Nov/2025 e Nov/2026 são chaves distintas, não a mesma posição).
   const {data:dfc} = await sb.from('dash_dfc').select('*')
     .eq('cliente_id','hawks').order('competencia',{ascending:true});
-  DFC_DADOS = Array(12).fill(null);
+  DFC_DADOS = {};
   MESES_COM_DADOS = [];
   if (dfc && dfc.length) {
     dfc.forEach(function(r) {
-      var mi = parseComp(r.competencia).mes;
-      MESES_COM_DADOS.push(mi);
-      DFC_DADOS[mi] = {
+      const c = parseComp(r.competencia);
+      const chave = c.ano + '-' + String(c.mes + 1).padStart(2, '0'); // "YYYY-MM"
+      MESES_COM_DADOS.push(chave);
+      DFC_DADOS[chave] = {
+        ano: c.ano, mes: c.mes,
         caixaInicial: n(r.caixa_inicial), recVendas: n(r.rec_vendas),
         jurosMultas: n(r.juros_multas)||0, outrasEnt: n(r.outras_ent_op)||0,
         pgtoTruss: n(r.pgto_truss)||0, pgtoNaoTruss: n(r.pgto_nao_truss)||0,
@@ -450,10 +454,17 @@ async function carregarDadosHawks() {
       };
     });
   }
+  // Ordena as chaves cronologicamente (string "YYYY-MM" já ordena bem, mas
+  // fazemos explícito para não depender disso)
+  MESES_COM_DADOS.sort(function(a,b){
+    var da = DFC_DADOS[a], db = DFC_DADOS[b];
+    return (da.ano - db.ano) || (da.mes - db.mes);
+  });
 
-  if (dfc && dfc.length > 1) {
-    var p2 = parseComp(dfc[0].competencia), u2 = parseComp(dfc[dfc.length-1].competencia);
-    periods.dfc = MESES_LABEL[p2.mes]+' \u2013 '+MESES_LABEL[u2.mes]+' '+u2.ano;
+  if (MESES_COM_DADOS.length) {
+    var primeiro = DFC_DADOS[MESES_COM_DADOS[0]];
+    var ultimo = DFC_DADOS[MESES_COM_DADOS[MESES_COM_DADOS.length-1]];
+    periods.dfc = MESES_LABEL[primeiro.mes]+'/'+String(primeiro.ano).slice(2)+' \u2013 '+MESES_LABEL[ultimo.mes]+'/'+String(ultimo.ano).slice(2);
   }
 }
 
@@ -681,17 +692,132 @@ function fmtD(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).to
 function fv(v){return(!v&&v!==0)||v===0?'\u2014':fmtD(v);}
 function tcClass(v){return(!v&&v!==0)||v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}
 function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
+
+// Rótulo de exibição "Nov/25" a partir da chave "YYYY-MM"
+function rotuloMes(chave){
+  var d = DFC_DADOS[chave];
+  return MESES_LABELS[d.mes] + '/' + String(d.ano).slice(2);
+}
+
 function dfcHTML(){return'<div class="dfc-nav"><button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button><button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button></div><div id="dfc-view-anual"></div><div id="dfc-view-mensal" style="display:none"></div><div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';}
 function dfcShowView(v){document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});document.getElementById('dfc-btn-'+v).classList.add('active');document.getElementById('dfc-view-anual').style.display=v==='anual'?'':'none';document.getElementById('dfc-view-mensal').style.display=v==='mensal'?'':'none';if(v==='anual')renderDFCAnual();else renderDFCMensal();}
-function renderDFCAnual(){var el=document.getElementById('dfc-view-anual');var calcs=DFC_DADOS.map(function(d){return d?calcDFC(d):null;});var totalEnt=calcs.reduce(function(a,c){return c?a+c.entTotal:a;},0);var totalSai=calcs.reduce(function(a,c){return c?a+c.saiGrandTotal:a;},0);var ultimoCalc=null;for(var i=MESES_COM_DADOS.length-1;i>=0;i--){var idx=MESES_COM_DADOS[i];if(calcs[idx]){ultimoCalc=calcs[idx];break;}}var saldoFim=ultimoCalc?ultimoCalc.caixaFinal:0;el.innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+fmtD(totalEnt)+'</div><div class="dfc-card-sub">Jan \u2013 Abr 2026 (acumulado)</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total sa\u00eddas</div><div class="dfc-card-value beige">'+fmtD(totalSai)+'</div><div class="dfc-card-sub">Jan \u2013 Abr 2026 (acumulado)</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo atual de caixa</div><div class="dfc-card-value">'+fmtD(saldoFim)+'</div><div class="dfc-card-sub">Posi\u00e7\u00e3o ao final de Abr/26</div></div></div><div class="dfc-section-label">Bridge \u2014 Composi\u00e7\u00e3o do saldo</div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do fluxo de caixa</div><div class="dfc-chart-sub">Saldo inicial + entradas \u2212 sa\u00eddas por categoria at\u00e9 o saldo final (acumulado Jan\u2013Abr)</div><div style="height:220px;position:relative"><canvas id="dfc-waterfall-anual"></canvas></div></div><div class="dfc-section-label">Saldo por m\u00eas</div><div class="dfc-chart-card"><div class="dfc-chart-title">Saldo l\u00edquido mensal</div><div class="dfc-chart-sub">Varia\u00e7\u00e3o de caixa em cada m\u00eas</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-anual"></canvas></div></div><div class="dfc-section-label">Fluxo mensal</div><div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e sa\u00eddas mensais</div><div class="dfc-chart-sub">Barras espelhadas por m\u00eas com linha de saldo banc\u00e1rio acumulado</div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Sa\u00ed. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Sa\u00ed. Fin.</span></div><div class="dfc-filtro-wrap"><button id="dfc-filtro-anual-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoAnual(\'todos\')">Todos</button><button id="dfc-filtro-anual-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'operacional\')">Operacional</button><button id="dfc-filtro-anual-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'financiamento\')">Financiamento</button><button id="dfc-filtro-anual-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'investimento\')">Investimento</button></div></div><div style="height:230px;position:relative"><canvas id="dfc-espelhado-anual"></canvas></div></div><div class="dfc-section-label">DFC detalhado</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-anual"></table></div>';setTimeout(function(){buildWaterfallAnual(calcs);buildSaldoAnual(calcs);buildEspelhadoAnual(calcs);buildTabelaAnual(calcs);},80);}
-function buildWaterfallAnual(calcs){var saldoIni=DFC_DADOS[0]?DFC_DADOS[0].caixaInicial:0;var totalRecVendas=DFC_DADOS.reduce(function(a,d){return d?a+d.recVendas:a;},0);var totalEmprestimos=DFC_DADOS.reduce(function(a,d){return d?a+d.emprestimos:a;},0);var totalPgtoFornec=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoTruss)+Math.abs(d.pgtoNaoTruss):a;},0);var totalDespOp=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoPessoal)+Math.abs(d.pgtoMkt)+Math.abs(d.pgtoComissoes)+Math.abs(d.pgtoLogistica)+Math.abs(d.pgtoOcupacao)+Math.abs(d.pgtoGerais)+Math.abs(d.pgtoTerceiros):a;},0);var totalImpostos=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoImpostos):a;},0);var totalAmort=DFC_DADOS.reduce(function(a,d){return d?a+Math.abs(d.pgtoFinanc):a;},0);var ultimoCalc=null;for(var i=MESES_COM_DADOS.length-1;i>=0;i--){var idx=MESES_COM_DADOS[i];if(calcs[idx]){ultimoCalc=calcs[idx];break;}}var saldoFim=ultimoCalc?ultimoCalc.caixaFinal:0;var bData=[{label:'Saldo ini.',value:saldoIni,type:'ini'},{label:'Rec. vendas',value:totalRecVendas,type:'pos'},{label:'Capta\u00e7\u00f5es',value:totalEmprestimos,type:'pos'},{label:'Pgto. fornec.',value:-totalPgtoFornec,type:'neg'},{label:'Desp. operac.',value:-totalDespOp,type:'neg'},{label:'Impostos',value:-totalImpostos,type:'neg'},{label:'Amortiza\u00e7\u00f5es',value:-totalAmort,type:'neg'},{label:'Saldo final',value:saldoFim,type:'tot'}];var starts=[],bars=[],colors=[],run=0;bData.forEach(function(v){if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}else if(v.type==='pos'){starts.push(run);bars.push(v.value);}else{starts.push(run+v.value);bars.push(-v.value);}if(v.type!=='tot')run+=v.value;colors.push(v.type==='ini'?INI_C:v.type==='tot'?CYAN_TOT:v.type==='pos'?CYAN:BEIGE);});destroyChart('dfc-waterfall-anual');new Chart(document.getElementById('dfc-waterfall-anual'),{type:'bar',data:{labels:bData.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return bData[c.dataIndex].label+': '+fmtD(bData[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},stacked:true},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},stacked:true}}}});}
-function buildSaldoAnual(calcs){var liquidoArr=MESES_LABELS.map(function(_,i){return calcs[i]?calcs[i].liquido:null;});destroyChart('dfc-saldo-anual');new Chart(document.getElementById('dfc-saldo-anual'),{type:'bar',data:{labels:MESES_LABELS,datasets:[{label:'Saldo',data:liquidoArr,backgroundColor:liquidoArr.map(function(v){return v===null?'rgba(255,255,255,0.05)':v>=0?CYAN:BEIGE;}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},border:{display:false}},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},border:{display:false}}}}});}
-var _anualCalcs=null;
-function buildEspelhadoAnual(calcs){_anualCalcs=calcs;filtroEspelhadoAnual('todos');}
-function filtroEspelhadoAnual(filtro){var calcs=_anualCalcs;if(!calcs)return;var saldoIni=DFC_DADOS[0]?DFC_DADOS[0].caixaInicial:0;var entOpArr=MESES_LABELS.map(function(_,i){return calcs[i]?calcs[i].entOp:null;});var entFinArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?d.emprestimos:null;});var entInvArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?d.entInvest:null;});var saiOpArr=MESES_LABELS.map(function(_,i){return calcs[i]?-calcs[i].saiOp:null;});var saiFinArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?-Math.abs(d.pgtoFinanc):null;});var saiInvArr=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var d=DFC_DADOS[i];return d?-Math.abs(d.saiInvest):null;});var acc=saldoIni;var saldoAcum=MESES_LABELS.map(function(_,i){if(!calcs[i])return null;var fluxo=0;if(filtro==='todos'||filtro==='operacional')fluxo+=calcs[i].fcOp;if(filtro==='todos'||filtro==='financiamento')fluxo+=calcs[i].fcFin;if(filtro==='todos'||filtro==='investimento')fluxo+=calcs[i].fcInv;acc+=fluxo;return acc;});var showOp=(filtro==='todos'||filtro==='operacional');var showFin=(filtro==='todos'||filtro==='financiamento');var showInv=(filtro==='todos'||filtro==='investimento');var datasets=[];if(showOp){datasets.push({label:'Ent. Operacional',data:entOpArr,backgroundColor:CYAN,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Sa\u00ed. Operacional',data:saiOpArr,backgroundColor:BEIGE,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}if(showFin){datasets.push({label:'Ent. Financiamento',data:entFinArr,backgroundColor:'#2C6BE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Sa\u00ed. Financiamento',data:saiFinArr,backgroundColor:'#1A3A6B',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}if(showInv){datasets.push({label:'Ent. Investimento',data:entInvArr,backgroundColor:'#3A8FE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Sa\u00ed. Investimento',data:saiInvArr,backgroundColor:'#0D2545',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}datasets.push({label:'Saldo',data:saldoAcum,type:'line',borderColor:'rgba(255,255,255,0.85)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(255,255,255,0.85)',fill:false,order:1,spanGaps:false});['todos','operacional','financiamento','investimento'].forEach(function(f){var btn=document.getElementById('dfc-filtro-anual-'+f);if(btn)btn.classList.toggle('active',f===filtro);});destroyChart('dfc-espelhado-anual');new Chart(document.getElementById('dfc-espelhado-anual'),{type:'bar',data:{labels:MESES_LABELS,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:TC,font:{size:12}}},y:{stacked:true,grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(Math.abs(v));}}}}}});}
-function buildTabelaAnual(calcs){var n=12;function row(lbl,vals,cls){cls=cls||'';var tot=vals.reduce(function(a,b){return a+(b||0);},0);return'<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+(v===null?'':tcClass(v))+'>'+(v===null?'\u2014':fv(v))+'</td>';}).join('')+'<td'+tcClass(tot)+'>'+fv(tot)+'</td></tr>';}var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th>'+MESES_LABELS.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade Operacional</td></tr>';h+=row('Recebimentos de vendas',DFC_DADOS.map(function(d){return d?d.recVendas:null;}));h+=row('Pgto. compras Truss',DFC_DADOS.map(function(d){return d?d.pgtoTruss:null;}));h+=row('Pgto. fornecedores n\u00e3o Truss',DFC_DADOS.map(function(d){return d?d.pgtoNaoTruss:null;}));h+=row('Pgto. pessoal',DFC_DADOS.map(function(d){return d?d.pgtoPessoal:null;}));h+=row('Pgto. marketing',DFC_DADOS.map(function(d){return d?d.pgtoMkt:null;}));h+=row('Pgto. comiss\u00f5es',DFC_DADOS.map(function(d){return d?d.pgtoComissoes:null;}));h+=row('Pgto. log\u00edstica',DFC_DADOS.map(function(d){return d?d.pgtoLogistica:null;}));h+=row('Pgto. ocupa\u00e7\u00e3o',DFC_DADOS.map(function(d){return d?d.pgtoOcupacao:null;}));h+=row('Pgto. gerais',DFC_DADOS.map(function(d){return d?d.pgtoGerais:null;}));h+=row('Servi\u00e7os de terceiros',DFC_DADOS.map(function(d){return d?d.pgtoTerceiros:null;}));h+=row('Pgto. impostos',DFC_DADOS.map(function(d){return d?d.pgtoImpostos:null;}));h+=row('= FC Operacional',calcs.map(function(c){return c?c.fcOp:null;}),'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Investimento</td></tr>';h+=row('Entradas de investimento',DFC_DADOS.map(function(d){return d?d.entInvest:null;}));h+=row('Sa\u00eddas de investimento',DFC_DADOS.map(function(d){return d?d.saiInvest:null;}));h+=row('= FC Investimento',calcs.map(function(c){return c?c.fcInv:null;}),'dfc-sub');h+='<tr class="dfc-grp"><td colspan="'+(n+2)+'">Atividade de Financiamento</td></tr>';h+=row('Empr\u00e9stimos tomados',DFC_DADOS.map(function(d){return d?d.emprestimos:null;}));h+=row('Pgto. financiamentos',DFC_DADOS.map(function(d){return d?d.pgtoFinanc:null;}));h+=row('= FC Financiamento',calcs.map(function(c){return c?c.fcFin:null;}),'dfc-sub');h+=row('= Varia\u00e7\u00e3o l\u00edquida de caixa',calcs.map(function(c){return c?c.liquido:null;}),'dfc-tot');h+='</tbody>';document.getElementById('dfc-tabela-anual').innerHTML=h;}
-function renderDFCMensal(){var el=document.getElementById('dfc-view-mensal');el.innerHTML='<div class="dfc-filters"><label>M\u00eas</label><select id="dfc-sel-mes" onchange="renderDFCMensalAtualiza()">'+MESES_FULL.map(function(m,i){return'<option value="'+i+'"'+(i===3?' selected':'')+'>'+m+'</option>';}).join('')+'</select></div><div id="dfc-mensal-conteudo"></div>';renderDFCMensalAtualiza();}
-function renderDFCMensalAtualiza(){var mi=parseInt(document.getElementById('dfc-sel-mes').value);var d=DFC_DADOS[mi];var c=d?calcDFC(d):null;var temDados=!!d;var mesLabel=MESES_FULL[mi];var saldoFim=c?c.caixaFinal:null;document.getElementById('dfc-mensal-conteudo').innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+(temDados?fmtD(c.entTotal):'\u2014')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total sa\u00eddas</div><div class="dfc-card-value beige">'+(temDados?fmtD(c.saiGrandTotal):'\u2014')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo ao final do m\u00eas</div><div class="dfc-card-value">'+(temDados?fmtD(saldoFim):'\u2014')+'</div><div class="dfc-card-sub">'+(temDados?'Posi\u00e7\u00e3o banc\u00e1ria':'Sem dados para este m\u00eas')+'</div></div></div><div class="dfc-section-label">DFC detalhado \u2014 '+mesLabel+'</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-mensal"></table></div>';setTimeout(function(){buildTabelaMensal(d,c,temDados,mesLabel);},80);}
+
+function renderDFCAnual(){
+  var el=document.getElementById('dfc-view-anual');
+  var chaves = MESES_COM_DADOS; // já ordenadas cronologicamente, só os meses com dado real
+  var calcs = {}; chaves.forEach(function(k){ calcs[k] = calcDFC(DFC_DADOS[k]); });
+  var totalEnt = chaves.reduce(function(a,k){return a+calcs[k].entTotal;},0);
+  var totalSai = chaves.reduce(function(a,k){return a+calcs[k].saiGrandTotal;},0);
+  var ultimaChave = chaves[chaves.length-1];
+  var saldoFim = ultimaChave ? calcs[ultimaChave].caixaFinal : 0;
+  var periodoLabel = chaves.length ? (rotuloMes(chaves[0])+' \u2013 '+rotuloMes(ultimaChave)) : '\u2014';
+  el.innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+fmtD(totalEnt)+'</div><div class="dfc-card-sub">'+periodoLabel+' (acumulado)</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total sa\u00eddas</div><div class="dfc-card-value beige">'+fmtD(totalSai)+'</div><div class="dfc-card-sub">'+periodoLabel+' (acumulado)</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo atual de caixa</div><div class="dfc-card-value">'+fmtD(saldoFim)+'</div><div class="dfc-card-sub">'+(ultimaChave?('Posi\u00e7\u00e3o ao final de '+rotuloMes(ultimaChave)):'\u2014')+'</div></div></div><div class="dfc-section-label">Bridge \u2014 Composi\u00e7\u00e3o do saldo</div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do fluxo de caixa</div><div class="dfc-chart-sub">Saldo inicial + entradas \u2212 sa\u00eddas por categoria at\u00e9 o saldo final (acumulado '+periodoLabel+')</div><div style="height:220px;position:relative"><canvas id="dfc-waterfall-anual"></canvas></div></div><div class="dfc-section-label">Saldo por m\u00eas</div><div class="dfc-chart-card"><div class="dfc-chart-title">Saldo l\u00edquido mensal</div><div class="dfc-chart-sub">Varia\u00e7\u00e3o de caixa em cada m\u00eas</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-anual"></canvas></div></div><div class="dfc-section-label">Fluxo mensal</div><div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e sa\u00eddas mensais</div><div class="dfc-chart-sub">Barras espelhadas por m\u00eas com linha de saldo banc\u00e1rio acumulado</div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Sa\u00ed. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Sa\u00ed. Fin.</span></div><div class="dfc-filtro-wrap"><button id="dfc-filtro-anual-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoAnual(\'todos\')">Todos</button><button id="dfc-filtro-anual-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'operacional\')">Operacional</button><button id="dfc-filtro-anual-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'financiamento\')">Financiamento</button><button id="dfc-filtro-anual-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'investimento\')">Investimento</button></div></div><div style="height:230px;position:relative"><canvas id="dfc-espelhado-anual"></canvas></div></div><div class="dfc-section-label">DFC detalhado</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-anual"></table></div>';
+  setTimeout(function(){buildWaterfallAnual(chaves,calcs);buildSaldoAnual(chaves,calcs);buildEspelhadoAnual(chaves,calcs);buildTabelaAnual(chaves,calcs);},80);
+}
+function buildWaterfallAnual(chaves,calcs){
+  if(!chaves.length){destroyChart('dfc-waterfall-anual');return;}
+  var saldoIni=DFC_DADOS[chaves[0]].caixaInicial;
+  var totalRecVendas=chaves.reduce(function(a,k){return a+DFC_DADOS[k].recVendas;},0);
+  var totalEmprestimos=chaves.reduce(function(a,k){return a+DFC_DADOS[k].emprestimos;},0);
+  var totalPgtoFornec=chaves.reduce(function(a,k){var d=DFC_DADOS[k];return a+Math.abs(d.pgtoTruss)+Math.abs(d.pgtoNaoTruss);},0);
+  var totalDespOp=chaves.reduce(function(a,k){var d=DFC_DADOS[k];return a+Math.abs(d.pgtoPessoal)+Math.abs(d.pgtoMkt)+Math.abs(d.pgtoComissoes)+Math.abs(d.pgtoLogistica)+Math.abs(d.pgtoOcupacao)+Math.abs(d.pgtoGerais)+Math.abs(d.pgtoTerceiros);},0);
+  var totalImpostos=chaves.reduce(function(a,k){return a+Math.abs(DFC_DADOS[k].pgtoImpostos);},0);
+  var totalAmort=chaves.reduce(function(a,k){return a+Math.abs(DFC_DADOS[k].pgtoFinanc);},0);
+  var ultimaChave=chaves[chaves.length-1];
+  var saldoFim=calcs[ultimaChave].caixaFinal;
+  var periodoLabel = rotuloMes(chaves[0])+'\u2013'+rotuloMes(ultimaChave);
+  var bData=[{label:'Saldo ini.',value:saldoIni,type:'ini'},{label:'Rec. vendas',value:totalRecVendas,type:'pos'},{label:'Capta\u00e7\u00f5es',value:totalEmprestimos,type:'pos'},{label:'Pgto. fornec.',value:-totalPgtoFornec,type:'neg'},{label:'Desp. operac.',value:-totalDespOp,type:'neg'},{label:'Impostos',value:-totalImpostos,type:'neg'},{label:'Amortiza\u00e7\u00f5es',value:-totalAmort,type:'neg'},{label:'Saldo final',value:saldoFim,type:'tot'}];
+  var starts=[],bars=[],colors=[],run=0;
+  bData.forEach(function(v){if(v.type==='ini'||v.type==='tot'){starts.push(0);bars.push(v.value);}else if(v.type==='pos'){starts.push(run);bars.push(v.value);}else{starts.push(run+v.value);bars.push(-v.value);}if(v.type!=='tot')run+=v.value;colors.push(v.type==='ini'?INI_C:v.type==='tot'?CYAN_TOT:v.type==='pos'?CYAN:BEIGE);});
+  destroyChart('dfc-waterfall-anual');
+  new Chart(document.getElementById('dfc-waterfall-anual'),{type:'bar',data:{labels:bData.map(function(v){return v.label;}),datasets:[{data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},{data:bars,backgroundColor:colors,borderRadius:3,borderSkipped:false,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;return bData[c.dataIndex].label+': '+fmtD(bData[c.dataIndex].value);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},stacked:true},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},stacked:true}}}});
+}
+function buildSaldoAnual(chaves,calcs){
+  var labels = chaves.map(rotuloMes);
+  var liquidoArr = chaves.map(function(k){return calcs[k].liquido;});
+  destroyChart('dfc-saldo-anual');
+  new Chart(document.getElementById('dfc-saldo-anual'),{type:'bar',data:{labels:labels,datasets:[{label:'Saldo',data:liquidoArr,backgroundColor:liquidoArr.map(function(v){return v===null?'rgba(255,255,255,0.05)':v>=0?CYAN:BEIGE;}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:TC,font:{size:11}},border:{display:false}},y:{grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(v);}},border:{display:false}}}}});
+}
+var _anualChaves=null,_anualCalcs=null;
+function buildEspelhadoAnual(chaves,calcs){_anualChaves=chaves;_anualCalcs=calcs;filtroEspelhadoAnual('todos');}
+function filtroEspelhadoAnual(filtro){
+  var chaves=_anualChaves, calcs=_anualCalcs;
+  if(!chaves)return;
+  var saldoIni = chaves.length ? DFC_DADOS[chaves[0]].caixaInicial : 0;
+  var labels = chaves.map(rotuloMes);
+  var entOpArr=chaves.map(function(k){return calcs[k].entOp;});
+  var entFinArr=chaves.map(function(k){return DFC_DADOS[k].emprestimos;});
+  var entInvArr=chaves.map(function(k){return DFC_DADOS[k].entInvest;});
+  var saiOpArr=chaves.map(function(k){return -calcs[k].saiOp;});
+  var saiFinArr=chaves.map(function(k){return -Math.abs(DFC_DADOS[k].pgtoFinanc);});
+  var saiInvArr=chaves.map(function(k){return -Math.abs(DFC_DADOS[k].saiInvest);});
+  var acc=saldoIni;
+  var saldoAcum=chaves.map(function(k){
+    var fluxo=0;
+    if(filtro==='todos'||filtro==='operacional')fluxo+=calcs[k].fcOp;
+    if(filtro==='todos'||filtro==='financiamento')fluxo+=calcs[k].fcFin;
+    if(filtro==='todos'||filtro==='investimento')fluxo+=calcs[k].fcInv;
+    acc+=fluxo;
+    return acc;
+  });
+  var showOp=(filtro==='todos'||filtro==='operacional');
+  var showFin=(filtro==='todos'||filtro==='financiamento');
+  var showInv=(filtro==='todos'||filtro==='investimento');
+  var datasets=[];
+  if(showOp){datasets.push({label:'Ent. Operacional',data:entOpArr,backgroundColor:CYAN,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Sa\u00ed. Operacional',data:saiOpArr,backgroundColor:BEIGE,stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}
+  if(showFin){datasets.push({label:'Ent. Financiamento',data:entFinArr,backgroundColor:'#2C6BE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Sa\u00ed. Financiamento',data:saiFinArr,backgroundColor:'#1A3A6B',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}
+  if(showInv){datasets.push({label:'Ent. Investimento',data:entInvArr,backgroundColor:'#3A8FE0',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});datasets.push({label:'Sa\u00ed. Investimento',data:saiInvArr,backgroundColor:'#0D2545',stack:'s',borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7,order:2});}
+  datasets.push({label:'Saldo',data:saldoAcum,type:'line',borderColor:'rgba(255,255,255,0.85)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(255,255,255,0.85)',fill:false,order:1,spanGaps:false});
+  ['todos','operacional','financiamento','investimento'].forEach(function(f){var btn=document.getElementById('dfc-filtro-anual-'+f);if(btn)btn.classList.toggle('active',f===filtro);});
+  destroyChart('dfc-espelhado-anual');
+  new Chart(document.getElementById('dfc-espelhado-anual'),{type:'bar',data:{labels:labels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:TC,font:{size:12}}},y:{stacked:true,grid:{color:GC},ticks:{color:TC,font:{size:11},callback:function(v){return fmtD(Math.abs(v));}}}}}});
+}
+function buildTabelaAnual(chaves,calcs){
+  var labels = chaves.map(rotuloMes);
+  function row(lbl,vals,cls){cls=cls||'';var tot=vals.reduce(function(a,b){return a+(b||0);},0);return'<tr class="'+cls+'"><td>'+lbl+'</td>'+vals.map(function(v){return'<td'+(v===null?'':tcClass(v))+'>'+(v===null?'\u2014':fv(v))+'</td>';}).join('')+'<td'+tcClass(tot)+'>'+fv(tot)+'</td></tr>';}
+  var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th>'+labels.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';
+  h+='<tr class="dfc-grp"><td colspan="'+(chaves.length+2)+'">Atividade Operacional</td></tr>';
+  h+=row('Recebimentos de vendas',chaves.map(function(k){return DFC_DADOS[k].recVendas;}));
+  h+=row('Pgto. compras Truss',chaves.map(function(k){return DFC_DADOS[k].pgtoTruss;}));
+  h+=row('Pgto. fornecedores n\u00e3o Truss',chaves.map(function(k){return DFC_DADOS[k].pgtoNaoTruss;}));
+  h+=row('Pgto. pessoal',chaves.map(function(k){return DFC_DADOS[k].pgtoPessoal;}));
+  h+=row('Pgto. marketing',chaves.map(function(k){return DFC_DADOS[k].pgtoMkt;}));
+  h+=row('Pgto. comiss\u00f5es',chaves.map(function(k){return DFC_DADOS[k].pgtoComissoes;}));
+  h+=row('Pgto. log\u00edstica',chaves.map(function(k){return DFC_DADOS[k].pgtoLogistica;}));
+  h+=row('Pgto. ocupa\u00e7\u00e3o',chaves.map(function(k){return DFC_DADOS[k].pgtoOcupacao;}));
+  h+=row('Pgto. gerais',chaves.map(function(k){return DFC_DADOS[k].pgtoGerais;}));
+  h+=row('Servi\u00e7os de terceiros',chaves.map(function(k){return DFC_DADOS[k].pgtoTerceiros;}));
+  h+=row('Pgto. impostos',chaves.map(function(k){return DFC_DADOS[k].pgtoImpostos;}));
+  h+=row('= FC Operacional',chaves.map(function(k){return calcs[k].fcOp;}),'dfc-sub');
+  h+='<tr class="dfc-grp"><td colspan="'+(chaves.length+2)+'">Atividade de Investimento</td></tr>';
+  h+=row('Entradas de investimento',chaves.map(function(k){return DFC_DADOS[k].entInvest;}));
+  h+=row('Sa\u00eddas de investimento',chaves.map(function(k){return DFC_DADOS[k].saiInvest;}));
+  h+=row('= FC Investimento',chaves.map(function(k){return calcs[k].fcInv;}),'dfc-sub');
+  h+='<tr class="dfc-grp"><td colspan="'+(chaves.length+2)+'">Atividade de Financiamento</td></tr>';
+  h+=row('Empr\u00e9stimos tomados',chaves.map(function(k){return DFC_DADOS[k].emprestimos;}));
+  h+=row('Pgto. financiamentos',chaves.map(function(k){return DFC_DADOS[k].pgtoFinanc;}));
+  h+=row('= FC Financiamento',chaves.map(function(k){return calcs[k].fcFin;}),'dfc-sub');
+  h+=row('= Varia\u00e7\u00e3o l\u00edquida de caixa',chaves.map(function(k){return calcs[k].liquido;}),'dfc-tot');
+  h+='</tbody>';
+  document.getElementById('dfc-tabela-anual').innerHTML=h;
+}
+function renderDFCMensal(){
+  var el=document.getElementById('dfc-view-mensal');
+  var chaves=MESES_COM_DADOS;
+  if(!chaves.length){el.innerHTML='<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado dispon\u00edvel.</div>';return;}
+  el.innerHTML='<div class="dfc-filters"><label>M\u00eas</label><select id="dfc-sel-mes" onchange="renderDFCMensalAtualiza()">'+chaves.map(function(k,i){return'<option value="'+k+'"'+(i===chaves.length-1?' selected':'')+'>'+rotuloMes(k)+'</option>';}).join('')+'</select></div><div id="dfc-mensal-conteudo"></div>';
+  renderDFCMensalAtualiza();
+}
+function renderDFCMensalAtualiza(){
+  var chave=document.getElementById('dfc-sel-mes').value;
+  var d=DFC_DADOS[chave];
+  var c=d?calcDFC(d):null;
+  var temDados=!!d;
+  var mesLabel=temDados?rotuloMes(chave):'\u2014';
+  var saldoFim=c?c.caixaFinal:null;
+  document.getElementById('dfc-mensal-conteudo').innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+(temDados?fmtD(c.entTotal):'\u2014')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total sa\u00eddas</div><div class="dfc-card-value beige">'+(temDados?fmtD(c.saiGrandTotal):'\u2014')+'</div><div class="dfc-card-sub">'+mesLabel+'</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo ao final do m\u00eas</div><div class="dfc-card-value">'+(temDados?fmtD(saldoFim):'\u2014')+'</div><div class="dfc-card-sub">'+(temDados?'Posi\u00e7\u00e3o banc\u00e1ria':'Sem dados para este m\u00eas')+'</div></div></div><div class="dfc-section-label">DFC detalhado \u2014 '+mesLabel+'</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-mensal"></table></div>';
+  setTimeout(function(){buildTabelaMensal(d,c,temDados,mesLabel);},80);
+}
 function buildTabelaMensal(d,c,temDados,mesLabel){function rowM(lbl,val,cls){cls=cls||'';return'<tr class="'+cls+'"><td>'+lbl+'</td><td'+tcClass(val)+'>'+(val===null||val===undefined?'\u2014':fv(val))+'</td></tr>';}var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th><th>'+mesLabel+'</th></tr></thead><tbody>';if(!temDados){h+='<tr><td colspan="2" style="text-align:center;color:#4A6580;padding:2rem">Sem dados para este m\u00eas</td></tr>';h+='</tbody>';document.getElementById('dfc-tabela-mensal').innerHTML=h;return;}h+='<tr class="dfc-grp"><td colspan="2">Atividade Operacional</td></tr>';h+=rowM('Recebimentos de vendas',d.recVendas);h+=rowM('Pgto. compras Truss',d.pgtoTruss);h+=rowM('Pgto. fornecedores n\u00e3o Truss',d.pgtoNaoTruss);h+=rowM('Pgto. pessoal',d.pgtoPessoal);h+=rowM('Pgto. marketing',d.pgtoMkt);h+=rowM('Pgto. comiss\u00f5es',d.pgtoComissoes);h+=rowM('Pgto. log\u00edstica',d.pgtoLogistica);h+=rowM('Pgto. ocupa\u00e7\u00e3o',d.pgtoOcupacao);h+=rowM('Pgto. gerais',d.pgtoGerais);h+=rowM('Servi\u00e7os de terceiros',d.pgtoTerceiros);h+=rowM('Pgto. impostos',d.pgtoImpostos);h+=rowM('= FC Operacional',c.fcOp,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="2">Atividade de Investimento</td></tr>';h+=rowM('Entradas de investimento',d.entInvest);h+=rowM('Sa\u00eddas de investimento',d.saiInvest);h+=rowM('= FC Investimento',c.fcInv,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="2">Atividade de Financiamento</td></tr>';h+=rowM('Empr\u00e9stimos tomados',d.emprestimos);h+=rowM('Pgto. financiamentos',d.pgtoFinanc);h+=rowM('= FC Financiamento',c.fcFin,'dfc-sub');h+=rowM('= Varia\u00e7\u00e3o l\u00edquida de caixa',c.liquido,'dfc-tot');h+=rowM('Saldo inicial',d.caixaInicial,'dfc-sub');h+=rowM('Saldo final',c.caixaFinal,'dfc-sub');h+='</tbody>';document.getElementById('dfc-tabela-mensal').innerHTML=h;}
 </script>
 </body>
