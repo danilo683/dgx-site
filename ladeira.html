@@ -288,23 +288,27 @@ async function loadCalendario(){
     const iMandante = findCol(cols, ['mandante','casa']);
     const iResultado = findCol(cols, ['resultado','placar']);
     const iAdversario = findCol(cols, ['advers']);
-    const iStatus = findCol(cols, ['status']);
+    const iCartel = findCol(cols, ['cartel','status']);
+    const iRealizado = findCol(cols, ['realizado']);
     const iObs = findCol(cols, ['obs']);
 
     calendarRows = rows.filter(r => r.some(v => v !== '' && v !== null)).map(r => {
-      const status = normalize(iStatus>=0 ? r[iStatus] : '');
+      const cartel = normalize(iCartel>=0 ? r[iCartel] : '');
+      const realizado = normalize(iRealizado>=0 ? r[iRealizado] : '');
+      const obs = normalize(iObs>=0 ? r[iObs] : '');
       let kind = 'proximo';
-      if(status.includes('vitor')) kind = 'vitoria';
-      else if(status.includes('empat')) kind = 'empate';
-      else if(status.includes('derrot')) kind = 'derrota';
-      else if(status.includes('cancel') || status.includes('adiad')) kind = 'cancelado';
-      else if(status.includes('agend') || status.includes('proxim') || status.includes('a definir')) kind = 'proximo';
+      if(obs.includes('cancel') || obs.includes('adiad')) kind = 'cancelado';
+      else if(realizado === 'sim' || realizado === 'true' || realizado === 'x'){
+        if(cartel.includes('vitor')) kind = 'vitoria';
+        else if(cartel.includes('empat')) kind = 'empate';
+        else if(cartel.includes('derrot')) kind = 'derrota';
+        else kind = 'proximo';
+      }
       return {
         data: iData>=0 ? r[iData] : '',
         mandante: iMandante>=0 ? r[iMandante] : '',
         resultado: iResultado>=0 ? r[iResultado] : '',
         adversario: iAdversario>=0 ? r[iAdversario] : '',
-        status: iStatus>=0 ? r[iStatus] : '',
         obs: iObs>=0 ? r[iObs] : '',
         kind
       };
@@ -417,6 +421,57 @@ async function loadRanking(sheetKey, loadId, contentId, bodyId, valueCandidates,
   }
 }
 
+/* ---------------- FREQUÊNCIA (estrutura própria: já traz Frequência e Frequência % prontos) ---------------- */
+async function loadFrequencia(){
+  try{
+    const { cols, rows } = await fetchSheet(CONFIG.SHEETS.frequencia);
+    const iPlayer = findCol(cols, ['jogador','atleta','nome']);
+    let iPct = -1, iJogos = -1;
+    cols.forEach((c,i)=>{
+      const n = normalize(c);
+      if(n.includes('%')) { if(iPct<0) iPct = i; }
+      else if(n === 'frequencia' || n === 'frequência') { if(iJogos<0) iJogos = i; }
+    });
+    if(iPlayer<0) throw new Error('Coluna de jogador não encontrada');
+
+    const total = window.__totalJogosRealizados || 0;
+    let list = [];
+    for(const r of rows){
+      const name = r[iPlayer];
+      if(!name) continue;
+      const jogosRaw = iJogos>=0 ? r[iJogos] : 0;
+      const jogos = typeof jogosRaw === 'number' ? jogosRaw : (parseFloat(String(jogosRaw).replace(',','.')) || 0);
+      let pct;
+      if(iPct>=0 && r[iPct] !== null && r[iPct] !== ''){
+        pct = typeof r[iPct] === 'number' ? Math.round(r[iPct]*100) : Math.round(parseFloat(String(r[iPct]).replace('%','').replace(',','.')) || 0);
+      } else {
+        pct = total>0 ? Math.round((jogos/total)*100) : 0;
+      }
+      list.push({ jogador: name, jogos, pct });
+    }
+    list.sort((a,b)=>b.jogos-a.jogos);
+
+    const body = document.getElementById('freqBody');
+    body.innerHTML = '';
+    if(list.length===0){
+      body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:2rem">Sem dados ainda.</td></tr>';
+    } else {
+      list.forEach((item,i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><span class="${rankClass(i)}">${i+1}</span></td>
+          <td class="player-cell"><span class="player-name">${item.jogador}</span></td>
+          <td class="val-big">${item.jogos}</td>
+          <td class="val-big">${item.pct}%</td>`;
+        body.appendChild(tr);
+      });
+    }
+    document.getElementById('load-frequencia').style.display='none';
+    document.getElementById('content-frequencia').style.display='block';
+  }catch(e){
+    showError('load-frequencia','content-frequencia', e.message);
+  }
+}
+
 /* ---------------- INIT ---------------- */
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
@@ -432,7 +487,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
   window.__totalJogosRealizados = calendarRows.filter(r=>r.kind!=='proximo' && r.kind!=='cancelado').length;
   loadRanking('gols','load-artilharia','content-artilharia','golsBody', ['gol'], {cols:3});
   loadRanking('assistencias','load-assistencias','content-assistencias','assistBody', ['assist'], {cols:3});
-  loadRanking('frequencia','load-frequencia','content-frequencia','freqBody', ['jogo','presen'], {cols:4, frequency:true});
+  loadFrequencia();
 })();
 </script>
 </body>
