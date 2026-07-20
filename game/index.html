@@ -3314,7 +3314,7 @@ function aplicarNomesFicticios(jogadores, seed) {
   _nomesSeed = savedSeed;
 }
 </script>
-<script>const TECNICOS_DISPONIVEIS = [
+<script>let TECNICOS_DISPONIVEIS = [
   // Elite (80+)
   { id: "t01", nome: "Abel Ferreira",    overall: 88, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
   { id: "t02", nome: "Tite",             overall: 85, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
@@ -10455,7 +10455,7 @@ function _mfcLogin_render() {
   var ct = document.getElementById("conteudo");
   if (sb) sb.style.display = "none";
   if (ct) ct.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:100vh";
-  document.getElementById("main").innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px 56px;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)"><div style="font-size:40px;margin-bottom:6px">⚽</div><div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:4px">Manager FC</div><div style="font-size:11px;color:var(--text2);margin-bottom:32px;text-transform:uppercase;letter-spacing:1px">Acesso restrito</div><div style="text-align:left;margin-bottom:14px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase">Senha</label><input type="password" id="mfc-pwd" placeholder="••••••••" style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;outline:none" onkeydown="if(event.key==='Enter')_mfcLogin_tentar()"></div><div id="mfc-err" style="color:var(--red);font-size:12px;height:16px;margin-bottom:10px"></div><button onclick="_mfcLogin_tentar()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Entrar</button></div>';
+  document.getElementById("main").innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px 56px;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)"><div style="font-size:40px;margin-bottom:6px">⚽</div><div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:4px">Manager FC</div><div style="font-size:11px;color:var(--text2);margin-bottom:32px;text-transform:uppercase;letter-spacing:1px">Acesso restrito</div><div style="text-align:left;margin-bottom:14px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase">Senha</label><input type="password" id="mfc-pwd" placeholder="••••••••" style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;outline:none" onkeydown=\"if(event.key===\'Enter\')_mfcLogin_tentar()\"></div><div id="mfc-err" style="color:var(--red);font-size:12px;height:16px;margin-bottom:10px"></div><button onclick="_mfcLogin_tentar()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Entrar</button></div>';
   setTimeout(function(){ var e=document.getElementById("mfc-pwd"); if(e) e.focus(); }, 100);
 }
 
