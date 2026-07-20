@@ -929,6 +929,7 @@ main { flex: 1; padding: 24px; width: 100%; overflow-y: auto; }
   align-items: center;
 }
 .mini-tab-row.mini-tab-eu { background: rgba(79,142,247,.1); font-weight: 600; }
+tr.mini-tab-eu { background: rgba(79,142,247,.18) !important; font-weight: 700; box-shadow: inset 3px 0 0 var(--accent); }
 .mini-tab-pos { color: var(--text2); font-size: 11px; }
 .mini-tab-nome { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; }
 .mini-tab-pts { color: var(--accent); font-weight: 700; }
@@ -3314,7 +3315,7 @@ function aplicarNomesFicticios(jogadores, seed) {
   _nomesSeed = savedSeed;
 }
 </script>
-<script>let TECNICOS_DISPONIVEIS = [
+<script>const TECNICOS_DISPONIVEIS = [
   // Elite (80+)
   { id: "t01", nome: "Abel Ferreira",    overall: 88, formacao: "4-3-3",  estilo: "Pressão alta",    nacionalidade: "PT" },
   { id: "t02", nome: "Tite",             overall: 85, formacao: "4-2-3-1",estilo: "Posse de bola",   nacionalidade: "BR" },
@@ -3790,8 +3791,6 @@ function renderMercadoLivresHTML(filtroPos) {
   if (filtroPos && filtroPos !== "TODOS") {
     jogadores = jogadores.filter(function(j){ return j.posicao === filtroPos; });
   }
-  var flags = { BR:"🇧🇷",AR:"🇦🇷",UY:"🇺🇾",CL:"🇨🇱",CO:"🇨🇴",PT:"🇵🇹",DE:"🇩🇪",FR:"🇫🇷",ES:"🇪🇸",IT:"🇮🇹" };
-
   var html = '<div style="margin-bottom:12px">';
   html += '<div style="font-size:18px;font-weight:700;margin-bottom:4px">🆓 Jogadores Livres</div>';
   html += '<div style="font-size:12px;color:var(--text2)">Sem custo de transferência · Sem multa rescisória</div>';
@@ -3812,7 +3811,7 @@ function renderMercadoLivresHTML(filtroPos) {
   html += '<table class="elenco-tabela">';
   html += '<thead><tr><th>Pos</th><th>Jogador</th><th>OVR</th><th>Idade</th><th>Salário/mês</th><th>Valor</th><th></th></tr></thead><tbody>';
   jogadores.forEach(function(j) {
-    var flag = flags[j.nacionalidade] || "🌍";
+    var flag = bandeiraImg(j.nacionalidade, 16);
     var corOvr = (typeof overallClasse !== 'undefined') ? overallClasse(j.overall) : (j.overall>=75?'ovr-alto':j.overall>=65?'ovr-medio':'ovr-baixo');
     html += '<tr>';
     html += '<td><span class="posicao-badge pos-'+j.posicao+'">'+j.posicao+'</span></td>';
@@ -5185,11 +5184,6 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   // Header
   html += '<div class="jogo-tela-header">';
   html += '<div class="jogo-tela-rodada">Rodada ' + rodada.numero + ' · ' + (ev ? ev.subtitulo : '') + '</div>';
-  html += '<div class="jogo-tela-placar">';
-  html += '<span class="jogo-tela-nome">' + mandante.nome + '</span>';
-  html += '<span class="placar-numeros" id="placar-numeros">0 – 0</span>';
-  html += '<span class="jogo-tela-nome">' + visitante.nome + '</span>';
-  html += '</div>';
   // Público estimado
   var _pubEst = 5000;
   if (typeof calcularMatchDay !== 'undefined' && estado.meuClube) {
@@ -5197,10 +5191,15 @@ function renderJogoHTML(fMandante, fVisitante, ev, rodada) {
   } else if (estado.meuClube && estado.meuClube.matchday) {
     _pubEst = Math.round((estado.meuClube.matchday.capacidade||15000)*0.6);
   }
-  html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">';
-  html += '<div class="jogo-tela-cronometro" id="cronometro">0\'</div>';
+  html += '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">';
+  html += '<div class="jogo-tela-placar">';
+  html += '<span class="jogo-tela-nome">' + mandante.nome + '</span>';
+  html += '<span class="placar-numeros" id="placar-numeros">0 – 0</span>';
+  html += '<span class="jogo-tela-nome">' + visitante.nome + '</span>';
+  html += '</div>';
   html += '<div style="font-size:10px;color:var(--text2)">👥 '+_pubEst.toLocaleString('pt-BR')+'</div>';
   html += '</div>';
+  html += '<div class="jogo-tela-cronometro" id="cronometro">0\'</div>';
   html += '</div>';
 
   // Stats
@@ -5516,10 +5515,12 @@ function iniciarPartidaAoVivo() {
     var fM = r.forcaMandante.forca;
     var fV = r.forcaVisitante.forca;
     var posseM = Math.max(30, Math.min(70, Math.round(50 + (fM-fV)*0.2 + (Math.random()*4-2))));
+    jogoAtivo.posseMandante = posseM;
     var spm = document.getElementById("sv-posse-m");
     var spv = document.getElementById("sv-posse-v");
     if (spm) spm.textContent = posseM + "%";
     if (spv) spv.textContent = (100-posseM) + "%";
+    try { _atualizarPosseDOM(); } catch(e) {}
 
     // Atualizar campo a cada 10 minutos (fadiga)
     if (minAtual % 10 === 0) {
@@ -5719,8 +5720,24 @@ function finalizarPartida() {
     if (emCampo) j.fadiga = emCampo.fadiga;
   });
 
-  // Salvar resultado
-  estado.resultados.push({
+  // Salvar resultado — no array correto conforme a divisão do jogador
+  var _ehPaulistaDivFinal = estado.minhaDivisao && estado.minhaDivisao.indexOf('paulista_') === 0;
+  var _arrMeuResultado;
+  if (_ehPaulistaDivFinal) {
+    _arrMeuResultado = estado.resultadosPaulista || (estado.resultadosPaulista = []);
+  } else if (estado.minhaDivisao === 'serieB') {
+    if (!estadoDivisoes.b.resultados) estadoDivisoes.b.resultados = [];
+    _arrMeuResultado = estadoDivisoes.b.resultados;
+  } else if (estado.minhaDivisao === 'serieC') {
+    if (!estadoDivisoes.c.resultados) estadoDivisoes.c.resultados = [];
+    _arrMeuResultado = estadoDivisoes.c.resultados;
+  } else if (estado.minhaDivisao === 'serieD') {
+    if (!estadoDivisoes.d.resultados) estadoDivisoes.d.resultados = [];
+    _arrMeuResultado = estadoDivisoes.d.resultados;
+  } else {
+    _arrMeuResultado = estado.resultados; // Série A
+  }
+  _arrMeuResultado.push({
     rodada: jogoAtivo.rodadaIdx,
     mandanteId: mandante.id, visitanteId: visitante.id,
     golsMandante: r.golsMandante, golsVisitante: r.golsVisitante,
@@ -5729,13 +5746,15 @@ function finalizarPartida() {
     }),
     forcaMandante: r.forcaMandante, forcaVisitante: r.forcaVisitante
   });
+  // Se for jogo da Bezinha/Paulista, também marcar o "jogo" original como concluído
+  if (estado._jogoAtivoPaulista) {
+    try { hookFinalizarPartidaPaulista(); } catch(e) {}
+  }
 
   // Outros jogos da rodada — usar buscarClubePorId para cobrir todas divisões
   var cal = estado.calendario[jogoAtivo.rodadaIdx];
-  var ehPaulistaDiv = estado.minhaDivisao && estado.minhaDivisao.indexOf('paulista_') === 0;
-  var arrOutros = ehPaulistaDiv
-    ? (estado.resultadosPaulista || (estado.resultadosPaulista = []))
-    : estado.resultados;
+  var ehPaulistaDiv = _ehPaulistaDivFinal;
+  var arrOutros = _arrMeuResultado;
 
   cal.jogos.forEach(function(jogo) {
     if (jogo.mandanteId === mandante.id && jogo.visitanteId === visitante.id) return;
@@ -9089,9 +9108,9 @@ function inicializarPaulista() {
     ]},
     { letra:"3", clubes:[
       { id:"cp_09",nome:"Juventus",        sigla:"JUV",cor:"#1a1a1a" },
-      { id:"cp_10",nome:"Osasco FC",       sigla:"OSA",cor:"#0033A0" },
-      { id:"cp_11",nome:"Sporting",        sigla:"SPT",cor:"#006400" },
-      { id:"cp_12",nome:"Primavera",       sigla:"PRI",cor:"#CC0000" }
+      { id:"cp_10",nome:"Osasco Sporting", sigla:"OSC",cor:"#0033A0" },
+      { id:"cp_11",nome:"Paulista",        sigla:"PFC",cor:"#CC0000" },
+      { id:"cp_12",nome:"Primavera",       sigla:"PRI",cor:"#006400" }
     ]},
     { letra:"4", clubes:[
       { id:"cp_13",nome:"Santo André",     sigla:"AND",cor:"#CC0000" },
@@ -9801,11 +9820,8 @@ function renderTelaJogoPaulista(rodadaIdx, div) {
   // Atualizar jogo desta rodada no calendário
   estado.calendario[rodadaIdx].jogos = [{ mandanteId: meuJogo.mId, visitanteId: meuJogo.vId }];
 
-  // Adicionar clubes paulistas temporariamente ao CLUBES global
-  // para que renderTelaJogo os encontre
-  todosClubes.forEach(function(c){
-    if (!CLUBES.find(function(x){return x.id===c.id;})) CLUBES.push(c);
-  });
+  // Nota: não é mais necessário adicionar os clubes ao CLUBES global —
+  // buscarClubePorId() já busca em todas as divisões, incluindo Bezinha/Paulista.
 
   estado._jogoAtivoPaulista = { jogo: meuJogo, div: div, rodadaIdx: rodadaIdx };
   renderTelaJogo(rodadaIdx);
@@ -10455,7 +10471,7 @@ function _mfcLogin_render() {
   var ct = document.getElementById("conteudo");
   if (sb) sb.style.display = "none";
   if (ct) ct.style.cssText = "display:flex;align-items:center;justify-content:center;min-height:100vh";
-  document.getElementById("main").innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px 56px;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)"><div style="font-size:40px;margin-bottom:6px">⚽</div><div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:4px">Manager FC</div><div style="font-size:11px;color:var(--text2);margin-bottom:32px;text-transform:uppercase;letter-spacing:1px">Acesso restrito</div><div style="text-align:left;margin-bottom:14px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase">Senha</label><input type="password" id="mfc-pwd" placeholder="••••••••" style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;outline:none" onkeydown=\"if(event.key===\'Enter\')_mfcLogin_tentar()\"></div><div id="mfc-err" style="color:var(--red);font-size:12px;height:16px;margin-bottom:10px"></div><button onclick="_mfcLogin_tentar()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Entrar</button></div>';
+  document.getElementById("main").innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px 56px;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)"><div style="font-size:40px;margin-bottom:6px">⚽</div><div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:4px">Manager FC</div><div style="font-size:11px;color:var(--text2);margin-bottom:32px;text-transform:uppercase;letter-spacing:1px">Acesso restrito</div><div style="text-align:left;margin-bottom:14px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase">Senha</label><input type="password" id="mfc-pwd" placeholder="••••••••" style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;outline:none" onkeydown="if(event.key==='Enter')_mfcLogin_tentar()"></div><div id="mfc-err" style="color:var(--red);font-size:12px;height:16px;margin-bottom:10px"></div><button onclick="_mfcLogin_tentar()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Entrar</button></div>';
   setTimeout(function(){ var e=document.getElementById("mfc-pwd"); if(e) e.focus(); }, 100);
 }
 
@@ -11054,13 +11070,11 @@ function renderElenco() {
   });
   html += '</tr></thead><tbody>';
 
-  var FLAGS_MAP = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
-
   jogadores.forEach(function(j) {
     var s    = j.stats || { jogos:0, gols:0, assistencias:0, nota_media:0 };
     var nota = s.jogos > 0 ? s.nota_media.toFixed(1) : '-';
     var nac  = j.nacionalidade || 'BR';
-    var flag = FLAGS_MAP[nac] || FLAGS_MAP['BR'];
+    var flag = bandeiraImg(nac, 16);
     var rodadasRestantes = (j.contrato_termino || 0) - estado.rodadaAtual;
     var contratoLabel = rodadasRestantes > 0 ? 'Rod. ' + j.contrato_termino : '<span style="color:var(--red)">Vencido</span>';
     var corContrato   = rodadasRestantes <= 5 ? 'color:var(--yellow)' : '';
@@ -11350,9 +11364,15 @@ function overallClasse(v) {
   return v >= 80 ? "overall-alto" : v >= 70 ? "overall-medio" : "overall-baixo";
 }
 
+var PAIS_ISO_MAP = { BR:'br',AR:'ar',UY:'uy',CL:'cl',CO:'co',VE:'ve',PY:'py',EC:'ec',BO:'bo',PE:'pe',PT:'pt',FR:'fr',ES:'es',DE:'de',IT:'it',EN:'gb-eng' };
+function bandeiraImg(nac, tamanho) {
+  var iso = PAIS_ISO_MAP[nac] || 'br';
+  var w = tamanho || 16;
+  var h = Math.round(w * 0.75);
+  return '<img src="https://flagcdn.com/' + w + 'x' + h + '/' + iso + '.png" alt="' + (nac||'BR') + '" title="' + (nac||'BR') + '" style="width:' + w + 'px;height:' + h + 'px;vertical-align:middle;border-radius:2px;object-fit:cover" onerror="this.style.visibility=\'hidden\'">';
+}
 function bandeira(nac) {
-  var flags = { BR:"🇧🇷", PT:"🇵🇹", AR:"🇦🇷", ES:"🇪🇸", IT:"🇮🇹", DE:"🇩🇪", FR:"🇫🇷", EN:"🏴󠁧󠁢󠁥󠁮󠁧󠁿" };
-  return flags[nac] || "🌍";
+  return bandeiraImg(nac, 16);
 }
 
 function ocultarNav() {
@@ -11433,8 +11453,7 @@ function renderMercadoMeus() {
     var status = j.a_venda ? "🏷 À venda — " + formatarDinheiro(j.preco_minimo||j.valor_mercado) : "🔄 Empréstimo";
     html += '<div class="mercado-item">';
     html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
-    var _lflags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹' };
-  var _lflag = _lflags[j.nacionalidade] || '🌍';
+    var _lflag = bandeiraImg(j.nacionalidade, 16);
   html += '<div class="mercado-info"><div class="mercado-nome">' + _lflag + ' ' + j.nome + '</div>';
     html += '<div class="mercado-detalhe">OVR ' + j.overall + ' · ' + status + '</div></div>';
     html += '<div class="mercado-valores"><div class="mercado-vm">' + formatarDinheiro(j.valor_mercado) + '</div></div>';
@@ -11595,8 +11614,7 @@ function renderListaJogadoresMercado(lista) {
     html += '<div class="mercado-info">';
     html += '<span class="posicao-badge pos-' + j.posicao + '">' + j.posicao + '</span>';
     html += '<div class="mercado-jogador">';
-    var _mflags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
-    var _mflag = _mflags[j.nacionalidade] || '🌍';
+    var _mflag = bandeiraImg(j.nacionalidade, 16);
     html += '<div class="mercado-nome">' + _mflag + ' ' + j.nome;
     if (fimContrato) html += ' <span class="badge-contrato">Fim de contrato</span>';
     if (j.a_venda) html += ' <span class="badge-venda">À venda</span>';
@@ -11989,8 +12007,7 @@ function abrirFichaJogador(jogadorId) {
   var j       = clube.jogadores.find(function(x) { return x.id === jogadorId; });
   if (!j) return;
 
-  var flags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' };
-  var flag    = flags[j.nacionalidade] || '🌍';
+  var flag    = bandeiraImg(j.nacionalidade, 28);
   var s       = j.stats || { jogos:0, gols:0, assistencias:0, nota_media:0 };
   var rodadasRestantes = Math.max(0, (j.contrato_termino || 0) - estado.rodadaAtual);
   var corContrato = rodadasRestantes <= 5 ? 'var(--red)' : rodadasRestantes <= 10 ? 'var(--yellow)' : 'var(--green)';
@@ -12012,8 +12029,7 @@ function abrirFichaJogador(jogadorId) {
   html += '</div>';
   html += '<div class="ficha-identidade">';
   html += '<h2 class="ficha-nome">' + j.nome + '</h2>';
-  var _flags = { BR:'🇧🇷',AR:'🇦🇷',UY:'🇺🇾',CL:'🇨🇱',CO:'🇨🇴',VE:'🇻🇪',PY:'🇵🇾',EC:'🇪🇨',PT:'🇵🇹',FR:'🇫🇷',ES:'🇪🇸',DE:'🇩🇪',IT:'🇮🇹',EN:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',BO:'🇧🇴',PE:'🇵🇪' };
-  var _flag = _flags[j.nacionalidade] || '🌍';
+  var _flag = bandeiraImg(j.nacionalidade, 14);
   html += '<div class="ficha-meta">' + (j.idade || '-') + ' anos · ' + _flag + ' ' + (j.nacionalidade || '-') + '</div>';
   html += '</div>';
   html += '<div class="ficha-overall ' + overallClasse(j.overall) + '">' + j.overall + '<div style="font-size:12px;font-weight:400;color:var(--text2)">OVR</div></div>';
