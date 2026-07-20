@@ -73,6 +73,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dre-table tr.na td:not(:first-child){color:rgba(255,255,255,0.25)}
 .dre-label-indent{padding-left:24px !important;color:#8BA0B0}
 .tag-ainformar{font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,0.08);color:#8BA0B0;margin-left:6px}
+/* ── Quadro Despesas DRE 2026 ── */
+.qd-caret{display:inline-block;margin-right:6px;transition:transform .15s ease;opacity:.5;font-size:10px}
+.qd-caret.open{transform:rotate(90deg)}
+.qd-codigo{opacity:.45;margin-right:8px;font-size:10px}
+.dre-table tr.qd-grupo td:first-child{font-weight:600}
+.dre-table tr.qd-grupo{cursor:pointer}
+.dre-table tr.qd-grupo:hover td{background:rgba(255,255,255,0.04)}
+.dre-table tr.qd-bloco td{padding:14px 12px 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6B8BAA;background:#0D1B2E;border-bottom:1px solid rgba(255,255,255,0.06)}
+.dre-table td.qd-zero{color:rgba(255,255,255,0.22)!important}
+.qd-btn{font-size:11px;padding:4px 12px;border-radius:6px;border:0.5px solid #1F3044;background:transparent;color:#8BA0B0;cursor:pointer;margin-left:8px;transition:all .15s}
+.qd-btn:hover{color:#00B4D8;border-color:#00B4D8}
+.qd-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:12px}
+.qd-aviso{font-size:10px;color:#6B8BAA;background:rgba(255,255,255,0.04);border:0.5px solid #1F3044;border-radius:6px;padding:5px 10px;display:inline-block;margin-bottom:10px}
+@media (prefers-reduced-motion:reduce){.qd-caret{transition:none}}
 .mg-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
 .mg-kpi{background:#111f35;border-radius:8px;padding:14px 16px;border-left:3px solid #1E2D40;border:1px solid rgba(0,174,239,0.12)}
 .mg-kpi-label{font-size:11px;color:#8BA0B0;margin-bottom:6px}
@@ -599,6 +613,247 @@ function initVendas(){
     new Chart(document.getElementById('chartVol'),{type:'bar',plugins:[barPlugin(fN,fN)],data:{labels:months,datasets:[{label:'Sal\u00e3o',data:vD.s,backgroundColor:'#00B4D8',stack:'c'},{label:'Loja',data:vD.l,backgroundColor:'#1E2D40',stack:'c'},{label:'Funcion\u00e1rio',data:vD.f,backgroundColor:'#5B8DB8',stack:'c'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:26}},plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:tc},grid:{display:false}},y:{stacked:true,suggestedMax:maxVol*1.18,ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
   },100);
 }
+// ══════════════════════════════════════════════════════════════
+// QUADRO DESPESAS — Estrutura do Plano de Contas DRE 2026
+// (Blocos 2 a 5). Renderizado abaixo do TOP Line na página DRE.
+// Dados virão de planilha (GViz) futuramente; por ora estrutura zerada.
+// Para alimentar: DESPESAS_DADOS['7.1'] = [valores por mês, alinhado
+// a DRE_TOPLINE.meses]. Grupos somam os filhos automaticamente.
+// Obs: no plano original o código 10.6 estava duplicado (Leasing de
+// veículos e Pessoas Logístico) — Pessoas Logístico movido p/ 10.7.
+// ══════════════════════════════════════════════════════════════
+var DESPESAS_DADOS = {};
+var despesasAbertos = {};
+var ESTRUTURA_DESPESAS = [
+  { bloco:'Custos com Produtos e Pol\u00edtica Comercial', linhas:[
+    { codigo:'6', nome:'Custo total com Produto (CMV + Pol\u00edtica Comercial)', filhos:[
+      { codigo:'6.1', nome:'Custo Mercadoria', filhos:[
+        { codigo:'6.1.2', nome:'Custo Produto (VEGAN)' },
+        { codigo:'6.1.3', nome:'Taxa de Royalties TRF' },
+        { codigo:'6.1.4', nome:'Taxa de Propaganda REM' }
+      ]},
+      { codigo:'6.2', nome:'ICMS ST (Substitui\u00e7\u00e3o Tribut\u00e1ria)' },
+      { codigo:'6.3', nome:'Pol\u00edtica Comercial', filhos:[
+        { codigo:'6.3.1', nome:'Desconto s/ Compras (Verbas de Ciclo)' },
+        { codigo:'6.3.2', nome:'Verbas Comerciais' },
+        { codigo:'6.3.3', nome:'Reembolso Educa\u00e7\u00e3o' }
+      ]}
+    ]},
+    { codigo:'R1', nome:'= Margem Bruta', resultado:true }
+  ]},
+  { bloco:'Despesas com Venda (Vari\u00e1veis)', linhas:[
+    { codigo:'7', nome:'Despesas com Venda', filhos:[
+      { codigo:'7.1', nome:'Taxa com Cart\u00f5es, Boletos e Cheques' },
+      { codigo:'7.2', nome:'Consulta Serasa' },
+      { codigo:'7.3', nome:'Comiss\u00f5es sobre Vendas CLT' },
+      { codigo:'7.4', nome:'Comiss\u00f5es sobre Vendas RCA' },
+      { codigo:'7.5', nome:'Incentivo de Vendas' },
+      { codigo:'7.6', nome:'Ajuda de Custos' },
+      { codigo:'7.7', nome:'Pessoas Comercial', filhos:[
+        { codigo:'7.7.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'7.7.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'7.7.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'7.7.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'7.7.5', nome:'Rescis\u00e3o' }
+      ]}
+    ]},
+    { codigo:'8', nome:'Investimento em Educa\u00e7\u00e3o', filhos:[
+      { codigo:'8.1', nome:'Eventos de Educa\u00e7\u00e3o \u2014 Reembols\u00e1vel' },
+      { codigo:'8.2', nome:'Outros Investimentos' },
+      { codigo:'8.3', nome:'Pessoas Educa\u00e7\u00e3o', filhos:[
+        { codigo:'8.3.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'8.3.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'8.3.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'8.3.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'8.3.5', nome:'Rescis\u00e3o' },
+        { codigo:'8.3.6', nome:'Ajuda de Custos Educa\u00e7\u00e3o' }
+      ]}
+    ]},
+    { codigo:'9', nome:'Esfor\u00e7os de Marketing', filhos:[
+      { codigo:'9.1', nome:'Material de Publicidade e Propaganda' },
+      { codigo:'9.2', nome:'Eventos' },
+      { codigo:'9.3', nome:'Esfor\u00e7os de Mkt Regional' },
+      { codigo:'9.4', nome:'Produtos Bonificados Truss' },
+      { codigo:'9.5', nome:'Pessoas MKT', filhos:[
+        { codigo:'9.5.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'9.5.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'9.5.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'9.5.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'9.5.5', nome:'Rescis\u00e3o' }
+      ]}
+    ]},
+    { codigo:'10', nome:'Despesa de Entrega', filhos:[
+      { codigo:'10.1', nome:'Material de Embalagem' },
+      { codigo:'10.2', nome:'Entrega Terceirizada' },
+      { codigo:'10.3', nome:'Manuten\u00e7\u00e3o Ve\u00edculos' },
+      { codigo:'10.4', nome:'Combust\u00edvel' },
+      { codigo:'10.5', nome:'Outros' },
+      { codigo:'10.6', nome:'Leasing ou Aluguel de Ve\u00edculos' },
+      { codigo:'10.8', nome:'Perdas de Estoque / Roubo' },
+      { codigo:'10.7', nome:'Pessoas Log\u00edstico Vari\u00e1vel', filhos:[
+        { codigo:'10.7.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'10.7.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'10.7.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'10.7.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'10.7.5', nome:'Rescis\u00e3o' }
+      ]}
+    ]},
+    { codigo:'11', nome:'PDD (Provis\u00e3o da Inadimpl\u00eancia)', filhos:[
+      { codigo:'11.1', nome:'Perdas Devedores Duvidosos' },
+      { codigo:'11.2', nome:'Recupera\u00e7\u00e3o Devedores Duvidosos' }
+    ]}
+  ]},
+  { bloco:'Despesas Gerais e Administrativas (Fixas)', linhas:[
+    { codigo:'12', nome:'Despesas Gerais e Adm', filhos:[
+      { codigo:'12.1', nome:'Pessoas', filhos:[
+        { codigo:'12.1.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'12.1.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'12.1.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'12.1.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'12.1.5', nome:'Rescis\u00e3o' },
+        { codigo:'12.1.6', nome:'Sindicato' },
+        { codigo:'12.1.7', nome:'Treinamento' },
+        { codigo:'12.1.8', nome:'Exames Ocupacionais e Assist. M\u00e9dica' },
+        { codigo:'12.1.9', nome:'Recrutamento e Sele\u00e7\u00e3o' },
+        { codigo:'12.1.10', nome:'Pr\u00f3-Labore' }
+      ]},
+      { codigo:'12.2', nome:'Ocupa\u00e7\u00e3o', filhos:[
+        { codigo:'12.2.1', nome:'Aluguel' },
+        { codigo:'12.2.2', nome:'Condom\u00ednio' },
+        { codigo:'12.2.3', nome:'IPTU Ocupa\u00e7\u00e3o' },
+        { codigo:'12.2.4', nome:'Manuten\u00e7\u00e3o / Reparos Estrutura' }
+      ]},
+      { codigo:'12.3', nome:'Utilidades e Servi\u00e7os', filhos:[
+        { codigo:'12.3.1', nome:'Comunica\u00e7\u00e3o', filhos:[
+          { codigo:'12.3.1.2', nome:'Internet' },
+          { codigo:'12.3.1.3', nome:'Telefonia' },
+          { codigo:'12.3.1.4', nome:'Correspond\u00eancia' }
+        ]},
+        { codigo:'12.3.2', nome:'Estruturais', filhos:[
+          { codigo:'12.3.2.1', nome:'Manuten\u00e7\u00e3o de M\u00e1quinas e Equipamentos' },
+          { codigo:'12.3.2.2', nome:'Limpeza' },
+          { codigo:'12.3.2.3', nome:'Seguro' },
+          { codigo:'12.3.2.4', nome:'Seguran\u00e7a' },
+          { codigo:'12.3.2.5', nome:'Energia El\u00e9trica' },
+          { codigo:'12.3.2.6', nome:'\u00c1gua' },
+          { codigo:'12.3.2.7', nome:'Esgoto' },
+          { codigo:'12.3.2.8', nome:'G\u00e1s' },
+          { codigo:'12.3.2.9', nome:'Infraestrutura Tecnol\u00f3gica' }
+        ]},
+        { codigo:'12.3.3', nome:'Servi\u00e7os Terceirizados', filhos:[
+          { codigo:'12.3.3.1', nome:'Contabilidade' },
+          { codigo:'12.3.3.2', nome:'Consultorias, Auditorias e Assessorias' },
+          { codigo:'12.3.3.3', nome:'Advocacia' }
+        ]}
+      ]},
+      { codigo:'12.4', nome:'Despesas Administrativas', filhos:[
+        { codigo:'12.4.1', nome:'Documentos' },
+        { codigo:'12.4.2', nome:'Leasing ou Aluguel de Equipamentos' },
+        { codigo:'12.4.3', nome:'Material de Escrit\u00f3rio' },
+        { codigo:'12.4.4', nome:'Impressos e Formul\u00e1rios' },
+        { codigo:'12.4.5', nome:'Material de Copa e Diversos' },
+        { codigo:'12.4.6', nome:'Bens de Pequeno Valor' },
+        { codigo:'12.4.7', nome:'Confraterniza\u00e7\u00e3o' }
+      ]}
+    ]},
+    { codigo:'R2', nome:'= EBITDA', resultado:true }
+  ]},
+  { bloco:'Resultado Financeiro e Lucro', linhas:[
+    { codigo:'13', nome:'Deprecia\u00e7\u00e3o e Amortiza\u00e7\u00e3o' },
+    { codigo:'R3', nome:'= Resultado Operacional', resultado:true },
+    { codigo:'14', nome:'Resultado Financeiro', filhos:[
+      { codigo:'14.1', nome:'Rendimento de Aplica\u00e7\u00f5es Financeiras' },
+      { codigo:'14.2', nome:'Juros e Multas (recebidos)' },
+      { codigo:'14.3', nome:'Despesas Financeiras', filhos:[
+        { codigo:'14.3.1', nome:'Tarifas Banc\u00e1rias' },
+        { codigo:'14.3.2', nome:'Tarifas de Cobran\u00e7a' },
+        { codigo:'14.3.3', nome:'CPMF / IOF' },
+        { codigo:'14.3.4', nome:'Juros e Multas Fornecedores' },
+        { codigo:'14.3.5', nome:'Juros Banc\u00e1rios' },
+        { codigo:'14.3.6', nome:'Dividendos' }
+      ]}
+    ]},
+    { codigo:'R4', nome:'= Resultado antes dos Impostos', resultado:true },
+    { codigo:'16', nome:'Impostos sobre Lucro ou Faturamento' },
+    { codigo:'R5', nome:'= Lucro L\u00edquido', resultado:true }
+  ]}
+];
+// Valores de uma linha: valor direto em DESPESAS_DADOS, senão soma dos filhos
+function despValores(l, nMeses){
+  if (DESPESAS_DADOS[l.codigo]) return DESPESAS_DADOS[l.codigo];
+  if (l.filhos && l.filhos.length) {
+    var acc = Array(nMeses).fill(0);
+    l.filhos.forEach(function(f){
+      despValores(f, nMeses).forEach(function(v,i){ acc[i]+=v; });
+    });
+    return acc;
+  }
+  return Array(nMeses).fill(0);
+}
+function despFmt(v){
+  if (!v && v!==0) return '\u2014';
+  if (v===0) return '\u2014';
+  var s = 'R$ ' + Math.abs(Math.round(v)).toLocaleString('pt-BR');
+  return v<0 ? '('+s+')' : s;
+}
+function despLinhaHTML(l, nivel, nMeses, rl, rlTotal){
+  var vals = despValores(l, nMeses);
+  var tot = vals.reduce(function(a,b){return a+b;},0);
+  var temFilhos = !!(l.filhos && l.filhos.length);
+  var aberto = !!despesasAbertos[l.codigo];
+  var rowCls = l.resultado ? 'highlight' : (temFilhos ? 'qd-grupo' : '');
+  var onclick = temFilhos ? ' onclick="toggleDespesa(\''+l.codigo+'\')"' : '';
+  var caret = temFilhos ? '<span class="qd-caret'+(aberto?' open':'')+'">\u25b8</span>' : '';
+  var cod = l.resultado ? '' : '<span class="qd-codigo">'+l.codigo+'</span>';
+  var h = '<tr class="'+rowCls+'"'+onclick+'><td style="padding-left:'+(12+nivel*18)+'px">'+caret+cod+l.nome+'</td>';
+  vals.forEach(function(v,i){
+    var pct = (rl[i] && v!==0) ? (v/rl[i]*100).toFixed(1)+'%' : '\u2014';
+    h += '<td'+(v===0?' class="qd-zero"':'')+'>'+despFmt(v)+'</td><td class="v-pct'+(v===0?' qd-zero':'')+'">'+pct+'</td>';
+  });
+  var pctTot = (rlTotal && tot!==0) ? (tot/rlTotal*100).toFixed(1)+'%' : '\u2014';
+  h += '<td'+(tot===0?' class="qd-zero"':'')+'>'+despFmt(tot)+'</td><td class="v-pct'+(tot===0?' qd-zero':'')+'">'+pctTot+'</td></tr>';
+  if (temFilhos && aberto) {
+    l.filhos.forEach(function(f){ h += despLinhaHTML(f, nivel+1, nMeses, rl, rlTotal); });
+  }
+  return h;
+}
+function despesasQuadroHTML(){
+  var D = DRE_TOPLINE;
+  var nMeses = D.meses.length;
+  if (!nMeses) return '';
+  var rl = D.receitaLiquida;
+  var rlTotal = rl.reduce(function(a,b){return a+b;},0);
+  var temDados = Object.keys(DESPESAS_DADOS).length > 0;
+  var h = '<div class="chart-card" id="quadroDespesas">'
+    + '<div class="qd-header"><div><div class="chart-title">Despesas e Resultado \u2014 Plano de Contas DRE 2026</div>'
+    + '<div class="chart-sub">Blocos 2 a 5: Custos, Despesas Vari\u00e1veis, Despesas Fixas e Resultado Financeiro \u00b7 clique nos grupos para expandir</div></div>'
+    + '<div style="white-space:nowrap"><button class="qd-btn" onclick="despesasExpandir(true)">Expandir tudo</button>'
+    + '<button class="qd-btn" onclick="despesasExpandir(false)">Recolher</button></div></div>';
+  if (!temDados) h += '<div class="qd-aviso">Estrutura do Plano de Contas 2026 \u2014 aguardando integra\u00e7\u00e3o da fonte de dados (planilha de despesas)</div>';
+  h += '<div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:280px">Conta</th>'
+    + D.meses.map(function(m){return '<th style="min-width:100px">'+m+'</th><th style="min-width:55px">%RL</th>';}).join('')
+    + '<th style="min-width:100px">Acum.</th><th style="min-width:55px">%RL</th></tr></thead><tbody>';
+  ESTRUTURA_DESPESAS.forEach(function(bloco){
+    h += '<tr class="qd-bloco"><td colspan="'+(nMeses*2+3)+'">'+bloco.bloco+'</td></tr>';
+    bloco.linhas.forEach(function(l){ h += despLinhaHTML(l, 0, nMeses, rl, rlTotal); });
+  });
+  h += '</tbody></table></div></div>';
+  return h;
+}
+function rerenderQuadroDespesas(){
+  var el = document.getElementById('quadroDespesas');
+  if (el) el.outerHTML = despesasQuadroHTML();
+}
+function toggleDespesa(codigo){
+  despesasAbertos[codigo] = !despesasAbertos[codigo];
+  rerenderQuadroDespesas();
+}
+function despesasExpandir(abrir){
+  function walk(ls){ ls.forEach(function(l){ if(l.filhos){ despesasAbertos[l.codigo]=abrir; walk(l.filhos); } }); }
+  ESTRUTURA_DESPESAS.forEach(function(b){ walk(b.linhas); });
+  if (!abrir) despesasAbertos = {};
+  rerenderQuadroDespesas();
+}
 function dreHTML(){
   var D=DRE_TOPLINE; var n=D.meses.length;
   if(!n) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado importado ainda para calcular o DRE.</div>';
@@ -635,6 +890,7 @@ function dreHTML(){
   h+=rowRL('(+) Pol\u00edtica Comercial (verbas de ciclo)',D.politicaComercial);
   h+=rowRL('= Margem Bruta',D.margemBruta,'highlight');
   h+='</tbody></table></div></div>';
+  h+=despesasQuadroHTML();
   h+='<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
   return h;
 }
