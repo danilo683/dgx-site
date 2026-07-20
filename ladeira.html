@@ -386,8 +386,14 @@ async function loadRanking(sheetKey, loadId, contentId, bodyId, valueCandidates,
       const name = r[iPlayer];
       if(!name) continue;
       const raw = iValue>=0 ? r[iValue] : 1;
-      const num = typeof raw === 'number' ? raw : (parseFloat(String(raw).replace(',','.')) || (raw ? 1 : 0));
-      totals[name] = (totals[name]||0) + (isNaN(num)?0:num);
+      let num;
+      if(typeof raw === 'number'){
+        num = raw;
+      } else {
+        const parsed = parseFloat(String(raw).replace(',','.'));
+        num = !isNaN(parsed) ? parsed : (raw ? 1 : 0);
+      }
+      totals[name] = (totals[name]||0) + num;
     }
     let list = Object.entries(totals).map(([jogador,total])=>({jogador,total}));
     list.sort((a,b)=>b.total-a.total);
