@@ -1517,13 +1517,40 @@ function sairPersonal() {
       try {
         const data = JSON.parse(r.result);
         if (!data || typeof data !== 'object') throw new Error();
-        state = {
-          vfs: data.vfs || {},
-          dreams: Array.isArray(data.dreams) ? data.dreams : [],
-          habits: Array.isArray(data.habits) ? data.habits : [],
-          diary: Array.isArray(data.diary) ? data.diary : [],
-          goals: Array.isArray(data.goals) ? data.goals : [],
-        };
+        const wantsReplace = confirm(
+          'Importar arquivo:\n\n' +
+          'OK = MESCLAR com o que já existe aqui (recomendado — preenche visões novas, soma metas/hábitos/diário sem apagar nada).\n' +
+          'Cancelar = SUBSTITUIR tudo pelo conteúdo do arquivo (apaga o que estiver aqui agora).'
+        );
+        if (wantsReplace) {
+          // Mesclar visões: só entra o que o arquivo traz, área por área e horizonte por horizonte
+          const incomingVfs = data.vfs || {};
+          state.vfs = state.vfs || {};
+          Object.keys(incomingVfs).forEach(areaId => {
+            state.vfs[areaId] = state.vfs[areaId] || {};
+            Object.keys(incomingVfs[areaId]).forEach(vfId => {
+              state.vfs[areaId][vfId] = incomingVfs[areaId][vfId];
+            });
+          });
+          // Mesclar listas: soma itens novos (por id), preserva os que já existem
+          const mergeById = (current, incoming) => {
+            if (!Array.isArray(incoming)) return current;
+            const ids = new Set(current.map(x => x.id));
+            return current.concat(incoming.filter(x => !ids.has(x.id)));
+          };
+          state.dreams = mergeById(state.dreams || [], data.dreams);
+          state.habits = mergeById(state.habits || [], data.habits);
+          state.diary = mergeById(state.diary || [], data.diary);
+          state.goals = mergeById(state.goals || [], data.goals);
+        } else {
+          state = {
+            vfs: data.vfs || {},
+            dreams: Array.isArray(data.dreams) ? data.dreams : [],
+            habits: Array.isArray(data.habits) ? data.habits : [],
+            diary: Array.isArray(data.diary) ? data.diary : [],
+            goals: Array.isArray(data.goals) ? data.goals : [],
+          };
+        }
         save();
         location.reload();
       } catch (e) { alert('Este arquivo não parece ser um backup válido.'); }
