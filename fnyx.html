@@ -77,6 +77,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dre-tbl tr.dre-pct td{font-size:10px;color:#6B8BAA;background:rgba(255,255,255,0.02);font-style:italic}
 .dre-tbl td.pos{color:#2ECC71;font-weight:500}
 .dre-tbl td.neg{color:#C8B89A;font-weight:500}
+/* ── Quadro Despesas DRE 2026 ── */
+.qd-caret{display:inline-block;margin-right:6px;transition:transform .15s ease;opacity:.5;font-size:10px}
+.qd-caret.open{transform:rotate(90deg)}
+.qd-codigo{opacity:.45;margin-right:8px;font-size:10px}
+.dre-tbl tr.qd-grupo td:first-child{font-weight:600;color:#E2EAF4}
+.dre-tbl tr.qd-grupo{cursor:pointer}
+.dre-tbl tr.qd-grupo:hover td{background:rgba(255,255,255,0.04)}
+.dre-tbl td.qd-zero{color:rgba(255,255,255,0.22)!important}
+.qd-btn{font-size:11px;padding:4px 12px;border-radius:6px;border:0.5px solid #1F3044;background:transparent;color:#8BA0B0;cursor:pointer;margin-left:8px;transition:all .15s}
+.qd-btn:hover{color:#00B4D8;border-color:#00B4D8}
+.qd-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0;gap:12px}
+.qd-aviso{font-size:10px;color:#6B8BAA;background:rgba(255,255,255,0.04);border:0.5px solid #1F3044;border-radius:6px;padding:5px 10px;display:inline-block;margin-top:8px}
+@media (prefers-reduced-motion:reduce){.qd-caret{transition:none}}
 .mg-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
 .mg-kpi{background:#111f35;border-radius:10px;padding:16px;border-left:3px solid #1E2D40;border:1px solid rgba(0,174,239,0.12)}
 .mg-kpi-label{font-size:11px;color:#8BA0B0;margin-bottom:6px;font-weight:500}
@@ -162,12 +175,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 var sb=supabase.createClient('https://mixsehmmwvrbpndavvhp.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw');
 
-// ── VENDAS/MARGEM/DRE — agora vêm da base única (fato_vendas) ──
 var V={meses:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
   canal:{salao:[],perfumaria:[],outros:[]},
   cat:{homecare:[],coloracao:[],tratamento:[],outros:[]},
   volTotal:[]};
-var DRE_TOPLINE = { meses:[] };   // Receita Bruta -> Margem Bruta (mesma base do Margem)
+var DRE_TOPLINE = { meses:[] };
 
 var FV_FNYX = [];
 var TOP_PRODUTOS = [];
@@ -178,20 +190,18 @@ var filtroCanalAtual = 'todos';
 function nf(v){return v!==null&&v!==undefined?parseFloat(v):0;}
 function semAcento(s){ return (s||'').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 
-// Tipologia real da Fnyx: SALÃO / PERFUMARIA-LOJA-COSMÉTICO / OUTROS
 function normTipologia(t){
   var s = semAcento(t);
   if (s.indexOf('SALAO') >= 0) return 'salao';
   if (s.indexOf('PERFUMARIA') >= 0 || s.indexOf('LOJA') >= 0) return 'perfumaria';
   return 'outros';
 }
-// Grupo real da Fnyx tem muitas subcategorias — agrupamos nos 4 baldes do dashboard
 function normGrupo(g){
   var s = semAcento(g);
   if (s.indexOf('HOME') >= 0) return 'homecare';
   if (s.indexOf('COLORA') >= 0) return 'coloracao';
   if (s.indexOf('TRATAMENTO') >= 0) return 'tratamento';
-  return 'outros'; // Tonalizante, Matizador, Água Oxigenada, Pó Descolorante, Revolution, Linha Profissional, Miracle, Queratina, Mask, Cursos...
+  return 'outros';
 }
 
 async function fetchFatoVendas(clienteId){
@@ -211,9 +221,6 @@ async function fetchFatoVendas(clienteId){
   return all;
 }
 
-// Agrega item-a-item em canal/categoria/volume por mês + ranking de produtos.
-// Considera só tipo_operacao = 'venda' (bonificações e devoluções ficam fora
-// das métricas comerciais de Vendas, mesmo critério usado na Hawks).
 function agregarFatoVendas(rows, filtroVendedor, filtroCanal){
   var canal = { salao:Array(12).fill(null), perfumaria:Array(12).fill(null), outros:Array(12).fill(null) };
   var cat   = { homecare:Array(12).fill(null), coloracao:Array(12).fill(null), tratamento:Array(12).fill(null), outros:Array(12).fill(null) };
@@ -253,17 +260,6 @@ function agregarFatoVendas(rows, filtroVendedor, filtroCanal){
   return { canal:canal, cat:cat, volTotal:volTotal, topProdutos:topProdutos, vendedores: Object.keys(vendedoresSet).sort() };
 }
 
-// DRE/Margem — replica exatamente as fórmulas da aba TOP Line da Fnyx
-// (validado célula a célula contra a fórmula original do Excel):
-//   Receita Bruta      = SUM(valor_liquido, venda) + SUM(desconto, venda)
-//   Descontos/Abatim.  = -(SUM(desconto, venda) + SUM(cmv_total, bonificação))
-//   Trocas/Devoluções  = SUM(valor_liquido, devolução)  [já vem negativo na origem]
-//   Receita Líquida    = Receita Bruta + Descontos + Trocas
-//   Custo Produto      = -(SUM(cmv_total, venda) + SUM(cmv_total, devolução))
-//   Política Comercial = SUM(reembolso_total, venda)  [só "venda", diferente da Hawks]
-//   Margem Bruta       = Receita Líquida + Custo Produto + Política Comercial
-// Diferente da Hawks: aqui devolução É uma devolução de venda real (cliente
-// final) e por isso entra no DRE — confirmado (Razão Social = pessoa física).
 function agregarDRETopline(rows){
   var porMes = {};
   rows.forEach(function(r){
@@ -329,7 +325,6 @@ function refreshVendasEMargem(){
   if (DRE_TOPLINE.meses.length) { periods.margem = DRE_TOPLINE.meses[0] + ' \u2013 ' + DRE_TOPLINE.meses[DRE_TOPLINE.meses.length-1]; periods.dre = periods.margem; }
 }
 
-// ── DFC — segue manual (Lançamentos), fora do escopo desta fase ──
 var DD={meses:[],caixaInicial:[],recVendas:[],jurosMultas:[],outrasEntOp:[],
   pgtoTruss:[],pgtoNaoTruss:[],pgtoPessoal:[],pgtoProLabore:[],pgtoMkt:[],
   pgtoComissoes:[],pgtoLogistica:[],pgtoOcupacao:[],pgtoGerais:[],pgtoTerceiros:[],
@@ -481,10 +476,6 @@ function initVendas(){
   new Chart(document.getElementById('chartVol'),{type:'bar',data:{labels:months,datasets:[{label:'Volume',data:volD,backgroundColor:'#00B4D8',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:function(v){return fN(v);}},grid:{color:gc}}}}});
 }
 
-// ============================================================
-// MARGEM — mesma base de dados do DRE (Receita Bruta -> Margem Bruta),
-// apresentada no estilo visual original de Margem da Fnyx.
-// ============================================================
 function margemHTML(){
   var D = DRE_TOPLINE;
   if (!D.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
@@ -512,12 +503,239 @@ function initMargem(){
   new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:D.meses,datasets:[{label:'Receita Bruta',data:D.receitaBruta,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV L\u00edquido',data:D.cmvTotal.map(function(v){return Math.abs(v);}),backgroundColor:'#c0392b',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return fK(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:pctMin,max:pctMax,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
 }
 
-// ============================================================
-// DRE — Receita Bruta -> Margem Bruta, calculado a partir da base
-// única. Despesas operacionais/EBITDA/Lucro L\u00edquido n\u00e3o constam
-// na TOP Line (mesma decis\u00e3o tomada para a Hawks) — removidos por
-// ora; a antiga se\u00e7\u00e3o mostrava dados de demonstra\u00e7\u00e3o, n\u00e3o reais.
-// ============================================================
+var DESPESAS_DADOS = {};
+var despesasAbertos = {};
+var ESTRUTURA_DESPESAS = [
+  { bloco:'Custos com Produtos e Pol\u00edtica Comercial', linhas:[
+    { codigo:'6', nome:'Custo total com Produto (CMV + Pol\u00edtica Comercial)', filhos:[
+      { codigo:'6.1', nome:'Custo Mercadoria', filhos:[
+        { codigo:'6.1.2', nome:'Custo Produto (VEGAN)' },
+        { codigo:'6.1.3', nome:'Taxa de Royalties TRF' },
+        { codigo:'6.1.4', nome:'Taxa de Propaganda REM' }
+      ]},
+      { codigo:'6.2', nome:'ICMS ST (Substitui\u00e7\u00e3o Tribut\u00e1ria)' },
+      { codigo:'6.3', nome:'Pol\u00edtica Comercial', filhos:[
+        { codigo:'6.3.1', nome:'Desconto s/ Compras (Verbas de Ciclo)' },
+        { codigo:'6.3.2', nome:'Verbas Comerciais' },
+        { codigo:'6.3.3', nome:'Reembolso Educa\u00e7\u00e3o' }
+      ]}
+    ]},
+    { codigo:'R1', nome:'= Margem Bruta', resultado:true }
+  ]},
+  { bloco:'Despesas com Venda (Vari\u00e1veis)', linhas:[
+    { codigo:'7', nome:'Despesas com Venda', filhos:[
+      { codigo:'7.1', nome:'Taxa com Cart\u00f5es, Boletos e Cheques' },
+      { codigo:'7.2', nome:'Consulta Serasa' },
+      { codigo:'7.3', nome:'Comiss\u00f5es sobre Vendas CLT' },
+      { codigo:'7.4', nome:'Comiss\u00f5es sobre Vendas RCA' },
+      { codigo:'7.5', nome:'Incentivo de Vendas' },
+      { codigo:'7.6', nome:'Ajuda de Custos' },
+      { codigo:'7.7', nome:'Pessoas Comercial', filhos:[
+        { codigo:'7.7.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'7.7.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'7.7.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'7.7.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'7.7.5', nome:'Rescis\u00e3o' }
+      ]}
+    ]},
+    { codigo:'8', nome:'Investimento em Educa\u00e7\u00e3o', filhos:[
+      { codigo:'8.1', nome:'Eventos de Educa\u00e7\u00e3o \u2014 Reembols\u00e1vel' },
+      { codigo:'8.2', nome:'Outros Investimentos' },
+      { codigo:'8.3', nome:'Pessoas Educa\u00e7\u00e3o', filhos:[
+        { codigo:'8.3.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'8.3.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'8.3.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'8.3.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'8.3.5', nome:'Rescis\u00e3o' },
+        { codigo:'8.3.6', nome:'Ajuda de Custos Educa\u00e7\u00e3o' }
+      ]}
+    ]},
+    { codigo:'9', nome:'Esfor\u00e7os de Marketing', filhos:[
+      { codigo:'9.1', nome:'Material de Publicidade e Propaganda' },
+      { codigo:'9.2', nome:'Eventos' },
+      { codigo:'9.3', nome:'Esfor\u00e7os de Mkt Regional' },
+      { codigo:'9.4', nome:'Produtos Bonificados Truss' },
+      { codigo:'9.5', nome:'Pessoas MKT', filhos:[
+        { codigo:'9.5.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'9.5.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'9.5.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'9.5.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'9.5.5', nome:'Rescis\u00e3o' }
+      ]}
+    ]},
+    { codigo:'10', nome:'Despesa de Entrega', filhos:[
+      { codigo:'10.1', nome:'Material de Embalagem' },
+      { codigo:'10.2', nome:'Entrega Terceirizada' },
+      { codigo:'10.3', nome:'Manuten\u00e7\u00e3o Ve\u00edculos' },
+      { codigo:'10.4', nome:'Combust\u00edvel' },
+      { codigo:'10.5', nome:'Outros' },
+      { codigo:'10.6', nome:'Leasing ou Aluguel de Ve\u00edculos' },
+      { codigo:'10.8', nome:'Perdas de Estoque / Roubo' },
+      { codigo:'10.7', nome:'Pessoas Log\u00edstico Vari\u00e1vel', filhos:[
+        { codigo:'10.7.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'10.7.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'10.7.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'10.7.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'10.7.5', nome:'Rescis\u00e3o' }
+      ]}
+    ]},
+    { codigo:'11', nome:'PDD (Provis\u00e3o da Inadimpl\u00eancia)', filhos:[
+      { codigo:'11.1', nome:'Perdas Devedores Duvidosos' },
+      { codigo:'11.2', nome:'Recupera\u00e7\u00e3o Devedores Duvidosos' }
+    ]}
+  ]},
+  { bloco:'Despesas Gerais e Administrativas (Fixas)', linhas:[
+    { codigo:'12', nome:'Despesas Gerais e Adm', filhos:[
+      { codigo:'12.1', nome:'Pessoas', filhos:[
+        { codigo:'12.1.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'12.1.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'12.1.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'12.1.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'12.1.5', nome:'Rescis\u00e3o' },
+        { codigo:'12.1.6', nome:'Sindicato' },
+        { codigo:'12.1.7', nome:'Treinamento' },
+        { codigo:'12.1.8', nome:'Exames Ocupacionais e Assist. M\u00e9dica' },
+        { codigo:'12.1.9', nome:'Recrutamento e Sele\u00e7\u00e3o' },
+        { codigo:'12.1.10', nome:'Pr\u00f3-Labore' }
+      ]},
+      { codigo:'12.2', nome:'Ocupa\u00e7\u00e3o', filhos:[
+        { codigo:'12.2.1', nome:'Aluguel' },
+        { codigo:'12.2.2', nome:'Condom\u00ednio' },
+        { codigo:'12.2.3', nome:'IPTU Ocupa\u00e7\u00e3o' },
+        { codigo:'12.2.4', nome:'Manuten\u00e7\u00e3o / Reparos Estrutura' }
+      ]},
+      { codigo:'12.3', nome:'Utilidades e Servi\u00e7os', filhos:[
+        { codigo:'12.3.1', nome:'Comunica\u00e7\u00e3o', filhos:[
+          { codigo:'12.3.1.2', nome:'Internet' },
+          { codigo:'12.3.1.3', nome:'Telefonia' },
+          { codigo:'12.3.1.4', nome:'Correspond\u00eancia' }
+        ]},
+        { codigo:'12.3.2', nome:'Estruturais', filhos:[
+          { codigo:'12.3.2.1', nome:'Manuten\u00e7\u00e3o de M\u00e1quinas e Equipamentos' },
+          { codigo:'12.3.2.2', nome:'Limpeza' },
+          { codigo:'12.3.2.3', nome:'Seguro' },
+          { codigo:'12.3.2.4', nome:'Seguran\u00e7a' },
+          { codigo:'12.3.2.5', nome:'Energia El\u00e9trica' },
+          { codigo:'12.3.2.6', nome:'\u00c1gua' },
+          { codigo:'12.3.2.7', nome:'Esgoto' },
+          { codigo:'12.3.2.8', nome:'G\u00e1s' },
+          { codigo:'12.3.2.9', nome:'Infraestrutura Tecnol\u00f3gica' }
+        ]},
+        { codigo:'12.3.3', nome:'Servi\u00e7os Terceirizados', filhos:[
+          { codigo:'12.3.3.1', nome:'Contabilidade' },
+          { codigo:'12.3.3.2', nome:'Consultorias, Auditorias e Assessorias' },
+          { codigo:'12.3.3.3', nome:'Advocacia' }
+        ]}
+      ]},
+      { codigo:'12.4', nome:'Despesas Administrativas', filhos:[
+        { codigo:'12.4.1', nome:'Documentos' },
+        { codigo:'12.4.2', nome:'Leasing ou Aluguel de Equipamentos' },
+        { codigo:'12.4.3', nome:'Material de Escrit\u00f3rio' },
+        { codigo:'12.4.4', nome:'Impressos e Formul\u00e1rios' },
+        { codigo:'12.4.5', nome:'Material de Copa e Diversos' },
+        { codigo:'12.4.6', nome:'Bens de Pequeno Valor' },
+        { codigo:'12.4.7', nome:'Confraterniza\u00e7\u00e3o' }
+      ]}
+    ]},
+    { codigo:'R2', nome:'= EBITDA', resultado:true }
+  ]},
+  { bloco:'Resultado Financeiro e Lucro', linhas:[
+    { codigo:'13', nome:'Deprecia\u00e7\u00e3o e Amortiza\u00e7\u00e3o' },
+    { codigo:'R3', nome:'= Resultado Operacional', resultado:true },
+    { codigo:'14', nome:'Resultado Financeiro', filhos:[
+      { codigo:'14.1', nome:'Rendimento de Aplica\u00e7\u00f5es Financeiras' },
+      { codigo:'14.2', nome:'Juros e Multas (recebidos)' },
+      { codigo:'14.3', nome:'Despesas Financeiras', filhos:[
+        { codigo:'14.3.1', nome:'Tarifas Banc\u00e1rias' },
+        { codigo:'14.3.2', nome:'Tarifas de Cobran\u00e7a' },
+        { codigo:'14.3.3', nome:'CPMF / IOF' },
+        { codigo:'14.3.4', nome:'Juros e Multas Fornecedores' },
+        { codigo:'14.3.5', nome:'Juros Banc\u00e1rios' },
+        { codigo:'14.3.6', nome:'Dividendos' }
+      ]}
+    ]},
+    { codigo:'R4', nome:'= Resultado antes dos Impostos', resultado:true },
+    { codigo:'16', nome:'Impostos sobre Lucro ou Faturamento' },
+    { codigo:'R5', nome:'= Lucro L\u00edquido', resultado:true }
+  ]}
+];
+function despValores(l, nMeses){
+  if (DESPESAS_DADOS[l.codigo]) return DESPESAS_DADOS[l.codigo];
+  if (l.filhos && l.filhos.length) {
+    var acc = Array(nMeses).fill(0);
+    l.filhos.forEach(function(f){
+      despValores(f, nMeses).forEach(function(v,i){ acc[i]+=v; });
+    });
+    return acc;
+  }
+  return Array(nMeses).fill(0);
+}
+function despFmt(v){
+  if (!v && v!==0) return '\u2014';
+  if (v===0) return '\u2014';
+  var s = 'R$ ' + Math.abs(Math.round(v)).toLocaleString('pt-BR');
+  return v<0 ? '('+s+')' : s;
+}
+function despLinhaHTML(l, nivel, nMeses, rl, rlTotal){
+  var vals = despValores(l, nMeses);
+  var tot = vals.reduce(function(a,b){return a+b;},0);
+  var temFilhos = !!(l.filhos && l.filhos.length);
+  var aberto = !!despesasAbertos[l.codigo];
+  var rowCls = l.resultado ? 'dre-tot' : (temFilhos ? 'qd-grupo' : '');
+  var onclick = temFilhos ? ' onclick="toggleDespesa(\''+l.codigo+'\')"' : '';
+  var caret = temFilhos ? '<span class="qd-caret'+(aberto?' open':'')+'">\u25b8</span>' : '';
+  var cod = l.resultado ? '' : '<span class="qd-codigo">'+l.codigo+'</span>';
+  var h = '<tr class="'+rowCls+'"'+onclick+'><td style="padding-left:'+(12+nivel*18)+'px">'+caret+cod+l.nome+'</td>';
+  vals.forEach(function(v){
+    h += '<td'+(v===0?' class="qd-zero"':'')+'>'+despFmt(v)+'</td>';
+  });
+  var pctTot = (rlTotal && tot!==0) ? (tot/rlTotal*100).toFixed(1)+'%' : '\u2014';
+  h += '<td'+(tot===0?' class="qd-zero"':'')+'>'+despFmt(tot)+'</td>';
+  h += '<td'+(tot===0?' class="qd-zero"':'')+' style="font-size:10px;color:#6B8BAA">'+pctTot+'</td></tr>';
+  if (temFilhos && aberto) {
+    l.filhos.forEach(function(f){ h += despLinhaHTML(f, nivel+1, nMeses, rl, rlTotal); });
+  }
+  return h;
+}
+function despesasQuadroHTML(){
+  var D = DRE_TOPLINE;
+  var nMeses = D.meses.length;
+  if (!nMeses) return '';
+  var rl = D.receitaLiquida;
+  var rlTotal = rl.reduce(function(a,b){return a+b;},0);
+  var temDados = Object.keys(DESPESAS_DADOS).length > 0;
+  var h = '<div id="quadroDespesas">'
+    + '<div class="chart-card" style="margin-top:14px;margin-bottom:10px"><div class="qd-header"><div><div class="chart-title">Despesas e Resultado \u2014 Plano de Contas DRE 2026</div>'
+    + '<div class="chart-sub" style="margin-bottom:0">Blocos 2 a 5: Custos, Despesas Vari\u00e1veis, Despesas Fixas e Resultado Financeiro \u00b7 clique nos grupos para expandir</div>'
+    + (temDados ? '' : '<div class="qd-aviso">Estrutura do Plano de Contas 2026 \u2014 aguardando integra\u00e7\u00e3o da fonte de dados (planilha de despesas)</div>')
+    + '</div>'
+    + '<div style="white-space:nowrap"><button class="qd-btn" onclick="despesasExpandir(true)">Expandir tudo</button>'
+    + '<button class="qd-btn" onclick="despesasExpandir(false)">Recolher</button></div></div></div>';
+  h += '<div class="dre-outer"><table class="dre-tbl"><thead><tr><th style="min-width:280px;text-align:left">Conta</th>'
+    + D.meses.map(function(m){return '<th>'+m+'</th>';}).join('')
+    + '<th>Acum.</th><th>%RL</th></tr></thead><tbody>';
+  ESTRUTURA_DESPESAS.forEach(function(bloco){
+    h += '<tr class="dre-grp"><td colspan="'+(nMeses+3)+'">'+bloco.bloco+'</td></tr>';
+    bloco.linhas.forEach(function(l){ h += despLinhaHTML(l, 0, nMeses, rl, rlTotal); });
+  });
+  h += '</tbody></table></div></div>';
+  return h;
+}
+function rerenderQuadroDespesas(){
+  var el = document.getElementById('quadroDespesas');
+  if (el) el.outerHTML = despesasQuadroHTML();
+}
+function toggleDespesa(codigo){
+  despesasAbertos[codigo] = !despesasAbertos[codigo];
+  rerenderQuadroDespesas();
+}
+function despesasExpandir(abrir){
+  function walk(ls){ ls.forEach(function(l){ if(l.filhos){ despesasAbertos[l.codigo]=abrir; walk(l.filhos); } }); }
+  ESTRUTURA_DESPESAS.forEach(function(b){ walk(b.linhas); });
+  if (!abrir) despesasAbertos = {};
+  rerenderQuadroDespesas();
+}
+
 function fmtK(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';return(v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');}
 function pct(v){return(v*100).toFixed(1)+'%';}
 function dreHTML(){
@@ -540,7 +758,7 @@ function dreHTML(){
     +'<div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value" style="color:'+(totMB>=0?'#2ECC71':'#e24b4a')+'">'+fmtK(totMB)+'</div><div class="kpi-sub">Mg. bruta: '+(totRL?(totMB/totRL*100).toFixed(1):'0')+'%</div></div>'
     +'<div class="kpi"><div class="kpi-label">Custo Produto acum.</div><div class="kpi-value" style="color:#c0392b">'+fmtK(D.custoProduto.reduce(function(a,b){return a+b;},0))+'</div><div class="kpi-sub">CMV + Pol\u00edtica Comercial</div></div>'
     +'</div>';
-  h+='<div class="chart-card"><div class="chart-title">DRE (Receita Bruta \u2192 Margem Bruta) \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div><div class="chart-sub">Calculado a partir da base \u00fanica de vendas, espelhando a l\u00f3gica da aba TOP Line. Despesas operacionais e Lucro L\u00edquido n\u00e3o constam aqui \u2014 fora do DRE por enquanto.</div></div>';
+  h+='<div class="chart-card"><div class="chart-title">DRE (Receita Bruta \u2192 Margem Bruta) \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div><div class="chart-sub">Calculado a partir da base \u00fanica de vendas, espelhando a l\u00f3gica da aba TOP Line. O quadro de despesas abaixo completa a estrutura do DRE 2026.</div></div>';
   h+='<div class="dre-outer"><table class="dre-tbl"><thead><tr><th style="min-width:240px;text-align:left">Linha</th>'+D.meses.map(function(m){return'<th>'+m+'</th>';}).join('')+'<th>Acum.</th></tr></thead><tbody>';
   h+=row('(+) Receita Bruta',D.receitaBruta);
   h+=row('(-) Descontos e Abatimentos',D.descontosAbatimentos);
@@ -553,14 +771,12 @@ function dreHTML(){
   h+=row('= Margem Bruta',D.margemBruta,'dre-tot');
   h+=pctRow('Margem bruta %',D.margemBruta,D.receitaLiquida);
   h+='</tbody></table></div>';
+  h+=despesasQuadroHTML();
   h+='<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
   return h;
 }
 function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
 
-// ============================================================
-// DFC — segue manual (Lançamentos), inalterado nesta fase
-// ============================================================
 function fmtDFC(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+'K';return(v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR');}
 function dfcHTML(){
   if (!DD.meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de DFC cadastrado (Lan\u00e7amentos).</div>';
