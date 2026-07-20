@@ -10463,14 +10463,22 @@ function _mfcLogin_tentar() {
   var s = (document.getElementById("mfc-pwd")||{}).value || "";
   if (_mfcLogin_verificar(s)) {
     sessionStorage.setItem("mfc_ok","1");
-    var sb=document.getElementById("sidebar"), ct=document.getElementById("conteudo");
-    if (sb) sb.style.display="";
-    if (ct) ct.style.cssText="";
+    _mfcApp_restaurar();
     _mfcApp_init();
   } else {
     var e=document.getElementById("mfc-err"); if(e) e.textContent="Senha incorreta.";
     var p=document.getElementById("mfc-pwd"); if(p){p.value="";p.focus();}
   }
+}
+
+function _mfcApp_restaurar() {
+  // Restaurar layout normal (desfazer CSS do login)
+  var sb=document.getElementById("sidebar");
+  var ct=document.getElementById("conteudo");
+  var mn=document.getElementById("main");
+  if (sb) sb.style.display="";
+  if (ct) { ct.style.display=""; ct.style.alignItems=""; ct.style.justifyContent=""; ct.style.minHeight=""; }
+  if (mn) mn.innerHTML="";
 }
 
 function _mfcApp_init() {
@@ -10482,6 +10490,8 @@ function _mfcApp_init() {
 
 document.addEventListener("DOMContentLoaded", () => {
   if (sessionStorage.getItem("mfc_ok") === "1") {
+    // Já autenticado — restaurar layout e iniciar direto
+    _mfcApp_restaurar();
     _mfcApp_init();
   } else {
     _mfcLogin_render();
