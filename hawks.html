@@ -154,6 +154,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bi-filters label{font-size:11px;color:#6B8BAA;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .bi-filters select{font-size:13px;padding:6px 12px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;cursor:pointer;outline:none;max-width:220px}
 .bi-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,180,216,0.15);color:#00B4D8;font-weight:600}
+.filial-switch{display:flex;gap:2px;background:rgba(255,255,255,0.06);border-radius:20px;padding:2px}
+.filial-btn{font-size:11px;font-weight:600;padding:5px 14px;border-radius:18px;border:none;background:transparent;color:#8BA0B0;cursor:pointer;transition:all .15s}
+.filial-btn.active{background:#00B4D8;color:#fff}
 </style>
 </head>
 <body>
@@ -202,6 +205,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Vendas</div>
       <div class="topbar-right">
+        <div class="filial-switch" id="filialSwitch"></div>
         <span class="topbar-period" id="topbarPeriod">Jan - Mar 2026</span>
         <button class="logout-btn" onclick="doLogout()">Sair</button>
       </div>
@@ -211,6 +215,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <script>
 var sb=supabase.createClient('https://mixsehmmwvrbpndavvhp.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw');
+
+// ── FILIAL (MT / MG) — controla qual cliente_id é usado nas queries ──
+function getFilialFromURL(){
+  var p = new URLSearchParams(window.location.search);
+  var f = (p.get('filial')||'mt').toLowerCase();
+  return (f==='mg') ? 'mg' : 'mt';
+}
+var FILIAL = getFilialFromURL();
+function clienteIdAtual(){ return 'hawks_' + FILIAL; }
+function nomeFilial(){ return FILIAL==='mg' ? 'MG' : 'MT'; }
+function trocarFilial(f){
+  var p = new URLSearchParams(window.location.search);
+  p.set('filial', f);
+  window.location.search = p.toString();
+}
+function renderFilialSwitch(){
+  var el = document.getElementById('filialSwitch');
+  if(!el) return;
+  el.innerHTML =
+    '<button class="filial-btn'+(FILIAL==='mt'?' active':'')+'" onclick="trocarFilial(\'mt\')">MT</button>'+
+    '<button class="filial-btn'+(FILIAL==='mg'?' active':'')+'" onclick="trocarFilial(\'mg\')">MG</button>';
+}
 
 // ── DADOS (serão populados do Supabase) ──────────────────────
 var V = {
@@ -430,9 +456,11 @@ async function carregarDadosHawks() {
     return { ano: parseInt(parts[0]), mes: parseInt(parts[1]) - 1, dia: parseInt(parts[2]) };
   };
 
+  var CLIENTE_ID = clienteIdAtual();
+
   // VENDAS + MARGEM — agora vêm da base única (fato_vendas), item a item.
   // Substitui as antigas tabelas agregadas dash_vendas / dash_margem.
-  FV_HAWKS = await fetchFatoVendas('hawks');
+  FV_HAWKS = await fetchFatoVendas(CLIENTE_ID);
   refreshVendasEMargem();
 
   // DRE — agora recalculado a partir da base única (fato_vendas), replicando
@@ -446,7 +474,7 @@ async function carregarDadosHawks() {
   // Chave por "YYYY-MM" (não por mês 0-11) para não confundir anos diferentes
   // (ex.: Nov/2025 e Nov/2026 são chaves distintas, não a mesma posição).
   const {data:dfc} = await sb.from('dash_dfc').select('*')
-    .eq('cliente_id','hawks').order('competencia',{ascending:true});
+    .eq('cliente_id',CLIENTE_ID).order('competencia',{ascending:true});
   DFC_DADOS = {};
   MESES_COM_DADOS = [];
   if (dfc && dfc.length) {
@@ -490,6 +518,7 @@ document.addEventListener('DOMContentLoaded',async function(){
       var{data:profile}=await sb.from('profiles').select('is_admin,tipo,dashboard').eq('id',session.user.id).single();
       var ok=profile&&(profile.is_admin===true||profile.tipo==='admin'||profile.dashboard==='hawks');
       if(ok){
+        renderFilialSwitch();
         await carregarDadosHawks();
         loading.style.display='none';app.style.display='flex';renderPage('vendas');return;
       }
@@ -580,7 +609,7 @@ function vendasHTML(){
     +'<div class="chart-card"><div class="chart-title">Receita por categoria \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Linhas com valor em R$</div><div class="legend"><span class="leg"><span class="leg-line" style="background:#00B4D8"></span>Home Care</span><span class="leg"><span class="leg-line" style="background:#1E2D40"></span>Profissional</span><span class="leg"><span class="leg-line" style="background:#5B8DB8"></span>Colora\u00e7\u00e3o</span><span class="leg"><span class="leg-line" style="background:#A8C8E0"></span>Qu\u00edmica</span></div><div class="chart-wrap" style="height:280px"><canvas id="chartCat"></canvas></div>'+tabelaCat+'</div>'
     +'<div class="chart-card"><div class="chart-title">Volume de unidades por canal \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras empilhadas em unidades</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Sal\u00e3o</span><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Loja</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Funcion\u00e1rio</span></div><div class="chart-wrap" style="height:250px"><canvas id="chartVol"></canvas></div>'+tabelaVol+'</div>'
     +topProdutosHTML()
-    +'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
+    +'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
 }
 function initVendas(){
   ['chartCanal','chartCat','chartVol'].forEach(function(id){var c=Chart.getChart(id);if(c)c.destroy();});
@@ -891,7 +920,7 @@ function dreHTML(){
   h+=rowRL('= Margem Bruta',D.margemBruta,'highlight');
   h+='</tbody></table></div></div>';
   h+=despesasQuadroHTML();
-  h+='<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
+  h+='<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
   return h;
 }
 // Markup a partir da % de margem bruta (fração 0-1). 1 / (1 - margem)
@@ -933,7 +962,7 @@ function margemHTML(){
   var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'\u2014';
   var fR=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};
   var tabelaMargem=buildMargemTable(pctM);
-  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+tabelaMargem+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';
+  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+tabelaMargem+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
 }
 function initMargem(){
   var existing=Chart.getChart('chartMargem');if(existing)existing.destroy();
@@ -990,7 +1019,7 @@ function rotuloMes(chave){
   return MESES_LABELS[d.mes] + '/' + String(d.ano).slice(2);
 }
 
-function dfcHTML(){return'<div class="dfc-nav"><button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button><button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button></div><div id="dfc-view-anual"></div><div id="dfc-view-mensal" style="display:none"></div><div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty MT \u00b7 N\u00e3o compartilhar</div>';}
+function dfcHTML(){return'<div class="dfc-nav"><button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button><button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button></div><div id="dfc-view-anual"></div><div id="dfc-view-mensal" style="display:none"></div><div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';}
 function dfcShowView(v){document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});document.getElementById('dfc-btn-'+v).classList.add('active');document.getElementById('dfc-view-anual').style.display=v==='anual'?'':'none';document.getElementById('dfc-view-mensal').style.display=v==='mensal'?'':'none';if(v==='anual')renderDFCAnual();else renderDFCMensal();}
 
 function renderDFCAnual(){
@@ -1002,7 +1031,7 @@ function renderDFCAnual(){
   var ultimaChave = chaves[chaves.length-1];
   var saldoFim = ultimaChave ? calcs[ultimaChave].caixaFinal : 0;
   var periodoLabel = chaves.length ? (rotuloMes(chaves[0])+' \u2013 '+rotuloMes(ultimaChave)) : '\u2014';
-  el.innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+fmtD(totalEnt)+'</div><div class="dfc-card-sub">'+periodoLabel+' (acumulado)</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total sa\u00eddas</div><div class="dfc-card-value beige">'+fmtD(totalSai)+'</div><div class="dfc-card-sub">'+periodoLabel+' (acumulado)</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo atual de caixa</div><div class="dfc-card-value">'+fmtD(saldoFim)+'</div><div class="dfc-card-sub">'+(ultimaChave?('Posi\u00e7\u00e3o ao final de '+rotuloMes(ultimaChave)):'\u2014')+'</div></div></div><div class="dfc-section-label">Bridge \u2014 Composi\u00e7\u00e3o do saldo</div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do fluxo de caixa</div><div class="dfc-chart-sub">Saldo inicial + entradas \u2212 sa\u00eddas por categoria at\u00e9 o saldo final (acumulado '+periodoLabel+')</div><div style="height:220px;position:relative"><canvas id="dfc-waterfall-anual"></canvas></div></div><div class="dfc-section-label">Saldo por m\u00eas</div><div class="dfc-chart-card"><div class="dfc-chart-title">Saldo l\u00edquido mensal</div><div class="dfc-chart-sub">Varia\u00e7\u00e3o de caixa em cada m\u00eas</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-anual"></canvas></div></div><div class="dfc-section-label">Fluxo mensal</div><div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e sa\u00eddas mensais</div><div class="dfc-chart-sub">Barras espelhadas por m\u00eas com linha de saldo banc\u00e1rio acumulado</div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Sa\u00ed. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Sa\u00ed. Fin.</span></div><div class="dfc-filtro-wrap"><button id="dfc-filtro-anual-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoAnual(\'todos\')">Todos</button><button id="dfc-filtro-anual-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'operacional\')">Operacional</button><button id="dfc-filtro-anual-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'financiamento\')">Financiamento</button><button id="dfc-filtro-anual-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual(\'investimento\')">Investimento</button></div></div><div style="height:230px;position:relative"><canvas id="dfc-espelhado-anual"></canvas></div></div><div class="dfc-section-label">DFC detalhado</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-anual"></table></div>';
+  el.innerHTML='<div class="dfc-cards"><div class="dfc-card"><div class="dfc-card-label">Total entradas</div><div class="dfc-card-value">'+fmtD(totalEnt)+'</div><div class="dfc-card-sub">'+periodoLabel+' (acumulado)</div></div><div class="dfc-card neg"><div class="dfc-card-label">Total sa\u00eddas</div><div class="dfc-card-value beige">'+fmtD(totalSai)+'</div><div class="dfc-card-sub">'+periodoLabel+' (acumulado)</div></div><div class="dfc-card"><div class="dfc-card-label">Saldo atual de caixa</div><div class="dfc-card-value">'+fmtD(saldoFim)+'</div><div class="dfc-card-sub">'+(ultimaChave?('Posi\u00e7\u00e3o ao final de '+rotuloMes(ultimaChave)):'\u2014')+'</div></div></div><div class="dfc-section-label">Bridge \u2014 Composi\u00e7\u00e3o do saldo</div><div class="dfc-chart-card"><div class="dfc-chart-title">Waterfall do fluxo de caixa</div><div class="dfc-chart-sub">Saldo inicial + entradas \u2212 sa\u00eddas por categoria at\u00e9 o saldo final (acumulado '+periodoLabel+')</div><div style="height:220px;position:relative"><canvas id="dfc-waterfall-anual"></canvas></div></div><div class="dfc-section-label">Saldo por m\u00eas</div><div class="dfc-chart-card"><div class="dfc-chart-title">Saldo l\u00edquido mensal</div><div class="dfc-chart-sub">Varia\u00e7\u00e3o de caixa em cada m\u00eas</div><div style="height:150px;position:relative"><canvas id="dfc-saldo-anual"></canvas></div></div><div class="dfc-section-label">Fluxo mensal</div><div class="dfc-chart-card"><div class="dfc-chart-title">Entradas e sa\u00eddas mensais</div><div class="dfc-chart-sub">Barras espelhadas por m\u00eas com linha de saldo banc\u00e1rio acumulado</div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="dfc-legend"><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#00D4DA"></span>Ent. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#C8B89A"></span>Sa\u00ed. Op.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#2C6BE0"></span>Ent. Fin.</span><span class="dfc-leg"><span class="dfc-leg-sq" style="background:#1A3A6B"></span>Sa\u00ed. Fin.</span></div><div class="dfc-filtro-wrap"><button id="dfc-filtro-anual-todos" class="dfc-filtro-btn active" onclick="filtroEspelhadoAnual('todos')">Todos</button><button id="dfc-filtro-anual-operacional" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual('operacional')">Operacional</button><button id="dfc-filtro-anual-financiamento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual('financiamento')">Financiamento</button><button id="dfc-filtro-anual-investimento" class="dfc-filtro-btn" onclick="filtroEspelhadoAnual('investimento')">Investimento</button></div></div><div style="height:230px;position:relative"><canvas id="dfc-espelhado-anual"></canvas></div></div><div class="dfc-section-label">DFC detalhado</div><div class="dfc-outer"><table class="dfc-tbl" id="dfc-tabela-anual"></table></div>';
   setTimeout(function(){buildWaterfallAnual(chaves,calcs);buildSaldoAnual(chaves,calcs);buildEspelhadoAnual(chaves,calcs);buildTabelaAnual(chaves,calcs);},80);
 }
 function buildWaterfallAnual(chaves,calcs){
