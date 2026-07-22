@@ -55,6 +55,9 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
 .cliente-card img{max-height:50px;max-width:140px;object-fit:contain;opacity:.8;transition:opacity .2s}
 .cliente-card:hover img{opacity:1}
 .cliente-card .card-lbl{position:absolute;bottom:.6rem;left:0;right:0;text-align:center;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,174,239,.35)}
+.cliente-card .card-text-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.85);text-align:center;line-height:1.15;transition:color .2s}
+.cliente-card:hover .card-text-logo{color:#fff}
+.cliente-card .card-text-logo small{display:block;font-size:.62rem;letter-spacing:.2em;font-weight:500;color:var(--cyan);margin-top:2px}
 
 /* SHARED ADMIN COMPONENTS */
 .adm-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem}
@@ -178,6 +181,7 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
       <div class="clientes-grid">
         <a href="hawks.html" class="cliente-card"><img src="logo-hawks.png" alt="Hawks Beauty"><span class="card-lbl">Dashboard</span></a>
         <a href="fnyx.html" class="cliente-card"><img src="logo-fnyx.png" alt="FNYX Cosmetics"><span class="card-lbl">Dashboard</span></a>
+        <a href="dgx-beauty.html" class="cliente-card"><div class="card-text-logo">DGX Beauty<small>DEMONSTRAÇÃO</small></div><span class="card-lbl">Dashboard</span></a>
         <a href="#" class="cliente-card"><img src="logo-oak.png" alt="Oak & Co."><span class="card-lbl">Em breve</span></a>
         <a href="#" class="cliente-card"><img src="logo-mp.png" alt="MP Prudente"><span class="card-lbl">Em breve</span></a>
       </div>
