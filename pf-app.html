@@ -470,6 +470,30 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ CARTÃO DE CRÉDITO ════════ */
+.cartao-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.4rem}
+@media(max-width:700px){.cartao-resumo{grid-template-columns:1fr 1fr}}
+
+.cartao-proj-intro{font-size:.78rem;color:var(--gray);margin-bottom:1.2rem;padding:.8rem 1rem;background:rgba(0,182,233,0.05);border-left:3px solid var(--gold);line-height:1.6}
+
+.cartao-proj-mes{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.4rem;margin-bottom:.8rem}
+.cartao-proj-mes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.cartao-proj-mes-nome{font-size:.85rem;font-weight:700;color:var(--white)}
+.cartao-proj-mes-total{font-size:1rem;font-weight:700;color:var(--gold)}
+.cartao-proj-item{display:flex;align-items:center;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border2);font-size:.74rem;gap:.5rem}
+.cartao-proj-item:last-child{border-bottom:none}
+.cartao-proj-item-desc{color:var(--gray);flex:1}
+.cartao-proj-item-parc{color:var(--gray2);font-size:.65rem;margin-left:.3rem}
+.cartao-proj-item-val{color:var(--white);font-weight:600;white-space:nowrap}
+.cartao-proj-barra-wrap{margin-top:.6rem;height:4px;background:var(--navy3);border-radius:2px}
+.cartao-proj-barra-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .4s}
+
+.cartao-detectado-item{display:flex;align-items:flex-start;gap:.8rem;padding:.7rem 0;border-bottom:1px solid var(--border2)}
+.cartao-detectado-item:last-child{border-bottom:none}
+.cartao-detectado-info{flex:1;font-size:.78rem}
+.cartao-detectado-info strong{color:var(--white);display:block;margin-bottom:.2rem}
+.cartao-detectado-info span{color:var(--gray)}
+
 /* ════════ MÉTODO 50/30/20 ════════ */
 .metodo-explicacao{display:flex;align-items:stretch;gap:0;background:var(--navy2);border:1px solid var(--border);margin-bottom:2rem}
 .metodo-exp-item{flex:1;padding:1.4rem 1.6rem;text-align:center}
@@ -1311,6 +1335,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('extrato', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
         Lançamentos
+      </button>
+      <button class="menu-item" onclick="irPara('cartao', this)">
+        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+        Cartão de Crédito
       </button>
       <button class="menu-item" onclick="irPara('simulador', this); simInit()">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
@@ -2667,6 +2695,118 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
 
+      <!-- ── CARTÃO DE CRÉDITO ── -->
+      <div class="tela" id="tela-cartao">
+        <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+          <div><h2>Cartão de Crédito</h2><p>Compras parceladas e projeção de compromissos futuros</p></div>
+          <button class="orc-btn-save" style="display:inline-flex" onclick="cartaoAbrirForm(null)">+ Nova compra parcelada</button>
+        </div>
+
+        <div class="orc-loading" id="cartao-loading">Carregando...</div>
+        <div id="cartao-content" style="display:none">
+
+          <!-- Cards resumo -->
+          <div class="cartao-resumo" id="cartao-resumo"></div>
+
+          <!-- Abas -->
+          <div class="inv-tabs" style="margin-bottom:1.2rem">
+            <button class="inv-tab active" onclick="cartaoAba(this,'parcelamentos')">Compras parceladas</button>
+            <button class="inv-tab" onclick="cartaoAba(this,'projecao')">Projeção mensal</button>
+          </div>
+
+          <!-- Aba: Compras parceladas -->
+          <div id="cartao-aba-parcelamentos">
+            <div class="orc-table-wrap">
+              <table class="inv-table">
+                <thead><tr>
+                  <th>Descrição</th><th>Cartão</th><th>Categoria</th>
+                  <th style="text-align:center">Parcelas</th>
+                  <th style="text-align:right">Valor parcela</th>
+                  <th style="text-align:right">Valor total</th>
+                  <th style="text-align:right">Restante</th>
+                  <th style="text-align:center">Próx. vencimento</th>
+                  <th></th>
+                </tr></thead>
+                <tbody id="cartao-tbody"></tbody>
+              </table>
+            </div>
+            <div class="plano-vazio" id="cartao-vazio" style="display:none">Nenhuma compra parcelada cadastrada.</div>
+          </div>
+
+          <!-- Aba: Projeção mensal -->
+          <div id="cartao-aba-projecao" style="display:none">
+            <div class="cartao-proj-intro">
+              Compromissos já assumidos com o cartão nos próximos meses, <strong>antes de qualquer nova compra</strong>.
+            </div>
+            <div id="cartao-proj-cards"></div>
+            <div class="plano-vazio" id="cartao-proj-vazio" style="display:none">Sem parcelas futuras projetadas.</div>
+          </div>
+
+        </div>
+
+        <!-- MODAL: Nova compra parcelada -->
+        <div class="overlay" id="overlay-cartao-form">
+          <div class="modal" style="max-width:560px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-form')">×</button>
+            <div class="modal-title" id="cartao-form-titulo">Nova compra parcelada</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Descrição *</label>
+                <input class="diag-input" type="text" id="cartao-form-desc" placeholder="Ex: Patinete elétrico, iPhone 15...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Cartão</label>
+                <input class="diag-input" type="text" id="cartao-form-cartao" placeholder="Ex: Nubank, Itaú...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Categoria</label>
+                <select class="diag-input" id="cartao-form-categoria">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Valor da parcela (R$) *</label>
+                <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-parcela" placeholder="150,00" oninput="cartaoFormCalcTotal()">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Nº total de parcelas *</label>
+                <input class="diag-input" type="number" id="cartao-form-num-parcelas" placeholder="10" min="1" oninput="cartaoFormCalcTotal()">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Parcela atual *</label>
+                <input class="diag-input" type="number" id="cartao-form-parcela-atual" placeholder="4" min="1" oninput="cartaoFormCalcTotal()">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Data da parcela atual *</label>
+                <input class="diag-input" type="date" id="cartao-form-data-atual">
+              </div>
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Valor total calculado</label>
+                <div id="cartao-form-total" style="font-size:.9rem;font-weight:700;color:var(--gold);padding:.6rem 0">—</div>
+              </div>
+            </div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="cartaoSalvarForm()">Salvar</button>
+              <button id="cartao-form-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoExcluir()">Excluir</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Sugestão de parcela detectada na importação -->
+        <div class="overlay" id="overlay-cartao-detectado">
+          <div class="modal" style="max-width:520px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-detectado')">×</button>
+            <div class="modal-title">Parcelas detectadas 🎯</div>
+            <p style="font-size:.8rem;color:var(--gray);margin-bottom:1rem">A IA identificou compras parceladas na fatura. Quer cadastrá-las para projetar as parcelas futuras?</p>
+            <div id="cartao-detectado-lista"></div>
+            <div class="diag-save-area" style="margin-top:1rem">
+              <button class="btn-diag-save" onclick="cartaoConfirmarDetectadas()">Cadastrar selecionadas</button>
+              <button class="modal-link" onclick="fecharOverlay('overlay-cartao-detectado')">Ignorar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── SIMULADOR ── -->
       <div class="tela" id="tela-simulador">
         <div class="tela-header"><h2>Simulador de Juros Compostos</h2><p>Preencha qualquer 4 variáveis — a que ficar em branco será calculada</p></div>
@@ -3532,6 +3672,7 @@ async function irPara(tela, btn){
   }
   if(tela==='investimentos') invCarregarTudo();
   if(tela==='conquistas') conqCarregar();
+  if(tela==='cartao') cartaoCarregar();
   if(tela==='metas') metasCarregar();
   if(tela==='metodo-5030') metodoCarregar();
   if(tela==='patrimonio') patCarregar();
@@ -4325,6 +4466,12 @@ async function csvConfirmarImport(){
     renderExtrato();
     lancRenderOrcadoRealizado();
     calcularResumo();
+
+    // Se foi fatura de cartão, detectar parcelas automaticamente
+    if(csvModo === 'cartao'){
+      const detectadas = cartaoDetectarParcelasNoCSV(selecionados);
+      if(detectadas.length) setTimeout(()=>cartaoMostrarDetectadas(detectadas), 600);
+    }
 
     alert(`✓ ${rows.length} lançamento${rows.length!==1?'s':''} importado${rows.length!==1?'s':''} com sucesso!`);
   } catch(e){
@@ -8026,6 +8173,331 @@ function simLimpar(){
   document.getElementById('sim-erro').style.display='none';
   document.getElementById('sim-resultados').style.display='none';
   simDados = null;
+}
+
+// ══════════════════════════════════════════════
+// CARTÃO DE CRÉDITO — PARCELAMENTOS
+// ══════════════════════════════════════════════
+let cartaoDados = [];
+let cartaoEditId = null;
+let cartaoDetectadas = [];
+
+async function cartaoCarregar(){
+  document.getElementById('cartao-loading').style.display='block';
+  document.getElementById('cartao-content').style.display='none';
+
+  const { data } = await sb.from('cartao_parcelamentos').select('*')
+    .eq('user_id', usuarioAtual.id).order('data_primeira_parcela',{ascending:false});
+
+  cartaoDados = data || [];
+  document.getElementById('cartao-loading').style.display='none';
+  document.getElementById('cartao-content').style.display='block';
+
+  cartaoPopularCategorias();
+  cartaoRenderResumo();
+  cartaoRenderParcelamentos();
+  cartaoRenderProjecao();
+}
+
+function cartaoAba(btn, aba){
+  document.querySelectorAll('#tela-cartao .inv-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('cartao-aba-parcelamentos').style.display = aba==='parcelamentos'?'block':'none';
+  document.getElementById('cartao-aba-projecao').style.display       = aba==='projecao'?'block':'none';
+}
+
+function cartaoPopularCategorias(){
+  const sel = document.getElementById('cartao-form-categoria');
+  const cats = [];
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+    cats.push(...g.itens,...(gDados.extras||[]));
+  });
+  sel.innerHTML = '<option value="">Selecione...</option>' + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+// Calcula parcelas futuras de um parcelamento
+function cartaoParcelas(p){
+  const parcelas = [];
+  const dataBase = new Date(p.data_primeira_parcela+'T00:00:00');
+  for(let i=0; i<p.num_parcelas; i++){
+    const d = new Date(dataBase);
+    d.setMonth(d.getMonth() + i);
+    parcelas.push({
+      numero: p.parcela_atual + i - (p.parcela_atual - 1),
+      real_numero: i+1,
+      data: d.toISOString().split('T')[0],
+      valor: Number(p.valor_parcela),
+      paga: i < (p.parcela_atual - 1) // parcelas anteriores à atual já foram pagas
+    });
+  }
+  return parcelas;
+}
+
+// Retorna parcelas FUTURAS (da atual em diante)
+function cartaoParcelasFuturas(p){
+  const todas = cartaoParcelas(p);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  return todas.filter(pa => {
+    const d = new Date(pa.data+'T00:00:00');
+    return d >= hoje && !pa.paga;
+  });
+}
+
+function cartaoRenderResumo(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  let totalFuturo=0, totalMesAtual=0, totalCompras=0, qtdAtivas=0;
+  cartaoDados.forEach(p=>{
+    const futuras = cartaoParcelasFuturas(p);
+    if(futuras.length>0) qtdAtivas++;
+    futuras.forEach(pa=>{
+      totalFuturo += pa.valor;
+      const d = new Date(pa.data+'T00:00:00');
+      if(d.getFullYear()===hoje.getFullYear() && d.getMonth()===hoje.getMonth())
+        totalMesAtual += pa.valor;
+    });
+    totalCompras += Number(p.valor_total||p.valor_parcela*p.num_parcelas);
+  });
+
+  document.getElementById('cartao-resumo').innerHTML = `
+    <div class="inv-card"><div class="inv-card-label">Compras ativas</div><div class="inv-card-val">${qtdAtivas}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Compromisso este mês</div><div class="inv-card-val gold">${fmt(totalMesAtual)}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Total futuro</div><div class="inv-card-val red">${fmt(totalFuturo)}</div></div>
+    <div class="inv-card"><div class="inv-card-label">Total de compras</div><div class="inv-card-val">${fmt(totalCompras)}</div></div>
+  `;
+}
+
+function cartaoRenderParcelamentos(){
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const vazio = document.getElementById('cartao-vazio');
+
+  if(!cartaoDados.length){ document.querySelector('#cartao-aba-parcelamentos .orc-table-wrap').style.display='none'; vazio.style.display='block'; return; }
+  document.querySelector('#cartao-aba-parcelamentos .orc-table-wrap').style.display='block';
+  vazio.style.display='none';
+
+  document.getElementById('cartao-tbody').innerHTML = cartaoDados.map(p=>{
+    const futuras = cartaoParcelasFuturas(p);
+    const restante = futuras.reduce((a,pa)=>a+pa.valor,0);
+    const proxima = futuras[0];
+    const total = Number(p.valor_parcela)*p.num_parcelas;
+    const parcsRestantes = p.num_parcelas - (p.parcela_atual - 1);
+    const progressoPct = Math.round((p.parcela_atual-1)/p.num_parcelas*100);
+
+    return `<tr>
+      <td>
+        <div style="font-weight:600;color:var(--white)">${escapeHtml(p.descricao)}</div>
+        <div style="font-size:.65rem;color:var(--gray);margin-top:.2rem">
+          <div style="background:var(--navy3);border-radius:2px;height:3px;width:100%;margin-top:.3rem">
+            <div style="width:${progressoPct}%;height:100%;background:var(--gold);border-radius:2px"></div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--gray)">${escapeHtml(p.cartao||'—')}</td>
+      <td style="color:var(--gray)">${escapeHtml(p.categoria||'—')}</td>
+      <td style="text-align:center">
+        <span style="font-weight:700;color:var(--white)">${p.parcela_atual}</span>
+        <span style="color:var(--gray)">/${p.num_parcelas}</span>
+        <div style="font-size:.62rem;color:${parcsRestantes>0?'#f0c93a':'var(--green)'}">${parcsRestantes>0?parcsRestantes+' restantes':'Quitado'}</div>
+      </td>
+      <td style="text-align:right;color:var(--white);font-weight:600">${fmt(p.valor_parcela)}</td>
+      <td style="text-align:right;color:var(--gray)">${fmt(total)}</td>
+      <td style="text-align:right;color:var(--red);font-weight:600">${fmt(restante)}</td>
+      <td style="text-align:center;color:var(--gray);font-size:.72rem">${proxima?new Date(proxima.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td><button class="wish-card-edit" onclick="cartaoAbrirForm(${p.id})">✎</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function cartaoRenderProjecao(){
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Agrupa parcelas futuras por mês
+  const porMes = {};
+  cartaoDados.forEach(p=>{
+    cartaoParcelasFuturas(p).forEach(pa=>{
+      const d = new Date(pa.data+'T00:00:00');
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if(!porMes[key]) porMes[key]={ label:'', total:0, itens:[] };
+      porMes[key].label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      porMes[key].total += pa.valor;
+      porMes[key].itens.push({ desc:p.descricao, parcela:pa.real_numero, total:p.num_parcelas, valor:pa.valor, cartao:p.cartao });
+    });
+  });
+
+  const meses = Object.keys(porMes).sort();
+  const vazio = document.getElementById('cartao-proj-vazio');
+
+  if(!meses.length){ vazio.style.display='block'; document.getElementById('cartao-proj-cards').innerHTML=''; return; }
+  vazio.style.display='none';
+
+  const maxTotal = Math.max(...meses.map(k=>porMes[k].total));
+
+  document.getElementById('cartao-proj-cards').innerHTML = meses.map(k=>{
+    const m = porMes[k];
+    const pct = Math.round(m.total/maxTotal*100);
+    const isThisMonth = k === `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+    return `<div class="cartao-proj-mes" style="${isThisMonth?'border-color:rgba(0,182,233,0.35)':''}">
+      <div class="cartao-proj-mes-header">
+        <div>
+          <div class="cartao-proj-mes-nome">${m.label.charAt(0).toUpperCase()+m.label.slice(1)}${isThisMonth?' <span style="font-size:.6rem;background:rgba(0,182,233,0.12);color:var(--gold);padding:.1rem .4rem;border-radius:3px;font-weight:700;vertical-align:middle">MÊS ATUAL</span>':''}</div>
+          <div style="font-size:.68rem;color:var(--gray);margin-top:.2rem">${m.itens.length} compra${m.itens.length!==1?'s':''} parcelada${m.itens.length!==1?'s':''}</div>
+        </div>
+        <div class="cartao-proj-mes-total">${fmt(m.total)}</div>
+      </div>
+      <div class="cartao-proj-barra-wrap"><div class="cartao-proj-barra-fill" style="width:${pct}%"></div></div>
+      <div style="margin-top:.7rem">
+        ${m.itens.map(it=>`
+          <div class="cartao-proj-item">
+            <div class="cartao-proj-item-desc">
+              ${escapeHtml(it.desc)}
+              <span class="cartao-proj-item-parc">${it.parcela}/${it.total}</span>
+              ${it.cartao?`<span style="font-size:.6rem;color:var(--gray2);margin-left:.3rem">${escapeHtml(it.cartao)}</span>`:''}
+            </div>
+            <div class="cartao-proj-item-val">${fmt(it.valor)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cartaoFormCalcTotal(){
+  const parc = parseFloat(document.getElementById('cartao-form-valor-parcela').value)||0;
+  const num  = parseInt(document.getElementById('cartao-form-num-parcelas').value)||0;
+  const el   = document.getElementById('cartao-form-total');
+  if(parc && num){
+    const total = parc*num;
+    el.textContent = 'R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  } else {
+    el.textContent = '—';
+  }
+}
+
+function cartaoAbrirForm(id){
+  cartaoEditId = id;
+  const p = id ? cartaoDados.find(x=>x.id===id) : null;
+  document.getElementById('cartao-form-titulo').textContent = p ? 'Editar compra parcelada' : 'Nova compra parcelada';
+  document.getElementById('cartao-form-desc').value          = p?.descricao||'';
+  document.getElementById('cartao-form-cartao').value        = p?.cartao||'';
+  document.getElementById('cartao-form-categoria').value     = p?.categoria||'';
+  document.getElementById('cartao-form-valor-parcela').value = p?.valor_parcela||'';
+  document.getElementById('cartao-form-num-parcelas').value  = p?.num_parcelas||'';
+  document.getElementById('cartao-form-parcela-atual').value = p?.parcela_atual||'';
+  document.getElementById('cartao-form-data-atual').value    = p?.data_primeira_parcela||'';
+  document.getElementById('cartao-form-excluir').style.display = p?'inline':'none';
+  cartaoFormCalcTotal();
+  abrirOverlay('overlay-cartao-form');
+}
+
+async function cartaoSalvarForm(){
+  const descricao = document.getElementById('cartao-form-desc').value.trim();
+  const valor_parcela = parseFloat(document.getElementById('cartao-form-valor-parcela').value);
+  const num_parcelas  = parseInt(document.getElementById('cartao-form-num-parcelas').value);
+  const parcela_atual = parseInt(document.getElementById('cartao-form-parcela-atual').value);
+  const data_primeira_parcela = document.getElementById('cartao-form-data-atual').value;
+
+  if(!descricao||!valor_parcela||!num_parcelas||!parcela_atual||!data_primeira_parcela){
+    alert('Preencha todos os campos obrigatórios.'); return;
+  }
+  if(parcela_atual > num_parcelas){ alert('Parcela atual não pode ser maior que o total.'); return; }
+
+  const payload = {
+    user_id: usuarioAtual.id,
+    descricao,
+    cartao: document.getElementById('cartao-form-cartao').value.trim()||null,
+    categoria: document.getElementById('cartao-form-categoria').value||null,
+    valor_parcela,
+    num_parcelas,
+    parcela_atual,
+    valor_total: valor_parcela*num_parcelas,
+    data_primeira_parcela
+  };
+
+  let error;
+  if(cartaoEditId){
+    ({ error } = await sb.from('cartao_parcelamentos').update(payload).eq('id', cartaoEditId));
+  } else {
+    ({ error } = await sb.from('cartao_parcelamentos').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-cartao-form');
+  await cartaoCarregar();
+}
+
+async function cartaoExcluir(){
+  if(!confirm('Excluir esta compra parcelada?')) return;
+  await sb.from('cartao_parcelamentos').delete().eq('id', cartaoEditId);
+  fecharOverlay('overlay-cartao-form');
+  await cartaoCarregar();
+}
+
+// ── Detecção automática de parcelas na importação da fatura ──
+function cartaoDetectarParcelasNoCSV(linhas){
+  // Regex para detectar padrões como "3/10", "3 DE 10", "(4/12)", "04/10X"
+  const reParc = /\b(\d{1,2})\s*[\/\-]\s*(\d{1,2})\s*[xX]?\b/;
+  const detectadas = [];
+
+  linhas.forEach((l,i)=>{
+    const m = l.desc.match(reParc);
+    if(!m) return;
+    const parcAtual = parseInt(m[1]);
+    const parcTotal = parseInt(m[2]);
+    if(parcAtual<1||parcTotal<2||parcAtual>parcTotal) return;
+    // Evitar falsos positivos (datas, horas)
+    if(parcTotal > 72) return;
+    detectadas.push({
+      idx: i,
+      desc: l.desc,
+      valor_parcela: l.val,
+      parcela_atual: parcAtual,
+      num_parcelas: parcTotal,
+      data: l.data,
+      categoria: l.categoria||'',
+      selecionada: true
+    });
+  });
+
+  return detectadas;
+}
+
+function cartaoMostrarDetectadas(detectadas){
+  if(!detectadas.length) return;
+  cartaoDetectadas = detectadas;
+
+  document.getElementById('cartao-detectado-lista').innerHTML = detectadas.map((d,i)=>`
+    <div class="cartao-detectado-item">
+      <input type="checkbox" checked id="cartao-det-${i}" onchange="cartaoDetectadas[${i}].selecionada=this.checked" style="margin-top:.2rem;flex-shrink:0;cursor:pointer">
+      <div class="cartao-detectado-info">
+        <strong>${escapeHtml(d.desc)}</strong>
+        <span>Parcela ${d.parcela_atual}/${d.num_parcelas} · R$ ${d.valor_parcela.toLocaleString('pt-BR',{minimumFractionDigits:2})} · vencimento ${new Date(d.data+'T00:00:00').toLocaleDateString('pt-BR')}</span>
+      </div>
+    </div>`).join('');
+
+  abrirOverlay('overlay-cartao-detectado');
+}
+
+async function cartaoConfirmarDetectadas(){
+  const selecionadas = cartaoDetectadas.filter(d=>d.selecionada);
+  if(!selecionadas.length){ fecharOverlay('overlay-cartao-detectado'); return; }
+
+  const rows = selecionadas.map(d=>({
+    user_id: usuarioAtual.id,
+    descricao: d.desc,
+    valor_parcela: d.valor_parcela,
+    num_parcelas: d.num_parcelas,
+    parcela_atual: d.parcela_atual,
+    valor_total: d.valor_parcela*d.num_parcelas,
+    data_primeira_parcela: d.data,
+    categoria: d.categoria||null
+  }));
+
+  const { error } = await sb.from('cartao_parcelamentos').insert(rows);
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+  fecharOverlay('overlay-cartao-detectado');
+  alert(`✓ ${rows.length} compra${rows.length!==1?'s':''} parcelada${rows.length!==1?'s':''} cadastrada${rows.length!==1?'s':''}!`);
 }
 
 function simInit(){
