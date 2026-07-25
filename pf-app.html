@@ -470,6 +470,23 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
 
+/* ════════ SALDO POR CONTA ════════ */
+.saldo-painel{background:var(--navy2);border:1px solid var(--border);margin-bottom:1.2rem}
+.saldo-painel-header{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.2rem;cursor:pointer;user-select:none;gap:1rem}
+.saldo-painel-header:hover{background:rgba(255,255,255,0.02)}
+.saldo-painel-titulo{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.saldo-caixa-total{font-size:.95rem;font-weight:700;color:var(--white)}
+.saldo-toggle-icon{font-size:.7rem;color:var(--gray);transition:transform .2s}
+.saldo-toggle-icon.fechado{transform:rotate(-90deg)}
+.saldo-contas-wrap{padding:.2rem 1.2rem 1rem;border-top:1px solid var(--border)}
+.saldo-contas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.7rem;margin-top:.8rem}
+.saldo-conta-card{padding:.8rem 1rem;border-left:3px solid var(--border);background:var(--navy3);cursor:pointer;transition:border-color .2s}
+.saldo-conta-card:hover{border-color:rgba(255,255,255,0.2)}
+.saldo-conta-nome{font-size:.7rem;color:var(--gray);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.3rem}
+.saldo-conta-tipo{font-size:.6rem;color:var(--gray2);margin-bottom:.5rem}
+.saldo-conta-valor{font-size:1.05rem;font-weight:700}
+.saldo-conta-diff{font-size:.62rem;margin-top:.2rem;color:var(--gray2)}
+
 /* ════════ CARTÃO DE CRÉDITO ════════ */
 .cartao-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.4rem}
 @media(max-width:700px){.cartao-resumo{grid-template-columns:1fr 1fr}}
@@ -1484,6 +1501,79 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <p>Orçado x realizado, mês a mês</p>
         </div>
 
+        <!-- PAINEL DE SALDOS -->
+        <div class="saldo-painel" id="saldo-painel">
+          <div class="saldo-painel-header" onclick="saldoToggle()">
+            <div style="display:flex;align-items:center;gap:.7rem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+              <span class="saldo-painel-titulo">Saldo por conta</span>
+              <span class="saldo-caixa-total" id="saldo-caixa-total">—</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.8rem">
+              <button class="orc-btn-config" style="font-size:.65rem;padding:.25rem .6rem" onclick="event.stopPropagation();saldoAbrirForm(null)">+ Conta</button>
+              <span class="saldo-toggle-icon" id="saldo-toggle-icon">▾</span>
+            </div>
+          </div>
+          <div class="saldo-contas-wrap" id="saldo-contas-wrap">
+            <div class="orc-loading" id="saldo-loading" style="padding:.8rem 0">Carregando contas...</div>
+            <div class="saldo-contas-grid" id="saldo-contas-grid"></div>
+            <div class="plano-vazio" id="saldo-vazio" style="display:none;padding:.8rem 0;text-align:left;font-size:.75rem">
+              Nenhuma conta cadastrada. Clique em "+ Conta" para adicionar.
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Conta -->
+        <div class="overlay" id="overlay-saldo-form">
+          <div class="modal" style="max-width:480px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-saldo-form')">×</button>
+            <div class="modal-title" id="saldo-form-titulo">Nova conta</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Nome da conta *</label>
+                <input class="diag-input" type="text" id="saldo-form-nome" placeholder="Ex: Bradesco, Nubank, Inter...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Tipo</label>
+                <select class="diag-input" id="saldo-form-tipo">
+                  <option value="corrente">Conta corrente</option>
+                  <option value="poupanca">Poupança</option>
+                  <option value="investimento">Conta investimento</option>
+                  <option value="cartao">Cartão de crédito</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Cor</label>
+                <select class="diag-input" id="saldo-form-cor">
+                  <option value="#00B6E9">Azul</option>
+                  <option value="#4ec98a">Verde</option>
+                  <option value="#f0c93a">Amarelo</option>
+                  <option value="#e05252">Vermelho</option>
+                  <option value="#a78bfa">Roxo</option>
+                  <option value="#f472b6">Rosa</option>
+                  <option value="#6b7280">Cinza</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Saldo inicial (R$) *</label>
+                <input class="diag-input" type="number" step="0.01" id="saldo-form-valor" placeholder="0,00">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Data do saldo inicial *</label>
+                <input class="diag-input" type="date" id="saldo-form-data">
+              </div>
+            </div>
+            <p style="font-size:.7rem;color:var(--gray);margin:.8rem 0 0;line-height:1.6">
+              Os lançamentos importados a partir desta data que corresponderem a esta conta serão somados/subtraídos automaticamente do saldo inicial.
+            </p>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="saldoSalvarForm()">Salvar</button>
+              <button id="saldo-form-excluir" class="modal-link" style="color:var(--red);display:none" onclick="saldoExcluir()">Excluir conta</button>
+            </div>
+          </div>
+        </div>
+
         <div class="orc-header">
           <div class="orc-nav">
             <button class="orc-nav-btn" onclick="lancMudarAno(-1)">‹</button>
@@ -1536,6 +1626,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
                 <div class="f"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
                 <div class="f"><label>Categoria</label><select id="add-cat"></select></div>
+                <div class="f"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
                 <div class="f"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
                 <button class="btn-add" onclick="adicionarLancamento()">+ Adicionar</button>
               </div>
@@ -1587,6 +1678,15 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
 
               <div id="csv-dica" style="margin-top:1rem;background:var(--navy3);border:1px solid var(--border);padding:.8rem 1rem;font-size:.72rem;color:var(--gray);line-height:1.7"></div>
+
+              <!-- Select de conta -->
+              <div style="margin-top:.8rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+                <label style="font-size:.72rem;color:var(--gray);white-space:nowrap">Vincular à conta:</label>
+                <select class="diag-input" id="csv-conta-select" style="max-width:220px;padding:.3rem .5rem;font-size:.72rem">
+                  <option value="">— nenhuma —</option>
+                </select>
+                <span style="font-size:.65rem;color:var(--gray2)">Afeta o cálculo do saldo da conta</span>
+              </div>
             </div>
 
             <!-- Etapa 2: Revisão -->
@@ -3442,6 +3542,145 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let usuarioAtual=null, filtroAtivo='todos';
+// ══════════════════════════════════════════════
+// SALDO POR CONTA
+// ══════════════════════════════════════════════
+let saldoContas = [];
+let saldoAberto = true;
+let saldoEditId = null;
+
+const SALDO_TIPO_LABEL = { corrente:'Conta corrente', poupanca:'Poupança', investimento:'Inv.', cartao:'Cartão', outro:'Outro' };
+
+function saldoToggle(){
+  saldoAberto = !saldoAberto;
+  document.getElementById('saldo-contas-wrap').style.display = saldoAberto ? 'block' : 'none';
+  document.getElementById('saldo-toggle-icon').classList.toggle('fechado', !saldoAberto);
+}
+
+async function saldoCarregar(){
+  const { data: contas } = await sb.from('contas_saldo').select('*')
+    .eq('user_id', usuarioAtual.id).order('ordem').order('nome');
+  saldoContas = contas || [];
+  await saldoRenderizar();
+}
+
+async function saldoRenderizar(){
+  const loading = document.getElementById('saldo-loading');
+  const grid    = document.getElementById('saldo-contas-grid');
+  const vazio   = document.getElementById('saldo-vazio');
+  loading.style.display = 'none';
+
+  if(!saldoContas.length){
+    grid.innerHTML = '';
+    vazio.style.display = 'block';
+    document.getElementById('saldo-caixa-total').textContent = '—';
+    return;
+  }
+  vazio.style.display = 'none';
+
+  // Buscar todos os lançamentos do usuário para calcular saldo atual
+  const { data: lancs } = await sb.from('extrato').select('data,valor,tipo,conta')
+    .eq('user_id', usuarioAtual.id).order('data');
+
+  const fmt = v => {
+    const abs = Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    return (v<0?'-':'') + 'R$ ' + abs;
+  };
+
+  let caixaTotal = 0;
+
+  grid.innerHTML = saldoContas.map(c=>{
+    // Calcular saldo: saldo_inicial + lançamentos desta conta após data_saldo_inicial
+    const dataBase = c.data_saldo_inicial;
+    const lancsConta = (lancs||[]).filter(l=>{
+      if(l.conta !== c.nome) return false;
+      if(l.data < dataBase) return false;
+      if(l.tipo === 'pagamento_fatura' || l.tipo === 'transferencia') return false;
+      return true;
+    });
+
+    let movimentos = 0;
+    lancsConta.forEach(l=>{
+      const v = Number(l.valor||0);
+      if(l.tipo === 'receita') movimentos += v;
+      else movimentos -= v;
+    });
+
+    const saldoAtual = Number(c.saldo_inicial) + movimentos;
+    caixaTotal += saldoAtual;
+
+    const cor = c.cor || '#00B6E9';
+    const movStr = movimentos !== 0
+      ? `<div class="saldo-conta-diff">${movimentos>=0?'+':''}${fmt(movimentos)} em lançamentos</div>`
+      : '';
+
+    return `<div class="saldo-conta-card" style="border-left-color:${cor}" onclick="saldoAbrirForm(${c.id})">
+      <div class="saldo-conta-nome" style="color:${cor}">${escapeHtml(c.nome)}</div>
+      <div class="saldo-conta-tipo">${SALDO_TIPO_LABEL[c.tipo]||c.tipo}</div>
+      <div class="saldo-conta-valor" style="color:${saldoAtual>=0?'var(--white)':'var(--red)'}">${fmt(saldoAtual)}</div>
+      ${movStr}
+    </div>`;
+  }).join('');
+
+  document.getElementById('saldo-caixa-total').textContent = fmt(caixaTotal);
+}
+
+function saldoAbrirForm(id){
+  saldoEditId = id;
+  const c = id ? saldoContas.find(x=>x.id===id) : null;
+  document.getElementById('saldo-form-titulo').textContent = c ? 'Editar conta' : 'Nova conta';
+  document.getElementById('saldo-form-nome').value   = c?.nome||'';
+  document.getElementById('saldo-form-tipo').value   = c?.tipo||'corrente';
+  document.getElementById('saldo-form-cor').value    = c?.cor||'#00B6E9';
+  document.getElementById('saldo-form-valor').value  = c?.saldo_inicial||'';
+  document.getElementById('saldo-form-data').value   = c?.data_saldo_inicial||new Date().toISOString().split('T')[0];
+  document.getElementById('saldo-form-excluir').style.display = c?'inline':'none';
+  abrirOverlay('overlay-saldo-form');
+}
+
+async function saldoSalvarForm(){
+  const nome = document.getElementById('saldo-form-nome').value.trim();
+  const saldo_inicial = parseFloat(document.getElementById('saldo-form-valor').value);
+  const data_saldo_inicial = document.getElementById('saldo-form-data').value;
+  if(!nome || isNaN(saldo_inicial) || !data_saldo_inicial){
+    alert('Preencha nome, saldo inicial e data.'); return;
+  }
+  const payload = {
+    user_id: usuarioAtual.id,
+    nome,
+    tipo:              document.getElementById('saldo-form-tipo').value,
+    cor:               document.getElementById('saldo-form-cor').value,
+    saldo_inicial,
+    data_saldo_inicial
+  };
+  let error;
+  if(saldoEditId){
+    ({ error } = await sb.from('contas_saldo').update(payload).eq('id', saldoEditId));
+  } else {
+    ({ error } = await sb.from('contas_saldo').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-saldo-form');
+  await saldoCarregar();
+}
+
+async function saldoExcluir(){
+  if(!confirm('Excluir esta conta? O saldo inicial e histórico de cálculo serão perdidos.')) return;
+  await sb.from('contas_saldo').delete().eq('id', saldoEditId);
+  fecharOverlay('overlay-saldo-form');
+  await saldoCarregar();
+}
+
+function saldoPopularSelect(){
+  const opts = '<option value="">— nenhuma —</option>' +
+    saldoContas.map(c=>`<option value="${escapeHtml(c.nome)}">${escapeHtml(c.nome)}</option>`).join('');
+  const sel1 = document.getElementById('add-conta');
+  if(sel1) sel1.innerHTML = opts;
+  // também o select no modal de importação CSV se existir
+  const sel2 = document.getElementById('csv-conta-select');
+  if(sel2) sel2.innerHTML = opts;
+}
+
 let extratoAtual=[];
 let lancAno = new Date().getFullYear();
 let lancMes = new Date().getMonth()+1;
@@ -4445,6 +4684,7 @@ async function csvConfirmarImport(){
   btn.textContent='Importando...'; btn.disabled=true;
 
   try {
+    const contaCSV = document.getElementById('csv-conta-select')?.value || null;
     const rows = selecionados.map(l=>({
       user_id: usuarioAtual.id,
       data: l.data,
@@ -4452,7 +4692,8 @@ async function csvConfirmarImport(){
       tipo: l.tipo,
       categoria: l.categoria,
       valor: l.val,
-      origem: csvModo  // 'extrato' ou 'cartao'
+      origem: csvModo,
+      conta: contaCSV
     }));
 
     const { error } = await sb.from('extrato').insert(rows);
@@ -4460,12 +4701,13 @@ async function csvConfirmarImport(){
 
     // Recarregar extrato
     const { data } = await sb.from('extrato').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:false});
-    extratoAtual = (data||[]).map(r=>({id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor)}));
+    extratoAtual = (data||[]).map(r=>({id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato', conta:r.conta||null}));
 
     fecharOverlay('overlay-csv-import');
     renderExtrato();
     lancRenderOrcadoRealizado();
     calcularResumo();
+    saldoRenderizar(); // atualiza saldo das contas
 
     // Se foi fatura de cartão, detectar parcelas automaticamente
     if(csvModo === 'cartao'){
@@ -4493,7 +4735,7 @@ async function carregarExtrato(){
     extratoAtual=[];
   } else {
     extratoAtual = (data||[]).map(r=>({
-      id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato'
+      id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato', conta:r.conta||null
     }));
   }
 
@@ -4502,6 +4744,8 @@ async function carregarExtrato(){
   renderExtrato();
   await lancCarregarOrcado();
   calcularResumo();
+  await saldoCarregar();
+  saldoPopularSelect();
 }
 
 // Lista de lançamentos filtrados pelo mês/ano selecionado em Lançamentos
@@ -5270,6 +5514,7 @@ async function adicionarLancamento(){
   const tipo=document.getElementById('add-tipo').value;
   const cat=document.getElementById('add-cat').value.trim()||'Geral';
   const val=parseFloat(document.getElementById('add-val').value);
+  const conta=document.getElementById('add-conta').value||null;
   if(!data||!desc||isNaN(val)||val<=0){alert('Preencha todos os campos corretamente.');return}
 
   const btn=document.querySelector('.btn-add');
@@ -5278,16 +5523,20 @@ async function adicionarLancamento(){
 
   const { data: row, error } = await sb.from('extrato').insert({
     user_id: usuarioAtual.id,
-    data, descricao: desc, tipo, categoria: cat, valor: val, origem: 'extrato'
+    data, descricao: desc, tipo, categoria: cat, valor: val, origem: 'extrato', conta
   }).select().single();
 
   btn.textContent=original; btn.disabled=false;
 
   if(error){ alert('Erro ao salvar lançamento: '+error.message); return; }
 
-  extratoAtual.push({id:row.id, data:row.data, desc:row.descricao, tipo:row.tipo, cat:row.categoria, val:Number(row.valor), origem:'extrato'});
+  extratoAtual.push({id:row.id, data:row.data, desc:row.descricao, tipo:row.tipo, cat:row.categoria, val:Number(row.valor), origem:'extrato', conta:row.conta});
   document.getElementById('add-desc').value='';
   document.getElementById('add-val').value='';
+  document.getElementById('add-conta').value='';
+
+  // Atualiza saldo ao adicionar lançamento
+  saldoRenderizar();
 
   // Se o lançamento foi para o mês/ano atualmente visualizado, atualiza tudo
   const dLanc = new Date(data+'T00:00:00');
