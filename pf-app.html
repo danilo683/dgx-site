@@ -17,11 +17,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh}
-#site-pf{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
-#site-pf::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%, rgba(0,182,233,0.07) 0%, transparent 70%);pointer-events:none;}
-.entrada-wrap{text-align:center;position:relative}
-.entrada-logo{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.6rem;}
-.entrada-tag{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);}
 
 /* ════════════════════════ SITE PF ════════════════════════ */
 nav.public-nav{
@@ -469,6 +464,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
   font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--gold);padding-left:2.2rem;font-weight:600;
 }
+
+/* ════════ ACUMULADO ════════ */
+.acum-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.4rem}
+@media(max-width:700px){.acum-cards{grid-template-columns:1fr 1fr}}
 
 /* ════════ SALDO POR CONTA ════════ */
 .saldo-painel{background:var(--navy2);border:1px solid var(--border);margin-bottom:1.2rem}
@@ -1234,8 +1233,80 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 <body>
 
 <!-- ══════════ SITE PÚBLICO ══════════ -->
-<div id="site-pf"><div class="entrada-wrap"><div class="entrada-logo">DGX</div><div class="entrada-tag">Consultoria · Pessoa Física</div><button class="btn-login" style="margin-top:2rem" onclick="abrirLogin()">Entrar</button></div></div>
+<div id="site-pf">
+  <nav class="public-nav">
+    <div class="nav-left">
+      <a href="/" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        dgxconsultoria.com.br
+      </a>
+      <div class="nav-sep"></div>
+      <div>
+        <div class="nav-brand">DGX · Pessoa Física</div>
+        <div class="nav-tag">Consultoria Financeira Pessoal</div>
+      </div>
+    </div>
+    <button class="btn-login" onclick="abrirLogin()">Área do cliente</button>
+  </nav>
 
+  <section class="hero">
+    <div class="hero-eyebrow">Consultoria Financeira Pessoal</div>
+    <h1>Clareza financeira para<br><em>decisões que transformam</em></h1>
+    <p>Planejamento personalizado, assessoria de investimentos e organização financeira para que você alcance seus objetivos com estratégia e segurança.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="document.getElementById('servicos').scrollIntoView({behavior:'smooth'})">Conheça os serviços</button>
+      <button class="btn-outline" onclick="abrirLogin()">Acessar minha área</button>
+    </div>
+  </section>
+
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num">+8 anos</div><div class="stat-label">de experiência</div></div>
+    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">personalizado</div></div>
+    <div class="stat-item"><div class="stat-num">360°</div><div class="stat-label">visão financeira</div></div>
+  </div>
+
+  <section id="servicos">
+    <div class="section-inner">
+      <div class="eyebrow">Nossos serviços</div>
+      <h2 class="section-title">Uma consultoria completa<br>para cada fase da sua vida</h2>
+      <p class="section-sub">Do diagnóstico financeiro até a execução do plano, acompanho você em cada etapa.</p>
+      <div class="services-grid">
+        <div class="service-card"><span class="service-num">01</span><div class="service-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></div><h3>Planejamento Financeiro Pessoal</h3><p>Diagnóstico completo das suas finanças, organização do orçamento e construção de um plano de metas realistas e alcançáveis.</p></div>
+        <div class="service-card"><span class="service-num">02</span><div class="service-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Assessoria de Investimentos</h3><p>Análise do seu perfil de investidor, seleção de ativos adequados e acompanhamento da carteira com foco nos seus objetivos.</p></div>
+        <div class="service-card"><span class="service-num">03</span><div class="service-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><h3>Organização de Dívidas e Crédito</h3><p>Renegociação estratégica de dívidas, controle do uso do crédito e construção de um caminho saudável rumo à independência financeira.</p></div>
+        <div class="service-card"><span class="service-num">04</span><div class="service-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Planejamento da Aposentadoria</h3><p>Projeção de patrimônio, estruturação da previdência complementar e estratégia de longo prazo para garantir sua tranquilidade no futuro.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process">
+    <div class="section-inner">
+      <div class="eyebrow">Como funciona</div>
+      <h2 class="section-title" style="margin-bottom:2.5rem">Do primeiro contato ao<br>resultado concreto</h2>
+      <div>
+        <div class="step"><div class="step-num">01</div><div class="step-content"><h4>Diagnóstico financeiro</h4><p>Levantamento completo da sua situação: receitas, despesas, dívidas, investimentos e objetivos.</p></div></div>
+        <div class="step"><div class="step-num">02</div><div class="step-content"><h4>Construção do plano</h4><p>Elaboração de um plano personalizado com metas, prazos e ações concretas, adequado ao seu perfil e momento de vida.</p></div></div>
+        <div class="step"><div class="step-num">03</div><div class="step-content"><h4>Implementação e acompanhamento</h4><p>Execução das estratégias com monitoramento contínuo e acesso à sua área exclusiva de cliente.</p></div></div>
+        <div class="step"><div class="step-num">04</div><div class="step-content"><h4>Evolução e revisões periódicas</h4><p>Revisão trimestral do plano, atualização da carteira e manutenção do foco nos seus objetivos de longo prazo.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-section">
+    <div class="eyebrow" style="margin-bottom:1rem">Dê o primeiro passo</div>
+    <h2>Pronto para transformar<br>sua vida financeira?</h2>
+    <p>Entre em contato e agende uma conversa inicial sem compromisso.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="https://wa.me/5511999999999" style="text-decoration:none"><button class="btn-primary">Falar pelo WhatsApp</button></a>
+      <button class="btn-outline" onclick="abrirLogin()">Já sou cliente — entrar</button>
+    </div>
+  </div>
+
+  <footer>
+    <div><div class="footer-brand">DGX Consultoria</div><div class="footer-copy" style="margin-top:.3rem">Pessoa Física · dgxconsultoria.com.br/pf</div></div>
+    <div class="footer-copy">© 2025 DGX Consultoria · Todos os direitos reservados</div>
+  </footer>
+</div>
 
 <!-- ══════════ MODAL LOGIN ══════════ -->
 <div class="overlay" id="overlay-login">
@@ -1352,6 +1423,10 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <button class="menu-item" onclick="irPara('extrato', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
         Lançamentos
+      </button>
+      <button class="menu-item" onclick="irPara('acumulado', this)">
+        <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 6 2-4"/></svg></span>
+        Acumulado
       </button>
       <button class="menu-item" onclick="irPara('cartao', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
@@ -2795,6 +2870,49 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
 
+      <!-- ── ACUMULADO ── -->
+      <div class="tela" id="tela-acumulado">
+        <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+          <div><h2>Acumulado</h2><p>Orçado × Realizado acumulado de Janeiro até o mês selecionado</p></div>
+        </div>
+
+        <!-- Seletor de ano e mês -->
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.4rem;flex-wrap:wrap">
+          <div class="orc-nav">
+            <button class="orc-nav-btn" onclick="acumMudarAno(-1)">‹</button>
+            <span class="orc-ano" id="acum-ano-label">2026</span>
+            <button class="orc-nav-btn" onclick="acumMudarAno(1)">›</button>
+          </div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap" id="acum-mes-tabs"></div>
+        </div>
+
+        <!-- Cards resumo -->
+        <div class="acum-cards" id="acum-cards"></div>
+
+        <div class="orc-loading" id="acum-loading">Carregando...</div>
+        <div id="acum-content" style="display:none">
+
+          <!-- Tabela acumulada -->
+          <div class="orc-table-wrap" style="max-height:none">
+            <table class="lanc-orc-table" id="acum-table">
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th style="text-align:right">Orçado acum.</th>
+                  <th style="text-align:right;color:var(--gold)">Extrato acum.</th>
+                  <th style="text-align:right;color:#7c9cff">Cartão acum.</th>
+                  <th style="text-align:right">Realizado total</th>
+                  <th style="text-align:right">Diferença</th>
+                  <th style="text-align:center;width:80px">%</th>
+                </tr>
+              </thead>
+              <tbody id="acum-tbody"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
       <!-- ── CARTÃO DE CRÉDITO ── -->
       <div class="tela" id="tela-cartao">
         <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
@@ -3543,6 +3661,195 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let usuarioAtual=null, filtroAtivo='todos';
 // ══════════════════════════════════════════════
+// ACUMULADO
+// ══════════════════════════════════════════════
+let acumAno = new Date().getFullYear();
+let acumMes = new Date().getMonth() + 1; // mês atual como padrão
+
+async function acumCarregar(){
+  document.getElementById('acum-loading').style.display = 'block';
+  document.getElementById('acum-content').style.display = 'none';
+  document.getElementById('acum-ano-label').textContent = acumAno;
+  acumRenderMesTabs();
+
+  // Buscar orçamento do ano inteiro
+  const { data: orcRows } = await sb.from('orcamento').select('*')
+    .eq('user_id', usuarioAtual.id).eq('ano', acumAno);
+
+  // Buscar lançamentos do ano (jan → mês selecionado)
+  const dataIni = `${acumAno}-01-01`;
+  const dataFim = `${acumAno}-${String(acumMes).padStart(2,'0')}-31`;
+  const { data: lancRows } = await sb.from('extrato').select('data,tipo,categoria,valor,origem')
+    .eq('user_id', usuarioAtual.id)
+    .gte('data', dataIni).lte('data', dataFim)
+    .neq('tipo','pagamento_fatura').neq('tipo','transferencia');
+
+  document.getElementById('acum-loading').style.display = 'none';
+  document.getElementById('acum-content').style.display = 'block';
+
+  const fmt = v => 'R$ ' + Math.abs(Number(v||0)).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  // ── Montar orçado acumulado (jan → acumMes) por categoria ──
+  const orcAcum = {}; // { categoria: total_orcado }
+  (orcRows||[]).forEach(r => {
+    if(r.mes > acumMes) return;
+    const key = r.grupo === '__receitas' ? `__rec:${r.categoria}` : r.categoria;
+    orcAcum[key] = (orcAcum[key]||0) + Number(r.previsto||0);
+  });
+
+  // ── Montar realizado acumulado por categoria e origem ──
+  const realExt  = {}; // { categoria: total }
+  const realCart = {};
+  (lancRows||[]).forEach(l => {
+    const cat = l.categoria||'Geral';
+    const v   = Number(l.valor||0);
+    if(l.tipo === 'receita'){
+      const key = `__rec:${cat}`;
+      realExt[key] = (realExt[key]||0) + v;
+    } else {
+      if(l.origem === 'cartao') realCart[cat] = (realCart[cat]||0) + v;
+      else                      realExt[cat]  = (realExt[cat]||0)  + v;
+    }
+  });
+
+  // ── Cards resumo ──
+  const totOrcRec  = Object.entries(orcAcum).filter(([k])=>k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0);
+  const totOrcDesp = Object.entries(orcAcum).filter(([k])=>!k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0);
+  const totRealRec = Object.entries(realExt).filter(([k])=>k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0);
+  const totRealDesp= Object.entries(realExt).filter(([k])=>!k.startsWith('__rec:')).reduce((a,[,v])=>a+v,0)
+                   + Object.values(realCart).reduce((a,v)=>a+v,0);
+  const saldoOrc   = totOrcRec - totOrcDesp;
+  const saldoReal  = totRealRec - totRealDesp;
+
+  document.getElementById('acum-cards').innerHTML = `
+    <div class="inv-card">
+      <div class="inv-card-label">Receitas orçadas</div>
+      <div class="inv-card-val green">${fmt(totOrcRec)}</div>
+      <div style="font-size:.65rem;color:var(--gray);margin-top:.3rem">Realizado: ${fmt(totRealRec)}</div>
+    </div>
+    <div class="inv-card">
+      <div class="inv-card-label">Despesas orçadas</div>
+      <div class="inv-card-val red">${fmt(totOrcDesp)}</div>
+      <div style="font-size:.65rem;color:var(--gray);margin-top:.3rem">Realizado: ${fmt(totRealDesp)}</div>
+    </div>
+    <div class="inv-card">
+      <div class="inv-card-label">Saldo orçado</div>
+      <div class="inv-card-val ${saldoOrc>=0?'gold':'red'}">${saldoOrc<0?'-':''}${fmt(saldoOrc)}</div>
+    </div>
+    <div class="inv-card">
+      <div class="inv-card-label">Saldo realizado</div>
+      <div class="inv-card-val ${saldoReal>=0?'gold':'red'}">${saldoReal<0?'-':''}${fmt(saldoReal)}</div>
+    </div>`;
+
+  // ── Montar tabela ──
+  const mesNome = MESES_FULL[acumMes-1];
+  let html = '';
+
+  // Receitas
+  const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
+    ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
+
+  html += `<tr class="lanc-grupo-row receita"><td colspan="7">▾ Receitas · Jan → ${mesNome}</td></tr>`;
+  recLabels.forEach(lb=>{
+    const key  = `__rec:${lb}`;
+    const orc  = orcAcum[key] || 0;
+    const real = realExt[key] || 0;
+    const diff = real - orc;
+    const pct  = orc ? Math.round(real/orc*100) : null;
+    if(!orc && !real) return;
+    const diffCls = diff>=0?'lanc-diff-pos':'lanc-diff-neg';
+    html += `<tr>
+      <td class="lanc-cat-nome">${escapeHtml(lb)}</td>
+      <td style="text-align:right">${fmt(orc)}</td>
+      <td style="text-align:right;color:var(--green)">${real?fmt(real):'—'}</td>
+      <td style="text-align:right;color:var(--gray2)">—</td>
+      <td style="text-align:right;color:var(--green);font-weight:600">${real?fmt(real):'—'}</td>
+      <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td>
+      <td style="text-align:center">${pct!==null?`<span class="${pct>=100?'lanc-diff-pos':pct>=80?'':'lanc-diff-neg'}">${pct}%</span>`:'—'}</td>
+    </tr>`;
+  });
+
+  // Despesas
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    const itens = [...g.itens, ...(gDados.extras||[])];
+    let grupoHtml = '';
+    itens.forEach(item=>{
+      const orc   = orcAcum[item] || 0;
+      const rExt  = realExt[item] || 0;
+      const rCart = realCart[item] || 0;
+      const real  = rExt + rCart;
+      const diff  = orc - real; // positivo = sobrou, negativo = estourou
+      const pct   = orc ? Math.round(real/orc*100) : null;
+      if(!orc && !real) return;
+      const diffCls = diff>=0?'lanc-diff-pos':'lanc-diff-neg';
+      const pctCls  = pct===null?'':pct>100?'lanc-diff-neg':pct>=80?'':'lanc-diff-pos';
+      grupoHtml += `<tr>
+        <td class="lanc-cat-nome">${escapeHtml(item)}</td>
+        <td style="text-align:right">${fmt(orc)}</td>
+        <td style="text-align:right;color:var(--gold)">${rExt?fmt(rExt):'—'}</td>
+        <td style="text-align:right;color:#7c9cff">${rCart?fmt(rCart):'—'}</td>
+        <td style="text-align:right;font-weight:600">${real?fmt(real):'—'}</td>
+        <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td>
+        <td style="text-align:center">${pct!==null?`<span class="${pctCls}">${pct}%</span>`:'—'}</td>
+      </tr>`;
+    });
+    if(grupoHtml){
+      html += `<tr class="lanc-grupo-row"><td colspan="7">▾ ${g.label}</td></tr>${grupoHtml}`;
+    }
+  });
+
+  // Rodapé totais
+  const pctDesp = totOrcDesp ? Math.round(totRealDesp/totOrcDesp*100) : null;
+  const pctRec  = totOrcRec  ? Math.round(totRealRec/totOrcRec*100)   : null;
+  html += `
+    <tr class="orc-total-row" style="border-top:2px solid rgba(78,201,138,0.25)">
+      <td style="color:var(--green)">Total Receitas</td>
+      <td style="text-align:right;color:var(--green)">${fmt(totOrcRec)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(totRealRec)}</td>
+      <td>—</td>
+      <td style="text-align:right;color:var(--green);font-weight:700">${fmt(totRealRec)}</td>
+      <td style="text-align:right" class="${totRealRec>=totOrcRec?'lanc-diff-pos':'lanc-diff-neg'}">${totRealRec>=totOrcRec?'+':''}${fmt(totRealRec-totOrcRec)}</td>
+      <td style="text-align:center">${pctRec!==null?pctRec+'%':'—'}</td>
+    </tr>
+    <tr class="orc-total-row">
+      <td>Total Despesas</td>
+      <td style="text-align:right">${fmt(totOrcDesp)}</td>
+      <td style="text-align:right;color:var(--gold)">${fmt(Object.values(realExt).filter((_,i)=>!Object.keys(realExt)[i].startsWith('__rec:')).reduce((a,v)=>a+v,0))}</td>
+      <td style="text-align:right;color:#7c9cff">${fmt(Object.values(realCart).reduce((a,v)=>a+v,0))}</td>
+      <td style="text-align:right;font-weight:700">${fmt(totRealDesp)}</td>
+      <td style="text-align:right" class="${totOrcDesp>=totRealDesp?'lanc-diff-pos':'lanc-diff-neg'}">${totOrcDesp>=totRealDesp?'+':''}${fmt(totOrcDesp-totRealDesp)}</td>
+      <td style="text-align:center">${pctDesp!==null?pctDesp+'%':'—'}</td>
+    </tr>
+    <tr class="orc-saldo-row">
+      <td>Saldo</td>
+      <td style="text-align:right"><span class="${saldoOrc>=0?'orc-saldo-positivo':'orc-saldo-negativo'}">${fmt(saldoOrc)}</span></td>
+      <td colspan="2"></td>
+      <td style="text-align:right" colspan="1"><span class="${saldoReal>=0?'orc-saldo-positivo':'orc-saldo-negativo'}">${fmt(saldoReal)}</span></td>
+      <td colspan="2"></td>
+    </tr>`;
+
+  document.getElementById('acum-tbody').innerHTML = html;
+}
+
+function acumRenderMesTabs(){
+  document.getElementById('acum-mes-tabs').innerHTML = MESES_NOMES.map((m,i)=>{
+    const mes = i+1;
+    return `<button class="lanc-mes-tab${mes===acumMes?' active':''}" onclick="acumSelecionarMes(${mes})">${m}</button>`;
+  }).join('');
+}
+
+function acumSelecionarMes(mes){
+  acumMes = mes;
+  acumCarregar();
+}
+
+function acumMudarAno(delta){
+  acumAno += delta;
+  acumCarregar();
+}
+
+// ══════════════════════════════════════════════
 // SALDO POR CONTA
 // ══════════════════════════════════════════════
 let saldoContas = [];
@@ -3820,8 +4127,6 @@ sb.auth.onAuthStateChange((event, session) => {
   const { data:{ session } } = await sb.auth.getSession();
   if(session && !window.location.hash.includes('type=recovery')){
     await mostrarPainel(session.user);
-  } else if(!window.location.hash.includes('type=recovery')){
-    abrirLogin();
   }
 })();
 
@@ -3912,6 +4217,7 @@ async function irPara(tela, btn){
   if(tela==='investimentos') invCarregarTudo();
   if(tela==='conquistas') conqCarregar();
   if(tela==='cartao') cartaoCarregar();
+  if(tela==='acumulado') acumCarregar();
   if(tela==='metas') metasCarregar();
   if(tela==='metodo-5030') metodoCarregar();
   if(tela==='patrimonio') patCarregar();
