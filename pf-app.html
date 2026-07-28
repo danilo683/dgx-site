@@ -17,6 +17,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh}
+#site-pf{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#site-pf::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%, rgba(0,182,233,0.07) 0%, transparent 70%);pointer-events:none;}
+.entrada-wrap{text-align:center;position:relative}
+.entrada-logo{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.6rem;}
+.entrada-tag{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);}
 
 /* ════════════════════════ SITE PF ════════════════════════ */
 nav.public-nav{
@@ -492,17 +497,37 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
 .cartao-proj-intro{font-size:.78rem;color:var(--gray);margin-bottom:1.2rem;padding:.8rem 1rem;background:rgba(0,182,233,0.05);border-left:3px solid var(--gold);line-height:1.6}
 
-.cartao-proj-mes{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.4rem;margin-bottom:.8rem}
-.cartao-proj-mes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
-.cartao-proj-mes-nome{font-size:.85rem;font-weight:700;color:var(--white)}
-.cartao-proj-mes-total{font-size:1rem;font-weight:700;color:var(--gold)}
-.cartao-proj-item{display:flex;align-items:center;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border2);font-size:.74rem;gap:.5rem}
-.cartao-proj-item:last-child{border-bottom:none}
-.cartao-proj-item-desc{color:var(--gray);flex:1}
-.cartao-proj-item-parc{color:var(--gray2);font-size:.65rem;margin-left:.3rem}
-.cartao-proj-item-val{color:var(--white);font-weight:600;white-space:nowrap}
-.cartao-proj-barra-wrap{margin-top:.6rem;height:4px;background:var(--navy3);border-radius:2px}
-.cartao-proj-barra-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .4s}
+/* Timeline horizontal */
+.cartao-proj-timeline-wrap{overflow-x:auto;padding-bottom:.8rem}
+.cartao-proj-timeline{border-collapse:collapse;width:100%;min-width:600px}
+.cartao-proj-timeline th{
+  background:var(--navy3);padding:.6rem .8rem;font-size:.65rem;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--gray);
+  border:1px solid var(--border);text-align:center;white-space:nowrap;min-width:110px
+}
+.cartao-proj-timeline th.mes-atual{color:var(--gold);border-top:3px solid var(--gold)}
+.cartao-proj-timeline th.col-compra{text-align:left;min-width:200px;position:sticky;left:0;background:var(--navy3);z-index:2}
+.cartao-proj-timeline td{
+  padding:.6rem .8rem;font-size:.73rem;border:1px solid var(--border);
+  text-align:center;color:var(--gray2);background:var(--navy2);vertical-align:middle
+}
+.cartao-proj-timeline td.col-compra{
+  text-align:left;position:sticky;left:0;background:var(--navy2);z-index:1;
+  border-right:2px solid var(--border2)
+}
+.cartao-proj-timeline td.tem-parcela{
+  color:var(--white);font-weight:600;background:rgba(0,182,233,0.06)
+}
+.cartao-proj-timeline td.tem-parcela.ultima{
+  background:rgba(78,201,138,0.08);color:var(--green)
+}
+.cartao-proj-timeline tr.row-total td{
+  background:var(--navy3);font-weight:700;border-top:2px solid var(--border);font-size:.78rem
+}
+.cartao-proj-timeline tr.row-total td.col-compra{color:var(--white)}
+.cartao-proj-timeline tr.row-total td.tem-parcela{color:var(--gold)}
+.cartao-proj-compra-nome{font-weight:600;color:var(--white);font-size:.75rem}
+.cartao-proj-compra-sub{font-size:.62rem;color:var(--gray2);margin-top:.15rem}
 
 .cartao-detectado-item{display:flex;align-items:flex-start;gap:.8rem;padding:.7rem 0;border-bottom:1px solid var(--border2)}
 .cartao-detectado-item:last-child{border-bottom:none}
@@ -1233,80 +1258,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 <body>
 
 <!-- ══════════ SITE PÚBLICO ══════════ -->
-<div id="site-pf">
-  <nav class="public-nav">
-    <div class="nav-left">
-      <a href="/" class="nav-back">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        dgxconsultoria.com.br
-      </a>
-      <div class="nav-sep"></div>
-      <div>
-        <div class="nav-brand">DGX · Pessoa Física</div>
-        <div class="nav-tag">Consultoria Financeira Pessoal</div>
-      </div>
-    </div>
-    <button class="btn-login" onclick="abrirLogin()">Área do cliente</button>
-  </nav>
+<div id="site-pf"><div class="entrada-wrap"><div class="entrada-logo">DGX</div><div class="entrada-tag">Consultoria · Pessoa Física</div><button class="btn-login" style="margin-top:2rem" onclick="abrirLogin()">Entrar</button></div></div>
 
-  <section class="hero">
-    <div class="hero-eyebrow">Consultoria Financeira Pessoal</div>
-    <h1>Clareza financeira para<br><em>decisões que transformam</em></h1>
-    <p>Planejamento personalizado, assessoria de investimentos e organização financeira para que você alcance seus objetivos com estratégia e segurança.</p>
-    <div class="hero-ctas">
-      <button class="btn-primary" onclick="document.getElementById('servicos').scrollIntoView({behavior:'smooth'})">Conheça os serviços</button>
-      <button class="btn-outline" onclick="abrirLogin()">Acessar minha área</button>
-    </div>
-  </section>
-
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-num">+8 anos</div><div class="stat-label">de experiência</div></div>
-    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">personalizado</div></div>
-    <div class="stat-item"><div class="stat-num">360°</div><div class="stat-label">visão financeira</div></div>
-  </div>
-
-  <section id="servicos">
-    <div class="section-inner">
-      <div class="eyebrow">Nossos serviços</div>
-      <h2 class="section-title">Uma consultoria completa<br>para cada fase da sua vida</h2>
-      <p class="section-sub">Do diagnóstico financeiro até a execução do plano, acompanho você em cada etapa.</p>
-      <div class="services-grid">
-        <div class="service-card"><span class="service-num">01</span><div class="service-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></div><h3>Planejamento Financeiro Pessoal</h3><p>Diagnóstico completo das suas finanças, organização do orçamento e construção de um plano de metas realistas e alcançáveis.</p></div>
-        <div class="service-card"><span class="service-num">02</span><div class="service-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Assessoria de Investimentos</h3><p>Análise do seu perfil de investidor, seleção de ativos adequados e acompanhamento da carteira com foco nos seus objetivos.</p></div>
-        <div class="service-card"><span class="service-num">03</span><div class="service-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><h3>Organização de Dívidas e Crédito</h3><p>Renegociação estratégica de dívidas, controle do uso do crédito e construção de um caminho saudável rumo à independência financeira.</p></div>
-        <div class="service-card"><span class="service-num">04</span><div class="service-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Planejamento da Aposentadoria</h3><p>Projeção de patrimônio, estruturação da previdência complementar e estratégia de longo prazo para garantir sua tranquilidade no futuro.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="process">
-    <div class="section-inner">
-      <div class="eyebrow">Como funciona</div>
-      <h2 class="section-title" style="margin-bottom:2.5rem">Do primeiro contato ao<br>resultado concreto</h2>
-      <div>
-        <div class="step"><div class="step-num">01</div><div class="step-content"><h4>Diagnóstico financeiro</h4><p>Levantamento completo da sua situação: receitas, despesas, dívidas, investimentos e objetivos.</p></div></div>
-        <div class="step"><div class="step-num">02</div><div class="step-content"><h4>Construção do plano</h4><p>Elaboração de um plano personalizado com metas, prazos e ações concretas, adequado ao seu perfil e momento de vida.</p></div></div>
-        <div class="step"><div class="step-num">03</div><div class="step-content"><h4>Implementação e acompanhamento</h4><p>Execução das estratégias com monitoramento contínuo e acesso à sua área exclusiva de cliente.</p></div></div>
-        <div class="step"><div class="step-num">04</div><div class="step-content"><h4>Evolução e revisões periódicas</h4><p>Revisão trimestral do plano, atualização da carteira e manutenção do foco nos seus objetivos de longo prazo.</p></div></div>
-      </div>
-    </div>
-  </section>
-
-  <div class="cta-section">
-    <div class="eyebrow" style="margin-bottom:1rem">Dê o primeiro passo</div>
-    <h2>Pronto para transformar<br>sua vida financeira?</h2>
-    <p>Entre em contato e agende uma conversa inicial sem compromisso.</p>
-    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-      <a href="https://wa.me/5511999999999" style="text-decoration:none"><button class="btn-primary">Falar pelo WhatsApp</button></a>
-      <button class="btn-outline" onclick="abrirLogin()">Já sou cliente — entrar</button>
-    </div>
-  </div>
-
-  <footer>
-    <div><div class="footer-brand">DGX Consultoria</div><div class="footer-copy" style="margin-top:.3rem">Pessoa Física · dgxconsultoria.com.br/pf</div></div>
-    <div class="footer-copy">© 2025 DGX Consultoria · Todos os direitos reservados</div>
-  </footer>
-</div>
 
 <!-- ══════════ MODAL LOGIN ══════════ -->
 <div class="overlay" id="overlay-login">
@@ -2956,7 +2909,9 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="cartao-proj-intro">
               Compromissos já assumidos com o cartão nos próximos meses, <strong>antes de qualquer nova compra</strong>.
             </div>
-            <div id="cartao-proj-cards"></div>
+            <div class="cartao-proj-timeline-wrap">
+              <div id="cartao-proj-timeline"></div>
+            </div>
             <div class="plano-vazio" id="cartao-proj-vazio" style="display:none">Sem parcelas futuras projetadas.</div>
           </div>
 
@@ -4127,6 +4082,8 @@ sb.auth.onAuthStateChange((event, session) => {
   const { data:{ session } } = await sb.auth.getSession();
   if(session && !window.location.hash.includes('type=recovery')){
     await mostrarPainel(session.user);
+  } else if(!window.location.hash.includes('type=recovery')){
+    abrirLogin();
   }
 })();
 
@@ -8867,56 +8824,111 @@ function cartaoRenderParcelamentos(){
 }
 
 function cartaoRenderProjecao(){
-  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
   const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const vazio = document.getElementById('cartao-proj-vazio');
 
-  // Agrupa parcelas futuras por mês
-  const porMes = {};
+  // Coletar todos os meses com parcelas futuras
+  const mesesSet = new Set();
   cartaoDados.forEach(p=>{
     cartaoParcelasFuturas(p).forEach(pa=>{
       const d = new Date(pa.data+'T00:00:00');
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      if(!porMes[key]) porMes[key]={ label:'', total:0, itens:[] };
-      porMes[key].label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
-      porMes[key].total += pa.valor;
-      porMes[key].itens.push({ desc:p.descricao, parcela:pa.real_numero, total:p.num_parcelas, valor:pa.valor, cartao:p.cartao });
+      mesesSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
     });
   });
 
-  const meses = Object.keys(porMes).sort();
-  const vazio = document.getElementById('cartao-proj-vazio');
-
-  if(!meses.length){ vazio.style.display='block'; document.getElementById('cartao-proj-cards').innerHTML=''; return; }
+  const meses = [...mesesSet].sort();
+  if(!meses.length){
+    vazio.style.display='block';
+    document.getElementById('cartao-proj-timeline').innerHTML='';
+    return;
+  }
   vazio.style.display='none';
 
-  const maxTotal = Math.max(...meses.map(k=>porMes[k].total));
+  const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
 
-  document.getElementById('cartao-proj-cards').innerHTML = meses.map(k=>{
-    const m = porMes[k];
-    const pct = Math.round(m.total/maxTotal*100);
-    const isThisMonth = k === `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-    return `<div class="cartao-proj-mes" style="${isThisMonth?'border-color:rgba(0,182,233,0.35)':''}">
-      <div class="cartao-proj-mes-header">
-        <div>
-          <div class="cartao-proj-mes-nome">${m.label.charAt(0).toUpperCase()+m.label.slice(1)}${isThisMonth?' <span style="font-size:.6rem;background:rgba(0,182,233,0.12);color:var(--gold);padding:.1rem .4rem;border-radius:3px;font-weight:700;vertical-align:middle">MÊS ATUAL</span>':''}</div>
-          <div style="font-size:.68rem;color:var(--gray);margin-top:.2rem">${m.itens.length} compra${m.itens.length!==1?'s':''} parcelada${m.itens.length!==1?'s':''}</div>
-        </div>
-        <div class="cartao-proj-mes-total">${fmt(m.total)}</div>
-      </div>
-      <div class="cartao-proj-barra-wrap"><div class="cartao-proj-barra-fill" style="width:${pct}%"></div></div>
-      <div style="margin-top:.7rem">
-        ${m.itens.map(it=>`
-          <div class="cartao-proj-item">
-            <div class="cartao-proj-item-desc">
-              ${escapeHtml(it.desc)}
-              <span class="cartao-proj-item-parc">${it.parcela}/${it.total}</span>
-              ${it.cartao?`<span style="font-size:.6rem;color:var(--gray2);margin-left:.3rem">${escapeHtml(it.cartao)}</span>`:''}
-            </div>
-            <div class="cartao-proj-item-val">${fmt(it.valor)}</div>
-          </div>`).join('')}
-      </div>
-    </div>`;
+  // Cabeçalho
+  const thMeses = meses.map(k=>{
+    const [ano,mes] = k.split('-');
+    const isAtual = k === mesAtualKey;
+    const nomeMes = MESES_NOMES[parseInt(mes)-1];
+    return `<th class="${isAtual?'mes-atual':''}">
+      ${nomeMes}<br><span style="font-size:.6rem;font-weight:400;opacity:.7">${ano}</span>
+      ${isAtual?'<div style="font-size:.55rem;color:var(--gold);margin-top:.1rem">▼ atual</div>':''}
+    </th>`;
   }).join('');
+
+  // Calcular totais por mês para barra de referência
+  const totaisPorMes = {};
+  meses.forEach(k=>{ totaisPorMes[k]=0; });
+  cartaoDados.forEach(p=>{
+    cartaoParcelasFuturas(p).forEach(pa=>{
+      const d = new Date(pa.data+'T00:00:00');
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if(totaisPorMes[k]!==undefined) totaisPorMes[k] += pa.valor;
+    });
+  });
+
+  // Linhas por compra
+  const linhas = cartaoDados.map(p=>{
+    const futuras = cartaoParcelasFuturas(p);
+    if(!futuras.length) return '';
+
+    const parMap = {};
+    futuras.forEach(pa=>{
+      const d = new Date(pa.data+'T00:00:00');
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      parMap[k] = pa;
+    });
+
+    const parc_restantes = p.num_parcelas - (p.parcela_atual - 1);
+    const totalRestante = futuras.reduce((a,pa)=>a+pa.valor,0);
+
+    const cells = meses.map(k=>{
+      const pa = parMap[k];
+      if(!pa) return `<td><span style="color:var(--navy3);font-size:.7rem">·</span></td>`;
+      const isUltima = pa.real_numero === p.num_parcelas;
+      return `<td class="tem-parcela${isUltima?' ultima':''}">
+        ${fmt(pa.valor)}
+        <div style="font-size:.56rem;color:inherit;opacity:.65;margin-top:.15rem">${pa.real_numero}/${p.num_parcelas}${isUltima?' ✓':''}</div>
+      </td>`;
+    }).join('');
+
+    return `<tr>
+      <td class="col-compra">
+        <div class="cartao-proj-compra-nome">${escapeHtml(p.descricao)}</div>
+        <div class="cartao-proj-compra-sub">
+          ${p.cartao?`<span style="color:var(--gold)">${escapeHtml(p.cartao)}</span> · `:''}
+          ${parc_restantes} parcela${parc_restantes!==1?'s':''} · <span style="color:var(--white)">${fmt(totalRestante)}</span> restante
+        </div>
+      </td>
+      ${cells}
+    </tr>`;
+  }).filter(Boolean).join('');
+
+  // Linha de totais com destaque
+  const totais = meses.map(k=>{
+    const tot = totaisPorMes[k]||0;
+    const isAtual = k === mesAtualKey;
+    return `<td class="tem-parcela" style="${isAtual?'background:rgba(0,182,233,0.12)':''}">${fmt(tot)}</td>`;
+  }).join('');
+
+  document.getElementById('cartao-proj-timeline').innerHTML = `
+    <table class="cartao-proj-timeline">
+      <thead>
+        <tr>
+          <th class="col-compra">Compra / Cartão</th>
+          ${thMeses}
+        </tr>
+      </thead>
+      <tbody>
+        ${linhas}
+        <tr class="row-total">
+          <td class="col-compra">💳 Total do mês</td>
+          ${totais}
+        </tr>
+      </tbody>
+    </table>`;
 }
 
 function cartaoFormCalcTotal(){
@@ -10507,3 +10519,4 @@ function simRenderGrafico(){
 </script>
 </body>
 </html>
+                
