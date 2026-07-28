@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Área Pessoal · Auto Performance — DGX</title>
+<link rel="icon" type="image/x-icon" href="/favicon-personal.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-personal-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-personal-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-personal.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -371,9 +375,20 @@ button.primary:hover { background: #8d70f5; }
 .task-list { display: flex; flex-direction: column; gap: 2px; }
 .task-item { display: flex; align-items: center; gap: 10px; padding: 4px 4px; border-radius: 6px; }
 .task-item:hover { background: rgba(255,255,255,.03); }
+.task-item.dragging { opacity: .4; }
+.task-item.drag-over { box-shadow: inset 0 2px 0 var(--c, var(--accent)); }
+.t-handle { cursor: grab; color: var(--text2); font-size: 14px; flex: none; padding: 0 2px; user-select: none; }
+.t-handle:active { cursor: grabbing; }
 .task-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--c, var(--accent)); cursor: pointer; flex: none; }
 .task-item .t-name { flex: 1; font-size: 13.5px; padding: 2px 4px; border-radius: 5px; min-width: 0; }
 .task-item.done .t-name { color: var(--text2); text-decoration: line-through; }
+.t-due {
+  font-family: var(--body); font-size: 11.5px; color: var(--text2);
+  background: transparent; border: 1px solid transparent; border-radius: 6px;
+  padding: 2px 4px; width: 108px; flex: none; color-scheme: dark;
+}
+.t-due:hover, .t-due:focus { border-color: var(--border); background: var(--bg); }
+.task-item.overdue .t-due { color: #e57373; }
 .task-add { display: flex; gap: 8px; margin-top: 8px; }
 .task-add input {
   flex: 1; font-family: var(--body); font-size: 13px;
@@ -811,6 +826,7 @@ function sairPersonal() {
     if (g.count === undefined) g.count = (Array.isArray(g.log) ? g.log.length : 0) + (g.adjust || 0);
     delete g.log;
     delete g.adjust;
+    (g.tasks || []).forEach(t => { if (t.due === undefined) t.due = ''; });
   });
 
   const counterCount = g => g.count || 0;
@@ -1055,10 +1071,12 @@ function sairPersonal() {
         const tl = det.querySelector('.task-list');
         g.tasks.forEach(t => {
           const tr = document.createElement('div');
-          tr.className = 'task-item' + (t.done ? ' done' : '');
+          tr.className = 'task-item' + (t.done ? ' done' : '') + (!t.done && t.due && t.due < todayISO() ? ' overdue' : '');
           tr.dataset.tid = t.id;
-          tr.innerHTML = `<input type="checkbox" ${t.done ? 'checked' : ''}>
+          tr.innerHTML = `<span class="t-handle" draggable="true" title="Arrastar para reordenar">⠿</span>
+            <input type="checkbox" ${t.done ? 'checked' : ''}>
             <span class="t-name" contenteditable="true"></span>
+            <input type="date" class="t-due" title="Data prevista" value="${t.due || ''}">
             <button class="x-remove t-remove" type="button">×</button>`;
           tr.querySelector('.t-name').textContent = t.name;
           tl.appendChild(tr);
@@ -1104,7 +1122,7 @@ function sairPersonal() {
       const input = det.querySelector('.task-add input');
       const name = input.value.trim();
       if (!name) return;
-      gById(det.dataset.id).tasks.push({ id: 't' + Date.now(), name, done: false });
+      gById(det.dataset.id).tasks.push({ id: 't' + Date.now(), name, done: false, due: '' });
       save(); renderGoals();
       goalRows.querySelector(`.goal-detail[data-id="${det.dataset.id}"] .task-add input`)?.focus();
       return;
@@ -1248,9 +1266,22 @@ function sairPersonal() {
   }
 
   goalRows.addEventListener('change', (ev) => {
-    const dateProp = ev.target.closest('.goal-detail input[type="date"]');
+    const taskDue = ev.target.closest('.t-due');
+    if (taskDue) {
+      // Data prevista da tarefa: só ajusta a classe "atrasada" no próprio item, sem recriar o input
+      const item = taskDue.closest('.task-item');
+      const g = gById(taskDue.closest('.goal-detail').dataset.id);
+      const t = g && g.tasks.find(x => x.id === item.dataset.tid);
+      if (t) {
+        t.due = taskDue.value;
+        save();
+        item.classList.toggle('overdue', !t.done && !!t.due && t.due < todayISO());
+      }
+      return;
+    }
+    const dateProp = ev.target.closest('.goal-props input[type="date"]');
     if (dateProp) {
-      // Data: só atualiza estado + resumo da linha, sem recriar o input (evita perder o foco ao digitar)
+      // Data da meta: só atualiza estado + resumo da linha, sem recriar o input (evita perder o foco ao digitar)
       const g = gById(dateProp.closest('.goal-detail').dataset.id);
       g.due = dateProp.value;
       save();
@@ -1296,6 +1327,48 @@ function sairPersonal() {
       if (t) { t.name = el.innerText.trim(); save(); }
     }
   }, true);
+
+  // ── Reordenar itens de ação (arrastar e soltar) ──
+  let dragTid = null;
+  goalRows.addEventListener('dragstart', (ev) => {
+    const item = ev.target.closest('.task-item');
+    if (!item) return;
+    dragTid = item.dataset.tid;
+    item.classList.add('dragging');
+    ev.dataTransfer.effectAllowed = 'move';
+  });
+  goalRows.addEventListener('dragend', (ev) => {
+    const item = ev.target.closest('.task-item');
+    if (item) item.classList.remove('dragging');
+    goalRows.querySelectorAll('.task-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragTid = null;
+  });
+  goalRows.addEventListener('dragover', (ev) => {
+    const item = ev.target.closest('.task-item');
+    if (!item || !dragTid || item.dataset.tid === dragTid) return;
+    ev.preventDefault();
+    goalRows.querySelectorAll('.task-item.drag-over').forEach(el => { if (el !== item) el.classList.remove('drag-over'); });
+    item.classList.add('drag-over');
+  });
+  goalRows.addEventListener('dragleave', (ev) => {
+    const item = ev.target.closest('.task-item');
+    if (item) item.classList.remove('drag-over');
+  });
+  goalRows.addEventListener('drop', (ev) => {
+    const target = ev.target.closest('.task-item');
+    if (!target || !dragTid || target.dataset.tid === dragTid) return;
+    ev.preventDefault();
+    target.classList.remove('drag-over');
+    const det = target.closest('.goal-detail');
+    const g = gById(det.dataset.id);
+    if (!g) return;
+    const fromIdx = g.tasks.findIndex(t => t.id === dragTid);
+    const toIdx = g.tasks.findIndex(t => t.id === target.dataset.tid);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = g.tasks.splice(fromIdx, 1);
+    g.tasks.splice(toIdx, 0, moved);
+    save(); renderGoals();
+  });
 
   // ── Hábitos ──
   const habitList = document.getElementById('habit-list');
