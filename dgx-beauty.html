@@ -170,7 +170,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </svg>
   <div class="login-box">
     <div class="login-hawks-logo"><div class="login-hawks-fallback">DGX<br><span style="font-size:10px;letter-spacing:6px;font-style:normal;font-weight:400">BEAUTY</span></div></div>
-    <div class="login-title">Redirecionando para o login...</div>
+    <div class="login-title">Dashboard de demonstração — informe a senha de acesso</div>
+    <input type="password" id="demoSenhaInput" placeholder="Senha" style="width:100%;padding:10px 12px;border:1px solid #dde3eb;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none" onkeydown="if(event.key==='Enter')checarSenhaDemo()">
+    <button onclick="checarSenhaDemo()" style="width:100%;padding:10px;border:none;border-radius:8px;background:#00B4D8;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Entrar</button>
+    <div id="demoSenhaErro" style="color:#e24b4a;font-size:12px;margin-top:8px;display:none">Senha incorreta.</div>
     <div class="login-footer">Powered by DGX Consulting · Dados confidenciais</div>
   </div>
 </div>
@@ -559,23 +562,44 @@ async function carregarDadosHawks() {
   }
 }
 
-document.addEventListener('DOMContentLoaded',async function(){
+// DGX Beauty é um dashboard de demonstração, com dados 100% fictícios,
+// protegido por uma senha simples e compartilhada (sem contas individuais).
+// Isso NÃO é segurança real — qualquer pessoa que veja o código-fonte
+// encontra a senha. Serve só para não deixar o link totalmente aberto
+// enquanto está sendo avaliado por pessoas específicas.
+var DEMO_SENHA = 'dgxbeauty2026';
+
+async function iniciarDashboardDemo(){
   var loading=document.getElementById('loadingScreen'),app=document.getElementById('app');
+  document.getElementById('loginScreen').style.display='none';
+  loading.style.display='flex';
   try{
-    var{data:{session}}=await sb.auth.getSession();
-    if(session){
-      var{data:profile}=await sb.from('profiles').select('is_admin,tipo,dashboard').eq('id',session.user.id).single();
-      var ok=profile&&(profile.is_admin===true||profile.tipo==='admin'||profile.dashboard==='dgx_beauty');
-      if(ok){
-        renderFilialSwitch();
-        await carregarDadosHawks();
-        loading.style.display='none';app.style.display='flex';renderPage('vendas');return;
-      }
-    }
+    renderFilialSwitch();
+    await carregarDadosHawks();
+    loading.style.display='none';app.style.display='flex';renderPage('vendas');
   }catch(e){console.error(e);}
-  window.location.href='/clientes';
+}
+
+function checarSenhaDemo(){
+  var v = document.getElementById('demoSenhaInput').value;
+  if (v === DEMO_SENHA) {
+    sessionStorage.setItem('dgxBeautyDemoOk','1');
+    iniciarDashboardDemo();
+  } else {
+    document.getElementById('demoSenhaErro').style.display='block';
+  }
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  var loading=document.getElementById('loadingScreen'),login=document.getElementById('loginScreen');
+  loading.style.display='none';
+  if (sessionStorage.getItem('dgxBeautyDemoOk')==='1') {
+    iniciarDashboardDemo();
+  } else {
+    login.style.display='flex';
+  }
 });
-function doLogout(){sb.auth.signOut().then(function(){window.location.href='/clientes';});}
+function doLogout(){sessionStorage.removeItem('dgxBeautyDemoOk');window.location.reload();}
 var periods={vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026'};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
