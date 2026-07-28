@@ -389,6 +389,44 @@ button.primary:hover { background: #8d70f5; }
 }
 .t-due:hover, .t-due:focus { border-color: var(--border); background: var(--bg); }
 .task-item.overdue .t-due { color: #e57373; }
+
+/* ── Atividades ── */
+.activity-add { display: flex; gap: 8px; margin: 4px 0 20px; flex-wrap: wrap; }
+.activity-add input[type="text"] {
+  flex: 1; min-width: 200px; font-family: var(--body); font-size: 14px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px;
+}
+.activity-add input[type="text"]::placeholder { color: #5c527f; }
+.activity-add input[type="date"] {
+  font-family: var(--body); font-size: 13px; color-scheme: dark;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; width: 150px;
+}
+.activity-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+  background: var(--bg2); border: 1px solid var(--border); margin-bottom: 6px;
+}
+.activity-item:hover { border-color: var(--border2); }
+.activity-item.done .act-name { color: var(--text2); text-decoration: line-through; }
+.activity-item.overdue .act-due { color: #e57373; }
+.act-handle { cursor: grab; color: var(--text2); font-size: 14px; flex: none; padding: 0 2px; user-select: none; }
+.act-handle:active { cursor: grabbing; }
+.activity-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; flex: none; }
+.act-name { flex: 1; font-size: 14px; padding: 2px 4px; border-radius: 5px; min-width: 0; }
+.act-due {
+  font-family: var(--body); font-size: 11.5px; color: var(--text2);
+  background: transparent; border: 1px solid transparent; border-radius: 6px;
+  padding: 2px 4px; width: 108px; flex: none; color-scheme: dark;
+}
+.act-due:hover, .act-due:focus { border-color: var(--border); background: var(--bg); }
+.act-link {
+  font-family: var(--body); font-size: 12px; color: var(--text2);
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 7px;
+  padding: 5px 8px; flex: none; max-width: 160px;
+}
+.activity-item.dragging { opacity: .4; }
+.activity-item.drag-over { box-shadow: inset 0 2px 0 var(--accent); }
 .task-add { display: flex; gap: 8px; margin-top: 8px; }
 .task-add input {
   flex: 1; font-family: var(--body); font-size: 13px;
@@ -526,6 +564,7 @@ function sairPersonal() {
     <nav class="sb-nav" id="sb-nav">
       <a class="sb-link" href="#visoes" data-page="visoes"><span class="ico">🔭</span>Visões de Futuro</a>
       <a class="sb-link" href="#metas" data-page="metas"><span class="ico">🎯</span>Metas &amp; Tarefas</a>
+      <a class="sb-link" href="#atividades" data-page="atividades"><span class="ico">📋</span>Atividades</a>
       <a class="sb-link" href="#habitos" data-page="habitos"><span class="ico">🔁</span>Hábitos</a>
       <a class="sb-link" href="#diario" data-page="diario"><span class="ico">📓</span>Diário</a>
       <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
@@ -594,6 +633,26 @@ function sairPersonal() {
       <button class="goal-new" id="btn-add-goal">＋ Nova meta</button>
     </div>
     <div class="list-empty" id="goal-empty" style="margin-top:14px;">Nenhuma meta nesta visualização.</div>
+  </section>
+
+  <section id="atividades" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Caixa de entrada</div>
+      <h1>Atividades</h1>
+      <p>Anote o que surgir no dia a dia. Depois, vincule cada uma a uma meta — ela vira um item de ação daquela meta.</p>
+    </div>
+    <div class="view-tabs" id="activity-views">
+      <button class="view-tab active" data-view="pendentes">Pendentes</button>
+      <button class="view-tab" data-view="concluidas">Concluídas</button>
+      <button class="view-tab" data-view="todas">Todas</button>
+    </div>
+    <div class="activity-add">
+      <input type="text" id="activity-name" placeholder="＋ Nova atividade… (Enter para adicionar)">
+      <input type="date" id="activity-due" title="Data prevista (opcional)">
+      <button class="primary" id="btn-add-activity">Adicionar</button>
+    </div>
+    <div class="task-list" id="activity-list"></div>
+    <div class="list-empty" id="activity-empty">Nenhuma atividade por aqui ainda.</div>
   </section>
 
   <section id="habitos" class="page">
@@ -718,7 +777,7 @@ function sairPersonal() {
   ];
 
   // ── Estado ──
-  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [] };
+  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [] };
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -1370,6 +1429,155 @@ function sairPersonal() {
     save(); renderGoals();
   });
 
+  // ── Atividades ──
+  const activityList = document.getElementById('activity-list');
+  const activityEmpty = document.getElementById('activity-empty');
+  let activityView = 'pendentes';
+  (state.activities || []).forEach(x => { if (x.due === undefined) x.due = ''; });
+
+  document.getElementById('activity-views').addEventListener('click', (ev) => {
+    const tab = ev.target.closest('.view-tab');
+    if (!tab) return;
+    activityView = tab.dataset.view;
+    document.querySelectorAll('#activity-views .view-tab').forEach(t => t.classList.toggle('active', t === tab));
+    renderActivities();
+  });
+
+  function checklistGoalOptions(selectedId) {
+    const opts = ['<option value="">Vincular a uma meta…</option>'];
+    state.goals.filter(g => g.kind === 'checklist' && !g.done).forEach(g => {
+      opts.push(`<option value="${g.id}" ${selectedId === g.id ? 'selected' : ''}>${esc(g.name || '(sem nome)')}</option>`);
+    });
+    return opts.join('');
+  }
+
+  function renderActivities() {
+    activityList.innerHTML = '';
+    let list = state.activities || [];
+    if (activityView === 'pendentes') list = list.filter(x => !x.done);
+    else if (activityView === 'concluidas') list = list.filter(x => x.done);
+    activityEmpty.style.display = list.length ? 'none' : 'block';
+
+    list.forEach(x => {
+      const overdue = !x.done && x.due && x.due < todayISO();
+      const row = document.createElement('div');
+      row.className = 'activity-item' + (x.done ? ' done' : '') + (overdue ? ' overdue' : '');
+      row.dataset.aid = x.id;
+      row.innerHTML = `
+        <span class="act-handle" draggable="true" title="Arrastar para reordenar">⠿</span>
+        <input type="checkbox" ${x.done ? 'checked' : ''}>
+        <span class="act-name" contenteditable="true"></span>
+        <input type="date" class="act-due" title="Data prevista" value="${x.due || ''}">
+        <select class="act-link">${checklistGoalOptions('')}</select>
+        <button class="x-remove act-remove" type="button">×</button>`;
+      row.querySelector('.act-name').textContent = x.name;
+      activityList.appendChild(row);
+    });
+  }
+
+  document.getElementById('btn-add-activity').addEventListener('click', () => {
+    const nameEl = document.getElementById('activity-name');
+    const dueEl = document.getElementById('activity-due');
+    const name = nameEl.value.trim();
+    if (!name) return;
+    state.activities.push({ id: 'a' + Date.now(), name, done: false, due: dueEl.value || '' });
+    nameEl.value = ''; dueEl.value = '';
+    save(); renderActivities();
+    nameEl.focus();
+  });
+  document.getElementById('activity-name').addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); document.getElementById('btn-add-activity').click(); }
+  });
+
+  const aById = id => (state.activities || []).find(x => x.id === id);
+
+  activityList.addEventListener('click', (ev) => {
+    const remove = ev.target.closest('.act-remove');
+    if (remove) {
+      const id = remove.closest('.activity-item').dataset.aid;
+      state.activities = state.activities.filter(x => x.id !== id);
+      save(); renderActivities();
+    }
+  });
+
+  activityList.addEventListener('change', (ev) => {
+    const cb = ev.target.closest('.activity-item input[type="checkbox"]');
+    if (cb) {
+      const x = aById(cb.closest('.activity-item').dataset.aid);
+      if (x) { x.done = cb.checked; save(); renderActivities(); }
+      return;
+    }
+    const dueEl = ev.target.closest('.act-due');
+    if (dueEl) {
+      const item = dueEl.closest('.activity-item');
+      const x = aById(item.dataset.aid);
+      if (x) {
+        x.due = dueEl.value;
+        save();
+        item.classList.toggle('overdue', !x.done && !!x.due && x.due < todayISO());
+      }
+      return;
+    }
+    const linkEl = ev.target.closest('.act-link');
+    if (linkEl) {
+      const goalId = linkEl.value;
+      if (!goalId) return;
+      const item = linkEl.closest('.activity-item');
+      const x = aById(item.dataset.aid);
+      const g = gById(goalId);
+      if (!x || !g) return;
+      g.tasks.push({ id: 't' + Date.now(), name: x.name, done: x.done, due: x.due || '' });
+      state.activities = state.activities.filter(a => a.id !== x.id);
+      save(); renderActivities(); renderGoals();
+    }
+  });
+
+  activityList.addEventListener('blur', (ev) => {
+    const el = ev.target.closest('.act-name');
+    if (!el) return;
+    const x = aById(el.closest('.activity-item').dataset.aid);
+    if (x) { x.name = el.innerText.trim(); save(); }
+  }, true);
+
+  // Arrastar e soltar pra reordenar atividades
+  let dragAid = null;
+  activityList.addEventListener('dragstart', (ev) => {
+    const item = ev.target.closest('.activity-item');
+    if (!item) return;
+    dragAid = item.dataset.aid;
+    item.classList.add('dragging');
+    ev.dataTransfer.effectAllowed = 'move';
+  });
+  activityList.addEventListener('dragend', (ev) => {
+    const item = ev.target.closest('.activity-item');
+    if (item) item.classList.remove('dragging');
+    activityList.querySelectorAll('.activity-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragAid = null;
+  });
+  activityList.addEventListener('dragover', (ev) => {
+    const item = ev.target.closest('.activity-item');
+    if (!item || !dragAid || item.dataset.aid === dragAid) return;
+    ev.preventDefault();
+    activityList.querySelectorAll('.activity-item.drag-over').forEach(el => { if (el !== item) el.classList.remove('drag-over'); });
+    item.classList.add('drag-over');
+  });
+  activityList.addEventListener('dragleave', (ev) => {
+    const item = ev.target.closest('.activity-item');
+    if (item) item.classList.remove('drag-over');
+  });
+  activityList.addEventListener('drop', (ev) => {
+    const target = ev.target.closest('.activity-item');
+    if (!target || !dragAid || target.dataset.aid === dragAid) return;
+    ev.preventDefault();
+    target.classList.remove('drag-over');
+    const fromIdx = state.activities.findIndex(x => x.id === dragAid);
+    const toIdx = state.activities.findIndex(x => x.id === target.dataset.aid);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = state.activities.splice(fromIdx, 1);
+    state.activities.splice(toIdx, 0, moved);
+    save(); renderActivities();
+  });
+
   // ── Hábitos ──
   const habitList = document.getElementById('habit-list');
   const habitEmpty = document.getElementById('habit-empty');
@@ -1615,6 +1823,7 @@ function sairPersonal() {
           state.habits = mergeById(state.habits || [], data.habits);
           state.diary = mergeById(state.diary || [], data.diary);
           state.goals = mergeById(state.goals || [], data.goals);
+          state.activities = mergeById(state.activities || [], data.activities);
         } else {
           state = {
             vfs: data.vfs || {},
@@ -1622,6 +1831,7 @@ function sairPersonal() {
             habits: Array.isArray(data.habits) ? data.habits : [],
             diary: Array.isArray(data.diary) ? data.diary : [],
             goals: Array.isArray(data.goals) ? data.goals : [],
+            activities: Array.isArray(data.activities) ? data.activities : [],
           };
         }
         save();
@@ -1633,7 +1843,7 @@ function sairPersonal() {
   });
 
   // ── Navegação entre páginas ──
-  const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos' };
+  const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos' };
   function showPage(id) {
     if (!PAGES[id]) id = 'visoes';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
@@ -1650,6 +1860,7 @@ function sairPersonal() {
   // ── Render inicial ──
   renderLadder();
   renderGoals();
+  renderActivities();
   renderHabits();
   renderDiary();
   renderDreams();
