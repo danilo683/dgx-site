@@ -492,6 +492,17 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 .saldo-conta-diff{font-size:.62rem;margin-top:.2rem;color:var(--gray2)}
 
 /* ════════ CARTÃO DE CRÉDITO ════════ */
+.cartao-lista-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.cartao-card-item{
+  background:var(--navy2);border:1px solid var(--border);
+  padding:1.2rem 1.4rem;border-left:4px solid var(--gold);
+  cursor:pointer;transition:border-color .2s;position:relative
+}
+.cartao-card-item:hover{border-left-color:rgba(255,255,255,.3)}
+.cartao-card-bandeira{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray2);margin-bottom:.3rem}
+.cartao-card-nome{font-size:.95rem;font-weight:700;color:var(--white);margin-bottom:.5rem}
+.cartao-card-venc{font-size:.72rem;color:var(--gray)}
+.cartao-card-venc strong{color:var(--gold)}
 .cartao-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.4rem}
 @media(max-width:700px){.cartao-resumo{grid-template-columns:1fr 1fr}}
 
@@ -1685,15 +1696,20 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
               <!-- Campo de vencimento (só cartão) -->
               <div id="csv-vencimento-wrap" style="display:none;margin-bottom:1rem;background:rgba(124,156,255,0.06);border:1px solid rgba(124,156,255,0.2);padding:.9rem 1.1rem;border-left:3px solid #7c9cff">
-                <div style="font-size:.72rem;font-weight:700;color:#7c9cff;margin-bottom:.6rem;letter-spacing:.06em;text-transform:uppercase">📅 Data de vencimento da fatura</div>
-                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-                  <div class="diag-field" style="margin:0;flex:0 0 200px">
-                    <label class="diag-label">Vencimento da fatura</label>
+                <div style="font-size:.72rem;font-weight:700;color:#7c9cff;margin-bottom:.6rem;letter-spacing:.06em;text-transform:uppercase">💳 Selecione o cartão desta fatura</div>
+                <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+                  <div class="diag-field" style="margin:0;flex:0 0 220px">
+                    <label class="diag-label">Cartão</label>
+                    <select class="diag-input" id="csv-cartao-select" onchange="csvPreencherVencimento(this)">
+                      <option value="">— selecione —</option>
+                    </select>
+                  </div>
+                  <div class="diag-field" style="margin:0;flex:0 0 180px">
+                    <label class="diag-label">Vencimento desta fatura</label>
                     <input class="diag-input" type="date" id="csv-data-vencimento">
                   </div>
-                  <div style="font-size:.72rem;color:var(--gray);line-height:1.6;flex:1">
-                    Todos os lançamentos desta fatura serão contabilizados nesta data.<br>
-                    <span style="color:#7c9cff">Compras parceladas: apenas a parcela do mês já estará no CSV com o valor correto.</span>
+                  <div style="font-size:.72rem;color:var(--gray);line-height:1.6;flex:1;padding-top:1.4rem">
+                    Todos os lançamentos desta fatura serão contabilizados na data de vencimento informada.
                   </div>
                 </div>
               </div>
@@ -2886,6 +2902,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="inv-tabs" style="margin-bottom:1.2rem">
             <button class="inv-tab active" onclick="cartaoAba(this,'parcelamentos')">Compras parceladas</button>
             <button class="inv-tab" onclick="cartaoAba(this,'projecao')">Projeção mensal</button>
+            <button class="inv-tab" onclick="cartaoAba(this,'meus-cartoes')">Meus cartões</button>
           </div>
 
           <!-- Aba: Compras parceladas -->
@@ -2920,7 +2937,60 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
         </div>
 
-        <!-- MODAL: Compra parcelada / Assinatura -->
+          <!-- Aba: Meus cartões -->
+          <div id="cartao-aba-meus-cartoes" style="display:none">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+              <button class="orc-btn-save" style="display:inline-flex" onclick="cartaoCadastroAbrirForm(null)">+ Novo cartão</button>
+            </div>
+            <div class="cartao-lista-cards" id="cartao-lista-cards"></div>
+            <div class="plano-vazio" id="cartao-lista-vazio" style="display:none">Nenhum cartão cadastrado ainda.</div>
+          </div>
+
+        <!-- MODAL: Cadastro de cartão -->
+        <div class="overlay" id="overlay-cartao-cadastro">
+          <div class="modal" style="max-width:420px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-cadastro')">×</button>
+            <div class="modal-title" id="cartao-cad-titulo">Novo cartão</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Nome do cartão *</label>
+                <input class="diag-input" type="text" id="cartao-cad-nome" placeholder="Ex: Nubank, Itaú Personnalité...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Bandeira</label>
+                <select class="diag-input" id="cartao-cad-bandeira">
+                  <option value="">Selecione...</option>
+                  <option>Visa</option>
+                  <option>Mastercard</option>
+                  <option>Elo</option>
+                  <option>American Express</option>
+                  <option>Hipercard</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Dia de vencimento *</label>
+                <input class="diag-input" type="number" id="cartao-cad-vencimento" min="1" max="31" placeholder="Ex: 15">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Cor</label>
+                <select class="diag-input" id="cartao-cad-cor">
+                  <option value="#7c9cff">Azul</option>
+                  <option value="#00B6E9">Ciano</option>
+                  <option value="#4ec98a">Verde</option>
+                  <option value="#f0c93a">Amarelo</option>
+                  <option value="#e05252">Vermelho</option>
+                  <option value="#a78bfa">Roxo</option>
+                  <option value="#f472b6">Rosa</option>
+                  <option value="#6b7280">Cinza</option>
+                </select>
+              </div>
+            </div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="cartaoCadastroSalvar()">Salvar</button>
+              <button id="cartao-cad-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoCadastroExcluir()">Excluir cartão</button>
+            </div>
+          </div>
+        </div>
         <div class="overlay" id="overlay-cartao-form">
           <div class="modal" style="max-width:560px">
             <button class="modal-close" onclick="fecharOverlay('overlay-cartao-form')">×</button>
@@ -2934,7 +3004,9 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
               <div class="diag-field">
                 <label class="diag-label">Cartão</label>
-                <input class="diag-input" type="text" id="cartao-form-cartao" placeholder="Ex: Nubank, Itaú...">
+                <select class="diag-input" id="cartao-form-cartao">
+                  <option value="">— selecione —</option>
+                </select>
               </div>
               <div class="diag-field">
                 <label class="diag-label">Categoria</label>
@@ -4734,6 +4806,7 @@ function csvImportAbrirModal(modo){
 
   document.getElementById('csv-vencimento-wrap').style.display = isCartao ? 'block' : 'none';
   document.getElementById('csv-data-vencimento').value = '';
+  if(isCartao) cartaoPopularSelects(); // garante selects atualizados
 
   document.getElementById('csv-dica').innerHTML = isCartao
     ? `<strong style="color:var(--white);display:block;margin-bottom:.3rem">💡 Dica: como exportar a fatura</strong>
@@ -4758,7 +4831,7 @@ function csvVoltarStep1(){
 function csvLerArquivo(input){
   const isCartao = csvModo === 'cartao';
   if(isCartao && !document.getElementById('csv-data-vencimento').value){
-    alert('Informe a data de vencimento da fatura antes de selecionar o arquivo.');
+    alert('Selecione o cartão e informe a data de vencimento antes de selecionar o arquivo.');
     input.value='';
     return;
   }
@@ -4979,7 +5052,9 @@ async function csvConfirmarImport(){
   btn.textContent='Importando...'; btn.disabled=true;
 
   try {
-    const contaCSV = document.getElementById('csv-conta-select')?.value || null;
+    const contaCSV = csvModo === 'cartao'
+      ? (document.getElementById('csv-cartao-select')?.value || null)
+      : (document.getElementById('csv-conta-select')?.value || null);
     const rows = selecionados.map(l=>({
       user_id: usuarioAtual.id,
       data: l.data,
@@ -8723,12 +8798,115 @@ function simLimpar(){
 // CARTÃO DE CRÉDITO — PARCELAMENTOS
 // ══════════════════════════════════════════════
 let cartaoDados = [];
+let cartoesCadastrados = []; // lista de cartões do usuário
+let cartaoCadEditId = null;
+
+// ── Cadastro de cartões ──
+async function cartoesCadastradosCarregar(){
+  const { data } = await sb.from('cartoes').select('*')
+    .eq('user_id', usuarioAtual.id).order('nome');
+  cartoesCadastrados = data || [];
+  cartaoPopularSelects();
+}
+
+function cartaoPopularSelects(){
+  const opts = '<option value="">— selecione —</option>' +
+    cartoesCadastrados.map(c=>`<option value="${escapeHtml(c.nome)}" data-dia="${c.dia_vencimento}">${escapeHtml(c.nome)}${c.bandeira?' ('+c.bandeira+')':''} · vence dia ${c.dia_vencimento}</option>`).join('');
+
+  // Select no modal de compra/assinatura
+  const sel1 = document.getElementById('cartao-form-cartao');
+  if(sel1) sel1.innerHTML = opts;
+
+  // Select no modal de importação CSV
+  const sel2 = document.getElementById('csv-cartao-select');
+  if(sel2) sel2.innerHTML = opts;
+}
+
+function cartaoAba(btn, aba){
+  document.querySelectorAll('#tela-cartao .inv-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('cartao-aba-parcelamentos').style.display  = aba==='parcelamentos'?'block':'none';
+  document.getElementById('cartao-aba-projecao').style.display       = aba==='projecao'?'block':'none';
+  document.getElementById('cartao-aba-meus-cartoes').style.display   = aba==='meus-cartoes'?'block':'none';
+  if(aba==='meus-cartoes') cartaoRenderMeusCartoes();
+}
+
+function cartaoRenderMeusCartoes(){
+  const grid  = document.getElementById('cartao-lista-cards');
+  const vazio = document.getElementById('cartao-lista-vazio');
+  if(!cartoesCadastrados.length){ grid.innerHTML=''; vazio.style.display='block'; return; }
+  vazio.style.display='none';
+  grid.innerHTML = cartoesCadastrados.map(c=>`
+    <div class="cartao-card-item" style="border-left-color:${c.cor||'#7c9cff'}" onclick="cartaoCadastroAbrirForm(${c.id})">
+      <div class="cartao-card-bandeira">${escapeHtml(c.bandeira||'Cartão de crédito')}</div>
+      <div class="cartao-card-nome">${escapeHtml(c.nome)}</div>
+      <div class="cartao-card-venc">Vence todo dia <strong>${c.dia_vencimento}</strong></div>
+    </div>`).join('');
+}
+
+function cartaoCadastroAbrirForm(id){
+  cartaoCadEditId = id;
+  const c = id ? cartoesCadastrados.find(x=>x.id===id) : null;
+  document.getElementById('cartao-cad-titulo').textContent = c ? 'Editar cartão' : 'Novo cartão';
+  document.getElementById('cartao-cad-nome').value        = c?.nome||'';
+  document.getElementById('cartao-cad-bandeira').value    = c?.bandeira||'';
+  document.getElementById('cartao-cad-vencimento').value  = c?.dia_vencimento||'';
+  document.getElementById('cartao-cad-cor').value         = c?.cor||'#7c9cff';
+  document.getElementById('cartao-cad-excluir').style.display = c?'inline':'none';
+  abrirOverlay('overlay-cartao-cadastro');
+}
+
+async function cartaoCadastroSalvar(){
+  const nome = document.getElementById('cartao-cad-nome').value.trim();
+  const dia  = parseInt(document.getElementById('cartao-cad-vencimento').value);
+  if(!nome || !dia || dia<1 || dia>31){ alert('Preencha nome e dia de vencimento (1-31).'); return; }
+
+  const payload = {
+    user_id: usuarioAtual.id,
+    nome,
+    bandeira:       document.getElementById('cartao-cad-bandeira').value||null,
+    dia_vencimento: dia,
+    cor:            document.getElementById('cartao-cad-cor').value||'#7c9cff'
+  };
+
+  let error;
+  if(cartaoCadEditId){
+    ({ error } = await sb.from('cartoes').update(payload).eq('id', cartaoCadEditId));
+  } else {
+    ({ error } = await sb.from('cartoes').insert(payload));
+  }
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharOverlay('overlay-cartao-cadastro');
+  await cartoesCadastradosCarregar();
+  cartaoRenderMeusCartoes();
+}
+
+async function cartaoCadastroExcluir(){
+  if(!confirm('Excluir este cartão?')) return;
+  await sb.from('cartoes').delete().eq('id', cartaoCadEditId);
+  fecharOverlay('overlay-cartao-cadastro');
+  await cartoesCadastradosCarregar();
+  cartaoRenderMeusCartoes();
+}
+
+// Ao selecionar cartão no import CSV, preenche o dia de vencimento como sugestão
+function csvPreencherVencimento(sel){
+  const opt = sel.options[sel.selectedIndex];
+  const dia = opt?.dataset?.dia;
+  if(!dia) return;
+  // Sugerir a data de vencimento do próximo mês
+  const hoje = new Date();
+  const d = new Date(hoje.getFullYear(), hoje.getMonth()+(hoje.getDate()>=parseInt(dia)?1:0), parseInt(dia));
+  document.getElementById('csv-data-vencimento').value = d.toISOString().split('T')[0];
+}
 let cartaoEditId = null;
 let cartaoDetectadas = [];
 
 async function cartaoCarregar(){
   document.getElementById('cartao-loading').style.display='block';
   document.getElementById('cartao-content').style.display='none';
+
+  await cartoesCadastradosCarregar();
 
   const { data } = await sb.from('cartao_parcelamentos').select('*')
     .eq('user_id', usuarioAtual.id).order('data_primeira_parcela',{ascending:false});
@@ -8741,13 +8919,6 @@ async function cartaoCarregar(){
   cartaoRenderResumo();
   cartaoRenderParcelamentos();
   cartaoRenderProjecao();
-}
-
-function cartaoAba(btn, aba){
-  document.querySelectorAll('#tela-cartao .inv-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('cartao-aba-parcelamentos').style.display = aba==='parcelamentos'?'block':'none';
-  document.getElementById('cartao-aba-projecao').style.display       = aba==='projecao'?'block':'none';
 }
 
 function cartaoPopularCategorias(){
