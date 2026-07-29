@@ -2869,8 +2869,11 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <!-- ── CARTÃO DE CRÉDITO ── -->
       <div class="tela" id="tela-cartao">
         <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
-          <div><h2>Cartão de Crédito</h2><p>Compras parceladas e projeção de compromissos futuros</p></div>
-          <button class="orc-btn-save" style="display:inline-flex" onclick="cartaoAbrirForm(null)">+ Nova compra parcelada</button>
+          <div><h2>Cartão de Crédito</h2><p>Compras parceladas, assinaturas e projeção de compromissos futuros</p></div>
+          <div style="display:flex;gap:.5rem">
+            <button class="orc-btn-save" style="display:inline-flex" onclick="cartaoAbrirForm(null,'parcelado')">+ Compra parcelada</button>
+            <button class="orc-btn-config" style="font-size:.75rem" onclick="cartaoAbrirForm(null,'assinatura')">♻ Assinatura</button>
+          </div>
         </div>
 
         <div class="orc-loading" id="cartao-loading">Carregando...</div>
@@ -2917,15 +2920,17 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
         </div>
 
-        <!-- MODAL: Nova compra parcelada -->
+        <!-- MODAL: Compra parcelada / Assinatura -->
         <div class="overlay" id="overlay-cartao-form">
           <div class="modal" style="max-width:560px">
             <button class="modal-close" onclick="fecharOverlay('overlay-cartao-form')">×</button>
             <div class="modal-title" id="cartao-form-titulo">Nova compra parcelada</div>
+            <input type="hidden" id="cartao-form-tipo-lanc" value="parcelado">
+
             <div class="admin-frase-grid">
               <div class="diag-field" style="grid-column:1/-1">
                 <label class="diag-label">Descrição *</label>
-                <input class="diag-input" type="text" id="cartao-form-desc" placeholder="Ex: Patinete elétrico, iPhone 15...">
+                <input class="diag-input" type="text" id="cartao-form-desc" placeholder="Ex: Patinete elétrico, Netflix...">
               </div>
               <div class="diag-field">
                 <label class="diag-label">Cartão</label>
@@ -2933,31 +2938,58 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
               <div class="diag-field">
                 <label class="diag-label">Categoria</label>
-                <select class="diag-input" id="cartao-form-categoria">
-                  <option value="">Selecione...</option>
-                </select>
+                <select class="diag-input" id="cartao-form-categoria"><option value="">Selecione...</option></select>
               </div>
-              <div class="diag-field">
-                <label class="diag-label">Valor da parcela (R$) *</label>
-                <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-parcela" placeholder="150,00" oninput="cartaoFormCalcTotal()">
+
+              <!-- Campos: PARCELADO -->
+              <div id="cartao-campos-parcelado" style="display:contents">
+                <div class="diag-field">
+                  <label class="diag-label">Valor da parcela (R$) *</label>
+                  <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-parcela" placeholder="150,00" oninput="cartaoFormCalcTotal()">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Nº total de parcelas *</label>
+                  <input class="diag-input" type="number" id="cartao-form-num-parcelas" placeholder="10" min="1" oninput="cartaoFormCalcTotal()">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Parcela atual *</label>
+                  <input class="diag-input" type="number" id="cartao-form-parcela-atual" placeholder="4" min="1" oninput="cartaoFormCalcTotal()">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Data da parcela atual *</label>
+                  <input class="diag-input" type="date" id="cartao-form-data-atual">
+                </div>
+                <div class="diag-field" style="grid-column:1/-1">
+                  <label class="diag-label">Valor total calculado</label>
+                  <div id="cartao-form-total" style="font-size:.9rem;font-weight:700;color:var(--gold);padding:.4rem 0">—</div>
+                </div>
               </div>
-              <div class="diag-field">
-                <label class="diag-label">Nº total de parcelas *</label>
-                <input class="diag-input" type="number" id="cartao-form-num-parcelas" placeholder="10" min="1" oninput="cartaoFormCalcTotal()">
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Parcela atual *</label>
-                <input class="diag-input" type="number" id="cartao-form-parcela-atual" placeholder="4" min="1" oninput="cartaoFormCalcTotal()">
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Data da parcela atual *</label>
-                <input class="diag-input" type="date" id="cartao-form-data-atual">
-              </div>
-              <div class="diag-field" style="grid-column:1/-1">
-                <label class="diag-label">Valor total calculado</label>
-                <div id="cartao-form-total" style="font-size:.9rem;font-weight:700;color:var(--gold);padding:.6rem 0">—</div>
+
+              <!-- Campos: ASSINATURA -->
+              <div id="cartao-campos-assinatura" style="display:contents">
+                <div class="diag-field">
+                  <label class="diag-label">Valor mensal (R$) *</label>
+                  <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-assn" placeholder="39,90">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Dia de cobrança *</label>
+                  <input class="diag-input" type="number" id="cartao-form-dia-cobranca" placeholder="15" min="1" max="31">
+                </div>
+                <div class="diag-field" style="grid-column:1/-1">
+                  <label class="diag-label">Projetar para os próximos</label>
+                  <select class="diag-input" id="cartao-form-horizonte">
+                    <option value="12">12 meses</option>
+                    <option value="6">6 meses</option>
+                    <option value="24">24 meses</option>
+                  </select>
+                </div>
+                <div class="diag-field" style="grid-column:1/-1;background:rgba(124,156,255,0.06);border:1px solid rgba(124,156,255,0.2);padding:.8rem 1rem;border-left:3px solid #7c9cff;font-size:.72rem;color:var(--gray);line-height:1.7">
+                  <strong style="color:#7c9cff;display:block;margin-bottom:.3rem">♻ Como funciona a assinatura</strong>
+                  O sistema projeta a cobrança mensalmente. Ao abrir esta tela, as projeções são renovadas automaticamente para sempre ter ao menos 12 meses à frente.
+                </div>
               </div>
             </div>
+
             <div class="diag-save-area">
               <button class="btn-diag-save" onclick="cartaoSalvarForm()">Salvar</button>
               <button id="cartao-form-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoExcluir()">Excluir</button>
@@ -8728,32 +8760,47 @@ function cartaoPopularCategorias(){
   sel.innerHTML = '<option value="">Selecione...</option>' + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 }
 
-// Calcula parcelas futuras de um parcelamento
-function cartaoParcelas(p){
-  const parcelas = [];
+// Calcula parcelas FUTURAS de um parcelamento com centavos corretos
+function cartaoParcelasFuturas(p){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const isAssn = p.tipo_lancamento === 'assinatura';
+
+  if(isAssn){
+    // Assinatura: sempre projeta os próximos 12 meses a partir de hoje
+    const horizonte = 12;
+    const futuras = [];
+    const dia = p.dia_cobranca || parseInt((p.data_primeira_parcela||'').split('-')[2]) || 1;
+    for(let i=0; i<horizonte; i++){
+      const d = new Date(hoje.getFullYear(), hoje.getMonth()+i, dia);
+      if(d < hoje) continue;
+      futuras.push({
+        real_numero: i+1,
+        data: d.toISOString().split('T')[0],
+        valor: Number(p.valor_parcela),
+        isAssinatura: true
+      });
+    }
+    return futuras;
+  }
+
+  // Compra parcelada: cálculo normal com centavos distribuídos
   const dataBase = new Date(p.data_primeira_parcela+'T00:00:00');
-  for(let i=0; i<p.num_parcelas; i++){
+  const valorTotal = Number(p.valor_total || p.valor_parcela * p.num_parcelas);
+  const valorBase  = Math.floor(valorTotal / p.num_parcelas * 100) / 100;
+  const valorUltima= Math.round((valorTotal - valorBase*(p.num_parcelas-1))*100)/100;
+
+  const futuras = [];
+  for(let i = p.parcela_atual-1; i < p.num_parcelas; i++){
     const d = new Date(dataBase);
-    d.setMonth(d.getMonth() + i);
-    parcelas.push({
-      numero: p.parcela_atual + i - (p.parcela_atual - 1),
+    d.setMonth(d.getMonth()+i);
+    if(d < hoje) continue;
+    futuras.push({
       real_numero: i+1,
       data: d.toISOString().split('T')[0],
-      valor: Number(p.valor_parcela),
-      paga: i < (p.parcela_atual - 1) // parcelas anteriores à atual já foram pagas
+      valor: (i+1)===p.num_parcelas ? valorUltima : valorBase,
     });
   }
-  return parcelas;
-}
-
-// Retorna parcelas FUTURAS (da atual em diante)
-function cartaoParcelasFuturas(p){
-  const todas = cartaoParcelas(p);
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  return todas.filter(pa => {
-    const d = new Date(pa.data+'T00:00:00');
-    return d >= hoje && !pa.paga;
-  });
+  return futuras;
 }
 
 function cartaoRenderResumo(){
@@ -8791,32 +8838,33 @@ function cartaoRenderParcelamentos(){
   vazio.style.display='none';
 
   document.getElementById('cartao-tbody').innerHTML = cartaoDados.map(p=>{
+    const isAssn = p.tipo_lancamento === 'assinatura';
     const futuras = cartaoParcelasFuturas(p);
     const restante = futuras.reduce((a,pa)=>a+pa.valor,0);
     const proxima = futuras[0];
-    const total = Number(p.valor_parcela)*p.num_parcelas;
-    const parcsRestantes = p.num_parcelas - (p.parcela_atual - 1);
-    const progressoPct = Math.round((p.parcela_atual-1)/p.num_parcelas*100);
+    const total = isAssn ? null : Number(p.valor_parcela)*p.num_parcelas;
+    const parcsRestantes = isAssn ? '∞' : p.num_parcelas-(p.parcela_atual-1);
+    const progressoPct = isAssn ? null : Math.round((p.parcela_atual-1)/p.num_parcelas*100);
 
     return `<tr>
       <td>
-        <div style="font-weight:600;color:var(--white)">${escapeHtml(p.descricao)}</div>
-        <div style="font-size:.65rem;color:var(--gray);margin-top:.2rem">
-          <div style="background:var(--navy3);border-radius:2px;height:3px;width:100%;margin-top:.3rem">
-            <div style="width:${progressoPct}%;height:100%;background:var(--gold);border-radius:2px"></div>
-          </div>
+        <div style="font-weight:600;color:var(--white);display:flex;align-items:center;gap:.4rem">
+          ${escapeHtml(p.descricao)}
+          ${isAssn?'<span style="font-size:.58rem;background:rgba(124,156,255,0.15);color:#7c9cff;padding:.1rem .4rem;border-radius:3px;font-weight:700">♻ RECORRENTE</span>':''}
         </div>
+        ${!isAssn&&progressoPct!==null?`<div style="background:var(--navy3);border-radius:2px;height:3px;width:100%;margin-top:.4rem"><div style="width:${progressoPct}%;height:100%;background:var(--gold);border-radius:2px"></div></div>`:''}
       </td>
       <td style="color:var(--gray)">${escapeHtml(p.cartao||'—')}</td>
       <td style="color:var(--gray)">${escapeHtml(p.categoria||'—')}</td>
       <td style="text-align:center">
-        <span style="font-weight:700;color:var(--white)">${p.parcela_atual}</span>
-        <span style="color:var(--gray)">/${p.num_parcelas}</span>
-        <div style="font-size:.62rem;color:${parcsRestantes>0?'#f0c93a':'var(--green)'}">${parcsRestantes>0?parcsRestantes+' restantes':'Quitado'}</div>
+        ${isAssn
+          ? '<span style="color:#7c9cff;font-weight:700">Mensal</span>'
+          : `<span style="font-weight:700;color:var(--white)">${p.parcela_atual}</span><span style="color:var(--gray)">/${p.num_parcelas}</span>
+             <div style="font-size:.62rem;color:${parcsRestantes>0?'#f0c93a':'var(--green)'}">${parcsRestantes} restante${parcsRestantes!==1?'s':''}</div>`}
       </td>
-      <td style="text-align:right;color:var(--white);font-weight:600">${fmt(p.valor_parcela)}</td>
-      <td style="text-align:right;color:var(--gray)">${fmt(total)}</td>
-      <td style="text-align:right;color:var(--red);font-weight:600">${fmt(restante)}</td>
+      <td style="text-align:right;color:var(--white);font-weight:600">${fmt(p.valor_parcela)}/mês</td>
+      <td style="text-align:right;color:var(--gray)">${isAssn?'Recorrente':fmt(total)}</td>
+      <td style="text-align:right;color:var(--red);font-weight:600">${isAssn?fmt(restante)+'/12m':fmt(restante)}</td>
       <td style="text-align:center;color:var(--gray);font-size:.72rem">${proxima?new Date(proxima.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
       <td><button class="wish-card-edit" onclick="cartaoAbrirForm(${p.id})">✎</button></td>
     </tr>`;
@@ -8943,45 +8991,112 @@ function cartaoFormCalcTotal(){
   }
 }
 
-function cartaoAbrirForm(id){
+function cartaoAbrirForm(id, tipoDefault){
   cartaoEditId = id;
   const p = id ? cartaoDados.find(x=>x.id===id) : null;
-  document.getElementById('cartao-form-titulo').textContent = p ? 'Editar compra parcelada' : 'Nova compra parcelada';
-  document.getElementById('cartao-form-desc').value          = p?.descricao||'';
-  document.getElementById('cartao-form-cartao').value        = p?.cartao||'';
-  document.getElementById('cartao-form-categoria').value     = p?.categoria||'';
-  document.getElementById('cartao-form-valor-parcela').value = p?.valor_parcela||'';
-  document.getElementById('cartao-form-num-parcelas').value  = p?.num_parcelas||'';
-  document.getElementById('cartao-form-parcela-atual').value = p?.parcela_atual||'';
-  document.getElementById('cartao-form-data-atual').value    = p?.data_primeira_parcela||'';
-  document.getElementById('cartao-form-excluir').style.display = p?'inline':'none';
+  const tipo = p?.tipo_lancamento || tipoDefault || 'parcelado';
+  const isAssn = tipo === 'assinatura';
+
+  document.getElementById('cartao-form-tipo-lanc').value = tipo;
+  document.getElementById('cartao-form-titulo').textContent =
+    p ? (isAssn?'Editar assinatura':'Editar compra parcelada')
+      : (isAssn?'Nova assinatura':'Nova compra parcelada');
+
+  // Campos comuns
+  document.getElementById('cartao-form-desc').value      = p?.descricao||'';
+  document.getElementById('cartao-form-cartao').value    = p?.cartao||'';
+  document.getElementById('cartao-form-categoria').value = p?.categoria||'';
+
+  // Campos parcelado
+  document.getElementById('cartao-form-valor-parcela').value = isAssn ? '' : (p?.valor_parcela||'');
+  document.getElementById('cartao-form-num-parcelas').value  = isAssn ? '' : (p?.num_parcelas||'');
+  document.getElementById('cartao-form-parcela-atual').value = isAssn ? '' : (p?.parcela_atual||'');
+  document.getElementById('cartao-form-data-atual').value    = isAssn ? '' : (p?.data_primeira_parcela||'');
+
+  // Campos assinatura
+  document.getElementById('cartao-form-valor-assn').value    = isAssn ? (p?.valor_parcela||'') : '';
+  document.getElementById('cartao-form-dia-cobranca').value  = p?.dia_cobranca||'';
+  document.getElementById('cartao-form-horizonte').value     = '12';
+
+  // Visibilidade dos blocos de campos
+  // Parcelado: mostra campos parcelado, oculta assinatura
+  const camposParc = ['cartao-form-valor-parcela','cartao-form-num-parcelas',
+    'cartao-form-parcela-atual','cartao-form-data-atual','cartao-form-total'];
+  const camposAssn = ['cartao-form-valor-assn','cartao-form-dia-cobranca','cartao-form-horizonte'];
+
+  camposParc.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.closest('.diag-field, div').style.display = isAssn ? 'none' : '';
+  });
+  camposAssn.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.closest('.diag-field, div').style.display = isAssn ? '' : 'none';
+  });
+  // Bloco de info da assinatura
+  const infoBloco = document.querySelector('#cartao-campos-assinatura .diag-field:last-child');
+  if(infoBloco) infoBloco.style.display = isAssn ? '' : 'none';
+
+  document.getElementById('cartao-form-excluir').style.display = p ? 'inline' : 'none';
   cartaoFormCalcTotal();
   abrirOverlay('overlay-cartao-form');
 }
 
 async function cartaoSalvarForm(){
+  const tipo_lancamento = document.getElementById('cartao-form-tipo-lanc').value;
   const descricao = document.getElementById('cartao-form-desc').value.trim();
-  const valor_parcela = parseFloat(document.getElementById('cartao-form-valor-parcela').value);
-  const num_parcelas  = parseInt(document.getElementById('cartao-form-num-parcelas').value);
-  const parcela_atual = parseInt(document.getElementById('cartao-form-parcela-atual').value);
-  const data_primeira_parcela = document.getElementById('cartao-form-data-atual').value;
+  if(!descricao){ alert('Preencha a descrição.'); return; }
 
-  if(!descricao||!valor_parcela||!num_parcelas||!parcela_atual||!data_primeira_parcela){
-    alert('Preencha todos os campos obrigatórios.'); return;
+  let payload;
+
+  if(tipo_lancamento === 'assinatura'){
+    const valor_parcela = parseFloat(document.getElementById('cartao-form-valor-assn').value);
+    const dia_cobranca  = parseInt(document.getElementById('cartao-form-dia-cobranca').value);
+    const horizonte     = parseInt(document.getElementById('cartao-form-horizonte').value)||12;
+    if(!valor_parcela || !dia_cobranca){ alert('Preencha valor mensal e dia de cobrança.'); return; }
+
+    // Calcular data da próxima cobrança (próximo mês que ainda não passou)
+    const hoje = new Date();
+    let dataBase = new Date(hoje.getFullYear(), hoje.getMonth(), dia_cobranca);
+    if(dataBase < hoje) dataBase.setMonth(dataBase.getMonth()+1); // já passou, vai pro próximo mês
+    const dataStr = dataBase.toISOString().split('T')[0];
+
+    payload = {
+      user_id: usuarioAtual.id, descricao,
+      cartao:      document.getElementById('cartao-form-cartao').value.trim()||null,
+      categoria:   document.getElementById('cartao-form-categoria').value||null,
+      tipo_lancamento: 'assinatura',
+      valor_parcela,
+      valor_total: valor_parcela * horizonte,
+      num_parcelas: horizonte,
+      parcela_atual: 1,
+      data_primeira_parcela: dataStr,
+      dia_cobranca
+    };
+
+  } else {
+    const valor_parcela     = parseFloat(document.getElementById('cartao-form-valor-parcela').value);
+    const num_parcelas      = parseInt(document.getElementById('cartao-form-num-parcelas').value);
+    const parcela_atual     = parseInt(document.getElementById('cartao-form-parcela-atual').value);
+    const data_primeira_parcela = document.getElementById('cartao-form-data-atual').value;
+
+    if(!valor_parcela||!num_parcelas||!parcela_atual||!data_primeira_parcela){
+      alert('Preencha todos os campos obrigatórios.'); return;
+    }
+    if(parcela_atual > num_parcelas){ alert('Parcela atual não pode ser maior que o total.'); return; }
+
+    payload = {
+      user_id: usuarioAtual.id, descricao,
+      cartao:      document.getElementById('cartao-form-cartao').value.trim()||null,
+      categoria:   document.getElementById('cartao-form-categoria').value||null,
+      tipo_lancamento: 'parcelado',
+      valor_parcela,
+      num_parcelas,
+      parcela_atual,
+      valor_total: valor_parcela * num_parcelas,
+      data_primeira_parcela,
+      dia_cobranca: null
+    };
   }
-  if(parcela_atual > num_parcelas){ alert('Parcela atual não pode ser maior que o total.'); return; }
-
-  const payload = {
-    user_id: usuarioAtual.id,
-    descricao,
-    cartao: document.getElementById('cartao-form-cartao').value.trim()||null,
-    categoria: document.getElementById('cartao-form-categoria').value||null,
-    valor_parcela,
-    num_parcelas,
-    parcela_atual,
-    valor_total: valor_parcela*num_parcelas,
-    data_primeira_parcela
-  };
 
   let error;
   if(cartaoEditId){
@@ -10519,4 +10634,3 @@ function simRenderGrafico(){
 </script>
 </body>
 </html>
-                
