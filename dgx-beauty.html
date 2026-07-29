@@ -1256,6 +1256,7 @@ function initMargem(){
   },100);
   initBridgeMargem();
 }
+var MESES_LABELS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var MESES_FULL=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function calcDFC(d){if(!d)return null;var entOp=d.recVendas+d.jurosMultas+d.outrasEnt;var saiOp=d.pgtoTruss+d.pgtoNaoTruss+d.pgtoPessoal+d.pgtoMkt+d.pgtoComissoes+d.pgtoLogistica+d.pgtoOcupacao+d.pgtoGerais+d.pgtoTerceiros+d.pgtoImpostos;var fcOp=entOp+saiOp;var fcInv=d.entInvest+d.saiInvest;var fcFin=d.emprestimos+d.pgtoFinanc;var liquido=fcOp+fcInv+fcFin;var caixaFinal=d.caixaInicial+liquido;return{entOp:entOp,saiOp:Math.abs(saiOp),saiTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc),fcOp:fcOp,fcInv:fcInv,fcFin:fcFin,liquido:liquido,caixaFinal:caixaFinal,entTotal:entOp+d.emprestimos,saiGrandTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc)};}
 var CYAN='#00D4DA',BEIGE='#C8B89A',CYAN_TOT='#007B80',INI_C='#2C6BE0';
