@@ -1721,7 +1721,12 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div id="lanc-cartao-compra" class="add-lancamento" style="margin:0;border:none;padding:.8rem 0 0">
               <div class="add-form" style="flex-direction:column;gap:.6rem">
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                  <div class="f" style="flex:1"><label>Cartão</label><select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select></div>
+                  <div class="f" style="flex:1">
+                    <label>Cartão
+                      <button onclick="cartaoCadastroAbrirForm(null)" style="background:none;border:none;color:#7c9cff;font-size:.62rem;cursor:pointer;margin-left:.4rem;font-family:'Inter',sans-serif;text-decoration:underline;padding:0">+ novo</button>
+                    </label>
+                    <select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select>
+                  </div>
                   <div class="f" style="flex:0 0 140px"><label>Vencimento</label><input type="date" id="add-cartao-venc"></div>
                 </div>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap">
@@ -9201,6 +9206,15 @@ async function cartaoCadastroSalvar(){
   fecharOverlay('overlay-cartao-cadastro');
   await cartoesCadastradosCarregar();
   cartaoRenderMeusCartoes();
+  // Se veio do form de lançamento, seleciona o cartão recém-cadastrado
+  if(!cartaoCadEditId){
+    const sel = document.getElementById('add-cartao-sel');
+    if(sel && cartoesCadastrados.length){
+      const novo = cartoesCadastrados[cartoesCadastrados.length-1];
+      sel.value = novo.nome;
+      lancCartaoPreencherVenc();
+    }
+  }
 }
 
 async function cartaoCadastroExcluir(){
