@@ -1646,7 +1646,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="lanc-col-lista">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
               <div class="lanc-col-titulo" style="margin:0">Lançamentos do mês</div>
-              <div style="display:flex;gap:.4rem">
+              <div style="display:flex;gap:.4rem;flex-wrap:wrap">
                 <button class="orc-btn-config" onclick="csvImportAbrirModal('extrato')" style="font-size:.7rem">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   Importar Extrato
@@ -1654,6 +1654,12 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 <button class="orc-btn-config" onclick="csvImportAbrirModal('cartao')" style="font-size:.7rem;border-color:rgba(124,156,255,0.4);color:#7c9cff">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                   Importar Fatura
+                </button>
+                <button class="orc-btn-config" onclick="cartaoAbrirForm(null,'parcelado')" style="font-size:.7rem;border-color:rgba(240,201,58,0.4);color:#f0c93a">
+                  + Parcelado
+                </button>
+                <button class="orc-btn-config" onclick="cartaoAbrirForm(null,'assinatura')" style="font-size:.7rem;border-color:rgba(124,156,255,0.4);color:#7c9cff">
+                  ♻ Assinatura
                 </button>
               </div>
             </div>
@@ -2903,12 +2909,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
       <!-- ── CARTÃO DE CRÉDITO ── -->
       <div class="tela" id="tela-cartao">
-        <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+        <div class="tela-header">
           <div><h2>Análise de Cartão</h2><p>Compras parceladas, assinaturas e projeção de compromissos futuros</p></div>
-          <div style="display:flex;gap:.5rem">
-            <button class="orc-btn-save" style="display:inline-flex" onclick="cartaoAbrirForm(null,'parcelado')">+ Compra parcelada</button>
-            <button class="orc-btn-config" style="font-size:.75rem" onclick="cartaoAbrirForm(null,'assinatura')">♻ Assinatura</button>
-          </div>
         </div>
 
         <div class="orc-loading" id="cartao-loading">Carregando...</div>
