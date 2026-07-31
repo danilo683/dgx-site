@@ -1698,58 +1698,57 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="lanc-tipo-header cartao">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
               <span>Cartão de Crédito</span>
-              <button class="orc-btn-config" onclick="csvImportAbrirModal('cartao')" style="font-size:.65rem;margin-left:auto;border-color:rgba(124,156,255,0.4);color:#7c9cff">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                Importar Fatura
-              </button>
+              <div style="display:flex;gap:.4rem;margin-left:auto">
+                <button class="orc-btn-config" onclick="cartaoCadastroAbrirForm(null)" style="font-size:.65rem;border-color:rgba(124,156,255,0.3);color:#7c9cff">
+                  + Novo cartão
+                </button>
+                <button class="orc-btn-config" onclick="csvImportAbrirModal('cartao')" style="font-size:.65rem;border-color:rgba(124,156,255,0.3);color:#7c9cff">
+                  ↓ Importar fatura
+                </button>
+              </div>
             </div>
 
-            <!-- Sub-tipos do cartão -->
+            <!-- Sub-tipos -->
             <div class="lanc-cartao-subtipos">
-              <button class="lanc-subtipo-btn active" id="lanc-sub-compra" onclick="lancSubtipo('compra')">
-                🛒 Compra
-              </button>
-              <button class="lanc-subtipo-btn" id="lanc-sub-parcelado" onclick="lancSubtipo('parcelado')">
-                📦 Parcelado
-              </button>
-              <button class="lanc-subtipo-btn" id="lanc-sub-assinatura" onclick="lancSubtipo('assinatura')">
-                ♻ Assinatura
-              </button>
+              <button class="lanc-subtipo-btn active" id="lanc-sub-compra" onclick="lancSubtipo('compra')">🛒 Compra à vista</button>
+              <button class="lanc-subtipo-btn" id="lanc-sub-parcelado" onclick="lancSubtipo('parcelado')">📦 Parcelado</button>
+              <button class="lanc-subtipo-btn" id="lanc-sub-assinatura" onclick="lancSubtipo('assinatura')">♻ Assinatura</button>
             </div>
 
             <!-- Compra à vista -->
-            <div id="lanc-cartao-compra" class="add-lancamento" style="margin:0;border:none;padding:.8rem 0 0">
-              <div class="add-form" style="flex-direction:column;gap:.6rem">
+            <div id="lanc-cartao-compra">
+              <div class="add-form" style="flex-direction:column;gap:.6rem;padding-top:.4rem">
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                  <div class="f" style="flex:1">
-                    <label>Cartão
-                      <button onclick="cartaoCadastroAbrirForm(null)" style="background:none;border:none;color:#7c9cff;font-size:.62rem;cursor:pointer;margin-left:.4rem;font-family:'Inter',sans-serif;text-decoration:underline;padding:0">+ novo</button>
-                    </label>
-                    <select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select>
-                  </div>
+                  <div class="f" style="flex:1"><label>Cartão</label><select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select></div>
                   <div class="f" style="flex:0 0 140px"><label>Vencimento</label><input type="date" id="add-cartao-venc"></div>
                 </div>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap">
                   <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-cartao-desc" placeholder="Ex: Supermercado, iFood..."></div>
                   <div class="f" style="flex:1"><label>Categoria</label><select id="add-cartao-cat"></select></div>
-                </div>
-                <div style="display:flex;gap:.5rem;align-items:flex-end">
-                  <div class="f" style="flex:0 0 120px"><label>Valor (R$)</label><input type="number" id="add-cartao-val" placeholder="0,00" min="0" step="0.01"></div>
-                  <button class="btn-add" style="background:#7c9cff;color:#fff" onclick="adicionarLancamentoCartao()">+ Adicionar</button>
+                  <div class="f" style="flex:0 0 100px"><label>Valor (R$)</label><input type="number" id="add-cartao-val" placeholder="0,00" min="0" step="0.01"></div>
+                  <button class="btn-add" style="background:#7c9cff;color:#fff;align-self:flex-end" onclick="adicionarLancamentoCartao()">+ Adicionar</button>
                 </div>
               </div>
             </div>
 
-            <!-- Compra parcelada -->
-            <div id="lanc-cartao-parcelado" style="display:none;padding:.8rem 0 0">
-              <p style="font-size:.72rem;color:var(--gray);margin-bottom:.8rem;line-height:1.5">Cadastra a compra na <strong style="color:var(--white)">Análise de Cartão</strong> para projetar as parcelas futuras automaticamente.</p>
-              <button class="btn-add" style="background:#f0c93a;color:var(--navy);width:100%" onclick="cartaoAbrirForm(null,'parcelado')">+ Cadastrar compra parcelada</button>
+            <!-- Parcelado -->
+            <div id="lanc-cartao-parcelado" style="display:none;padding-top:.8rem">
+              <p style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;line-height:1.6">
+                Compras parceladas ficam na <strong style="color:var(--white)">Análise de Cartão</strong> e projetam automaticamente as parcelas futuras mês a mês.
+              </p>
+              <button class="orc-btn-save" style="display:inline-flex;background:#f0c93a;color:var(--navy);border-color:#f0c93a" onclick="cartaoAbrirForm(null,'parcelado')">
+                📦 Cadastrar compra parcelada
+              </button>
             </div>
 
             <!-- Assinatura -->
-            <div id="lanc-cartao-assinatura" style="display:none;padding:.8rem 0 0">
-              <p style="font-size:.72rem;color:var(--gray);margin-bottom:.8rem;line-height:1.5">Assinaturas são recorrentes e ficam na <strong style="color:var(--white)">Análise de Cartão</strong> com projeção automática para os próximos meses.</p>
-              <button class="btn-add" style="background:#a78bfa;color:#fff;width:100%" onclick="cartaoAbrirForm(null,'assinatura')">♻ Cadastrar assinatura</button>
+            <div id="lanc-cartao-assinatura" style="display:none;padding-top:.8rem">
+              <p style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;line-height:1.6">
+                Assinaturas recorrentes ficam na <strong style="color:var(--white)">Análise de Cartão</strong> com renovação automática dos próximos 12 meses.
+              </p>
+              <button class="orc-btn-save" style="display:inline-flex;background:#a78bfa;color:#fff;border-color:#a78bfa" onclick="cartaoAbrirForm(null,'assinatura')">
+                ♻ Cadastrar assinatura
+              </button>
             </div>
           </div>
         </div>
@@ -5554,6 +5553,13 @@ function lancSubtipo(tipo){
     if(btn) btn.classList.toggle('active', t===tipo);
   });
   if(tipo==='compra') lancPopularCartaoForm();
+  if(tipo==='parcelado'){
+    // Garante cartões carregados antes de abrir
+    if(!cartoesCadastrados||!cartoesCadastrados.length) cartoesCadastradosCarregar();
+  }
+  if(tipo==='assinatura'){
+    if(!cartoesCadastrados||!cartoesCadastrados.length) cartoesCadastradosCarregar();
+  }
 }
 
 function lancPopularCartaoForm(){
