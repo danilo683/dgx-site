@@ -507,6 +507,23 @@ button.primary:hover { background: #8d70f5; }
 }
 .goal-new:hover { background: rgba(255,255,255,.035); color: var(--text); border-color: transparent; }
 
+/* ── Resumo por área ── */
+.area-summary-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 40px 0 14px; padding-top: 24px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.area-summary-head h3 { font-family: var(--display); font-weight: 600; font-size: 18px; }
+.area-summary-head .hint { font-size: 12px; color: var(--text2); }
+.area-summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.area-summary-card {
+  --c: var(--accent);
+  background: var(--bg2); border: 1px solid var(--border); border-top: 3px solid var(--c);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.area-summary-card .as-label { font-size: 12.5px; color: var(--text2); margin-bottom: 6px; }
+.area-summary-card .as-pct { font-family: var(--display); font-weight: 700; font-size: 22px; color: var(--c); }
+.area-summary-card .as-pct.empty { color: var(--text2); font-size: 14px; font-weight: 500; font-family: var(--body); }
+.area-summary-card .as-bar { height: 5px; background: var(--bg3); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+.area-summary-card .as-bar span { display: block; height: 100%; background: var(--c); }
+.area-summary-card .as-count { font-size: 11px; color: var(--text2); margin-top: 6px; }
+
 @media (max-width: 700px) {
   .goal-row-head, .goal-row { grid-template-columns: 30px 1fr 90px 30px; }
   .goal-row-head .hc-prog, .goal-row-head .hc-due, .goal-row-head .hc-prio,
@@ -657,6 +674,12 @@ function sairPersonal() {
       <button class="goal-new" id="btn-add-goal">＋ Nova meta</button>
     </div>
     <div class="list-empty" id="goal-empty" style="margin-top:14px;">Nenhuma meta nesta visualização.</div>
+
+    <div class="area-summary-head">
+      <h3>Resumo por área</h3>
+      <span class="hint">média simples do % real de cada meta na área</span>
+    </div>
+    <div class="area-summary-grid" id="area-summary-grid"></div>
   </section>
 
   <section id="atividades" class="page">
@@ -1011,8 +1034,8 @@ function sairPersonal() {
     if (g.recorrencia === 'mensal') {
       return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); // dia 0 do próximo mês = último dia do atual
     }
-    // esporádica: primeira data (mais próxima) entre os itens de ação
-    const dues = (g.tasks || []).map(t => t.due).filter(Boolean).sort();
+    // esporádica: primeira data entre os itens de ação AINDA NÃO concluídos
+    const dues = (g.tasks || []).filter(t => !t.done && t.due).map(t => t.due).sort();
     return dues.length ? dues[0] : '';
   }
 
@@ -1269,6 +1292,32 @@ function sairPersonal() {
         }
         goalRows.appendChild(det);
       }
+    });
+    renderAreaSummary();
+  }
+
+  function renderAreaSummary() {
+    const grid = document.getElementById('area-summary-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    AREAS.filter(a => a.id !== 'geral').forEach(a => {
+      const goalsInArea = state.goals.filter(g => g.area === a.id);
+      const card = document.createElement('div');
+      card.className = 'area-summary-card';
+      card.style.setProperty('--c', a.color);
+      if (!goalsInArea.length) {
+        card.innerHTML = `
+          <div class="as-label">${esc(a.label)}</div>
+          <div class="as-pct empty">Sem metas ainda</div>`;
+      } else {
+        const avg = Math.round(goalsInArea.reduce((s, g) => s + actualPct(g), 0) / goalsInArea.length);
+        card.innerHTML = `
+          <div class="as-label">${esc(a.label)}</div>
+          <div class="as-pct">${avg}%</div>
+          <div class="as-bar"><span style="width:${avg}%"></span></div>
+          <div class="as-count">${goalsInArea.length} meta${goalsInArea.length === 1 ? '' : 's'}</div>`;
+      }
+      grid.appendChild(card);
     });
   }
 
