@@ -293,13 +293,17 @@ button.primary:hover { background: #8d70f5; }
 
 /* ── Metas & Tarefas (estilo Notion) ── */
 .view-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin: 4px 0 0; }
-.goal-controls { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin: 14px 0 18px; }
-.goal-controls .prop { display: flex; flex-direction: column; gap: 4px; }
-.goal-controls label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; }
-.goal-controls select {
+.goal-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 14px 0 18px; }
+.goal-filters input[type="text"] {
+  flex: 1; min-width: 180px; font-family: var(--body); font-size: 13.5px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
+}
+.goal-filters input[type="text"]::placeholder { color: #5c527f; }
+.goal-filters select {
   font-family: var(--body); font-size: 13.5px;
   background: var(--bg2); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px;
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 11px;
 }
 .view-tab {
   background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
@@ -320,6 +324,16 @@ button.primary:hover { background: #8d70f5; }
   color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px;
   padding-top: 14px; padding-bottom: 6px;
 }
+.col-sort {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; border-radius: 4px;
+  color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px;
+  padding: 4px 4px; margin: 0; cursor: pointer; text-align: left; font-family: var(--body);
+}
+.col-sort:hover { color: var(--text); background: rgba(255,255,255,.05); }
+.col-sort.active-sort { color: var(--accent); }
+.sort-arrow { font-size: 9px; opacity: .8; }
+.sort-arrow:empty { display: none; }
 .goal-row { min-height: 46px; cursor: pointer; transition: background .1s; }
 .goal-row:hover { background: rgba(255,255,255,.035); }
 .goal-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; margin-left: 6px; }
@@ -607,27 +621,29 @@ function sairPersonal() {
       <button class="view-tab" data-view="completadas">Completadas</button>
       <button class="view-tab" data-view="todas">Todas</button>
     </div>
-    <div class="goal-controls">
-      <div class="prop">
-        <label>Ordenar por</label>
-        <select id="goal-sort">
-          <option value="prio">Prioridade</option>
-          <option value="due">Data de conclusão</option>
-          <option value="progresso">Progresso</option>
-        </select>
-      </div>
-      <div class="prop">
-        <label>Área</label>
-        <select id="goal-filter-area">
-          <option value="todas">Todas as áreas</option>
-        </select>
-      </div>
+    <div class="goal-filters">
+      <input type="text" id="goal-search" placeholder="🔍 Buscar meta pelo nome…">
+      <select id="goal-filter-area">
+        <option value="todas">Todas as áreas</option>
+      </select>
+      <select id="goal-filter-prio">
+        <option value="todas">Toda prioridade</option>
+        <option value="5">⭐⭐⭐⭐⭐</option>
+        <option value="4">⭐⭐⭐⭐</option>
+        <option value="3">⭐⭐⭐</option>
+        <option value="2">⭐⭐</option>
+        <option value="1">⭐</option>
+      </select>
     </div>
     <div class="goal-table">
       <div class="goal-row-head">
-        <span>✓</span><span>Meta</span><span class="hc-prog">Progresso</span>
-        <span class="hc-due">Completar até</span><span class="hc-prio">Prioridade</span>
-        <span>Área</span><span></span>
+        <span>✓</span>
+        <button class="col-sort" data-col="name">Meta<span class="sort-arrow"></span></button>
+        <button class="col-sort hc-prog" data-col="progress">Progresso<span class="sort-arrow"></span></button>
+        <button class="col-sort hc-due" data-col="due">Completar até<span class="sort-arrow"></span></button>
+        <button class="col-sort hc-prio" data-col="prio">Prioridade<span class="sort-arrow"></span></button>
+        <button class="col-sort" data-col="area">Área<span class="sort-arrow"></span></button>
+        <span></span>
       </div>
       <div id="goal-rows"></div>
       <button class="goal-new" id="btn-add-goal">＋ Nova meta</button>
@@ -886,26 +902,66 @@ function sairPersonal() {
     delete g.log;
     delete g.adjust;
     (g.tasks || []).forEach(t => { if (t.due === undefined) t.due = ''; });
+    if (g.createdAt === undefined) {
+      const ts = parseInt(String(g.id).slice(1), 10);
+      if (!isNaN(ts) && ts > 0) {
+        const d = new Date(ts);
+        g.createdAt = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      } else {
+        g.createdAt = todayISO();
+      }
+    }
   });
 
   const counterCount = g => g.count || 0;
 
-  let goalSort = 'prio';
+  let goalSortCol = 'prio';
+  let goalSortDir = 'desc';
   let goalFilterArea = 'todas';
+  let goalFilterPrio = 'todas';
+  let goalSearchText = '';
+
   const goalFilterAreaEl = document.getElementById('goal-filter-area');
   AREAS.filter(a => a.id !== 'geral').forEach(a => {
     const o = document.createElement('option');
     o.value = a.id; o.textContent = a.label;
     goalFilterAreaEl.appendChild(o);
   });
-  document.getElementById('goal-sort').addEventListener('change', (ev) => {
-    goalSort = ev.target.value;
-    renderGoals();
-  });
   goalFilterAreaEl.addEventListener('change', (ev) => {
     goalFilterArea = ev.target.value;
     renderGoals();
   });
+  document.getElementById('goal-filter-prio').addEventListener('change', (ev) => {
+    goalFilterPrio = ev.target.value;
+    renderGoals();
+  });
+  document.getElementById('goal-search').addEventListener('input', (ev) => {
+    goalSearchText = ev.target.value.trim().toLowerCase();
+    renderGoals();
+  });
+
+  // Cabeçalhos clicáveis: cada coluna ordena ao clicar; clicar de novo inverte a direção
+  const DEFAULT_DIR = { name: 'asc', progress: 'desc', due: 'asc', prio: 'desc', area: 'asc' };
+  document.querySelectorAll('.col-sort').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const col = btn.dataset.col;
+      if (goalSortCol === col) {
+        goalSortDir = goalSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        goalSortCol = col;
+        goalSortDir = DEFAULT_DIR[col] || 'asc';
+      }
+      renderGoals();
+    });
+  });
+
+  function updateSortHeaderUI() {
+    document.querySelectorAll('.col-sort').forEach(btn => {
+      const isActive = btn.dataset.col === goalSortCol;
+      btn.classList.toggle('active-sort', isActive);
+      btn.querySelector('.sort-arrow').textContent = isActive ? (goalSortDir === 'asc' ? '▲' : '▼') : '';
+    });
+  }
 
   document.getElementById('goal-views').addEventListener('click', (ev) => {
     const tab = ev.target.closest('.view-tab');
@@ -937,15 +993,25 @@ function sairPersonal() {
     return total ? Math.round(doneT / total * 100) : (g.done ? 100 : 0);
   }
 
-  // Ritmo esperado: quanto % do período já passou até hoje (usa "Completar até" como fim;
-  // sem prazo definido, assume o ano corrente inteiro — igual ao exemplo "365x algo").
+  // Ritmo esperado: quanto % do período já passou até hoje.
+  // Anual: o período é o ano-calendário do prazo (1º/jan até "Completar até", ou 31/dez se não houver prazo).
+  // Sazonal: o período é o intervalo real da meta — de quando ela foi criada até "Completar até".
   function expectedPct(g) {
     const todayStr = todayISO();
     const [ty, tm, td] = todayStr.split('-').map(Number);
-    const endStr = g.due || `${ty}-12-31`;
-    const [ey, em, ed] = endStr.split('-').map(Number);
-    const startMs = Date.UTC(ey, 0, 1);
-    const endMs = Date.UTC(ey, em - 1, ed);
+    let startStr, endStr;
+    if (g.tipo === 'sazonal') {
+      endStr = g.due || todayStr;
+      startStr = g.createdAt || endStr;
+    } else {
+      endStr = g.due || `${ty}-12-31`;
+      const [ey] = endStr.split('-').map(Number);
+      startStr = `${ey}-01-01`;
+    }
+    const [sy, sm, sd] = startStr.split('-').map(Number);
+    const [ey2, em2, ed2] = endStr.split('-').map(Number);
+    const startMs = Date.UTC(sy, sm - 1, sd);
+    const endMs = Date.UTC(ey2, em2 - 1, ed2);
     const totalDays = Math.round((endMs - startMs) / 86400000) + 1;
     if (totalDays <= 0) return 100;
     const todayMs = Date.UTC(ty, tm - 1, td);
@@ -985,14 +1051,24 @@ function sairPersonal() {
     if (goalView === 'progresso') list = list.filter(g => !g.done);
     else if (goalView === 'completadas') list = list.filter(g => g.done);
     if (goalFilterArea !== 'todas') list = list.filter(g => g.area === goalFilterArea);
+    if (goalFilterPrio !== 'todas') list = list.filter(g => g.prio === parseInt(goalFilterPrio, 10));
+    if (goalSearchText) list = list.filter(g => (g.name || '').toLowerCase().includes(goalSearchText));
 
-    if (goalSort === 'due') {
-      list.sort((a, b) => (a.due || '9999-99-99').localeCompare(b.due || '9999-99-99'));
-    } else if (goalSort === 'progresso') {
-      list.sort((a, b) => actualPct(b) - actualPct(a));
-    } else {
-      list.sort((a, b) => b.prio - a.prio);
-    }
+    const dir = goalSortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) => {
+      let av, bv;
+      switch (goalSortCol) {
+        case 'progress': av = actualPct(a); bv = actualPct(b); break;
+        case 'due': av = a.due || '9999-99-99'; bv = b.due || '9999-99-99'; break;
+        case 'area': av = (AREAS.find(x => x.id === a.area) || {}).label || ''; bv = (AREAS.find(x => x.id === b.area) || {}).label || ''; break;
+        case 'name': av = (a.name || '').toLowerCase(); bv = (b.name || '').toLowerCase(); break;
+        default: av = a.prio; bv = b.prio;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    updateSortHeaderUI();
     goalEmpty.style.display = list.length ? 'none' : 'block';
 
     list.forEach(g => {
@@ -1149,7 +1225,7 @@ function sairPersonal() {
   document.getElementById('btn-add-goal').addEventListener('click', () => {
     const g = {
       id: 'g' + Date.now(),
-      name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual',
+      name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual', createdAt: todayISO(),
       due: '', done: false, doneAt: '', tasks: [],
       kind: 'checklist', target: null, unit: '', count: 0, entries: [],
     };
