@@ -156,7 +156,7 @@ select:focus-visible, input:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
 
-main { max-width: 1080px; margin: 0 auto; padding: 12px 32px 120px; }
+main { max-width: 1240px; margin: 0 auto; padding: 12px 32px 120px; }
 
 .horizon-glow {
   position: absolute; left: -10%; right: -10%; top: 0; height: 1px;
@@ -315,7 +315,7 @@ button.primary:hover { background: #8d70f5; }
 .goal-table { font-size: 13.5px; }
 .goal-row-head, .goal-row {
   display: grid;
-  grid-template-columns: 34px minmax(200px,1fr) 190px 100px 96px 130px 30px;
+  grid-template-columns: 34px minmax(170px,1fr) 160px 108px 100px 96px 90px 120px 30px;
   align-items: center; gap: 10px;
   padding: 0 6px;
   border-bottom: 1px solid rgba(255,255,255,.06);
@@ -351,6 +351,10 @@ button.primary:hover { background: #8d70f5; }
 .g-pcts .pct-real.ahead { color: #4ec98a; }
 .g-pcts .pct-real.behind { color: #e57373; }
 .g-pcts .pct-esp { font-size: 10.5px; color: var(--text2); white-space: nowrap; }
+.g-recorrencia { font-size: 12px; color: var(--text2); white-space: nowrap; }
+.g-proxima { font-size: 12.5px; color: var(--text2); white-space: nowrap; }
+.proxima-hint { font-size: 12px; color: var(--text2); margin: 4px 0 12px; line-height: 1.5; }
+.proxima-hint strong { color: var(--text); }
 
 .pace-block { margin: 14px 0 2px; }
 .pace-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
@@ -506,7 +510,9 @@ button.primary:hover { background: #8d70f5; }
 @media (max-width: 700px) {
   .goal-row-head, .goal-row { grid-template-columns: 30px 1fr 90px 30px; }
   .goal-row-head .hc-prog, .goal-row-head .hc-due, .goal-row-head .hc-prio,
-  .goal-row .g-progress, .goal-row .g-due, .goal-row .g-stars { display: none; }
+  .goal-row-head .hc-rec, .goal-row-head .hc-prox,
+  .goal-row .g-progress, .goal-row .g-due, .goal-row .g-stars,
+  .goal-row .g-recorrencia, .goal-row .g-proxima { display: none; }
   .goal-detail { padding-left: 16px; }
 }
 
@@ -640,6 +646,8 @@ function sairPersonal() {
         <span>✓</span>
         <button class="col-sort" data-col="name">Meta<span class="sort-arrow"></span></button>
         <button class="col-sort hc-prog" data-col="progress">Progresso<span class="sort-arrow"></span></button>
+        <button class="col-sort hc-rec" data-col="recorrencia">Tipo<span class="sort-arrow"></span></button>
+        <button class="col-sort hc-prox" data-col="proxima">Próxima Data<span class="sort-arrow"></span></button>
         <button class="col-sort hc-due" data-col="due">Completar até<span class="sort-arrow"></span></button>
         <button class="col-sort hc-prio" data-col="prio">Prioridade<span class="sort-arrow"></span></button>
         <button class="col-sort" data-col="area">Área<span class="sort-arrow"></span></button>
@@ -902,6 +910,8 @@ function sairPersonal() {
     delete g.log;
     delete g.adjust;
     (g.tasks || []).forEach(t => { if (t.due === undefined) t.due = ''; });
+    if (g.recorrencia === undefined) g.recorrencia = 'esporadica';
+    if (g.proximaData === undefined) g.proximaData = '';
     if (g.createdAt === undefined) {
       const ts = parseInt(String(g.id).slice(1), 10);
       if (!isNaN(ts) && ts > 0) {
@@ -941,7 +951,7 @@ function sairPersonal() {
   });
 
   // Cabeçalhos clicáveis: cada coluna ordena ao clicar; clicar de novo inverte a direção
-  const DEFAULT_DIR = { name: 'asc', progress: 'desc', due: 'asc', prio: 'desc', area: 'asc' };
+  const DEFAULT_DIR = { name: 'asc', progress: 'desc', due: 'asc', prio: 'desc', area: 'asc', recorrencia: 'asc', proxima: 'asc' };
   document.querySelectorAll('.col-sort').forEach(btn => {
     btn.addEventListener('click', () => {
       const col = btn.dataset.col;
@@ -978,6 +988,33 @@ function sairPersonal() {
   function fmtBR(iso) { const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y; }
   const stars = n => '⭐'.repeat(Math.max(1, Math.min(5, n)));
   const fmtBRL = n => (n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const RECORRENCIA = {
+    diaria:     { label: 'Diária',     icon: '🔁', order: 1 },
+    semanal:    { label: 'Semanal',    icon: '📅', order: 2 },
+    mensal:     { label: 'Mensal',     icon: '🗓️', order: 3 },
+    esporadica: { label: 'Esporádica', icon: '🎯', order: 4 },
+  };
+
+  // Próxima data: se o campo foi preenchido manualmente, usa ele. Senão, calcula
+  // conforme o tipo de atividade — diária = hoje, semanal = próximo domingo,
+  // mensal = último dia do mês, esporádica = data mais próxima do checklist.
+  function computeNextDate(g) {
+    if (g.proximaData) return g.proximaData;
+    const [y, m, d] = todayISO().split('-').map(Number);
+    if (g.recorrencia === 'diaria') return todayISO();
+    if (g.recorrencia === 'semanal') {
+      const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0 = domingo
+      const daysUntilSun = (7 - dow) % 7;
+      return new Date(Date.UTC(y, m - 1, d) + daysUntilSun * 86400000).toISOString().slice(0, 10);
+    }
+    if (g.recorrencia === 'mensal') {
+      return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); // dia 0 do próximo mês = último dia do atual
+    }
+    // esporádica: primeira data (mais próxima) entre os itens de ação
+    const dues = (g.tasks || []).map(t => t.due).filter(Boolean).sort();
+    return dues.length ? dues[0] : '';
+  }
 
   function actualPct(g) {
     if (g.kind === 'contador') {
@@ -1062,6 +1099,8 @@ function sairPersonal() {
         case 'due': av = a.due || '9999-99-99'; bv = b.due || '9999-99-99'; break;
         case 'area': av = (AREAS.find(x => x.id === a.area) || {}).label || ''; bv = (AREAS.find(x => x.id === b.area) || {}).label || ''; break;
         case 'name': av = (a.name || '').toLowerCase(); bv = (b.name || '').toLowerCase(); break;
+        case 'recorrencia': av = RECORRENCIA[a.recorrencia].order; bv = RECORRENCIA[b.recorrencia].order; break;
+        case 'proxima': av = computeNextDate(a) || '9999-99-99'; bv = computeNextDate(b) || '9999-99-99'; break;
         default: av = a.prio; bv = b.prio;
       }
       if (av < bv) return -1 * dir;
@@ -1081,6 +1120,7 @@ function sairPersonal() {
       const paceCls = g.done ? '' : (diff >= 3 ? 'ahead' : diff <= -3 ? 'behind' : '');
       const isOpen = openGoals.has(g.id);
       const overdue = g.due && !g.done && g.due < todayISO();
+      const proximaVal = computeNextDate(g);
 
       const row = document.createElement('div');
       row.className = 'goal-row' + (g.done ? ' done' : '') + (isOpen ? ' open' : '');
@@ -1096,6 +1136,8 @@ function sairPersonal() {
             <span class="pct-esp">${g.done ? 'concluída' : expected + '% esperado'}</span>
           </div>
         </div>
+        <span class="g-recorrencia">${RECORRENCIA[g.recorrencia].icon} ${RECORRENCIA[g.recorrencia].label}</span>
+        <span class="g-proxima">${proximaVal ? fmtBR(proximaVal) : '—'}</span>
         <span class="g-due ${overdue ? 'overdue' : ''}">${g.due ? fmtBR(g.due) : '—'}</span>
         <span class="g-stars" title="Prioridade ${g.prio} de 5">${stars(g.prio)}</span>
         <span class="tag">${esc(a.label)}</span>
@@ -1174,10 +1216,18 @@ function sairPersonal() {
               <option value="anual" ${g.tipo === 'anual' ? 'selected' : ''}>🎯 Anual</option>
               <option value="sazonal" ${g.tipo === 'sazonal' ? 'selected' : ''}>Sazonal</option>
             </select></div>
+            <div class="prop"><label>Tipo de atividade</label><select data-prop="recorrencia">
+              <option value="diaria" ${g.recorrencia === 'diaria' ? 'selected' : ''}>🔁 Diária</option>
+              <option value="semanal" ${g.recorrencia === 'semanal' ? 'selected' : ''}>📅 Semanal</option>
+              <option value="mensal" ${g.recorrencia === 'mensal' ? 'selected' : ''}>🗓️ Mensal</option>
+              <option value="esporadica" ${g.recorrencia === 'esporadica' ? 'selected' : ''}>🎯 Esporádica</option>
+            </select></div>
+            <div class="prop"><label>Próxima data (manual)</label><input type="date" data-prop="proximaData" value="${g.proximaData || ''}"></div>
             <div class="prop"><label>Completar até</label><input type="date" data-prop="due" value="${g.due || ''}"></div>
             <div class="prop"><label>Prioridade</label><select data-prop="prio">${prioOpts}</select></div>
             ${g.done && g.doneAt ? `<div class="prop"><label>Completada em</label><span style="font-size:13px; padding-top:6px;">${fmtBR(g.doneAt)}</span></div>` : ''}
           </div>
+          <p class="proxima-hint">Próxima data: <strong>${computeNextDate(g) ? fmtBR(computeNextDate(g)) : '—'}</strong> — deixe "Próxima data (manual)" vazio para calcular sozinho a partir do tipo de atividade (diária = hoje, semanal = domingo, mensal = último dia do mês, esporádica = 1ª data do checklist).</p>
           ${!g.done ? (() => {
             const p = paceStatusHtml(g);
             return `<div class="pace-block">
@@ -1228,6 +1278,7 @@ function sairPersonal() {
       name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual', createdAt: todayISO(),
       due: '', done: false, doneAt: '', tasks: [],
       kind: 'checklist', target: null, unit: '', count: 0, entries: [],
+      recorrencia: 'esporadica', proximaData: '',
     };
     state.goals.push(g);
     openGoals.add(g.id);
@@ -1374,6 +1425,8 @@ function sairPersonal() {
     row.querySelector('.g-stars').textContent = stars(g.prio);
     row.querySelector('.g-stars').title = `Prioridade ${g.prio} de 5`;
     row.querySelector('.tag').textContent = a.label;
+    const proximaVal = computeNextDate(g);
+    row.querySelector('.g-proxima').textContent = proximaVal ? fmtBR(proximaVal) : '—';
     const pct = actualPct(g);
     const expected = expectedPct(g);
     const diff = pct - expected;
@@ -1388,6 +1441,8 @@ function sairPersonal() {
     const det = goalRows.querySelector(`.goal-detail[data-id="${g.id}"]`);
     if (det) {
       det.style.setProperty('--c', a.color);
+      const hintStrong = det.querySelector('.proxima-hint strong');
+      if (hintStrong) hintStrong.textContent = proximaVal ? fmtBR(proximaVal) : '—';
       const paceBlock = det.querySelector('.pace-block');
       if (paceBlock && !g.done) {
         const p = paceStatusHtml(g);
@@ -1411,6 +1466,7 @@ function sairPersonal() {
         t.due = taskDue.value;
         save();
         item.classList.toggle('overdue', !t.done && !!t.due && t.due < todayISO());
+        updateRowSummary(g);
       }
       return;
     }
@@ -1418,7 +1474,8 @@ function sairPersonal() {
     if (dateProp) {
       // Data da meta: só atualiza estado + resumo da linha, sem recriar o input (evita perder o foco ao digitar)
       const g = gById(dateProp.closest('.goal-detail').dataset.id);
-      g.due = dateProp.value;
+      const prop = dateProp.dataset.prop; // 'due' ou 'proximaData'
+      g[prop] = dateProp.value;
       save();
       updateRowSummary(g);
       return;
@@ -1431,6 +1488,7 @@ function sairPersonal() {
       save();
       if (prop === 'area') { renderGoals(); }
       else if (prop === 'kind') { renderGoals(); }
+      else if (prop === 'recorrencia') { renderGoals(); }
       else { updateRowSummary(g); }
       return;
     }
