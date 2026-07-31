@@ -1442,6 +1442,18 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       </button>
 
       <div class="sidebar-divider" id="admin-divider" style="display:none"></div>
+      <!-- Legenda perfil (só para admin) -->
+      <div id="menu-perfil-legenda" style="display:none;padding:.6rem 1.4rem;margin-top:.2rem">
+        <div style="font-size:.58rem;color:var(--gray2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.4rem">Legenda de menus</div>
+        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem">
+          <span style="width:6px;height:6px;border-radius:50%;background:#4ec98a;display:inline-block"></span>
+          <span style="font-size:.62rem;color:var(--gray)">SaaS + Mentorado</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.4rem">
+          <span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;display:inline-block"></span>
+          <span style="font-size:.62rem;color:var(--gray)">Exclusivo Mentorado</span>
+        </div>
+      </div>
       <div class="sidebar-section-label" id="admin-label" style="display:none">Administração</div>
       <button class="menu-item" id="admin-menu-item" style="display:none" onclick="irPara('admin-clientes', this); adminCarregarClientes()">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
@@ -3286,6 +3298,13 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               <div class="admin-frase-grid">
                 <div class="diag-field"><label class="diag-label">Nome</label><input class="diag-input" type="text" id="admin-perfil-nome"></div>
                 <div class="diag-field"><label class="diag-label">Email</label><input class="diag-input" type="email" id="admin-perfil-email" disabled style="opacity:.6"></div>
+                <div class="diag-field">
+                  <label class="diag-label">Tipo de perfil</label>
+                  <select class="diag-input" id="admin-perfil-perfil">
+                    <option value="mentorado">Mentorado</option>
+                    <option value="saas">SaaS</option>
+                  </select>
+                </div>
                 <div class="diag-field"><label class="diag-label">WhatsApp</label><input class="diag-input" type="text" id="admin-perfil-whatsapp" placeholder="(11) 99999-9999"></div>
                 <div class="diag-field"><label class="diag-label">Telefone</label><input class="diag-input" type="text" id="admin-perfil-telefone"></div>
                 <div class="diag-field"><label class="diag-label">Data de nascimento</label><input class="diag-input" type="date" id="admin-perfil-nascimento"></div>
@@ -4216,12 +4235,13 @@ async function mostrarPainel(user){
   document.getElementById('site-pf').style.display='none';
   document.getElementById('painel').style.display='block';
 
-  const { data: profile } = await sb.from('profiles').select('nome, is_admin, foto_url, senha_alterada').eq('id', user.id).maybeSingle();
+  const { data: profile } = await sb.from('profiles').select('nome, is_admin, foto_url, senha_alterada, perfil').eq('id', user.id).maybeSingle();
   const nome = (profile && profile.nome) ? profile.nome : user.email.split('@')[0];
   usuarioAtual = {
     id: user.id, email: user.email, nome,
     isAdmin: !!(profile && profile.is_admin),
     senhaAlterada: !!(profile && profile.senha_alterada),
+    perfil: (profile && profile.perfil) || 'mentorado',
     diagPreenchido: false,
     raioxPreenchido: false,
   };
@@ -4241,7 +4261,11 @@ async function mostrarPainel(user){
     document.getElementById('admin-label').style.display='block';
     document.getElementById('admin-menu-item').style.display='flex';
     document.getElementById('admin-menu-item-frases').style.display='flex';
+    document.getElementById('menu-perfil-legenda').style.display='block';
   }
+
+  // Aplicar controle de acesso por perfil
+  aplicarPerfilMenu(usuarioAtual.perfil, usuarioAtual.isAdmin);
 
   inicioCarregarFrases();
   atualizarAvatarTopbar(profile && profile.foto_url);
@@ -4257,6 +4281,41 @@ async function mostrarPainel(user){
   ]);
 
   inicioRenderJornada();
+}
+
+// Menus exclusivos do Mentorado (ocultos para SaaS)
+const MENUS_MENTORADO = ['diagnostico','raiox','conquistas','plano','cronograma'];
+
+function aplicarPerfilMenu(perfil, isAdmin){
+  const isSaas = perfil === 'saas' && !isAdmin;
+
+  // Ocultar menus exclusivos do mentorado para SaaS
+  MENUS_MENTORADO.forEach(tela=>{
+    const btn = document.querySelector(`.menu-item[onclick*="'${tela}'"]`);
+    if(btn) btn.style.display = isSaas ? 'none' : '';
+  });
+
+  // Colorir menus: pontinho colorido indicando disponibilidade
+  document.querySelectorAll('.menu-item').forEach(btn=>{
+    // Remove indicadores anteriores
+    btn.querySelectorAll('.menu-perfil-dot').forEach(d=>d.remove());
+
+    const onclick = btn.getAttribute('onclick')||'';
+    const tela = (onclick.match(/'([^']+)'/) || [])[1];
+    if(!tela || tela.startsWith('admin')) return;
+
+    const exclusivo = MENUS_MENTORADO.includes(tela);
+    const dot = document.createElement('span');
+    dot.className = 'menu-perfil-dot';
+    dot.title = exclusivo ? 'Exclusivo Mentorado' : 'Disponível para todos';
+    dot.style.cssText = `
+      display:inline-block;width:6px;height:6px;border-radius:50%;
+      margin-left:auto;flex-shrink:0;
+      background:${exclusivo ? '#a78bfa' : '#4ec98a'};
+      opacity:.7;
+    `;
+    btn.appendChild(dot);
+  });
 }
 
 async function sair(){
@@ -6819,7 +6878,7 @@ async function adminCarregarClientes(){
 
   const { data, error } = await sb
     .from('profiles')
-    .select('id, nome, email, created_at, tipo_perfil')
+    .select('id, nome, email, created_at, tipo_perfil, perfil')
     .eq('tipo_perfil', 'pf')
     .order('created_at', { ascending:false });
 
@@ -6830,8 +6889,11 @@ async function adminCarregarClientes(){
   rows.innerHTML = data.map((c,idx)=>{
     const nome = c.nome || c.email.split('@')[0];
     const dataCad = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '—';
+    const perfilBadge = c.perfil === 'saas'
+      ? '<span style="font-size:.58rem;background:rgba(124,156,255,0.15);color:#7c9cff;padding:.1rem .4rem;border-radius:3px;font-weight:700;margin-left:.5rem">SaaS</span>'
+      : '<span style="font-size:.58rem;background:rgba(78,201,138,0.1);color:var(--green);padding:.1rem .4rem;border-radius:3px;font-weight:700;margin-left:.5rem">Mentorado</span>';
     return `<div class="admin-lista-row" onclick="adminAbrirCliente(${idx})">
-      <span class="admin-nome">${nome}</span>
+      <span class="admin-nome">${nome}${perfilBadge}</span>
       <span class="admin-email">${c.email}</span>
       <span class="admin-data">${dataCad}</span>
       <span class="admin-ver">Ver detalhes →</span>
@@ -7821,6 +7883,7 @@ async function adminPerfilCarregar(){
 
   document.getElementById('admin-perfil-nome').value        = data.nome||'';
   document.getElementById('admin-perfil-email').value       = data.email||'';
+  document.getElementById('admin-perfil-perfil').value      = data.perfil||'mentorado';
   document.getElementById('admin-perfil-whatsapp').value    = data.whatsapp||'';
   document.getElementById('admin-perfil-telefone').value    = data.telefone||'';
   document.getElementById('admin-perfil-nascimento').value  = data.data_nascimento||'';
@@ -7839,11 +7902,21 @@ async function adminPerfilCarregar(){
   const wpEl = document.getElementById('admin-cliente-whatsapp');
   if(data.whatsapp) wpEl.textContent = '📱 '+data.whatsapp;
   else wpEl.textContent = '';
+
+  // Badge de perfil no cabeçalho
+  const perfilBadge = data.perfil === 'saas'
+    ? '<span style="font-size:.6rem;background:rgba(124,156,255,0.15);color:#7c9cff;padding:.15rem .5rem;border-radius:3px;font-weight:700;margin-left:.5rem">SaaS</span>'
+    : '<span style="font-size:.6rem;background:rgba(78,201,138,0.12);color:var(--green);padding:.15rem .5rem;border-radius:3px;font-weight:700;margin-left:.5rem">Mentorado</span>';
+  const nomeEl = document.getElementById('admin-cliente-nome');
+  // Remove badge anterior se existir
+  nomeEl.querySelectorAll('span').forEach(s=>s.remove());
+  nomeEl.insertAdjacentHTML('beforeend', perfilBadge);
 }
 
 async function adminPerfilSalvar(){
   const payload = {
     nome:           document.getElementById('admin-perfil-nome').value.trim()||null,
+    perfil:         document.getElementById('admin-perfil-perfil').value||'mentorado',
     whatsapp:       document.getElementById('admin-perfil-whatsapp').value.trim()||null,
     telefone:       document.getElementById('admin-perfil-telefone').value.trim()||null,
     data_nascimento:document.getElementById('admin-perfil-nascimento').value||null,
