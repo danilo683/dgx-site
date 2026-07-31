@@ -1394,7 +1394,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       </button>
       <button class="menu-item" onclick="irPara('cartao', this)">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
-        Cartão de Crédito
+        Análise de Cartão
       </button>
       <button class="menu-item" onclick="irPara('simulador', this); simInit()">
         <span class="menu-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-4"/></svg></span>
@@ -1658,8 +1658,14 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
             </div>
 
-            <div class="add-lancamento" style="margin-top:0">
-              <div class="add-lancamento-title">Registrar lançamento</div>
+            <!-- Abas de lançamento -->
+            <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border)">
+              <button class="lanc-form-tab active" id="lanc-tab-extrato" onclick="lancFormAba('extrato')" style="padding:.5rem 1.2rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);cursor:pointer;margin-bottom:-1px">Extrato bancário</button>
+              <button class="lanc-form-tab" id="lanc-tab-cartao" onclick="lancFormAba('cartao')" style="padding:.5rem 1.2rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);cursor:pointer;margin-bottom:-1px">Cartão de crédito</button>
+            </div>
+
+            <!-- Formulário: Extrato -->
+            <div id="lanc-form-extrato" class="add-lancamento" style="margin-top:0">
               <div class="add-form">
                 <div class="f"><label>Data</label><input type="date" id="add-data"></div>
                 <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
@@ -1671,12 +1677,25 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
             </div>
 
+            <!-- Formulário: Cartão -->
+            <div id="lanc-form-cartao" class="add-lancamento" style="margin-top:0;display:none">
+              <div class="add-form">
+                <div class="f"><label>Cartão</label><select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select></div>
+                <div class="f"><label>Vencimento da fatura</label><input type="date" id="add-cartao-venc"></div>
+                <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-cartao-desc" placeholder="Ex: Supermercado, Amazon..."></div>
+                <div class="f"><label>Categoria</label><select id="add-cartao-cat"></select></div>
+                <div class="f"><label>Valor (R$)</label><input type="number" id="add-cartao-val" placeholder="0,00" min="0" step="0.01"></div>
+                <button class="btn-add" style="background:#7c9cff" onclick="adicionarLancamentoCartao()">+ Adicionar</button>
+              </div>
+            </div>
+
             <div class="extrato-filters" style="margin:1.2rem 0 .8rem">
               <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
               <button class="filter-btn" onclick="filtrar(this,'receita')">Receitas</button>
               <button class="filter-btn" onclick="filtrar(this,'despesa')">Despesas</button>
               <button class="filter-btn" onclick="filtrar(this,'investimento')">Investimentos</button>
               <button class="filter-btn" onclick="filtrar(this,'transferencia')">Transferências</button>
+              <button class="filter-btn" onclick="filtrar(this,'cartao')">Cartão</button>
             </div>
 
             <table class="extrato-table" id="extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody id="extrato-tbody"></tbody></table>
@@ -2885,7 +2904,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
       <!-- ── CARTÃO DE CRÉDITO ── -->
       <div class="tela" id="tela-cartao">
         <div class="tela-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
-          <div><h2>Cartão de Crédito</h2><p>Compras parceladas, assinaturas e projeção de compromissos futuros</p></div>
+          <div><h2>Análise de Cartão</h2><p>Compras parceladas, assinaturas e projeção de compromissos futuros</p></div>
           <div style="display:flex;gap:.5rem">
             <button class="orc-btn-save" style="display:inline-flex" onclick="cartaoAbrirForm(null,'parcelado')">+ Compra parcelada</button>
             <button class="orc-btn-config" style="font-size:.75rem" onclick="cartaoAbrirForm(null,'assinatura')">♻ Assinatura</button>
@@ -5246,7 +5265,8 @@ function renderExtrato(){
   const tbody=document.getElementById('extrato-tbody');
   const empty=document.getElementById('extrato-empty');
   let items=lancItemsDoMes();
-  if(filtroAtivo!=='todos')items=items.filter(l=>l.tipo===filtroAtivo);
+  if(filtroAtivo==='cartao') items=items.filter(l=>l.origem==='cartao');
+  else if(filtroAtivo!=='todos') items=items.filter(l=>l.tipo===filtroAtivo);
   items.sort((a,b)=>b.data.localeCompare(a.data));
   if(items.length===0){tbody.innerHTML='';document.getElementById('extrato-table').style.display='none';empty.style.display='block';return}
   document.getElementById('extrato-table').style.display='table';empty.style.display='none';
@@ -5302,7 +5322,81 @@ function calcularResumo(){
 
 function filtrar(btn,tipo){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');filtroAtivo=tipo;renderExtrato();
+  btn.classList.add('active');
+  filtroAtivo = tipo;
+  renderExtrato();
+}
+
+function lancFormAba(aba){
+  const isCartao = aba === 'cartao';
+  document.getElementById('lanc-form-extrato').style.display = isCartao ? 'none' : 'block';
+  document.getElementById('lanc-form-cartao').style.display  = isCartao ? 'block' : 'none';
+  document.getElementById('lanc-tab-extrato').style.borderBottomColor = isCartao ? 'transparent' : 'var(--gold)';
+  document.getElementById('lanc-tab-extrato').style.color = isCartao ? 'var(--gray)' : 'var(--gold)';
+  document.getElementById('lanc-tab-cartao').style.borderBottomColor = isCartao ? '#7c9cff' : 'transparent';
+  document.getElementById('lanc-tab-cartao').style.color = isCartao ? '#7c9cff' : 'var(--gray)';
+  if(isCartao) lancPopularCartaoForm();
+}
+
+function lancPopularCartaoForm(){
+  // Popula select de cartões
+  const sel = document.getElementById('add-cartao-sel');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— selecione —</option>' +
+    (cartoesCadastrados||[]).map(c=>`<option value="${escapeHtml(c.nome)}" data-dia="${c.dia_vencimento}">${escapeHtml(c.nome)}${c.bandeira?' ('+c.bandeira+')':''}</option>`).join('');
+  // Popula categorias de despesa
+  const cat = document.getElementById('add-cartao-cat');
+  if(!cat) return;
+  const cats = [];
+  RX_DESPESAS_GRUPOS.forEach(g=>{
+    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
+    cats.push(...g.itens,...(gDados.extras||[]));
+  });
+  cat.innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+function lancCartaoPreencherVenc(){
+  const sel = document.getElementById('add-cartao-sel');
+  const dia = sel.options[sel.selectedIndex]?.dataset?.dia;
+  if(!dia) return;
+  const hoje = new Date();
+  const d = new Date(hoje.getFullYear(), hoje.getMonth()+(hoje.getDate()>=parseInt(dia)?1:0), parseInt(dia));
+  document.getElementById('add-cartao-venc').value = d.toISOString().split('T')[0];
+}
+
+async function adicionarLancamentoCartao(){
+  const cartao = document.getElementById('add-cartao-sel').value;
+  const venc   = document.getElementById('add-cartao-venc').value;
+  const desc   = document.getElementById('add-cartao-desc').value.trim();
+  const cat    = document.getElementById('add-cartao-cat').value;
+  const val    = parseFloat(document.getElementById('add-cartao-val').value);
+
+  if(!venc || !desc || isNaN(val) || val<=0){
+    alert('Preencha todos os campos corretamente.'); return;
+  }
+
+  const btn = document.querySelector('#lanc-form-cartao .btn-add');
+  const orig = btn.textContent; btn.textContent='Salvando...'; btn.disabled=true;
+
+  const { data: row, error } = await sb.from('extrato').insert({
+    user_id: usuarioAtual.id,
+    data: venc, descricao: desc, tipo: 'despesa',
+    categoria: cat, valor: val, origem: 'cartao', conta: cartao||null
+  }).select().single();
+
+  btn.textContent=orig; btn.disabled=false;
+  if(error){ alert('Erro: '+error.message); return; }
+
+  extratoAtual.push({id:row.id, data:row.data, desc:row.descricao, tipo:'despesa',
+    cat:row.categoria, val:Number(row.valor), origem:'cartao', conta:row.conta});
+
+  document.getElementById('add-cartao-desc').value='';
+  document.getElementById('add-cartao-val').value='';
+
+  renderExtrato();
+  lancRenderOrcadoRealizado();
+  calcularResumo();
+  saldoRenderizar();
 }
 
 // ══════════════════════════════════════════════
