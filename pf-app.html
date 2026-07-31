@@ -711,6 +711,22 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 }
 .csv-row-removida{opacity:.4;text-decoration:line-through}
 
+/* ════════ LANÇAMENTOS — DOIS TIPOS ════════ */
+.lanc-tipos-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem}
+@media(max-width:800px){.lanc-tipos-wrap{grid-template-columns:1fr}}
+
+.lanc-tipo-col{background:var(--navy2);border:1px solid var(--border);padding:1.2rem 1.4rem}
+.lanc-tipo-col.lanc-tipo-cartao{border-color:rgba(124,156,255,0.2)}
+
+.lanc-tipo-header{display:flex;align-items:center;gap:.6rem;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--white);margin-bottom:.8rem;padding-bottom:.8rem;border-bottom:1px solid var(--border)}
+.lanc-tipo-header.cartao{color:#7c9cff}
+.lanc-tipo-header svg{opacity:.7;flex-shrink:0}
+
+.lanc-cartao-subtipos{display:flex;gap:.4rem;margin-bottom:.8rem}
+.lanc-subtipo-btn{flex:1;padding:.45rem .3rem;font-size:.68rem;font-weight:700;text-align:center;background:var(--navy3);border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;border-radius:3px}
+.lanc-subtipo-btn:hover{border-color:rgba(124,156,255,0.4);color:#7c9cff}
+.lanc-subtipo-btn.active{background:rgba(124,156,255,0.12);border-color:#7c9cff;color:#7c9cff}
+
 /* ════════ LANÇAMENTOS (orçado x realizado) ════════ */
 .lanc-mes-tabs{display:flex;gap:.3rem;flex-wrap:wrap}
 .lanc-mes-tab{
@@ -1645,71 +1661,108 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="summ-card"><div class="summ-label">Investimentos</div><div class="summ-value gold" id="card-invest">R$ 0,00</div><div class="summ-tag">aportados este mês</div></div>
         </div>
 
-        <div class="lanc-col-lista" style="max-width:100%">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
-              <div class="lanc-col-titulo" style="margin:0">Lançamentos do mês</div>
-              <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-                <button class="orc-btn-config" onclick="csvImportAbrirModal('extrato')" style="font-size:.7rem">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Importar Extrato
-                </button>
-                <button class="orc-btn-config" onclick="csvImportAbrirModal('cartao')" style="font-size:.7rem;border-color:rgba(124,156,255,0.4);color:#7c9cff">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                  Importar Fatura
-                </button>
-                <button class="orc-btn-config" onclick="cartaoAbrirForm(null,'parcelado')" style="font-size:.7rem;border-color:rgba(240,201,58,0.4);color:#f0c93a">
-                  + Parcelado
-                </button>
-                <button class="orc-btn-config" onclick="cartaoAbrirForm(null,'assinatura')" style="font-size:.7rem;border-color:rgba(124,156,255,0.4);color:#7c9cff">
-                  ♻ Assinatura
-                </button>
+        <!-- Duas colunas de lançamento -->
+        <div class="lanc-tipos-wrap">
+
+          <!-- COLUNA 1: EXTRATO BANCÁRIO -->
+          <div class="lanc-tipo-col lanc-tipo-extrato">
+            <div class="lanc-tipo-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>Extrato Bancário</span>
+              <button class="orc-btn-config" onclick="csvImportAbrirModal('extrato')" style="font-size:.65rem;margin-left:auto">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Importar CSV
+              </button>
+            </div>
+            <div class="add-lancamento" style="margin:0;border:none;padding:.8rem 0 0">
+              <div class="add-form" style="flex-direction:column;gap:.6rem">
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                  <div class="f" style="flex:0 0 130px"><label>Data</label><input type="date" id="add-data"></div>
+                  <div class="f" style="flex:1;min-width:140px"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                  <div class="f" style="flex:1"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
+                  <div class="f" style="flex:1"><label>Categoria</label><select id="add-cat"></select></div>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+                  <div class="f" style="flex:1"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
+                  <div class="f" style="flex:0 0 110px"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
+                  <button class="btn-add" onclick="adicionarLancamento()" style="align-self:flex-end">+ Adicionar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 2: CARTÃO DE CRÉDITO -->
+          <div class="lanc-tipo-col lanc-tipo-cartao">
+            <div class="lanc-tipo-header cartao">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span>Cartão de Crédito</span>
+              <button class="orc-btn-config" onclick="csvImportAbrirModal('cartao')" style="font-size:.65rem;margin-left:auto;border-color:rgba(124,156,255,0.4);color:#7c9cff">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Importar Fatura
+              </button>
+            </div>
+
+            <!-- Sub-tipos do cartão -->
+            <div class="lanc-cartao-subtipos">
+              <button class="lanc-subtipo-btn active" id="lanc-sub-compra" onclick="lancSubtipo('compra')">
+                🛒 Compra
+              </button>
+              <button class="lanc-subtipo-btn" id="lanc-sub-parcelado" onclick="lancSubtipo('parcelado')">
+                📦 Parcelado
+              </button>
+              <button class="lanc-subtipo-btn" id="lanc-sub-assinatura" onclick="lancSubtipo('assinatura')">
+                ♻ Assinatura
+              </button>
+            </div>
+
+            <!-- Compra à vista -->
+            <div id="lanc-cartao-compra" class="add-lancamento" style="margin:0;border:none;padding:.8rem 0 0">
+              <div class="add-form" style="flex-direction:column;gap:.6rem">
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                  <div class="f" style="flex:1"><label>Cartão</label><select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select></div>
+                  <div class="f" style="flex:0 0 140px"><label>Vencimento</label><input type="date" id="add-cartao-venc"></div>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                  <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-cartao-desc" placeholder="Ex: Supermercado, iFood..."></div>
+                  <div class="f" style="flex:1"><label>Categoria</label><select id="add-cartao-cat"></select></div>
+                </div>
+                <div style="display:flex;gap:.5rem;align-items:flex-end">
+                  <div class="f" style="flex:0 0 120px"><label>Valor (R$)</label><input type="number" id="add-cartao-val" placeholder="0,00" min="0" step="0.01"></div>
+                  <button class="btn-add" style="background:#7c9cff;color:#fff" onclick="adicionarLancamentoCartao()">+ Adicionar</button>
+                </div>
               </div>
             </div>
 
-            <!-- Abas de lançamento -->
-            <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border)">
-              <button class="lanc-form-tab active" id="lanc-tab-extrato" onclick="lancFormAba('extrato')" style="padding:.5rem 1.2rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);cursor:pointer;margin-bottom:-1px">Extrato bancário</button>
-              <button class="lanc-form-tab" id="lanc-tab-cartao" onclick="lancFormAba('cartao')" style="padding:.5rem 1.2rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);cursor:pointer;margin-bottom:-1px">Cartão de crédito</button>
+            <!-- Compra parcelada -->
+            <div id="lanc-cartao-parcelado" style="display:none;padding:.8rem 0 0">
+              <p style="font-size:.72rem;color:var(--gray);margin-bottom:.8rem;line-height:1.5">Cadastra a compra na <strong style="color:var(--white)">Análise de Cartão</strong> para projetar as parcelas futuras automaticamente.</p>
+              <button class="btn-add" style="background:#f0c93a;color:var(--navy);width:100%" onclick="cartaoAbrirForm(null,'parcelado')">+ Cadastrar compra parcelada</button>
             </div>
 
-            <!-- Formulário: Extrato -->
-            <div id="lanc-form-extrato" class="add-lancamento" style="margin-top:0">
-              <div class="add-form">
-                <div class="f"><label>Data</label><input type="date" id="add-data"></div>
-                <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
-                <div class="f"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
-                <div class="f"><label>Categoria</label><select id="add-cat"></select></div>
-                <div class="f"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
-                <div class="f"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
-                <button class="btn-add" onclick="adicionarLancamento()">+ Adicionar</button>
-              </div>
+            <!-- Assinatura -->
+            <div id="lanc-cartao-assinatura" style="display:none;padding:.8rem 0 0">
+              <p style="font-size:.72rem;color:var(--gray);margin-bottom:.8rem;line-height:1.5">Assinaturas são recorrentes e ficam na <strong style="color:var(--white)">Análise de Cartão</strong> com projeção automática para os próximos meses.</p>
+              <button class="btn-add" style="background:#a78bfa;color:#fff;width:100%" onclick="cartaoAbrirForm(null,'assinatura')">♻ Cadastrar assinatura</button>
             </div>
-
-            <!-- Formulário: Cartão -->
-            <div id="lanc-form-cartao" class="add-lancamento" style="margin-top:0;display:none">
-              <div class="add-form">
-                <div class="f"><label>Cartão</label><select id="add-cartao-sel" onchange="lancCartaoPreencherVenc()"><option value="">— selecione —</option></select></div>
-                <div class="f"><label>Vencimento da fatura</label><input type="date" id="add-cartao-venc"></div>
-                <div class="f" style="flex:2"><label>Descrição</label><input type="text" id="add-cartao-desc" placeholder="Ex: Supermercado, Amazon..."></div>
-                <div class="f"><label>Categoria</label><select id="add-cartao-cat"></select></div>
-                <div class="f"><label>Valor (R$)</label><input type="number" id="add-cartao-val" placeholder="0,00" min="0" step="0.01"></div>
-                <button class="btn-add" style="background:#7c9cff" onclick="adicionarLancamentoCartao()">+ Adicionar</button>
-              </div>
-            </div>
-
-            <div class="extrato-filters" style="margin:1.2rem 0 .8rem">
-              <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
-              <button class="filter-btn" onclick="filtrar(this,'receita')">Receitas</button>
-              <button class="filter-btn" onclick="filtrar(this,'despesa')">Despesas</button>
-              <button class="filter-btn" onclick="filtrar(this,'investimento')">Investimentos</button>
-              <button class="filter-btn" onclick="filtrar(this,'transferencia')">Transferências</button>
-              <button class="filter-btn" onclick="filtrar(this,'cartao')">Cartão</button>
-            </div>
-
-            <table class="extrato-table" id="extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody id="extrato-tbody"></tbody></table>
-            <div class="extrato-empty" id="extrato-empty" style="display:none">Nenhum lançamento neste mês.</div>
           </div>
         </div>
+
+        <!-- Lista unificada -->
+        <div style="margin-top:1.4rem">
+          <div class="extrato-filters" style="margin-bottom:.8rem">
+            <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
+            <button class="filter-btn" onclick="filtrar(this,'receita')">Receitas</button>
+            <button class="filter-btn" onclick="filtrar(this,'despesa')">Despesas</button>
+            <button class="filter-btn" onclick="filtrar(this,'investimento')">Investimentos</button>
+            <button class="filter-btn" onclick="filtrar(this,'transferencia')">Transferências</button>
+            <button class="filter-btn" onclick="filtrar(this,'cartao')">Cartão</button>
+          </div>
+          <table class="extrato-table" id="extrato-table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody id="extrato-tbody"></tbody></table>
+          <div class="extrato-empty" id="extrato-empty" style="display:none">Nenhum lançamento neste mês.</div>
+        </div>
+      </div>
 
         <!-- MODAL: Importar CSV -->
         <div class="overlay" id="overlay-csv-import">
@@ -5485,17 +5538,17 @@ async function orcRealCarregar(){
   lancRenderOrcadoRealizado();
 }
 
-function lancMainAba(aba){ /* legado — mantido por compatibilidade */ }
+function lancMainAba(aba){ /* legado */ }
+function lancFormAba(aba){ /* legado */ }
 
-function lancFormAba(aba){
-  const isCartao = aba === 'cartao';
-  document.getElementById('lanc-form-extrato').style.display = isCartao ? 'none' : 'block';
-  document.getElementById('lanc-form-cartao').style.display  = isCartao ? 'block' : 'none';
-  document.getElementById('lanc-tab-extrato').style.borderBottomColor = isCartao ? 'transparent' : 'var(--gold)';
-  document.getElementById('lanc-tab-extrato').style.color = isCartao ? 'var(--gray)' : 'var(--gold)';
-  document.getElementById('lanc-tab-cartao').style.borderBottomColor = isCartao ? '#7c9cff' : 'transparent';
-  document.getElementById('lanc-tab-cartao').style.color = isCartao ? '#7c9cff' : 'var(--gray)';
-  if(isCartao) lancPopularCartaoForm();
+function lancSubtipo(tipo){
+  ['compra','parcelado','assinatura'].forEach(t=>{
+    const el = document.getElementById('lanc-cartao-'+t);
+    const btn = document.getElementById('lanc-sub-'+t);
+    if(el) el.style.display = t===tipo?'block':'none';
+    if(btn) btn.classList.toggle('active', t===tipo);
+  });
+  if(tipo==='compra') lancPopularCartaoForm();
 }
 
 function lancPopularCartaoForm(){
