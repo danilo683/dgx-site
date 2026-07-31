@@ -1641,21 +1641,26 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="summ-card"><div class="summ-label">Investimentos</div><div class="summ-value gold" id="card-invest">R$ 0,00</div><div class="summ-tag">aportados este mês</div></div>
         </div>
 
-        <div class="lanc-split">
-          <!-- ESQUERDA: orçado x realizado por categoria -->
-          <div class="lanc-col-orc">
-            <div class="lanc-col-titulo">Orçado × Realizado</div>
-            <div class="orc-loading" id="lanc-orc-loading">Carregando...</div>
-            <div class="orc-table-wrap" id="lanc-orc-wrap" style="display:none;max-height:none">
-              <table class="lanc-orc-table" id="lanc-orc-table">
-                <thead><tr><th>Categoria</th><th style="text-align:right">Orçado</th><th style="text-align:right;color:var(--gold)">Extrato</th><th style="text-align:right;color:#7c9cff">Cartão</th><th style="text-align:right">Diferença</th></tr></thead>
-                <tbody id="lanc-orc-tbody"></tbody>
-              </table>
-            </div>
-          </div>
+        <!-- Abas principais -->
+        <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.2rem">
+          <button id="lanc-main-tab-orc" onclick="lancMainAba('orc')" style="padding:.6rem 1.4rem;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);cursor:pointer;margin-bottom:-2px">Orçado × Realizado</button>
+          <button id="lanc-main-tab-lanc" onclick="lancMainAba('lanc')" style="padding:.6rem 1.4rem;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);cursor:pointer;margin-bottom:-2px">Lançamentos</button>
+        </div>
 
-          <!-- DIREITA: lançamentos do mês -->
-          <div class="lanc-col-lista">
+        <!-- Aba: Orçado × Realizado -->
+        <div id="lanc-main-orc">
+          <div class="orc-loading" id="lanc-orc-loading">Carregando...</div>
+          <div class="orc-table-wrap" id="lanc-orc-wrap" style="display:none;max-height:none">
+            <table class="lanc-orc-table" id="lanc-orc-table">
+              <thead><tr><th>Categoria</th><th style="text-align:right">Orçado</th><th style="text-align:right;color:var(--gold)">Extrato</th><th style="text-align:right;color:#7c9cff">Cartão</th><th style="text-align:right">Diferença</th></tr></thead>
+              <tbody id="lanc-orc-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Aba: Lançamentos -->
+        <div id="lanc-main-lanc" style="display:none">
+          <div class="lanc-col-lista" style="max-width:100%">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
               <div class="lanc-col-titulo" style="margin:0">Lançamentos do mês</div>
               <div style="display:flex;gap:.4rem;flex-wrap:wrap">
@@ -1809,7 +1814,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             </div>
 
           </div>
-        </div>
+        </div><!-- fim lanc-main-lanc -->
       </div>
 
       <!-- ── ORÇAMENTO ── -->
@@ -5386,6 +5391,18 @@ function filtrar(btn,tipo){
   btn.classList.add('active');
   filtroAtivo = tipo;
   renderExtrato();
+}
+
+function lancMainAba(aba){
+  const isOrc = aba === 'orc';
+  document.getElementById('lanc-main-orc').style.display  = isOrc ? 'block' : 'none';
+  document.getElementById('lanc-main-lanc').style.display = isOrc ? 'none' : 'block';
+  const tabOrc  = document.getElementById('lanc-main-tab-orc');
+  const tabLanc = document.getElementById('lanc-main-tab-lanc');
+  tabOrc.style.borderBottomColor  = isOrc ? 'var(--gold)' : 'transparent';
+  tabOrc.style.color               = isOrc ? 'var(--gold)' : 'var(--gray)';
+  tabLanc.style.borderBottomColor = isOrc ? 'transparent' : 'var(--gold)';
+  tabLanc.style.color              = isOrc ? 'var(--gray)' : 'var(--gold)';
 }
 
 function lancFormAba(aba){
