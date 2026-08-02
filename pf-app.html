@@ -3013,8 +3013,23 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <!-- Abas -->
           <div class="inv-tabs" style="margin-bottom:1.2rem">
             <button class="inv-tab active" onclick="cartaoAba(this,'parcelamentos')">Compras parceladas</button>
+            <button class="inv-tab" onclick="cartaoAba(this,'avista')">À vista</button>
             <button class="inv-tab" onclick="cartaoAba(this,'projecao')">Projeção mensal</button>
             <button class="inv-tab" onclick="cartaoAba(this,'meus-cartoes')">Meus cartões</button>
+          </div>
+
+          <!-- Aba: À vista -->
+          <div id="cartao-aba-avista" style="display:none">
+            <div class="orc-table-wrap">
+              <table class="inv-table">
+                <thead><tr>
+                  <th>Vencimento</th><th>Descrição</th><th>Cartão</th><th>Categoria</th>
+                  <th style="text-align:right">Valor</th>
+                </tr></thead>
+                <tbody id="cartao-avista-tbody"></tbody>
+              </table>
+            </div>
+            <div class="plano-vazio" id="cartao-avista-vazio" style="display:none">Nenhuma compra à vista no cartão.</div>
           </div>
 
           <!-- Aba: Compras parceladas -->
@@ -3822,6 +3837,20 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="diag-save-area" style="margin-top:1rem">
               <button class="btn-diag-save" onclick="cartaoConfirmarDetectadas()">Cadastrar selecionadas</button>
               <button class="modal-link" onclick="fecharOverlay('overlay-cartao-detectado')">Ignorar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Duplicatas CSV -->
+        <div class="overlay" id="overlay-csv-duplicatas">
+          <div class="modal" style="max-width:620px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-csv-duplicatas')">×</button>
+            <div class="modal-title">⚠️ Possíveis duplicatas encontradas</div>
+            <p style="font-size:.78rem;color:var(--gray);margin-bottom:1rem">Encontrei lançamentos com o mesmo valor e mês que já existem. Escolha o que fazer com cada um:</p>
+            <div id="csv-dup-lista" style="max-height:55vh;overflow-y:auto"></div>
+            <div class="diag-save-area" style="margin-top:1rem">
+              <button class="btn-diag-save" onclick="csvConfirmarComDuplicatas()">Confirmar</button>
+              <button class="modal-link" onclick="fecharOverlay('overlay-csv-duplicatas')">Cancelar</button>
             </div>
           </div>
         </div>
@@ -5210,48 +5239,156 @@ async function csvConfirmarImport(){
   if(!selecionados.length){ alert('Selecione pelo menos um lançamento para importar.'); return; }
 
   const btn = document.querySelector('#csv-step-2 .btn-diag-save');
-  btn.textContent='Importando...'; btn.disabled=true;
+  btn.textContent='Verificando...'; btn.disabled=true;
 
   try {
     const contaCSV = csvModo === 'cartao'
       ? (document.getElementById('csv-cartao-select')?.value || null)
       : (document.getElementById('csv-conta-select')?.value || null);
-    const rows = selecionados.map(l=>({
-      user_id: usuarioAtual.id,
-      data: l.data,
-      descricao: l.descLancar || l.desc,
-      tipo: l.tipo,
-      categoria: l.categoria,
-      valor: l.val,
-      origem: csvModo,
-      conta: contaCSV
-    }));
 
-    const { error } = await sb.from('extrato').insert(rows);
-    if(error){ alert('Erro ao importar: '+error.message); return; }
+    // ── Detecção de duplicatas ──
+    // Busca lançamentos existentes no mesmo período dos itens importados
+    const datas = selecionados.map(l=>l.data).filter(Boolean);
+    const dataMin = datas.sort()[0];
+    const dataMax = datas.sort().slice(-1)[0];
 
-    // Recarregar extrato
-    const { data } = await sb.from('extrato').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:false});
-    extratoAtual = (data||[]).map(r=>({id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato', conta:r.conta||null}));
+    const { data: existentes } = await sb.from('extrato')
+      .select('id,data,descricao,valor,tipo,categoria,origem')
+      .eq('user_id', usuarioAtual.id)
+      .gte('data', dataMin).lte('data', dataMax);
 
-    fecharOverlay('overlay-csv-import');
-    renderExtrato();
-    lancRenderOrcadoRealizado();
-    calcularResumo();
-    saldoRenderizar(); // atualiza saldo das contas
+    const duplicatas = [];
+    selecionados.forEach((l,i)=>{
+      const possiveis = (existentes||[]).filter(e=>{
+        const mesmoValor = Math.abs(Number(e.valor) - l.val) < 0.01;
+        const mesmoMes  = e.data?.slice(0,7) === l.data?.slice(0,7);
+        return mesmoValor && mesmoMes;
+      });
+      if(possiveis.length) duplicatas.push({ novo: l, idx: i, existentes: possiveis });
+    });
 
-    // Se foi fatura de cartão, detectar parcelas automaticamente
-    if(csvModo === 'cartao'){
-      const detectadas = cartaoDetectarParcelasNoCSV(selecionados);
-      if(detectadas.length) setTimeout(()=>cartaoMostrarDetectadas(detectadas), 600);
+    // Se há duplicatas, mostra modal de confirmação
+    if(duplicatas.length){
+      btn.textContent='✓ Importar selecionados'; btn.disabled=false;
+      csvMostrarDuplicatas(duplicatas, selecionados, contaCSV);
+      return;
     }
 
-    alert(`✓ ${rows.length} lançamento${rows.length!==1?'s':''} importado${rows.length!==1?'s':''} com sucesso!`);
+    // Sem duplicatas — importa direto
+    await csvExecutarImport(selecionados, contaCSV);
   } catch(e){
     alert('Erro: '+e.message);
   } finally {
     btn.textContent='✓ Importar selecionados'; btn.disabled=false;
   }
+}
+
+let csvDuplicatasCtx = null;
+
+function csvMostrarDuplicatas(duplicatas, selecionados, contaCSV){
+  csvDuplicatasCtx = { duplicatas, selecionados, contaCSV };
+
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  document.getElementById('csv-dup-lista').innerHTML = duplicatas.map((d,i)=>`
+    <div style="background:var(--navy3);border:1px solid rgba(240,201,58,0.2);padding:.8rem 1rem;margin-bottom:.6rem">
+      <div style="font-size:.72rem;font-weight:700;color:#f0c93a;margin-bottom:.4rem">⚠️ Possível duplicata ${i+1}/${duplicatas.length}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;font-size:.72rem">
+        <div>
+          <div style="color:var(--gray2);font-size:.62rem;margin-bottom:.2rem">NOVO (CSV)</div>
+          <div style="color:var(--white)">${escapeHtml(d.novo.desc)}</div>
+          <div style="color:var(--gold)">${fmt(d.novo.val)} · ${d.novo.data}</div>
+          <div style="color:var(--gray)">${escapeHtml(d.novo.categoria||'')}</div>
+        </div>
+        <div>
+          <div style="color:var(--gray2);font-size:.62rem;margin-bottom:.2rem">JÁ EXISTE</div>
+          ${d.existentes.map(e=>`
+            <div style="color:var(--white)">${escapeHtml(e.descricao)}</div>
+            <div style="color:var(--red)">${fmt(e.valor)} · ${e.data}</div>
+            <div style="color:var(--gray)">${escapeHtml(e.categoria||'')}</div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="margin-top:.6rem;display:flex;gap:.4rem">
+        <label style="display:flex;align-items:center;gap:.3rem;font-size:.68rem;cursor:pointer">
+          <input type="radio" name="dup-${i}" value="manter" checked> Manter os dois
+        </label>
+        <label style="display:flex;align-items:center;gap:.3rem;font-size:.68rem;cursor:pointer">
+          <input type="radio" name="dup-${i}" value="substituir"> Substituir pelo novo
+        </label>
+        <label style="display:flex;align-items:center;gap:.3rem;font-size:.68rem;cursor:pointer">
+          <input type="radio" name="dup-${i}" value="ignorar"> Ignorar novo
+        </label>
+      </div>
+    </div>`).join('');
+
+  abrirOverlay('overlay-csv-duplicatas');
+}
+
+async function csvConfirmarComDuplicatas(){
+  if(!csvDuplicatasCtx) return;
+  const { duplicatas, selecionados, contaCSV } = csvDuplicatasCtx;
+  const btn = document.querySelector('#overlay-csv-duplicatas .btn-diag-save');
+  btn.textContent='Importando...'; btn.disabled=true;
+
+  // Processar decisões
+  const idsExcluir = [];
+  const idxIgnorar = new Set();
+
+  duplicatas.forEach((d,i)=>{
+    const decisao = document.querySelector(`input[name="dup-${i}"]:checked`)?.value || 'manter';
+    if(decisao==='substituir'){
+      d.existentes.forEach(e=>idsExcluir.push(e.id));
+    } else if(decisao==='ignorar'){
+      idxIgnorar.add(d.novo);
+    }
+  });
+
+  // Excluir substituídos
+  if(idsExcluir.length){
+    await sb.from('extrato').delete().in('id', idsExcluir);
+  }
+
+  // Filtrar ignorados
+  const finalLancs = selecionados.filter(l=>!idxIgnorar.has(l));
+
+  fecharOverlay('overlay-csv-duplicatas');
+  if(finalLancs.length) await csvExecutarImport(finalLancs, contaCSV);
+  else alert('Nenhum lançamento importado.');
+
+  btn.textContent='Confirmar'; btn.disabled=false;
+}
+
+async function csvExecutarImport(selecionados, contaCSV){
+  const rows = selecionados.map(l=>({
+    user_id: usuarioAtual.id,
+    data: l.data,
+    descricao: l.descLancar || l.desc,
+    tipo: l.tipo,
+    categoria: l.categoria,
+    valor: l.val,
+    origem: csvModo,
+    conta: contaCSV
+  }));
+
+  const { error } = await sb.from('extrato').insert(rows);
+  if(error){ alert('Erro ao importar: '+error.message); return; }
+
+  const { data } = await sb.from('extrato').select('*').eq('user_id', usuarioAtual.id).order('data',{ascending:false});
+  extratoAtual = (data||[]).map(r=>({id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo, cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato', conta:r.conta||null}));
+
+  fecharOverlay('overlay-csv-import');
+  renderExtrato();
+  lancRenderOrcadoRealizado();
+  calcularResumo();
+  saldoRenderizar();
+
+  if(csvModo==='cartao'){
+    const detectadas = cartaoDetectarParcelasNoCSV(selecionados);
+    if(detectadas.length) setTimeout(()=>cartaoMostrarDetectadas(detectadas), 600);
+  }
+
+  alert(`✓ ${rows.length} lançamento${rows.length!==1?'s':''} importado${rows.length!==1?'s':''} com sucesso!`);
 }
 
 async function carregarExtrato(){
@@ -9175,9 +9312,31 @@ function cartaoAba(btn, aba){
   document.querySelectorAll('#tela-cartao .inv-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('cartao-aba-parcelamentos').style.display  = aba==='parcelamentos'?'block':'none';
+  document.getElementById('cartao-aba-avista').style.display         = aba==='avista'?'block':'none';
   document.getElementById('cartao-aba-projecao').style.display       = aba==='projecao'?'block':'none';
   document.getElementById('cartao-aba-meus-cartoes').style.display   = aba==='meus-cartoes'?'block':'none';
+  if(aba==='avista')       cartaoRenderAvista();
   if(aba==='meus-cartoes') cartaoRenderMeusCartoes();
+}
+
+function cartaoRenderAvista(){
+  const fmt = v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const tbody = document.getElementById('cartao-avista-tbody');
+  const vazio = document.getElementById('cartao-avista-vazio');
+
+  if(!cartaoLancsAvista.length){ tbody.innerHTML=''; vazio.style.display='block'; return; }
+  vazio.style.display='none';
+
+  tbody.innerHTML = cartaoLancsAvista.map(l=>{
+    const dt = new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR');
+    return `<tr>
+      <td style="white-space:nowrap">${dt}</td>
+      <td>${escapeHtml(l.desc)}</td>
+      <td style="color:var(--gray)">${escapeHtml(l.conta||'—')}</td>
+      <td style="color:var(--gray)">${escapeHtml(l.cat||'—')}</td>
+      <td style="text-align:right;color:var(--red);font-weight:600">- ${fmt(l.val)}</td>
+    </tr>`;
+  }).join('');
 }
 
 function cartaoRenderMeusCartoes(){
@@ -9260,16 +9419,27 @@ function csvPreencherVencimento(sel){
 let cartaoEditId = null;
 let cartaoDetectadas = [];
 
+let cartaoLancsAvista = []; // lançamentos à vista no cartão (do extrato)
+
 async function cartaoCarregar(){
   document.getElementById('cartao-loading').style.display='block';
   document.getElementById('cartao-content').style.display='none';
 
   await cartoesCadastradosCarregar();
 
-  const { data } = await sb.from('cartao_parcelamentos').select('*')
-    .eq('user_id', usuarioAtual.id).order('data_primeira_parcela',{ascending:false});
+  const [parcRes, lancRes] = await Promise.all([
+    sb.from('cartao_parcelamentos').select('*')
+      .eq('user_id', usuarioAtual.id).order('data_primeira_parcela',{ascending:false}),
+    sb.from('extrato').select('*')
+      .eq('user_id', usuarioAtual.id).eq('origem','cartao')
+      .neq('tipo','pagamento_fatura').order('data',{ascending:false})
+  ]);
 
-  cartaoDados = data || [];
+  cartaoDados = parcRes.data || [];
+  cartaoLancsAvista = (lancRes.data||[]).map(r=>({
+    id:r.id, data:r.data, desc:r.descricao, cat:r.categoria, val:Number(r.valor), conta:r.conta||''
+  }));
+
   document.getElementById('cartao-loading').style.display='none';
   document.getElementById('cartao-content').style.display='block';
 
