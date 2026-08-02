@@ -1668,27 +1668,22 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           <div class="lanc-tipo-col lanc-tipo-extrato">
             <div class="lanc-tipo-header">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span>Extrato Bancário</span>
+              <span>Lançamento Conta</span>
               <button class="orc-btn-config" onclick="csvImportAbrirModal('extrato')" style="font-size:.65rem;margin-left:auto">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Importar CSV
+                ↓ Importar CSV
               </button>
             </div>
-            <div class="add-lancamento" style="margin:0;border:none;padding:.8rem 0 0">
-              <div class="add-form" style="flex-direction:column;gap:.6rem">
-                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                  <div class="f" style="flex:0 0 130px"><label>Data</label><input type="date" id="add-data"></div>
-                  <div class="f" style="flex:1;min-width:140px"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
-                </div>
-                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                  <div class="f" style="flex:1"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
-                  <div class="f" style="flex:1"><label>Categoria</label><select id="add-cat"></select></div>
-                </div>
-                <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
-                  <div class="f" style="flex:1"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
-                  <div class="f" style="flex:0 0 110px"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
-                  <button class="btn-add" onclick="adicionarLancamento()" style="align-self:flex-end">+ Adicionar</button>
-                </div>
+            <div class="add-form" style="flex-direction:column;gap:.6rem;padding-top:.4rem">
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <div class="f" style="flex:0 0 130px"><label>Data</label><input type="date" id="add-data"></div>
+                <div class="f" style="flex:1;min-width:140px"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
+                <div class="f" style="flex:0 0 130px"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
+              </div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+                <div class="f" style="flex:1"><label>Categoria</label><select id="add-cat"></select></div>
+                <div class="f" style="flex:1"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
+                <div class="f" style="flex:0 0 100px"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
+                <button class="btn-add" onclick="adicionarLancamento()" style="align-self:flex-end">+ Adicionar</button>
               </div>
             </div>
           </div>
@@ -3063,142 +3058,6 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
             <div class="plano-vazio" id="cartao-lista-vazio" style="display:none">Nenhum cartão cadastrado ainda.</div>
           </div>
 
-        <!-- MODAL: Cadastro de cartão -->
-        <div class="overlay" id="overlay-cartao-cadastro">
-          <div class="modal" style="max-width:420px">
-            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-cadastro')">×</button>
-            <div class="modal-title" id="cartao-cad-titulo">Novo cartão</div>
-            <div class="admin-frase-grid">
-              <div class="diag-field" style="grid-column:1/-1">
-                <label class="diag-label">Nome do cartão *</label>
-                <input class="diag-input" type="text" id="cartao-cad-nome" placeholder="Ex: Nubank, Itaú Personnalité...">
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Bandeira</label>
-                <select class="diag-input" id="cartao-cad-bandeira">
-                  <option value="">Selecione...</option>
-                  <option>Visa</option>
-                  <option>Mastercard</option>
-                  <option>Elo</option>
-                  <option>American Express</option>
-                  <option>Hipercard</option>
-                </select>
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Dia de vencimento *</label>
-                <input class="diag-input" type="number" id="cartao-cad-vencimento" min="1" max="31" placeholder="Ex: 15">
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Cor</label>
-                <select class="diag-input" id="cartao-cad-cor">
-                  <option value="#7c9cff">Azul</option>
-                  <option value="#00B6E9">Ciano</option>
-                  <option value="#4ec98a">Verde</option>
-                  <option value="#f0c93a">Amarelo</option>
-                  <option value="#e05252">Vermelho</option>
-                  <option value="#a78bfa">Roxo</option>
-                  <option value="#f472b6">Rosa</option>
-                  <option value="#6b7280">Cinza</option>
-                </select>
-              </div>
-            </div>
-            <div class="diag-save-area">
-              <button class="btn-diag-save" onclick="cartaoCadastroSalvar()">Salvar</button>
-              <button id="cartao-cad-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoCadastroExcluir()">Excluir cartão</button>
-            </div>
-          </div>
-        </div>
-        <div class="overlay" id="overlay-cartao-form">
-          <div class="modal" style="max-width:560px">
-            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-form')">×</button>
-            <div class="modal-title" id="cartao-form-titulo">Nova compra parcelada</div>
-            <input type="hidden" id="cartao-form-tipo-lanc" value="parcelado">
-
-            <div class="admin-frase-grid">
-              <div class="diag-field" style="grid-column:1/-1">
-                <label class="diag-label">Descrição *</label>
-                <input class="diag-input" type="text" id="cartao-form-desc" placeholder="Ex: Patinete elétrico, Netflix...">
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Cartão</label>
-                <select class="diag-input" id="cartao-form-cartao">
-                  <option value="">— selecione —</option>
-                </select>
-              </div>
-              <div class="diag-field">
-                <label class="diag-label">Categoria</label>
-                <select class="diag-input" id="cartao-form-categoria"><option value="">Selecione...</option></select>
-              </div>
-
-              <!-- Campos: PARCELADO -->
-              <div id="cartao-campos-parcelado" style="display:contents">
-                <div class="diag-field">
-                  <label class="diag-label">Valor da parcela (R$) *</label>
-                  <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-parcela" placeholder="150,00" oninput="cartaoFormCalcTotal()">
-                </div>
-                <div class="diag-field">
-                  <label class="diag-label">Nº total de parcelas *</label>
-                  <input class="diag-input" type="number" id="cartao-form-num-parcelas" placeholder="10" min="1" oninput="cartaoFormCalcTotal()">
-                </div>
-                <div class="diag-field">
-                  <label class="diag-label">Parcela atual *</label>
-                  <input class="diag-input" type="number" id="cartao-form-parcela-atual" placeholder="4" min="1" oninput="cartaoFormCalcTotal()">
-                </div>
-                <div class="diag-field">
-                  <label class="diag-label">Data da parcela atual *</label>
-                  <input class="diag-input" type="date" id="cartao-form-data-atual">
-                </div>
-                <div class="diag-field" style="grid-column:1/-1">
-                  <label class="diag-label">Valor total calculado</label>
-                  <div id="cartao-form-total" style="font-size:.9rem;font-weight:700;color:var(--gold);padding:.4rem 0">—</div>
-                </div>
-              </div>
-
-              <!-- Campos: ASSINATURA -->
-              <div id="cartao-campos-assinatura" style="display:contents">
-                <div class="diag-field">
-                  <label class="diag-label">Valor mensal (R$) *</label>
-                  <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-assn" placeholder="39,90">
-                </div>
-                <div class="diag-field">
-                  <label class="diag-label">Dia de cobrança *</label>
-                  <input class="diag-input" type="number" id="cartao-form-dia-cobranca" placeholder="15" min="1" max="31">
-                </div>
-                <div class="diag-field" style="grid-column:1/-1">
-                  <label class="diag-label">Projetar para os próximos</label>
-                  <select class="diag-input" id="cartao-form-horizonte">
-                    <option value="12">12 meses</option>
-                    <option value="6">6 meses</option>
-                    <option value="24">24 meses</option>
-                  </select>
-                </div>
-                <div class="diag-field" style="grid-column:1/-1;background:rgba(124,156,255,0.06);border:1px solid rgba(124,156,255,0.2);padding:.8rem 1rem;border-left:3px solid #7c9cff;font-size:.72rem;color:var(--gray);line-height:1.7">
-                  <strong style="color:#7c9cff;display:block;margin-bottom:.3rem">♻ Como funciona a assinatura</strong>
-                  O sistema projeta a cobrança mensalmente. Ao abrir esta tela, as projeções são renovadas automaticamente para sempre ter ao menos 12 meses à frente.
-                </div>
-              </div>
-            </div>
-
-            <div class="diag-save-area">
-              <button class="btn-diag-save" onclick="cartaoSalvarForm()">Salvar</button>
-              <button id="cartao-form-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoExcluir()">Excluir</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MODAL: Sugestão de parcela detectada na importação -->
-        <div class="overlay" id="overlay-cartao-detectado">
-          <div class="modal" style="max-width:520px">
-            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-detectado')">×</button>
-            <div class="modal-title">Parcelas detectadas 🎯</div>
-            <p style="font-size:.8rem;color:var(--gray);margin-bottom:1rem">A IA identificou compras parceladas na fatura. Quer cadastrá-las para projetar as parcelas futuras?</p>
-            <div id="cartao-detectado-lista"></div>
-            <div class="diag-save-area" style="margin-top:1rem">
-              <button class="btn-diag-save" onclick="cartaoConfirmarDetectadas()">Cadastrar selecionadas</button>
-              <button class="modal-link" onclick="fecharOverlay('overlay-cartao-detectado')">Ignorar</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- ── SIMULADOR ── -->
@@ -3829,6 +3688,143 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
           </div>
         </div>
       </div>
+
+        <!-- MODAL: Cadastro de cartão -->
+        <div class="overlay" id="overlay-cartao-cadastro">
+          <div class="modal" style="max-width:420px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-cadastro')">×</button>
+            <div class="modal-title" id="cartao-cad-titulo">Novo cartão</div>
+            <div class="admin-frase-grid">
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Nome do cartão *</label>
+                <input class="diag-input" type="text" id="cartao-cad-nome" placeholder="Ex: Nubank, Itaú Personnalité...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Bandeira</label>
+                <select class="diag-input" id="cartao-cad-bandeira">
+                  <option value="">Selecione...</option>
+                  <option>Visa</option>
+                  <option>Mastercard</option>
+                  <option>Elo</option>
+                  <option>American Express</option>
+                  <option>Hipercard</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Dia de vencimento *</label>
+                <input class="diag-input" type="number" id="cartao-cad-vencimento" min="1" max="31" placeholder="Ex: 15">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Cor</label>
+                <select class="diag-input" id="cartao-cad-cor">
+                  <option value="#7c9cff">Azul</option>
+                  <option value="#00B6E9">Ciano</option>
+                  <option value="#4ec98a">Verde</option>
+                  <option value="#f0c93a">Amarelo</option>
+                  <option value="#e05252">Vermelho</option>
+                  <option value="#a78bfa">Roxo</option>
+                  <option value="#f472b6">Rosa</option>
+                  <option value="#6b7280">Cinza</option>
+                </select>
+              </div>
+            </div>
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="cartaoCadastroSalvar()">Salvar</button>
+              <button id="cartao-cad-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoCadastroExcluir()">Excluir cartão</button>
+            </div>
+          </div>
+        </div>
+        <div class="overlay" id="overlay-cartao-form">
+          <div class="modal" style="max-width:560px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-form')">×</button>
+            <div class="modal-title" id="cartao-form-titulo">Nova compra parcelada</div>
+            <input type="hidden" id="cartao-form-tipo-lanc" value="parcelado">
+
+            <div class="admin-frase-grid">
+              <div class="diag-field" style="grid-column:1/-1">
+                <label class="diag-label">Descrição *</label>
+                <input class="diag-input" type="text" id="cartao-form-desc" placeholder="Ex: Patinete elétrico, Netflix...">
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Cartão</label>
+                <select class="diag-input" id="cartao-form-cartao">
+                  <option value="">— selecione —</option>
+                </select>
+              </div>
+              <div class="diag-field">
+                <label class="diag-label">Categoria</label>
+                <select class="diag-input" id="cartao-form-categoria"><option value="">Selecione...</option></select>
+              </div>
+
+              <!-- Campos: PARCELADO -->
+              <div id="cartao-campos-parcelado" style="display:contents">
+                <div class="diag-field">
+                  <label class="diag-label">Valor da parcela (R$) *</label>
+                  <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-parcela" placeholder="150,00" oninput="cartaoFormCalcTotal()">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Nº total de parcelas *</label>
+                  <input class="diag-input" type="number" id="cartao-form-num-parcelas" placeholder="10" min="1" oninput="cartaoFormCalcTotal()">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Parcela atual *</label>
+                  <input class="diag-input" type="number" id="cartao-form-parcela-atual" placeholder="4" min="1" oninput="cartaoFormCalcTotal()">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Data da parcela atual *</label>
+                  <input class="diag-input" type="date" id="cartao-form-data-atual">
+                </div>
+                <div class="diag-field" style="grid-column:1/-1">
+                  <label class="diag-label">Valor total calculado</label>
+                  <div id="cartao-form-total" style="font-size:.9rem;font-weight:700;color:var(--gold);padding:.4rem 0">—</div>
+                </div>
+              </div>
+
+              <!-- Campos: ASSINATURA -->
+              <div id="cartao-campos-assinatura" style="display:contents">
+                <div class="diag-field">
+                  <label class="diag-label">Valor mensal (R$) *</label>
+                  <input class="diag-input" type="number" step="0.01" id="cartao-form-valor-assn" placeholder="39,90">
+                </div>
+                <div class="diag-field">
+                  <label class="diag-label">Dia de cobrança *</label>
+                  <input class="diag-input" type="number" id="cartao-form-dia-cobranca" placeholder="15" min="1" max="31">
+                </div>
+                <div class="diag-field" style="grid-column:1/-1">
+                  <label class="diag-label">Projetar para os próximos</label>
+                  <select class="diag-input" id="cartao-form-horizonte">
+                    <option value="12">12 meses</option>
+                    <option value="6">6 meses</option>
+                    <option value="24">24 meses</option>
+                  </select>
+                </div>
+                <div class="diag-field" style="grid-column:1/-1;background:rgba(124,156,255,0.06);border:1px solid rgba(124,156,255,0.2);padding:.8rem 1rem;border-left:3px solid #7c9cff;font-size:.72rem;color:var(--gray);line-height:1.7">
+                  <strong style="color:#7c9cff;display:block;margin-bottom:.3rem">♻ Como funciona a assinatura</strong>
+                  O sistema projeta a cobrança mensalmente. Ao abrir esta tela, as projeções são renovadas automaticamente para sempre ter ao menos 12 meses à frente.
+                </div>
+              </div>
+            </div>
+
+            <div class="diag-save-area">
+              <button class="btn-diag-save" onclick="cartaoSalvarForm()">Salvar</button>
+              <button id="cartao-form-excluir" class="modal-link" style="color:var(--red);display:none" onclick="cartaoExcluir()">Excluir</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Sugestão de parcela detectada na importação -->
+        <div class="overlay" id="overlay-cartao-detectado">
+          <div class="modal" style="max-width:520px">
+            <button class="modal-close" onclick="fecharOverlay('overlay-cartao-detectado')">×</button>
+            <div class="modal-title">Parcelas detectadas 🎯</div>
+            <p style="font-size:.8rem;color:var(--gray);margin-bottom:1rem">A IA identificou compras parceladas na fatura. Quer cadastrá-las para projetar as parcelas futuras?</p>
+            <div id="cartao-detectado-lista"></div>
+            <div class="diag-save-area" style="margin-top:1rem">
+              <button class="btn-diag-save" onclick="cartaoConfirmarDetectadas()">Cadastrar selecionadas</button>
+              <button class="modal-link" onclick="fecharOverlay('overlay-cartao-detectado')">Ignorar</button>
+            </div>
+          </div>
+        </div>
 
     </main>
   </div>
@@ -5599,7 +5595,8 @@ async function adicionarLancamentoCartao(){
     alert('Preencha todos os campos corretamente.'); return;
   }
 
-  const btn = document.querySelector('#lanc-form-cartao .btn-add');
+  const btn = document.querySelector('#lanc-cartao-compra .btn-add');
+  if(!btn) return;
   const orig = btn.textContent; btn.textContent='Salvando...'; btn.disabled=true;
 
   const { data: row, error } = await sb.from('extrato').insert({
