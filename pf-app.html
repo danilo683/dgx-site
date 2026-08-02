@@ -3747,7 +3747,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               </div>
               <div class="diag-field">
                 <label class="diag-label">Cartão</label>
-                <select class="diag-input" id="cartao-form-cartao">
+                <select class="diag-input" id="cartao-form-cartao" onchange="cartaoFormPreencherData()">
                   <option value="">— selecione —</option>
                 </select>
               </div>
@@ -9506,6 +9506,27 @@ function cartaoRenderProjecao(){
         </tr>
       </tbody>
     </table>`;
+}
+
+function cartaoFormPreencherData(){
+  const sel = document.getElementById('cartao-form-cartao');
+  const nome = sel.value;
+  if(!nome) return;
+  const cartao = cartoesCadastrados.find(c=>c.nome===nome);
+  if(!cartao || !cartao.dia_vencimento) return;
+
+  const dia = cartao.dia_vencimento;
+  const hoje = new Date();
+  const d = new Date(hoje.getFullYear(), hoje.getMonth()+(hoje.getDate()>dia?1:0), dia);
+  const dataStr = d.toISOString().split('T')[0];
+
+  // Parcelado: preenche data da parcela atual se vazio
+  const campoData = document.getElementById('cartao-form-data-atual');
+  if(campoData && !campoData.value) campoData.value = dataStr;
+
+  // Assinatura: preenche dia de cobrança se vazio
+  const campoDia = document.getElementById('cartao-form-dia-cobranca');
+  if(campoDia && !campoDia.value) campoDia.value = dia;
 }
 
 function cartaoFormCalcTotal(){
