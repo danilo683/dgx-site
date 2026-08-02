@@ -5277,6 +5277,9 @@ async function carregarExtrato(){
   calcularResumo();
   await saldoCarregar();
   saldoPopularSelect();
+  // Carregar cartões para o form de cartão
+  await cartoesCadastradosCarregar();
+  lancPopularCartaoForm();
 }
 
 // Lista de lançamentos filtrados pelo mês/ano selecionado em Lançamentos
@@ -5577,10 +5580,26 @@ function lancPopularCartaoForm(){
 
 function lancCartaoPreencherVenc(){
   const sel = document.getElementById('add-cartao-sel');
-  const dia = sel.options[sel.selectedIndex]?.dataset?.dia;
+  const dia = parseInt(sel.options[sel.selectedIndex]?.dataset?.dia);
   if(!dia) return;
+
+  // Usa o mês/ano atual do lançamento (lancAno/lancMes)
+  const anoRef = lancAno || new Date().getFullYear();
+  const mesRef = lancMes || (new Date().getMonth()+1);
+
+  // Se o dia já passou neste mês, vai pro mês seguinte
   const hoje = new Date();
-  const d = new Date(hoje.getFullYear(), hoje.getMonth()+(hoje.getDate()>=parseInt(dia)?1:0), parseInt(dia));
+  const dRef = new Date(anoRef, mesRef-1, dia);
+
+  // Verifica se a data faz sentido no contexto do mês selecionado
+  // Se o dia de vencimento é antes do dia atual E estamos no mês atual, vai pro próximo
+  let d;
+  if(anoRef === hoje.getFullYear() && mesRef === hoje.getMonth()+1 && dia < hoje.getDate()){
+    d = new Date(anoRef, mesRef, dia); // próximo mês
+  } else {
+    d = new Date(anoRef, mesRef-1, dia); // mês selecionado
+  }
+
   document.getElementById('add-cartao-venc').value = d.toISOString().split('T')[0];
 }
 
