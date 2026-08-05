@@ -1673,17 +1673,48 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
                 ↓ Importar CSV
               </button>
             </div>
-            <div class="add-form" style="flex-direction:column;gap:.6rem;padding-top:.4rem">
-              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                <div class="f" style="flex:0 0 130px"><label>Data</label><input type="date" id="add-data"></div>
-                <div class="f" style="flex:1;min-width:140px"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
-                <div class="f" style="flex:0 0 130px"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
+
+            <!-- Sub-tipos -->
+            <div class="lanc-cartao-subtipos" style="margin-bottom:.8rem">
+              <button class="lanc-subtipo-btn active" id="lanc-conta-sub-avista" onclick="lancContaSubtipo('avista')" style="border-color:rgba(78,201,138,0.3);color:var(--green)">💳 À vista</button>
+              <button class="lanc-subtipo-btn" id="lanc-conta-sub-recorrente" onclick="lancContaSubtipo('recorrente')" style="">🔁 Recorrente</button>
+            </div>
+
+            <!-- À vista -->
+            <div id="lanc-conta-avista">
+              <div class="add-form" style="flex-direction:column;gap:.6rem;padding-top:.2rem">
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                  <div class="f" style="flex:0 0 130px"><label>Data</label><input type="date" id="add-data"></div>
+                  <div class="f" style="flex:1;min-width:140px"><label>Descrição</label><input type="text" id="add-desc" placeholder="Ex: Salário, Aluguel..."></div>
+                  <div class="f" style="flex:0 0 130px"><label>Tipo</label><select id="add-tipo" onchange="lancAtualizarCategorias()"><option value="receita">Receita</option><option value="despesa">Despesa</option><option value="investimento">Investimento</option><option value="transferencia">Transferência</option></select></div>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+                  <div class="f" style="flex:1"><label>Categoria</label><select id="add-cat"></select></div>
+                  <div class="f" style="flex:1"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
+                  <div class="f" style="flex:0 0 100px"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
+                  <button class="btn-add" onclick="adicionarLancamento()" style="align-self:flex-end">+ Adicionar</button>
+                </div>
               </div>
-              <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
-                <div class="f" style="flex:1"><label>Categoria</label><select id="add-cat"></select></div>
-                <div class="f" style="flex:1"><label>Conta</label><select id="add-conta"><option value="">— nenhuma —</option></select></div>
-                <div class="f" style="flex:0 0 100px"><label>Valor (R$)</label><input type="number" id="add-val" placeholder="0,00" min="0" step="0.01"></div>
-                <button class="btn-add" onclick="adicionarLancamento()" style="align-self:flex-end">+ Adicionar</button>
+            </div>
+
+            <!-- Recorrente -->
+            <div id="lanc-conta-recorrente" style="display:none">
+              <div class="add-form" style="flex-direction:column;gap:.6rem;padding-top:.2rem">
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                  <div class="f" style="flex:0 0 130px"><label>Data início</label><input type="date" id="add-rec-data"></div>
+                  <div class="f" style="flex:1;min-width:140px"><label>Descrição</label><input type="text" id="add-rec-desc" placeholder="Ex: Seguro Auto, Plano..."></div>
+                  <div class="f" style="flex:0 0 130px"><label>Tipo</label><select id="add-rec-tipo" onchange="lancAtualizarCategoriasRec()"><option value="despesa">Despesa</option><option value="receita">Receita</option><option value="investimento">Investimento</option></select></div>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+                  <div class="f" style="flex:1"><label>Categoria</label><select id="add-rec-cat"></select></div>
+                  <div class="f" style="flex:1"><label>Conta</label><select id="add-rec-conta"><option value="">— nenhuma —</option></select></div>
+                  <div class="f" style="flex:0 0 90px"><label>Valor (R$)</label><input type="number" id="add-rec-val" placeholder="0,00" min="0" step="0.01"></div>
+                  <div class="f" style="flex:0 0 80px"><label>Repetições</label><input type="number" id="add-rec-repeticoes" placeholder="12" min="2" max="120" value="12"></div>
+                  <button class="btn-add" onclick="adicionarLancamentoRecorrente()" style="align-self:flex-end;background:#4ec98a">+ Gerar</button>
+                </div>
+                <div style="font-size:.65rem;color:var(--gray);margin-top:-.2rem">
+                  Gera um lançamento por mês, a partir da data início, pelo número de repetições informado.
+                </div>
               </div>
             </div>
           </div>
@@ -1884,6 +1915,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
               <th style="text-align:right">Orçado</th>
               <th style="text-align:right;color:var(--gold)">Extrato</th>
               <th style="text-align:right;color:#7c9cff">Cartão</th>
+              <th style="text-align:right">Realizado</th>
               <th style="text-align:right">Diferença</th>
             </tr></thead>
             <tbody id="lanc-orc-tbody"></tbody>
@@ -4093,7 +4125,6 @@ async function saldoRenderizar(){
   }
   vazio.style.display = 'none';
 
-  // Buscar todos os lançamentos do usuário para calcular saldo atual
   const { data: lancs } = await sb.from('extrato').select('data,valor,tipo,conta')
     .eq('user_id', usuarioAtual.id).order('data');
 
@@ -4102,11 +4133,20 @@ async function saldoRenderizar(){
     return (v<0?'-':'') + 'R$ ' + abs;
   };
 
-  let caixaTotal = 0;
+  // Data de hoje e fim do mês selecionado
+  const hoje     = new Date().toISOString().split('T')[0];
+  const anoRef   = lancAno  || new Date().getFullYear();
+  const mesRef   = lancMes  || (new Date().getMonth()+1);
+  const fimMes   = `${anoRef}-${String(mesRef).padStart(2,'0')}-31`;
+
+  let caixaHoje = 0;
+  let caixaMes  = 0;
 
   grid.innerHTML = saldoContas.map(c=>{
-    // Calcular saldo: saldo_inicial + lançamentos desta conta após data_saldo_inicial
-    const dataBase = c.data_saldo_inicial;
+    const dataBase   = c.data_saldo_inicial;
+    const saldoIni   = Number(c.saldo_inicial);
+    const cor        = c.cor || '#00B6E9';
+
     const lancsConta = (lancs||[]).filter(l=>{
       if(l.conta !== c.nome) return false;
       if(l.data < dataBase) return false;
@@ -4114,30 +4154,47 @@ async function saldoRenderizar(){
       return true;
     });
 
-    let movimentos = 0;
-    lancsConta.forEach(l=>{
+    // Saldo até hoje (só lançamentos até hoje)
+    let movHoje = 0;
+    lancsConta.filter(l=>l.data <= hoje).forEach(l=>{
       const v = Number(l.valor||0);
-      if(l.tipo === 'receita') movimentos += v;
-      else movimentos -= v;
+      movHoje += l.tipo==='receita' ? v : -v;
     });
 
-    const saldoAtual = Number(c.saldo_inicial) + movimentos;
-    caixaTotal += saldoAtual;
+    // Saldo do mês (lançamentos até fim do mês selecionado)
+    let movMes = 0;
+    lancsConta.filter(l=>l.data <= fimMes).forEach(l=>{
+      const v = Number(l.valor||0);
+      movMes += l.tipo==='receita' ? v : -v;
+    });
 
-    const cor = c.cor || '#00B6E9';
-    const movStr = movimentos !== 0
-      ? `<div class="saldo-conta-diff">${movimentos>=0?'+':''}${fmt(movimentos)} em lançamentos</div>`
-      : '';
+    const saldoHoje = saldoIni + movHoje;
+    const saldoMes  = saldoIni + movMes;
+
+    caixaHoje += saldoHoje;
+    caixaMes  += saldoMes;
+
+    const mesNome = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mesRef-1];
 
     return `<div class="saldo-conta-card" style="border-left-color:${cor}" onclick="saldoAbrirForm(${c.id})">
       <div class="saldo-conta-nome" style="color:${cor}">${escapeHtml(c.nome)}</div>
       <div class="saldo-conta-tipo">${SALDO_TIPO_LABEL[c.tipo]||c.tipo}</div>
-      <div class="saldo-conta-valor" style="color:${saldoAtual>=0?'var(--white)':'var(--red)'}">${fmt(saldoAtual)}</div>
-      ${movStr}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.4rem">
+        <div>
+          <div style="font-size:.58rem;color:var(--gray2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.15rem">Até hoje</div>
+          <div class="saldo-conta-valor" style="color:${saldoHoje>=0?'var(--white)':'var(--red)'};font-size:.95rem">${fmt(saldoHoje)}</div>
+        </div>
+        <div>
+          <div style="font-size:.58rem;color:var(--gray2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.15rem">Fim ${mesNome}</div>
+          <div class="saldo-conta-valor" style="color:${saldoMes>=0?'var(--gold)':'var(--red)'};font-size:.95rem">${fmt(saldoMes)}</div>
+        </div>
+      </div>
     </div>`;
   }).join('');
 
-  document.getElementById('saldo-caixa-total').textContent = fmt(caixaTotal);
+  // Total no header: mostra os dois
+  const totalEl = document.getElementById('saldo-caixa-total');
+  totalEl.innerHTML = `<span title="Até hoje">${fmt(caixaHoje)}</span><span style="color:var(--gray);font-size:.7rem;margin:0 .3rem">/</span><span style="color:var(--gold)" title="Fim do mês">${fmt(caixaMes)}</span>`;
 }
 
 function saldoAbrirForm(id){
@@ -5417,14 +5474,53 @@ async function carregarExtrato(){
   // Carregar cartões para o form de cartão
   await cartoesCadastradosCarregar();
   lancPopularCartaoForm();
+
+  // Carregar parcelamentos para mostrar parcelas previstas na lista
+  if(!cartaoDados || !cartaoDados.length){
+    const { data: parc } = await sb.from('cartao_parcelamentos').select('*')
+      .eq('user_id', usuarioAtual.id);
+    cartaoDados = parc || [];
+  }
+  renderExtrato();
 }
 
 // Lista de lançamentos filtrados pelo mês/ano selecionado em Lançamentos
 function lancItemsDoMes(){
-  return extratoAtual.filter(l=>{
+  // Lançamentos reais do extrato
+  const doExtrato = extratoAtual.filter(l=>{
     const d = new Date(l.data+'T00:00:00');
     return d.getFullYear()===lancAno && (d.getMonth()+1)===lancMes;
   });
+
+  // Parcelas projetadas do cartão para este mês (parcelamentos + assinaturas)
+  const parcelas = [];
+  if(cartaoDados && cartaoDados.length){
+    cartaoDados.forEach(p=>{
+      cartaoParcelasFuturas(p).forEach(pa=>{
+        const d = new Date(pa.data+'T00:00:00');
+        if(d.getFullYear()!==lancAno || (d.getMonth()+1)!==lancMes) return;
+        // Não duplicar se já existe no extrato (mesmo valor + mesmo mês + origem cartao)
+        const jaTem = doExtrato.some(l=>
+          l.origem==='cartao' &&
+          Math.abs(l.val - pa.valor) < 0.01 &&
+          l.data.slice(0,7) === pa.data.slice(0,7)
+        );
+        if(!jaTem) parcelas.push({
+          id: `proj_${p.id}_${pa.real_numero}`,
+          data: pa.data,
+          desc: p.descricao + (p.num_parcelas>1 && !pa.isAssinatura ? ` (${pa.real_numero}/${p.num_parcelas})` : ''),
+          tipo: 'despesa',
+          cat: p.categoria||'Geral',
+          val: pa.valor,
+          origem: 'cartao',
+          conta: p.cartao||null,
+          projetado: true
+        });
+      });
+    });
+  }
+
+  return [...doExtrato, ...parcelas];
 }
 
 function lancMudarAno(delta){
@@ -5498,46 +5594,54 @@ function lancRealizadoCategoria(categoria, tipo, origem){
 }
 
 function lancRenderOrcadoRealizado(){
-  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
   let html = '';
 
   const recLabels = (rxDados && rxDados.receitas && rxDados.receitas.length)
     ? rxDados.receitas.map(r=>r.label) : RX_RECEITAS_FIXAS;
 
-  // Receitas (sem cartão)
-  html += `<tr class="lanc-grupo-row receita"><td colspan="5">Receitas</td></tr>`;
+  // Receitas
+  let recHtml = '';
   recLabels.forEach(lb=>{
     const orc  = lancOrcadoCache[lb] || 0;
     const real = lancRealizadoCategoria(lb, 'receita');
+    if(!orc && !real) return;
     const diff = real - orc;
     const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
-    html += `<tr><td class="lanc-cat-nome">${escapeHtml(lb)}</td>
+    recHtml += `<tr>
+      <td class="lanc-cat-nome">${escapeHtml(lb)}</td>
       <td style="text-align:right">${fmt(orc)}</td>
-      <td style="text-align:right;color:var(--green)">${fmt(real)}</td>
+      <td style="text-align:right;color:var(--green)">${real?fmt(real):'—'}</td>
       <td style="text-align:right;color:var(--gray2)">—</td>
-      <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td></tr>`;
+      <td style="text-align:right;color:var(--green);font-weight:600">${real?fmt(real):'—'}</td>
+      <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}}${fmt(diff)}</td>
+    </tr>`;
   });
+  if(recHtml) html += `<tr class="lanc-grupo-row receita"><td colspan="6">Receitas</td></tr>${recHtml}`;
 
-  // Despesas com separação Extrato / Cartão
+  // Despesas
   RX_DESPESAS_GRUPOS.forEach(g=>{
     const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
     const itens = [...g.itens, ...(gDados.extras||[])];
-    html += `<tr class="lanc-grupo-row"><td colspan="5">${g.label}</td></tr>`;
+    let grupoHtml = '';
     itens.forEach(item=>{
       const orc      = lancOrcadoCache[item] || 0;
       const realExt  = lancRealizadoCategoria(item, 'despesa', 'extrato');
       const realCart = lancRealizadoCategoria(item, 'despesa', 'cartao');
       const realTot  = realExt + realCart;
-      const diff     = orc - realTot;
-      const diffCls  = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
-      html += `<tr>
+      if(!orc && !realTot) return;
+      const diff    = orc - realTot;
+      const diffCls = diff>0?'lanc-diff-pos':diff<0?'lanc-diff-neg':'lanc-diff-zero';
+      grupoHtml += `<tr>
         <td class="lanc-cat-nome">${escapeHtml(item)}</td>
         <td style="text-align:right">${fmt(orc)}</td>
         <td style="text-align:right;color:var(--gold)">${realExt?fmt(realExt):'—'}</td>
         <td style="text-align:right;color:#7c9cff">${realCart?fmt(realCart):'—'}</td>
-        <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}${fmt(diff)}</td>
+        <td style="text-align:right;font-weight:600">${realTot?fmt(realTot):'—'}</td>
+        <td style="text-align:right" class="${diffCls}">${diff>=0?'+':''}}${fmt(diff)}</td>
       </tr>`;
     });
+    if(grupoHtml) html += `<tr class="lanc-grupo-row"><td colspan="6">${g.label}</td></tr>${grupoHtml}`;
   });
 
   document.getElementById('lanc-orc-tbody').innerHTML = html;
@@ -5560,8 +5664,11 @@ function renderExtrato(){
     const cls=isPos?'val-positivo':isNeg?'val-negativo':'';
     const val=l.val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     const origemBadge = l.origem==='cartao' ? '<span style="font-size:.55rem;background:rgba(124,156,255,0.15);color:#7c9cff;padding:.1rem .35rem;border-radius:3px;margin-left:.3rem;font-weight:700">CARTÃO</span>' : '';
+    const projetadoBadge = l.projetado ? '<span style="font-size:.55rem;background:rgba(240,201,58,0.1);color:var(--gold);padding:.1rem .35rem;border-radius:3px;margin-left:.3rem;font-weight:700">PREVISTO</span>' : '';
     const pgtoFaturaBadge = l.tipo==='pagamento_fatura' ? '<span style="font-size:.55rem;background:rgba(154,160,168,0.12);color:var(--gray);padding:.1rem .35rem;border-radius:3px;margin-left:.3rem;font-weight:700">NÃO CONTA</span>' : '';
-    return `<tr style="${l.tipo==='pagamento_fatura'?'opacity:.6':''}"><td>${data}</td><td>${escapeHtml(l.desc)}${origemBadge}${pgtoFaturaBadge}</td><td><span class="badge-type badge-${l.tipo==='pagamento_fatura'?'transferencia':l.tipo}">${nomes[l.tipo]}</span></td><td style="color:var(--gray)">${escapeHtml(l.cat)}</td><td style="text-align:right" class="${cls}">${sinal} R$ ${val}</td><td style="text-align:right"><button class="lanc-row-del" onclick="lancExcluirLancamento(${l.id})">×</button></td></tr>`;
+    const rowStyle = l.projetado ? 'opacity:.7;font-style:italic' : (l.tipo==='pagamento_fatura'?'opacity:.6':'');
+    const delBtn = l.projetado ? '' : `<button class="lanc-row-del" onclick="lancExcluirLancamento('${l.id}')">×</button>`;
+    return `<tr style="${rowStyle}"><td>${data}</td><td>${escapeHtml(l.desc)}${origemBadge}${projetadoBadge}${pgtoFaturaBadge}</td><td><span class="badge-type badge-${l.tipo==='pagamento_fatura'?'transferencia':l.tipo}">${nomes[l.tipo]}</span></td><td style="color:var(--gray)">${escapeHtml(l.cat)}</td><td style="text-align:right" class="${cls}">${sinal} R$ ${val}</td><td style="text-align:right">${delBtn}</td></tr>`;
   }).join('');
 }
 
@@ -5680,6 +5787,90 @@ async function orcRealCarregar(){
 
 function lancMainAba(aba){ /* legado */ }
 function lancFormAba(aba){ /* legado */ }
+
+function lancContaSubtipo(tipo){
+  const isRec = tipo === 'recorrente';
+  document.getElementById('lanc-conta-avista').style.display     = isRec ? 'none' : 'block';
+  document.getElementById('lanc-conta-recorrente').style.display = isRec ? 'block' : 'none';
+  document.getElementById('lanc-conta-sub-avista').classList.toggle('active', !isRec);
+  document.getElementById('lanc-conta-sub-recorrente').classList.toggle('active', isRec);
+  if(isRec){
+    // Sincroniza conta e data com os campos do à vista
+    document.getElementById('add-rec-data').value = document.getElementById('add-data').value;
+    // Popular select de contas
+    const contaOpts = document.getElementById('add-conta').innerHTML;
+    document.getElementById('add-rec-conta').innerHTML = contaOpts;
+    // Popular categorias
+    lancAtualizarCategoriasRec();
+  }
+}
+
+function lancAtualizarCategoriasRec(){
+  const tipo = document.getElementById('add-rec-tipo').value;
+  const cat  = document.getElementById('add-rec-cat');
+  // Reutiliza a mesma lógica do à vista
+  const tipoSel = document.getElementById('add-tipo');
+  const tipoOrig = tipoSel.value;
+  tipoSel.value = tipo;
+  lancAtualizarCategorias();
+  document.getElementById('add-rec-cat').innerHTML = document.getElementById('add-cat').innerHTML;
+  tipoSel.value = tipoOrig;
+  lancAtualizarCategorias();
+}
+
+async function adicionarLancamentoRecorrente(){
+  const dataInicio  = document.getElementById('add-rec-data').value;
+  const desc        = document.getElementById('add-rec-desc').value.trim();
+  const tipo        = document.getElementById('add-rec-tipo').value;
+  const cat         = document.getElementById('add-rec-cat').value || 'Geral';
+  const conta       = document.getElementById('add-rec-conta').value || null;
+  const val         = parseFloat(document.getElementById('add-rec-val').value);
+  const repeticoes  = parseInt(document.getElementById('add-rec-repeticoes').value);
+
+  if(!dataInicio || !desc || isNaN(val) || val<=0 || !repeticoes || repeticoes<2){
+    alert('Preencha todos os campos. Mínimo 2 repetições.'); return;
+  }
+
+  const btn = document.querySelector('#lanc-conta-recorrente .btn-add');
+  const orig = btn.textContent; btn.textContent='Gerando...'; btn.disabled=true;
+
+  // Gerar array de lançamentos mensais
+  const rows = [];
+  const [ano, mes, dia] = dataInicio.split('-').map(Number);
+  for(let i=0; i<repeticoes; i++){
+    const d = new Date(ano, mes-1+i, dia);
+    rows.push({
+      user_id:   usuarioAtual.id,
+      data:      d.toISOString().split('T')[0],
+      descricao: desc,
+      tipo, categoria: cat, valor: val,
+      origem: 'extrato', conta
+    });
+  }
+
+  const { error } = await sb.from('extrato').insert(rows);
+  btn.textContent=orig; btn.disabled=false;
+
+  if(error){ alert('Erro: '+error.message); return; }
+
+  // Recarregar extrato
+  const { data } = await sb.from('extrato').select('*')
+    .eq('user_id', usuarioAtual.id).order('data',{ascending:false});
+  extratoAtual = (data||[]).map(r=>({
+    id:r.id, data:r.data, desc:r.descricao, tipo:r.tipo,
+    cat:r.categoria||'Geral', val:Number(r.valor), origem:r.origem||'extrato', conta:r.conta||null
+  }));
+
+  document.getElementById('add-rec-desc').value = '';
+  document.getElementById('add-rec-val').value  = '';
+
+  renderExtrato();
+  lancRenderOrcadoRealizado();
+  calcularResumo();
+  saldoRenderizar();
+
+  alert(`✓ ${repeticoes} lançamentos gerados com sucesso!`);
+}
 
 function lancSubtipo(tipo){
   ['compra','parcelado','assinatura'].forEach(t=>{
