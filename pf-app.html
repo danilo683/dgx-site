@@ -7265,7 +7265,6 @@ async function adminAbrirCliente(idx){
   const raiox = raioxRes.data || { despesas:{}, receitas:[], dividas:[], cartao:[] };
 
   adminRenderResumo(extrato, raiox);
-  adminRenderExtrato(extrato);
   adminRenderRaioX(raiox);
   adminRenderDiagnostico(diagRes.data);
   adminCronoCarregar();
