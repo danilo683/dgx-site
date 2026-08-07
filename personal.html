@@ -587,11 +587,43 @@ button.primary:hover { background: #8d70f5; }
 .inv-tx-add .tx-qtd, .inv-tx-add .tx-preco { width: 130px; }
 .inv-detail-foot { margin-top: 12px; text-align: right; }
 
+/* ── Dashboard Renda Passiva ── */
+.rp-yearbar { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 20px; }
+.rp-year-btn {
+  font-family: var(--body); font-size: 13px; font-weight: 500;
+  background: var(--bg2); color: var(--text2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 7px 16px; cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+}
+.rp-year-btn:hover { color: var(--text); border-color: var(--border2); }
+.rp-year-btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600; }
+
+.rp-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.rp-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.rp-card .rp-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.rp-card .rp-value { font-family: var(--display); font-weight: 700; font-size: 21px; }
+.rp-card .rp-value.pos { color: #4ec98a; }
+.rp-card .rp-value.neg { color: #e57373; }
+
+.rp-chart-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 16px 10px; }
+.rp-chart { display: flex; align-items: flex-end; gap: 6px; height: 180px; }
+.rp-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+.rp-bar {
+  width: 100%; max-width: 34px; background: var(--accent); border-radius: 4px 4px 0 0;
+  transition: background .12s; position: relative; cursor: default;
+}
+.rp-bar:hover { background: var(--accent-deep); }
+.rp-bar.est { background: repeating-linear-gradient(45deg, var(--bg3), var(--bg3) 4px, var(--border) 4px, var(--border) 8px); }
+.rp-bar-val { font-size: 10px; color: var(--text2); margin-bottom: 4px; white-space: nowrap; }
+.rp-bar-label { font-size: 11px; color: var(--text2); margin-top: 8px; }
+
 @media (max-width: 760px) {
   .inv-row-head, .inv-row { grid-template-columns: 1fr 90px 90px 26px; }
   .inv-row-head .inv-hc, .inv-row .inv-qtd-display, .inv-row .inv-pm-display, .inv-row .inv-precoAtual, .inv-row .inv-rent { display: none; }
   .inv-tx-item { grid-template-columns: 1fr 1fr 26px; row-gap: 2px; }
   .inv-tx-item .tx-preco-val, .inv-tx-item .tx-total-val { display: none; }
+  .rp-chart { height: 140px; }
+  .rp-bar-val { display: none; }
 }
 
 @media (max-width: 700px) {
@@ -890,6 +922,26 @@ function sairPersonal() {
       <span class="hint" id="inv-total-hint"></span>
     </div>
     <div class="area-summary-grid" id="inv-summary-grid"></div>
+
+    <div class="area-summary-head">
+      <h3>📊 Renda Passiva — Histórico</h3>
+      <span class="hint">importado da sua planilha · snapshot de 07/08/2026</span>
+    </div>
+    <p class="section-intro">Proventos recebidos mês a mês, por ano. Meses adiante do mês atual podem conter estimativas da própria planilha, não valores confirmados.</p>
+
+    <div class="rp-yearbar" id="rp-yearbar"></div>
+
+    <div class="rp-cards" id="rp-cards"></div>
+
+    <div class="rp-chart-wrap">
+      <div class="rp-chart" id="rp-chart"></div>
+    </div>
+
+    <div class="area-summary-head" style="margin-top:32px;">
+      <h3>Composição por classe (ano selecionado)</h3>
+      <span class="hint" id="rp-comp-hint"></span>
+    </div>
+    <div class="area-summary-grid" id="rp-comp-grid"></div>
   </section>
 
     </main>
@@ -2405,6 +2457,82 @@ function sairPersonal() {
     renderInvSummary();
   });
 
+  // ── Dashboard Renda Passiva (dados importados da planilha) ──
+  const RP_DATA = {"hist":[{"ano":2019,"mes":1,"valor":0.0,"media":0.0},{"ano":2019,"mes":2,"valor":0.0,"media":0.0},{"ano":2019,"mes":3,"valor":0.0,"media":0.0},{"ano":2019,"mes":4,"valor":0.0,"media":0.0},{"ano":2019,"mes":5,"valor":0.0,"media":0.0},{"ano":2019,"mes":6,"valor":0.0,"media":0.0},{"ano":2019,"mes":7,"valor":6.0,"media":0.86},{"ano":2019,"mes":8,"valor":134.0,"media":17.5},{"ano":2019,"mes":9,"valor":0.0,"media":15.56},{"ano":2019,"mes":10,"valor":18.45,"media":15.84},{"ano":2019,"mes":11,"valor":216.21,"media":34.06},{"ano":2019,"mes":12,"valor":112.03,"media":40.56},{"ano":2020,"mes":1,"valor":64.84,"media":42.43},{"ano":2020,"mes":2,"valor":129.58,"media":48.65},{"ano":2020,"mes":3,"valor":488.92,"media":78.0},{"ano":2020,"mes":4,"valor":124.13,"media":80.89},{"ano":2020,"mes":5,"valor":56.35,"media":79.44},{"ano":2020,"mes":6,"valor":36.65,"media":77.06},{"ano":2020,"mes":7,"valor":65.97,"media":76.48},{"ano":2020,"mes":8,"valor":96.01,"media":77.46},{"ano":2020,"mes":9,"valor":114.69,"media":79.23},{"ano":2020,"mes":10,"valor":135.84,"media":81.8},{"ano":2020,"mes":11,"valor":62.38,"media":80.96},{"ano":2020,"mes":12,"valor":218.89,"media":86.71},{"ano":2021,"mes":1,"valor":263.37,"media":93.77},{"ano":2021,"mes":2,"valor":89.5,"media":93.61},{"ano":2021,"mes":3,"valor":234.84,"media":98.84},{"ano":2021,"mes":4,"valor":222.05,"media":103.24},{"ano":2021,"mes":5,"valor":212.27,"media":107.0},{"ano":2021,"mes":6,"valor":308.17,"media":113.7},{"ano":2021,"mes":7,"valor":322.9,"media":120.45},{"ano":2021,"mes":8,"valor":355.1,"media":127.79},{"ano":2021,"mes":9,"valor":110.47,"media":127.26},{"ano":2021,"mes":10,"valor":188.76,"media":129.07},{"ano":2021,"mes":11,"valor":373.82,"media":136.06},{"ano":2021,"mes":12,"valor":543.58,"media":147.38},{"ano":2022,"mes":1,"valor":200.21,"media":148.81},{"ano":2022,"mes":2,"valor":623.2,"media":161.29},{"ano":2022,"mes":3,"valor":557.51,"media":171.45},{"ano":2022,"mes":4,"valor":213.55,"media":172.51},{"ano":2022,"mes":5,"valor":802.69,"media":187.88},{"ano":2022,"mes":6,"valor":368.88,"media":192.19},{"ano":2022,"mes":7,"valor":330.87,"media":195.41},{"ano":2022,"mes":8,"valor":646.0,"media":205.65},{"ano":2022,"mes":9,"valor":308.87,"media":207.95},{"ano":2022,"mes":10,"valor":204.14,"media":207.86},{"ano":2022,"mes":11,"valor":476.84,"media":213.59},{"ano":2022,"mes":12,"valor":538.26,"media":220.35},{"ano":2023,"mes":1,"valor":288.67,"media":221.74},{"ano":2023,"mes":2,"valor":330.78,"media":223.92},{"ano":2023,"mes":3,"valor":563.39,"media":230.58},{"ano":2023,"mes":4,"valor":247.61,"media":230.91},{"ano":2023,"mes":5,"valor":646.52,"media":238.75},{"ano":2023,"mes":6,"valor":414.44,"media":242.0},{"ano":2023,"mes":7,"valor":321.1,"media":243.44},{"ano":2023,"mes":8,"valor":635.31,"media":250.44},{"ano":2023,"mes":9,"valor":325.2,"media":251.75},{"ano":2023,"mes":10,"valor":435.09,"media":254.91},{"ano":2023,"mes":11,"valor":422.64,"media":257.75},{"ano":2023,"mes":12,"valor":691.27,"media":264.98},{"ano":2024,"mes":1,"valor":292.85,"media":265.44},{"ano":2024,"mes":2,"valor":597.6,"media":270.79},{"ano":2024,"mes":3,"valor":1382.33,"media":288.44},{"ano":2024,"mes":4,"valor":417.22,"media":290.45},{"ano":2024,"mes":5,"valor":457.69,"media":293.02},{"ano":2024,"mes":6,"valor":548.9,"media":296.9},{"ano":2024,"mes":7,"valor":331.95,"media":297.42},{"ano":2024,"mes":8,"valor":806.15,"media":304.9},{"ano":2024,"mes":9,"valor":277.61,"media":304.51},{"ano":2024,"mes":10,"valor":268.14,"media":303.99},{"ano":2024,"mes":11,"valor":420.43,"media":305.63},{"ano":2024,"mes":12,"valor":505.04,"media":308.4},{"ano":2025,"mes":1,"valor":547.56,"media":311.67},{"ano":2025,"mes":2,"valor":236.68,"media":310.66},{"ano":2025,"mes":3,"valor":1654.7,"media":328.58},{"ano":2025,"mes":4,"valor":744.85,"media":334.06},{"ano":2025,"mes":5,"valor":513.35,"media":336.39},{"ano":2025,"mes":6,"valor":419.6,"media":337.45},{"ano":2025,"mes":7,"valor":454.06,"media":338.93},{"ano":2025,"mes":8,"valor":894.11,"media":345.87},{"ano":2025,"mes":9,"valor":451.45,"media":347.17},{"ano":2025,"mes":10,"valor":422.47,"media":348.09},{"ano":2025,"mes":11,"valor":491.78,"media":349.82},{"ano":2025,"mes":12,"valor":2703.14,"media":377.84},{"ano":2026,"mes":1,"valor":475.21,"media":378.98},{"ano":2026,"mes":2,"valor":385.67,"media":379.06},{"ano":2026,"mes":3,"valor":441.68,"media":379.78},{"ano":2026,"mes":4,"valor":468.76,"media":380.79},{"ano":2026,"mes":5,"valor":533.4,"media":382.51},{"ano":2026,"mes":6,"valor":380.73,"media":382.49},{"ano":2026,"mes":7,"valor":468.37,"media":383.43},{"ano":2026,"mes":8,"valor":380.49,"media":383.4},{"ano":2026,"mes":9,"valor":247.27,"media":381.94},{"ano":2026,"mes":10,"valor":247.27,"media":380.5},{"ano":2026,"mes":11,"valor":382.54,"media":380.52},{"ano":2026,"mes":12,"valor":247.27,"media":379.14}],"years":[2019,2020,2021,2022,2023,2024,2025,2026],"categorias":{"Fiis":[55.73,466.14,916.92,1431.63,1778.66,2096.27,2454.74,2811.62],"Ações":[430.96,1128.1,2307.91,3839.38,3543.36,4209.65,7079.01,1847.04],"Stocks":[0.0,27.75,55.59,98.28,163.76,197.08,231.46,304.54],"Aluguéis":[0.0,0.0,0.0,0.0,0.5,81.69,161.72,41.89],"Sintéticos":[0.0,0.0,0.0,0.0,0.04,24.0,0.0,642.82],"TOTAL":[486.69,1621.99,3280.42,5369.29,5486.28,6608.69,9926.93,5647.91]}};
+  const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const CAT_META = {
+    'Fiis':       { label: 'FIIs',        color: '#06b6d4' },
+    'Ações':      { label: 'Ações',       color: '#3b82f6' },
+    'Stocks':     { label: 'Stocks (US)', color: '#facc15' },
+    'Aluguéis':   { label: 'Aluguéis',    color: '#22c55e' },
+    'Sintéticos': { label: 'Sintéticos',  color: '#8b5cf6' },
+  };
+  let rpYear = RP_DATA.years[RP_DATA.years.length - 1];
+
+  function renderRpYearbar() {
+    const bar = document.getElementById('rp-yearbar');
+    bar.innerHTML = '';
+    RP_DATA.years.forEach(y => {
+      const b = document.createElement('button');
+      b.className = 'rp-year-btn' + (y === rpYear ? ' active' : '');
+      b.textContent = y;
+      b.addEventListener('click', () => { rpYear = y; renderRpDashboard(); });
+      bar.appendChild(b);
+    });
+  }
+
+  function renderRpDashboard() {
+    renderRpYearbar();
+    const yearRows = RP_DATA.hist.filter(h => h.ano === rpYear).sort((a, b) => a.mes - b.mes);
+    const total = yearRows.reduce((s, r) => s + r.valor, 0);
+    const withValue = yearRows.filter(r => r.valor > 0);
+    const media = withValue.length ? total / withValue.length : 0;
+    const best = yearRows.reduce((m, r) => r.valor > m.valor ? r : m, yearRows[0] || { valor: 0, mes: 1 });
+    const idx = RP_DATA.years.indexOf(rpYear);
+    const prevTotal = idx > 0 ? RP_DATA.categorias.TOTAL[idx - 1] : null;
+    const anualTotal = RP_DATA.categorias.TOTAL[idx];
+    const yoy = (prevTotal && prevTotal > 0) ? ((anualTotal - prevTotal) / prevTotal * 100) : null;
+
+    const cards = document.getElementById('rp-cards');
+    cards.innerHTML = `
+      <div class="rp-card"><div class="rp-label">Total ${rpYear} (mensal)</div><div class="rp-value">${fmtBRL(total)}</div></div>
+      <div class="rp-card"><div class="rp-label">Média mensal</div><div class="rp-value">${fmtBRL(media)}</div></div>
+      <div class="rp-card"><div class="rp-label">Melhor mês</div><div class="rp-value">${MESES_PT[best.mes - 1]} · ${fmtBRL(best.valor)}</div></div>
+      <div class="rp-card"><div class="rp-label">Vs. ano anterior</div><div class="rp-value ${yoy === null ? '' : yoy >= 0 ? 'pos' : 'neg'}">${yoy === null ? '—' : (yoy >= 0 ? '+' : '') + yoy.toFixed(1) + '%'}</div></div>`;
+
+    const maxVal = Math.max(...yearRows.map(r => r.valor), 1);
+    const chart = document.getElementById('rp-chart');
+    chart.innerHTML = '';
+    yearRows.forEach(r => {
+      const col = document.createElement('div');
+      col.className = 'rp-bar-col';
+      const h = Math.max(2, Math.round(r.valor / maxVal * 150));
+      col.innerHTML = `
+        <span class="rp-bar-val">${r.valor ? Math.round(r.valor) : ''}</span>
+        <div class="rp-bar" style="height:${h}px" title="${MESES_PT[r.mes - 1]}/${rpYear}: ${fmtBRL(r.valor)}"></div>
+        <span class="rp-bar-label">${MESES_PT[r.mes - 1]}</span>`;
+      chart.appendChild(col);
+    });
+
+    document.getElementById('rp-comp-hint').textContent = anualTotal ? 'total do ano: ' + fmtBRL(anualTotal) : '';
+    const compGrid = document.getElementById('rp-comp-grid');
+    compGrid.innerHTML = '';
+    Object.keys(CAT_META).forEach(key => {
+      const meta = CAT_META[key];
+      const val = (RP_DATA.categorias[key] || [])[idx] || 0;
+      const pct = anualTotal ? Math.round(val / anualTotal * 100) : 0;
+      const card = document.createElement('div');
+      card.className = 'area-summary-card';
+      card.style.setProperty('--c', meta.color);
+      card.innerHTML = `
+        <div class="as-label">${meta.label}</div>
+        <div class="as-pct">${fmtBRL(val)}</div>
+        <div class="as-bar"><span style="width:${pct}%"></span></div>
+        <div class="as-count">${pct}% do ano</div>`;
+      compGrid.appendChild(card);
+    });
+  }
+
   // ── Navegação entre páginas ──
   const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', investimentos: 'Investimentos' };
   function showPage(id) {
@@ -2428,6 +2556,7 @@ function sairPersonal() {
   renderDiary();
   renderDreams();
   renderInvestments();
+  renderRpDashboard();
 })();
 </script>
 </body>
