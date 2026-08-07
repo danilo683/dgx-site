@@ -524,6 +524,76 @@ button.primary:hover { background: #8d70f5; }
 .area-summary-card .as-bar span { display: block; height: 100%; background: var(--c); }
 .area-summary-card .as-count { font-size: 11px; color: var(--text2); margin-top: 6px; }
 
+/* ── Investimentos ── */
+.inv-table { font-size: 13.5px; }
+.inv-row-head, .inv-row {
+  display: grid;
+  grid-template-columns: minmax(140px,1fr) 130px 80px 110px 120px 130px 90px 28px;
+  align-items: center; gap: 10px;
+  padding: 0 6px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.inv-row-head { color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; padding-top: 14px; padding-bottom: 6px; }
+.inv-row { min-height: 46px; cursor: pointer; }
+.inv-row:hover { background: rgba(255,255,255,.035); }
+.inv-name { font-weight: 500; padding: 8px 4px; border-radius: 5px; min-width: 0; overflow-wrap: anywhere; }
+.inv-class-select {
+  font-family: var(--body); font-size: 12px;
+  background: color-mix(in srgb, var(--c, var(--accent)) 16%, var(--bg2)); color: var(--c, var(--accent));
+  border: 1px solid var(--border); border-radius: 7px; padding: 5px 8px;
+}
+.inv-qtd-display, .inv-pm-display { text-align: right; padding-right: 8px; color: var(--text2); }
+.inv-num {
+  font-family: var(--body); font-size: 13px; color: var(--text);
+  background: var(--bg2); border: 1px solid transparent; border-radius: 7px;
+  padding: 6px 8px; width: 100%; text-align: right;
+}
+.inv-num:hover, .inv-num:focus { border-color: var(--border); background: var(--bg); }
+.inv-total { font-weight: 600; text-align: right; padding-right: 8px; }
+.inv-rent { text-align: right; padding-right: 8px; font-weight: 600; }
+.inv-rent.pos { color: #4ec98a; }
+.inv-rent.neg { color: #e57373; }
+.inv-rent.zero { color: var(--text2); }
+.inv-chevron { color: var(--text2); font-size: 11px; text-align: center; transition: transform .15s; }
+.inv-row.open .inv-chevron { transform: rotate(90deg); }
+#inv-total-hint { font-weight: 600; color: var(--text); font-size: 14px; }
+
+.inv-detail {
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.02);
+  padding: 14px 16px 16px 16px;
+}
+.inv-tx-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.inv-tx-item {
+  display: grid; grid-template-columns: 90px 90px 90px 100px 110px 26px;
+  align-items: center; gap: 8px; padding: 6px 4px; border-radius: 6px; font-size: 13px;
+}
+.inv-tx-item:hover { background: rgba(255,255,255,.03); }
+.tx-date { color: var(--text2); font-size: 12px; }
+.tx-tipo-tag { font-size: 11.5px; padding: 2px 8px; border-radius: 20px; width: fit-content; }
+.tx-tipo-tag.compra { background: rgba(78,201,138,.14); color: #4ec98a; }
+.tx-tipo-tag.venda { background: rgba(229,115,115,.14); color: #e57373; }
+.tx-qtd-val, .tx-preco-val, .tx-total-val { text-align: right; padding-right: 6px; }
+.tx-total-val { font-weight: 600; }
+.inv-tx-empty { font-size: 13px; color: var(--text2); padding: 8px 4px; }
+.inv-tx-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.inv-tx-add input, .inv-tx-add select {
+  font-family: var(--body); font-size: 13px; color-scheme: dark;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px;
+}
+.inv-tx-add .tx-data { width: 140px; }
+.inv-tx-add .tx-tipo { width: 100px; }
+.inv-tx-add .tx-qtd, .inv-tx-add .tx-preco { width: 130px; }
+.inv-detail-foot { margin-top: 12px; text-align: right; }
+
+@media (max-width: 760px) {
+  .inv-row-head, .inv-row { grid-template-columns: 1fr 90px 90px 26px; }
+  .inv-row-head .inv-hc, .inv-row .inv-qtd-display, .inv-row .inv-pm-display, .inv-row .inv-precoAtual, .inv-row .inv-rent { display: none; }
+  .inv-tx-item { grid-template-columns: 1fr 1fr 26px; row-gap: 2px; }
+  .inv-tx-item .tx-preco-val, .inv-tx-item .tx-total-val { display: none; }
+}
+
 @media (max-width: 700px) {
   .goal-row-head, .goal-row { grid-template-columns: 30px 1fr 90px 30px; }
   .goal-row-head .hc-prog, .goal-row-head .hc-due, .goal-row-head .hc-prio,
@@ -605,6 +675,7 @@ function sairPersonal() {
       <a class="sb-link" href="#habitos" data-page="habitos"><span class="ico">🔁</span>Hábitos</a>
       <a class="sb-link" href="#diario" data-page="diario"><span class="ico">📓</span>Diário</a>
       <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
+      <a class="sb-link" href="#investimentos" data-page="investimentos"><span class="ico">📈</span>Investimentos</a>
     </nav>
     <div class="sb-foot">
       <a class="sb-link sair" href="#" onclick="sairPersonal(); return false;"><span class="ico">⏻</span>Sair</a>
@@ -789,6 +860,38 @@ function sairPersonal() {
     <div class="list-empty" id="board-empty">Seu quadro ainda está vazio. Adicione a primeira foto de uma visão que você quer viver.</div>
   </section>
 
+  <section id="investimentos" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Patrimônio</div>
+      <h1>Investimentos</h1>
+      <p>Sua carteira: ativos, quantidade, preço médio e preço atual. Valor total e rentabilidade calculam sozinhos.</p>
+    </div>
+    <div class="section-head">
+      <span class="hint">clique para editar · salva sozinho</span>
+    </div>
+    <div class="inv-table">
+      <div class="inv-row-head">
+        <button class="col-sort" data-col="nome">Ativo<span class="sort-arrow"></span></button>
+        <button class="col-sort" data-col="classe">Classe<span class="sort-arrow"></span></button>
+        <button class="col-sort inv-hc" data-col="qtd">Qtd.<span class="sort-arrow"></span></button>
+        <button class="col-sort inv-hc" data-col="precoMedio">Preço Médio<span class="sort-arrow"></span></button>
+        <button class="col-sort inv-hc" data-col="precoAtual">Preço Atual<span class="sort-arrow"></span></button>
+        <button class="col-sort" data-col="total">Valor Total<span class="sort-arrow"></span></button>
+        <button class="col-sort inv-hc" data-col="rent">Rentab.<span class="sort-arrow"></span></button>
+        <span></span>
+      </div>
+      <div id="inv-rows"></div>
+      <button class="goal-new" id="btn-add-inv">＋ Novo ativo</button>
+    </div>
+    <div class="list-empty" id="inv-empty">Sua carteira ainda está vazia. Adicione o primeiro ativo.</div>
+
+    <div class="area-summary-head">
+      <h3>Total investido</h3>
+      <span class="hint" id="inv-total-hint"></span>
+    </div>
+    <div class="area-summary-grid" id="inv-summary-grid"></div>
+  </section>
+
     </main>
   </div>
 </div>
@@ -824,7 +927,7 @@ function sairPersonal() {
   ];
 
   // ── Estado ──
-  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [] };
+  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [], investments: [] };
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -2007,6 +2110,7 @@ function sairPersonal() {
           state.diary = mergeById(state.diary || [], data.diary);
           state.goals = mergeById(state.goals || [], data.goals);
           state.activities = mergeById(state.activities || [], data.activities);
+          state.investments = mergeById(state.investments || [], data.investments);
         } else {
           state = {
             vfs: data.vfs || {},
@@ -2015,6 +2119,7 @@ function sairPersonal() {
             diary: Array.isArray(data.diary) ? data.diary : [],
             goals: Array.isArray(data.goals) ? data.goals : [],
             activities: Array.isArray(data.activities) ? data.activities : [],
+            investments: Array.isArray(data.investments) ? data.investments : [],
           };
         }
         save();
@@ -2025,8 +2130,283 @@ function sairPersonal() {
     fileImport.value = '';
   });
 
+  // ── Investimentos ──
+  const INV_CLASSES = {
+    fii:       { label: 'FII',         icon: '🏢', color: '#06b6d4' },
+    acao:      { label: 'Ação',        icon: '📈', color: '#3b82f6' },
+    rendafixa: { label: 'Renda Fixa',  icon: '🏦', color: '#22c55e' },
+    cripto:    { label: 'Cripto',      icon: '₿',  color: '#facc15' },
+    fundo:     { label: 'Fundo',       icon: '📊', color: '#8b5cf6' },
+    outro:     { label: 'Outro',       icon: '🔹', color: '#9c93bd' },
+  };
+  // Migração: ativos antigos tinham qtd/precoMedio digitados direto — viram um lançamento de compra inicial
+  (state.investments || []).forEach(x => {
+    if (x.classe === undefined) x.classe = 'acao';
+    if (x.precoAtual === undefined) x.precoAtual = 0;
+    if (x.transacoes === undefined) {
+      x.transacoes = [];
+      if (x.qtd > 0) {
+        x.transacoes.push({ id: 'tx' + Date.now() + Math.random().toString(16).slice(2, 6), data: todayISO(), tipo: 'compra', qtd: x.qtd, preco: x.precoMedio || 0 });
+      }
+    }
+    delete x.qtd;
+    delete x.precoMedio;
+  });
+
+  const invRows = document.getElementById('inv-rows');
+  const invEmpty = document.getElementById('inv-empty');
+  let invSortCol = 'total';
+  let invSortDir = 'desc';
+  let openInv = new Set();
+  const INV_DEFAULT_DIR = { nome: 'asc', classe: 'asc', qtd: 'desc', precoMedio: 'desc', precoAtual: 'desc', total: 'desc', rent: 'desc' };
+
+  const invById = id => (state.investments || []).find(x => x.id === id);
+
+  // Posição (quantidade + preço médio) calculada a partir dos lançamentos, em ordem cronológica.
+  // Compra: recalcula a média ponderada. Venda: reduz a quantidade mantendo o preço médio (custo médio).
+  function calcPosition(x) {
+    const txs = [...(x.transacoes || [])].sort((a, b) => a.data.localeCompare(b.data) || a.id.localeCompare(b.id));
+    let qtd = 0, custoTotal = 0;
+    txs.forEach(t => {
+      if (t.tipo === 'venda') {
+        const avgBefore = qtd > 0 ? custoTotal / qtd : 0;
+        custoTotal -= t.qtd * avgBefore;
+        qtd -= t.qtd;
+      } else {
+        custoTotal += t.qtd * t.preco;
+        qtd += t.qtd;
+      }
+    });
+    qtd = Math.max(0, qtd);
+    return { qtd, precoMedio: qtd > 0 ? custoTotal / qtd : 0 };
+  }
+  const invTotal = x => { const p = calcPosition(x); return p.qtd * (x.precoAtual || p.precoMedio || 0); };
+  const invRent = x => {
+    const p = calcPosition(x);
+    if (!p.precoMedio) return null;
+    const atual = x.precoAtual || p.precoMedio;
+    return ((atual - p.precoMedio) / p.precoMedio) * 100;
+  };
+
+  document.querySelectorAll('.inv-table .col-sort').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const col = btn.dataset.col;
+      if (invSortCol === col) invSortDir = invSortDir === 'asc' ? 'desc' : 'asc';
+      else { invSortCol = col; invSortDir = INV_DEFAULT_DIR[col] || 'asc'; }
+      renderInvestments();
+    });
+  });
+
+  function updateInvSortHeaderUI() {
+    document.querySelectorAll('.inv-table .col-sort').forEach(btn => {
+      const isActive = btn.dataset.col === invSortCol;
+      btn.classList.toggle('active-sort', isActive);
+      btn.querySelector('.sort-arrow').textContent = isActive ? (invSortDir === 'asc' ? '▲' : '▼') : '';
+    });
+  }
+
+  function fmtQtd(n) { return (n % 1 === 0) ? String(n) : n.toFixed(4).replace(/0+$/, '').replace(/\.$/, ''); }
+
+  function renderInvestments() {
+    invRows.innerHTML = '';
+    const list = [...(state.investments || [])];
+    const dir = invSortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) => {
+      let av, bv;
+      const pa = calcPosition(a), pb = calcPosition(b);
+      switch (invSortCol) {
+        case 'nome': av = (a.nome || '').toLowerCase(); bv = (b.nome || '').toLowerCase(); break;
+        case 'classe': av = INV_CLASSES[a.classe].label; bv = INV_CLASSES[b.classe].label; break;
+        case 'qtd': av = pa.qtd; bv = pb.qtd; break;
+        case 'precoMedio': av = pa.precoMedio; bv = pb.precoMedio; break;
+        case 'precoAtual': av = a.precoAtual || pa.precoMedio; bv = b.precoAtual || pb.precoMedio; break;
+        case 'rent': av = invRent(a) ?? -Infinity; bv = invRent(b) ?? -Infinity; break;
+        default: av = invTotal(a); bv = invTotal(b);
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    updateInvSortHeaderUI();
+    invEmpty.style.display = list.length ? 'none' : 'block';
+
+    list.forEach(x => {
+      const cls = INV_CLASSES[x.classe];
+      const pos = calcPosition(x);
+      const total = invTotal(x);
+      const rent = invRent(x);
+      const isOpen = openInv.has(x.id);
+      const row = document.createElement('div');
+      row.className = 'inv-row' + (isOpen ? ' open' : '');
+      row.dataset.id = x.id;
+      const classOpts = Object.keys(INV_CLASSES).map(k => `<option value="${k}" ${x.classe === k ? 'selected' : ''}>${INV_CLASSES[k].icon} ${INV_CLASSES[k].label}</option>`).join('');
+      row.innerHTML = `
+        <div class="inv-name" contenteditable="true" data-placeholder="Nome do ativo (ex.: HGLG11)"></div>
+        <select class="inv-class-select" style="--c:${cls.color}">${classOpts}</select>
+        <span class="inv-qtd-display">${pos.qtd ? fmtQtd(pos.qtd) : '—'}</span>
+        <span class="inv-pm-display">${pos.precoMedio ? fmtBRL(pos.precoMedio) : '—'}</span>
+        <input type="number" min="0" step="0.01" class="inv-num inv-precoAtual" value="${x.precoAtual || ''}" placeholder="= preço médio">
+        <span class="inv-total">${fmtBRL(total)}</span>
+        <span class="inv-rent ${rent === null ? 'zero' : rent > 0 ? 'pos' : rent < 0 ? 'neg' : 'zero'}">${rent === null ? '—' : (rent > 0 ? '+' : '') + rent.toFixed(1) + '%'}</span>
+        <span class="inv-chevron">▶</span>`;
+      row.querySelector('.inv-name').textContent = x.nome;
+      invRows.appendChild(row);
+
+      if (isOpen) {
+        const det = document.createElement('div');
+        det.className = 'inv-detail';
+        det.dataset.id = x.id;
+        det.innerHTML = `
+          <div class="inv-tx-list"></div>
+          <div class="inv-tx-add">
+            <input type="date" class="tx-data" value="${todayISO()}">
+            <select class="tx-tipo">
+              <option value="compra">Compra</option>
+              <option value="venda">Venda</option>
+            </select>
+            <input type="number" min="0" step="any" class="tx-qtd" placeholder="Quantidade">
+            <input type="number" min="0" step="0.01" class="tx-preco" placeholder="Preço unitário">
+            <button type="button" class="primary tx-add-btn">+ Lançar</button>
+          </div>
+          <div class="inv-detail-foot"><button class="x-remove inv-remove" type="button">remover ativo</button></div>`;
+        const txList = det.querySelector('.inv-tx-list');
+        [...x.transacoes].sort((a, b) => b.data.localeCompare(a.data)).forEach(t => {
+          const tr = document.createElement('div');
+          tr.className = 'inv-tx-item';
+          tr.dataset.tid = t.id;
+          tr.innerHTML = `
+            <span class="tx-date">${fmtBR(t.data)}</span>
+            <span class="tx-tipo-tag ${t.tipo}">${t.tipo === 'compra' ? '↑ Compra' : '↓ Venda'}</span>
+            <span class="tx-qtd-val">${fmtQtd(t.qtd)}</span>
+            <span class="tx-preco-val">${fmtBRL(t.preco)}</span>
+            <span class="tx-total-val">${fmtBRL(t.qtd * t.preco)}</span>
+            <button class="x-remove tx-remove" type="button">×</button>`;
+          txList.appendChild(tr);
+        });
+        if (!x.transacoes.length) {
+          txList.innerHTML = '<p class="inv-tx-empty">Nenhum lançamento ainda. Registre a primeira compra abaixo.</p>';
+        }
+        invRows.appendChild(det);
+      }
+    });
+    renderInvSummary();
+  }
+
+  function renderInvSummary() {
+    const grid = document.getElementById('inv-summary-grid');
+    const hint = document.getElementById('inv-total-hint');
+    if (!grid) return;
+    const list = state.investments || [];
+    const grandTotal = list.reduce((s, x) => s + invTotal(x), 0);
+    hint.textContent = fmtBRL(grandTotal);
+    grid.innerHTML = '';
+    Object.keys(INV_CLASSES).forEach(k => {
+      const cls = INV_CLASSES[k];
+      const inClass = list.filter(x => x.classe === k);
+      const card = document.createElement('div');
+      card.className = 'area-summary-card';
+      card.style.setProperty('--c', cls.color);
+      if (!inClass.length) {
+        card.innerHTML = `<div class="as-label">${cls.icon} ${cls.label}</div><div class="as-pct empty">Sem ativos</div>`;
+      } else {
+        const sum = inClass.reduce((s, x) => s + invTotal(x), 0);
+        const pct = grandTotal ? Math.round(sum / grandTotal * 100) : 0;
+        card.innerHTML = `
+          <div class="as-label">${cls.icon} ${cls.label}</div>
+          <div class="as-pct">${fmtBRL(sum)}</div>
+          <div class="as-bar"><span style="width:${pct}%"></span></div>
+          <div class="as-count">${pct}% da carteira · ${inClass.length} ativo${inClass.length === 1 ? '' : 's'}</div>`;
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('btn-add-inv').addEventListener('click', () => {
+    const x = { id: 'i' + Date.now(), nome: '', classe: 'acao', precoAtual: 0, transacoes: [] };
+    state.investments.push(x);
+    openInv.add(x.id);
+    save(); renderInvestments();
+    const el = invRows.querySelector(`.inv-row[data-id="${x.id}"] .inv-name`);
+    if (el) el.focus();
+  });
+
+  invRows.addEventListener('click', (ev) => {
+    const row = ev.target.closest('.inv-row');
+    if (row && !ev.target.closest('input, [contenteditable], select, button')) {
+      const id = row.dataset.id;
+      openInv.has(id) ? openInv.delete(id) : openInv.add(id);
+      renderInvestments();
+      return;
+    }
+    const remove = ev.target.closest('.inv-remove');
+    if (remove) {
+      const id = remove.closest('.inv-detail').dataset.id;
+      if (!confirm('Remover este ativo e todos os seus lançamentos?')) return;
+      state.investments = state.investments.filter(x => x.id !== id);
+      openInv.delete(id);
+      save(); renderInvestments();
+      return;
+    }
+    const addTx = ev.target.closest('.tx-add-btn');
+    if (addTx) {
+      const det = addTx.closest('.inv-detail');
+      const x = invById(det.dataset.id);
+      const dataEl = det.querySelector('.tx-data');
+      const tipoEl = det.querySelector('.tx-tipo');
+      const qtdEl = det.querySelector('.tx-qtd');
+      const precoEl = det.querySelector('.tx-preco');
+      const qtd = parseFloat(qtdEl.value);
+      const preco = parseFloat(precoEl.value);
+      if (!qtd || qtd <= 0 || !preco || preco <= 0) { (qtd ? precoEl : qtdEl).focus(); return; }
+      x.transacoes.push({ id: 'tx' + Date.now(), data: dataEl.value || todayISO(), tipo: tipoEl.value, qtd, preco });
+      save(); renderInvestments();
+      return;
+    }
+    const removeTx = ev.target.closest('.tx-remove');
+    if (removeTx) {
+      const det = removeTx.closest('.inv-detail');
+      const x = invById(det.dataset.id);
+      const tid = removeTx.closest('.inv-tx-item').dataset.tid;
+      x.transacoes = x.transacoes.filter(t => t.id !== tid);
+      save(); renderInvestments();
+    }
+  });
+
+  invRows.addEventListener('blur', (ev) => {
+    const el = ev.target.closest('.inv-name');
+    if (!el) return;
+    const x = invById(el.closest('.inv-row').dataset.id);
+    if (x) { x.nome = el.innerText.trim(); save(); }
+  }, true);
+
+  invRows.addEventListener('change', (ev) => {
+    const sel = ev.target.closest('.inv-class-select');
+    if (sel) {
+      const x = invById(sel.closest('.inv-row').dataset.id);
+      if (x) { x.classe = sel.value; save(); renderInvestments(); }
+    }
+  });
+
+  // Preço atual: atualiza ao digitar sem recriar o input (evita perder o foco)
+  invRows.addEventListener('input', (ev) => {
+    const el = ev.target.closest('.inv-precoAtual');
+    if (!el) return;
+    const row = el.closest('.inv-row');
+    const x = invById(row.dataset.id);
+    if (!x) return;
+    x.precoAtual = el.value ? parseFloat(el.value) : 0;
+    save();
+    const total = invTotal(x);
+    const rent = invRent(x);
+    row.querySelector('.inv-total').textContent = fmtBRL(total);
+    const rentEl = row.querySelector('.inv-rent');
+    rentEl.textContent = rent === null ? '—' : (rent > 0 ? '+' : '') + rent.toFixed(1) + '%';
+    rentEl.className = 'inv-rent ' + (rent === null ? 'zero' : rent > 0 ? 'pos' : rent < 0 ? 'neg' : 'zero');
+    renderInvSummary();
+  });
+
   // ── Navegação entre páginas ──
-  const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos' };
+  const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', investimentos: 'Investimentos' };
   function showPage(id) {
     if (!PAGES[id]) id = 'visoes';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
@@ -2047,6 +2427,7 @@ function sairPersonal() {
   renderHabits();
   renderDiary();
   renderDreams();
+  renderInvestments();
 })();
 </script>
 </body>
