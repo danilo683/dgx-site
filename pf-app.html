@@ -9694,7 +9694,10 @@ function cartaoParcelasFuturas(p){
   for(let i = p.parcela_atual-1; i < p.num_parcelas; i++){
     const d = new Date(dataBase);
     d.setMonth(d.getMonth()+i);
-    if(d < hoje) continue;
+    // Inclui o mês atual mesmo que o dia já tenha passado
+    const dMes = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const hojeMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+    if(dMes < hojeMes) continue; // só pula meses passados, não o mês atual
     futuras.push({
       real_numero: i+1,
       data: d.toISOString().split('T')[0],
