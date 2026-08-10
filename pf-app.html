@@ -3044,9 +3044,9 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 
           <!-- Abas -->
           <div class="inv-tabs" style="margin-bottom:1.2rem">
-            <button class="inv-tab active" onclick="cartaoAba(this,'parcelamentos')">Compras parceladas</button>
+            <button class="inv-tab" onclick="cartaoAba(this,'parcelamentos')">Compras parceladas</button>
             <button class="inv-tab" onclick="cartaoAba(this,'avista')">À vista</button>
-            <button class="inv-tab" onclick="cartaoAba(this,'projecao')">Projeção mensal</button>
+            <button class="inv-tab active" onclick="cartaoAba(this,'projecao')">Projeção mensal</button>
             <button class="inv-tab" onclick="cartaoAba(this,'meus-cartoes')">Meus cartões</button>
           </div>
 
@@ -9507,6 +9507,7 @@ function cartaoAba(btn, aba){
   document.getElementById('cartao-aba-meus-cartoes').style.display   = aba==='meus-cartoes'?'block':'none';
   if(aba==='avista')       cartaoRenderAvista();
   if(aba==='meus-cartoes') cartaoRenderMeusCartoes();
+  if(aba==='projecao')     cartaoRenderProjecao();
 }
 
 function cartaoRenderAvista(){
@@ -9633,6 +9634,11 @@ async function cartaoCarregar(){
   document.getElementById('cartao-loading').style.display='none';
   document.getElementById('cartao-content').style.display='block';
 
+  document.getElementById('cartao-aba-parcelamentos').style.display = 'none';
+  document.getElementById('cartao-aba-avista').style.display        = 'none';
+  document.getElementById('cartao-aba-projecao').style.display      = 'block';
+  document.getElementById('cartao-aba-meus-cartoes').style.display  = 'none';
+
   cartaoPopularCategorias();
   cartaoRenderResumo();
   cartaoRenderParcelamentos();
@@ -9641,12 +9647,18 @@ async function cartaoCarregar(){
 
 function cartaoPopularCategorias(){
   const sel = document.getElementById('cartao-form-categoria');
+  if(!sel) return;
   const cats = [];
   RX_DESPESAS_GRUPOS.forEach(g=>{
-    const gDados=(rxDados&&rxDados.despesas&&rxDados.despesas[g.id])||{};
-    cats.push(...g.itens,...(gDados.extras||[]));
+    const gDados = (rxDados && rxDados.despesas && rxDados.despesas[g.id]) || {};
+    cats.push(...g.itens, ...(gDados.extras||[]));
   });
-  sel.innerHTML = '<option value="">Selecione...</option>' + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  // Se rxDados não carregou ainda, usa todas as categorias fixas de todos os grupos
+  if(!cats.length){
+    RX_DESPESAS_GRUPOS.forEach(g=> cats.push(...g.itens));
+  }
+  sel.innerHTML = '<option value="">Selecione...</option>' +
+    cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 }
 
 // Calcula parcelas FUTURAS de um parcelamento com centavos corretos
@@ -9763,15 +9775,23 @@ function cartaoRenderParcelamentos(){
 function cartaoRenderProjecao(){
   const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
   const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const mesHojeKey = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
   const vazio = document.getElementById('cartao-proj-vazio');
 
-  // Coletar todos os meses com parcelas futuras
+  // ── Coletar meses das parcelas futuras ──
   const mesesSet = new Set();
   cartaoDados.forEach(p=>{
     cartaoParcelasFuturas(p).forEach(pa=>{
       const d = new Date(pa.data+'T00:00:00');
       mesesSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
     });
+  });
+
+  // ── Adicionar meses das compras à vista (a partir de hoje) ──
+  (cartaoLancsAvista||[]).forEach(l=>{
+    const d = new Date(l.data+'T00:00:00');
+    if(d < hoje) return; // oculta passado
+    mesesSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
   });
 
   const meses = [...mesesSet].sort();
@@ -9782,84 +9802,85 @@ function cartaoRenderProjecao(){
   }
   vazio.style.display='none';
 
-  const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-
   // Cabeçalho
   const thMeses = meses.map(k=>{
     const [ano,mes] = k.split('-');
-    const isAtual = k === mesAtualKey;
-    const nomeMes = MESES_NOMES[parseInt(mes)-1];
+    const isAtual = k === mesHojeKey;
     return `<th class="${isAtual?'mes-atual':''}">
-      ${nomeMes}<br><span style="font-size:.6rem;font-weight:400;opacity:.7">${ano}</span>
+      ${MESES_NOMES[parseInt(mes)-1]}<br><span style="font-size:.6rem;font-weight:400;opacity:.7">${ano}</span>
       ${isAtual?'<div style="font-size:.55rem;color:var(--gold);margin-top:.1rem">▼ atual</div>':''}
     </th>`;
   }).join('');
 
-  // Calcular totais por mês para barra de referência
+  // Totais por mês
   const totaisPorMes = {};
   meses.forEach(k=>{ totaisPorMes[k]=0; });
-  cartaoDados.forEach(p=>{
-    cartaoParcelasFuturas(p).forEach(pa=>{
-      const d = new Date(pa.data+'T00:00:00');
-      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      if(totaisPorMes[k]!==undefined) totaisPorMes[k] += pa.valor;
-    });
-  });
 
-  // Linhas por compra
-  const linhas = cartaoDados.map(p=>{
+  // ── Linhas: parcelamentos/assinaturas ──
+  const linhasParc = cartaoDados.map(p=>{
     const futuras = cartaoParcelasFuturas(p);
     if(!futuras.length) return '';
-
     const parMap = {};
     futuras.forEach(pa=>{
       const d = new Date(pa.data+'T00:00:00');
       const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       parMap[k] = pa;
+      if(totaisPorMes[k]!==undefined) totaisPorMes[k] += pa.valor;
     });
-
-    const parc_restantes = p.num_parcelas - (p.parcela_atual - 1);
+    const isAssn = p.tipo_lancamento === 'assinatura';
+    const parc_restantes = isAssn ? '∞' : p.num_parcelas - (p.parcela_atual-1);
     const totalRestante = futuras.reduce((a,pa)=>a+pa.valor,0);
-
     const cells = meses.map(k=>{
       const pa = parMap[k];
-      if(!pa) return `<td><span style="color:var(--navy3);font-size:.7rem">·</span></td>`;
-      const isUltima = pa.real_numero === p.num_parcelas;
+      if(!pa) return `<td><span style="color:var(--navy3)">·</span></td>`;
+      const isUltima = !isAssn && pa.real_numero===p.num_parcelas;
       return `<td class="tem-parcela${isUltima?' ultima':''}">
         ${fmt(pa.valor)}
-        <div style="font-size:.56rem;color:inherit;opacity:.65;margin-top:.15rem">${pa.real_numero}/${p.num_parcelas}${isUltima?' ✓':''}</div>
+        ${!isAssn?`<div style="font-size:.56rem;opacity:.65;margin-top:.1rem">${pa.real_numero}/${p.num_parcelas}${isUltima?' ✓':''}</div>`:'<div style="font-size:.56rem;opacity:.65;margin-top:.1rem">♻</div>'}
       </td>`;
     }).join('');
-
     return `<tr>
       <td class="col-compra">
-        <div class="cartao-proj-compra-nome">${escapeHtml(p.descricao)}</div>
-        <div class="cartao-proj-compra-sub">
-          ${p.cartao?`<span style="color:var(--gold)">${escapeHtml(p.cartao)}</span> · `:''}
-          ${parc_restantes} parcela${parc_restantes!==1?'s':''} · <span style="color:var(--white)">${fmt(totalRestante)}</span> restante
-        </div>
-      </td>
-      ${cells}
-    </tr>`;
-  }).filter(Boolean).join('');
+        <div class="cartao-proj-compra-nome">${escapeHtml(p.descricao)}${isAssn?'<span style="font-size:.55rem;background:rgba(124,156,255,0.15);color:#7c9cff;padding:.1rem .35rem;border-radius:3px;margin-left:.4rem">♻</span>':''}</div>
+        <div class="cartao-proj-compra-sub">${p.cartao?`<span style="color:var(--gold)">${escapeHtml(p.cartao)}</span> · `:''}${isAssn?'Recorrente':parc_restantes+' parcelas'} · <span style="color:var(--white)">${fmt(totalRestante)}</span></div>
+      </td>${cells}</tr>`;
+  }).filter(Boolean);
 
-  // Linha de totais com destaque
+  // ── Linhas: compras à vista (só de hoje em diante) ──
+  const linhasAvista = (cartaoLancsAvista||[]).filter(l=>{
+    const d = new Date(l.data+'T00:00:00');
+    return d >= hoje;
+  }).map(l=>{
+    const k = `${new Date(l.data+'T00:00:00').getFullYear()}-${String(new Date(l.data+'T00:00:00').getMonth()+1).padStart(2,'0')}`;
+    if(totaisPorMes[k]!==undefined) totaisPorMes[k] += l.val;
+    const cells = meses.map(mk=>{
+      if(mk!==k) return `<td><span style="color:var(--navy3)">·</span></td>`;
+      return `<td class="tem-parcela" style="background:rgba(78,201,138,0.06)">
+        ${fmt(l.val)}
+        <div style="font-size:.56rem;opacity:.65;margin-top:.1rem">à vista</div>
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td class="col-compra">
+        <div class="cartao-proj-compra-nome">${escapeHtml(l.desc)}<span style="font-size:.55rem;background:rgba(78,201,138,0.12);color:var(--green);padding:.1rem .35rem;border-radius:3px;margin-left:.4rem">À VISTA</span></div>
+        <div class="cartao-proj-compra-sub">${l.conta?`<span style="color:var(--gold)">${escapeHtml(l.conta)}</span> · `:''}${new Date(l.data+'T00:00:00').toLocaleDateString('pt-BR')}</div>
+      </td>${cells}</tr>`;
+  });
+
   const totais = meses.map(k=>{
     const tot = totaisPorMes[k]||0;
-    const isAtual = k === mesAtualKey;
+    const isAtual = k===mesHojeKey;
     return `<td class="tem-parcela" style="${isAtual?'background:rgba(0,182,233,0.12)':''}">${fmt(tot)}</td>`;
   }).join('');
 
   document.getElementById('cartao-proj-timeline').innerHTML = `
     <table class="cartao-proj-timeline">
-      <thead>
-        <tr>
-          <th class="col-compra">Compra / Cartão</th>
-          ${thMeses}
-        </tr>
-      </thead>
+      <thead><tr>
+        <th class="col-compra">Compra / Cartão</th>
+        ${thMeses}
+      </tr></thead>
       <tbody>
-        ${linhas}
+        ${[...linhasParc, ...linhasAvista].join('')}
         <tr class="row-total">
           <td class="col-compra">💳 Total do mês</td>
           ${totais}
@@ -9906,6 +9927,9 @@ function cartaoAbrirForm(id, tipoDefault){
   const p = id ? cartaoDados.find(x=>x.id===id) : null;
   const tipo = p?.tipo_lancamento || tipoDefault || 'parcelado';
   const isAssn = tipo === 'assinatura';
+
+  // Sempre popular categorias antes de abrir (rxDados pode não estar carregado)
+  cartaoPopularCategorias();
 
   document.getElementById('cartao-form-tipo-lanc').value = tipo;
   document.getElementById('cartao-form-titulo').textContent =
