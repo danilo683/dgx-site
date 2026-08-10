@@ -348,6 +348,8 @@ footer{padding:2rem 3rem;border-top:1px solid var(--border);display:flex;align-i
 }
 .diag-input:focus{border-bottom-color:var(--gold)}
 .diag-input::placeholder{color:var(--gray3)}
+.diag-input option{background:#0d1b2a;color:var(--white)}
+select option{background:#0d1b2a;color:var(--white)}
 
 /* Opções radio */
 .diag-radio-group{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.2rem}
@@ -9777,10 +9779,7 @@ function cartaoRenderParcelamentos(){
 }
 
 function cartaoRenderProjecao(){
-  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const mesHojeKey = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-  const vazio = document.getElementById('cartao-proj-vazio');
+  const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   // ── Coletar meses das parcelas futuras ──
   const mesesSet = new Set();
