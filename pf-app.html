@@ -9618,12 +9618,16 @@ async function cartaoCarregar(){
   document.getElementById('cartao-loading').style.display='block';
   document.getElementById('cartao-content').style.display='none';
 
+  // Resetar para forçar recarga completa
+  cartaoDados = [];
+  cartaoLancsAvista = [];
+
   await cartoesCadastradosCarregar();
 
   const [parcRes, lancRes] = await Promise.all([
     sb.from('cartao_parcelamentos').select('*')
       .eq('user_id', usuarioAtual.id).order('data_primeira_parcela',{ascending:false}),
-    sb.from('extrato').select('*')
+    sb.from('extrato').select('id,data,descricao,categoria,valor,conta')
       .eq('user_id', usuarioAtual.id).eq('origem','cartao')
       .neq('tipo','pagamento_fatura').order('data',{ascending:false})
   ]);
@@ -9780,6 +9784,9 @@ function cartaoRenderParcelamentos(){
 
 function cartaoRenderProjecao(){
   const fmt = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const mesHojeKey = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const vazio = document.getElementById('cartao-proj-vazio');
 
   // ── Coletar meses das parcelas futuras ──
   const mesesSet = new Set();
