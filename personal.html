@@ -1209,13 +1209,14 @@ function sairPersonal() {
   }
 
   // Ritmo esperado: quanto % do período já passou até hoje.
-  // Anual: o período é o ano-calendário do prazo (1º/jan até "Completar até", ou 31/dez se não houver prazo).
-  // Sazonal: o período é o intervalo real da meta — de quando ela foi criada até "Completar até".
+  // Esporádica: sempre usa o intervalo real da meta — de quando foi criada até "Completar até"
+  // (é um compromisso pontual, não faz sentido medir contra o ano-calendário).
+  // Diária/Semanal/Mensal: usa o campo Tipo — Anual (ano-calendário) ou Sazonal (criação até o prazo).
   function expectedPct(g) {
     const todayStr = todayISO();
     const [ty, tm, td] = todayStr.split('-').map(Number);
     let startStr, endStr;
-    if (g.tipo === 'sazonal') {
+    if (g.recorrencia === 'esporadica' || g.tipo === 'sazonal') {
       endStr = g.due || todayStr;
       startStr = g.createdAt || endStr;
     } else {
