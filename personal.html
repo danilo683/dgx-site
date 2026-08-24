@@ -124,6 +124,59 @@ html.locked .auth-gate { display: flex; }
 .page-head h1 { font-family: var(--display); font-weight: 600; font-size: clamp(26px, 4vw, 36px); line-height: 1.15; }
 .page-head p { color: var(--text2); max-width: 600px; margin-top: 10px; font-size: 14.5px; }
 
+/* ── Início ── */
+.ini-header { padding: 42px 0 4px; }
+.ini-header h1 { font-family: var(--display); font-weight: 600; font-size: clamp(24px, 3.6vw, 32px); }
+.ini-header p { color: var(--text2); margin-top: 6px; font-size: 14px; text-transform: capitalize; }
+
+.ini-quote {
+  margin: 22px 0 30px; padding: 20px 24px;
+  background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); position: relative;
+}
+.ini-quote-mark { position: absolute; top: 10px; left: 16px; font-size: 34px; color: var(--accent); opacity: .35; font-family: var(--display); line-height: 1; }
+.ini-quote p { font-family: var(--display); font-style: italic; font-size: 17px; line-height: 1.5; padding-left: 26px; }
+.ini-quote cite { display: block; margin-top: 10px; padding-left: 26px; font-style: normal; font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+
+.ini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.ini-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.ini-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.ini-card-head h3 { font-family: var(--display); font-weight: 600; font-size: 16px; }
+
+.ini-cal-nav { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text2); }
+.ini-cal-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text2); width: 22px; height: 22px; cursor: pointer; font-size: 13px; line-height: 1; }
+.ini-cal-nav button:hover { color: var(--text); background: var(--bg3); }
+.ini-cal-nav span { min-width: 84px; text-align: center; text-transform: capitalize; }
+.ini-cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.ini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.ini-cal-day {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--text2); border-radius: 7px; position: relative;
+}
+.ini-cal-day.other { opacity: .25; }
+.ini-cal-day.today { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ini-cal-day .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); margin-top: 2px; }
+.ini-cal-day.today .dot { background: var(--accent); }
+
+.ini-sub { margin-bottom: 18px; }
+.ini-sub:last-child { margin-bottom: 0; }
+.ini-sub-head { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+.ini-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 7px;
+  font-size: 13.5px; border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.ini-item:last-child { border-bottom: none; }
+.ini-item .ini-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--accent)); flex: none; }
+.ini-item .ini-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ini-item .ini-when { font-size: 12px; color: var(--text2); flex: none; }
+.ini-item .ini-when.today { color: var(--accent); font-weight: 600; }
+.ini-item .ini-when.overdue { color: #e57373; font-weight: 600; }
+.ini-empty { font-size: 13px; color: var(--text2); padding: 6px; }
+
+@media (max-width: 760px) {
+  .ini-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 900px) {
   .sidebar { transform: translateX(-100%); }
   body.sb-open .sidebar { transform: translateX(0); }
@@ -701,6 +754,7 @@ function sairPersonal() {
       <div><strong>Danilo</strong><span>Área Pessoal</span></div>
     </div>
     <nav class="sb-nav" id="sb-nav">
+      <a class="sb-link" href="#inicio" data-page="inicio"><span class="ico">🏠</span>Início</a>
       <a class="sb-link" href="#visoes" data-page="visoes"><span class="ico">🔭</span>Visões de Futuro</a>
       <a class="sb-link" href="#metas" data-page="metas"><span class="ico">🎯</span>Metas &amp; Tarefas</a>
       <a class="sb-link" href="#atividades" data-page="atividades"><span class="ico">📋</span>Atividades</a>
@@ -716,6 +770,48 @@ function sairPersonal() {
 
   <div class="content">
     <main>
+
+  <section id="inicio" class="page">
+    <div class="ini-header">
+      <h1 id="ini-greeting">Bom dia!</h1>
+      <p id="ini-date">—</p>
+    </div>
+
+    <blockquote class="ini-quote">
+      <span class="ini-quote-mark">❝</span>
+      <p id="ini-quote-text">A disciplina é a ponte entre metas e realização.</p>
+      <cite id="ini-quote-author">— JIM ROHN</cite>
+    </blockquote>
+
+    <div class="ini-grid">
+      <div class="ini-card">
+        <div class="ini-card-head">
+          <h3>Cronograma</h3>
+          <div class="ini-cal-nav">
+            <button type="button" id="ini-cal-prev" aria-label="Mês anterior">‹</button>
+            <span id="ini-cal-label"></span>
+            <button type="button" id="ini-cal-next" aria-label="Próximo mês">›</button>
+          </div>
+        </div>
+        <div class="ini-cal-weekdays">
+          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+        </div>
+        <div class="ini-cal-grid" id="ini-cal-grid"></div>
+      </div>
+
+      <div class="ini-card">
+        <div class="ini-card-head"><h3>Próximas</h3></div>
+        <div class="ini-sub">
+          <div class="ini-sub-head">🎯 Metas</div>
+          <div id="ini-next-goals"></div>
+        </div>
+        <div class="ini-sub">
+          <div class="ini-sub-head">📋 Atividades</div>
+          <div id="ini-next-activities"></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section id="visoes" class="page">
     <div class="page-head">
@@ -2534,20 +2630,134 @@ function sairPersonal() {
     });
   }
 
+  // ── Início ──
+  const DIAS_SEMANA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  const MESES_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+  function renderIniHeader() {
+    const h = new Date().getHours();
+    const saudacao = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+    document.getElementById('ini-greeting').textContent = `${saudacao}, Danilo!`;
+    const now = new Date();
+    document.getElementById('ini-date').textContent =
+      `Hoje é ${DIAS_SEMANA[now.getDay()]}, ${now.getDate()} de ${MESES_LONG[now.getMonth()]} de ${now.getFullYear()}`;
+  }
+
+  function fmtWhen(iso) {
+    const t = todayISO();
+    if (iso === t) return { text: 'Hoje', cls: 'today' };
+    const tom = new Date(); tom.setDate(tom.getDate() + 1);
+    const tomISO = tom.getFullYear() + '-' + String(tom.getMonth() + 1).padStart(2, '0') + '-' + String(tom.getDate()).padStart(2, '0');
+    if (iso === tomISO) return { text: 'Amanhã', cls: '' };
+    return { text: fmtBR(iso), cls: iso < t ? 'overdue' : '' };
+  }
+
+  function renderIniUpcoming() {
+    const goalsBox = document.getElementById('ini-next-goals');
+    const activitiesBox = document.getElementById('ini-next-activities');
+
+    const upcomingGoals = state.goals
+      .filter(g => !g.done)
+      .map(g => ({ g, next: computeNextDate(g) }))
+      .filter(x => x.next)
+      .sort((a, b) => a.next.localeCompare(b.next))
+      .slice(0, 6);
+
+    goalsBox.innerHTML = '';
+    if (!upcomingGoals.length) {
+      goalsBox.innerHTML = '<div class="ini-empty">Nenhuma meta com data próxima.</div>';
+    } else {
+      upcomingGoals.forEach(({ g, next }) => {
+        const a = AREAS.find(x => x.id === g.area) || AREAS[0];
+        const w = fmtWhen(next);
+        const row = document.createElement('div');
+        row.className = 'ini-item';
+        row.innerHTML = `<span class="ini-dot" style="--c:${a.color}"></span><span class="ini-name">${esc(g.name || '(sem nome)')}</span><span class="ini-when ${w.cls}">${w.text}</span>`;
+        goalsBox.appendChild(row);
+      });
+    }
+
+    const upcomingAct = (state.activities || [])
+      .filter(x => !x.done && x.due)
+      .sort((a, b) => a.due.localeCompare(b.due))
+      .slice(0, 6);
+
+    activitiesBox.innerHTML = '';
+    if (!upcomingAct.length) {
+      activitiesBox.innerHTML = '<div class="ini-empty">Nenhuma atividade com data próxima.</div>';
+    } else {
+      upcomingAct.forEach(x => {
+        const w = fmtWhen(x.due);
+        const row = document.createElement('div');
+        row.className = 'ini-item';
+        row.innerHTML = `<span class="ini-dot" style="--c:var(--accent)"></span><span class="ini-name">${esc(x.name)}</span><span class="ini-when ${w.cls}">${w.text}</span>`;
+        activitiesBox.appendChild(row);
+      });
+    }
+  }
+
+  let iniCalDate = new Date();
+  function renderIniCalendar() {
+    const y = iniCalDate.getFullYear(), m = iniCalDate.getMonth();
+    document.getElementById('ini-cal-label').textContent = `${MESES_LONG[m]} ${y}`;
+
+    // dias com meta/atividade marcados neste mês
+    const marked = new Set();
+    state.goals.filter(g => !g.done).forEach(g => { const d = computeNextDate(g); if (d) marked.add(d); });
+    (state.activities || []).filter(x => !x.done && x.due).forEach(x => marked.add(x.due));
+
+    const grid = document.getElementById('ini-cal-grid');
+    grid.innerHTML = '';
+    const firstDow = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const daysInPrev = new Date(y, m, 0).getDate();
+    const todayStr = todayISO();
+
+    const cells = [];
+    for (let i = firstDow - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, other: true, y, m: m - 1 });
+    for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, other: false, y, m });
+    while (cells.length % 7 !== 0) cells.push({ day: cells.length, other: true, y, m: m + 1 });
+
+    cells.forEach(c => {
+      const dt = new Date(c.y, c.m, c.day);
+      const iso = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+      const cell = document.createElement('div');
+      cell.className = 'ini-cal-day' + (c.other ? ' other' : '') + (!c.other && iso === todayStr ? ' today' : '');
+      cell.innerHTML = String(c.day) + (!c.other && marked.has(iso) ? '<span class="dot"></span>' : '');
+      grid.appendChild(cell);
+    });
+  }
+
+  document.getElementById('ini-cal-prev').addEventListener('click', () => {
+    iniCalDate = new Date(iniCalDate.getFullYear(), iniCalDate.getMonth() - 1, 1);
+    renderIniCalendar();
+  });
+  document.getElementById('ini-cal-next').addEventListener('click', () => {
+    iniCalDate = new Date(iniCalDate.getFullYear(), iniCalDate.getMonth() + 1, 1);
+    renderIniCalendar();
+  });
+
+  function renderInicio() {
+    renderIniHeader();
+    renderIniCalendar();
+    renderIniUpcoming();
+  }
+
   // ── Navegação entre páginas ──
-  const PAGES = { visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', investimentos: 'Investimentos' };
+  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', investimentos: 'Investimentos' };
   function showPage(id) {
-    if (!PAGES[id]) id = 'visoes';
+    if (!PAGES[id]) id = 'inicio';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
     document.querySelectorAll('.sb-link[data-page]').forEach(l => l.classList.toggle('active', l.dataset.page === id));
     document.getElementById('topbar-title').textContent = PAGES[id];
     document.body.classList.remove('sb-open');
     window.scrollTo(0, 0);
+    if (id === 'inicio') renderInicio();
   }
   window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
   document.getElementById('btn-burger').addEventListener('click', () => document.body.classList.toggle('sb-open'));
   document.getElementById('sb-overlay').addEventListener('click', () => document.body.classList.remove('sb-open'));
-  showPage(location.hash.slice(1) || 'visoes');
+  showPage(location.hash.slice(1) || 'inicio');
 
   // ── Render inicial ──
   renderLadder();
