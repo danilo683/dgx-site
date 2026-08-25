@@ -282,7 +282,7 @@ async function fetchFatoVendas(clienteId){
   var all = [], from = 0, pageSize = 1000;
   while (true) {
     var res = await sb.from('fato_vendas')
-      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem')
+      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem,valor_gb,valor_total')
       .eq('cliente_id', clienteId)
       .range(from, from + pageSize - 1);
     if (res.error) { console.error('fetchFatoVendas', res.error); break; }
@@ -339,7 +339,7 @@ function agregarFatoVendas(rows, filtroVendedor, filtroCanal){
 
 // Margem sempre no agregado total (sem filtro de vendedor/canal) — visão gerencial da empresa
 // Margem Bruta precisa bater exatamente com o DRE — mesma fórmula:
-// CMV líquido = Custo Produto (venda) − Política Comercial (todas as linhas)
+// CMV líquido = Custo Produto (venda + bonificação) − Política Comercial (todas as linhas)
 function agregarMargem(rows){
   var porMes = {};
   rows.forEach(function(r){
@@ -347,10 +347,15 @@ function agregarMargem(rows){
     var mi = parseInt(partes[1], 10) - 1;
     var ano = partes[0];
     var key = mi + '|' + ano;
-    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, rl:0, custoProduto:0, politica:0 };
+    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, rl:0, custoProduto:0, cmvBonificacao:0, politica:0 };
     if (r.tipo_operacao === 'venda') {
       porMes[key].rl += parseFloat(r.valor_liquido) || 0;
       porMes[key].custoProduto += parseFloat(r.cmv_total) || 0;
+    }
+    // CMV das bonificações — entra como dedução, mesmo critério do DRE
+    // (agregarDRETopline): custo do brinde reduz a Margem Bruta.
+    if (r.tipo_operacao === 'bonificacao') {
+      porMes[key].cmvBonificacao += parseFloat(r.cmv_total) || 0;
     }
     // Política Comercial soma reembolso_total de TODAS as linhas, sem
     // filtro de tipo — mesmo critério usado no DRE (agregarDRETopline).
@@ -368,7 +373,7 @@ function agregarMargem(rows){
     MG2.meses.push(MESES_L[p.mi] + '/' + String(p.ano).slice(2));
     MG2.receitaLiq.push(p.rl);
     MG2.cmv.push(cmvLiquido);
-    MG2.margemBruta.push(p.rl - cmvLiquido);
+    MG2.margemBruta.push(p.rl - cmvLiquido - p.cmvBonificacao);
   });
   return MG2;
 }
@@ -376,11 +381,14 @@ function agregarMargem(rows){
 // DRE — replica exatamente as fórmulas da aba TOP Line da planilha
 // (validado célula a célula contra a fórmula original do Excel):
 //   Receita Bruta      = SUM(valor_liquido, venda) + SUM(vlr_desconto, venda)
-//   Descontos/Abatim.  = -SUM(vlr_desconto, venda)
-//   Receita Líquida    = SUM(valor_liquido, venda)   [= Receita Bruta + Descontos]
+//   Descontos/Abatim.  = -SUM(vlr_desconto, venda) - SUM(cmv_total, bonificacao)
+//   Receita Líquida    = Receita Bruta + Descontos/Abatim.
 //   Custo Produto      = -SUM(cmv_total, venda)
 //   Política Comercial = SUM(reembolso_total, TODAS as linhas — sem filtro de tipo)
 //   Margem Bruta       = Receita Líquida + Custo Produto + Política Comercial
+// CMV Bonificação (custo dos brindes) entra em Descontos e Abatimentos —
+// validado célula a célula contra a TOP Line: Receita Líquida bate com D14
+// só quando o custo da bonificação é deduzido nesta etapa (Danilo, ago/2026).
 // Trocas/Devoluções e Impostos sobre Vendas (ICMS/PIS/COFINS/Simples) aparecem
 // como 0 na própria TOP Line de origem (não computados pelo Danilo neste
 // nível) — mantidos como linhas informativas zeradas para fidelidade ao DRE.
@@ -390,7 +398,7 @@ function agregarDRETopline(rows){
     var partes = r.competencia.split('-');
     var mi = parseInt(partes[1], 10) - 1, ano = partes[0];
     var key = mi + '|' + ano;
-    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, volume:0, receitaLiquida:0, vlrDesconto:0, custoProduto:0, politicaComercial:0 };
+    if (!porMes[key]) porMes[key] = { mi:mi, ano:ano, volume:0, receitaLiquida:0, vlrDesconto:0, custoProduto:0, cmvBonificacao:0, politicaComercial:0 };
     var m = porMes[key];
     if (r.tipo_operacao === 'venda' || r.tipo_operacao === 'bonificacao') {
       m.volume += parseFloat(r.qtd) || 0;
@@ -399,6 +407,11 @@ function agregarDRETopline(rows){
       m.receitaLiquida += parseFloat(r.valor_liquido) || 0;
       m.vlrDesconto += parseFloat(r.vlr_desconto) || 0;
       m.custoProduto += parseFloat(r.cmv_total) || 0;
+    }
+    // CMV das bonificações — deduzido em Descontos e Abatimentos (custo do
+    // brinde reduz a Receita Líquida, validado contra D14 da TOP Line).
+    if (r.tipo_operacao === 'bonificacao') {
+      m.cmvBonificacao += parseFloat(r.cmv_total) || 0;
     }
     // Política Comercial (verbas de ciclo) soma reembolso_total de TODAS as
     // linhas, sem filtro de tipo — assim está na fórmula original da TOP Line.
@@ -413,15 +426,16 @@ function agregarDRETopline(rows){
   chaves.forEach(function(k){
     var m = porMes[k];
     var receitaBruta = m.receitaLiquida + m.vlrDesconto;
-    var descontos = -m.vlrDesconto;
+    var descontos = -m.vlrDesconto - m.cmvBonificacao;
+    var receitaLiquida = receitaBruta + descontos;
     var custoProduto = -m.custoProduto;
     var cmvTotal = custoProduto + m.politicaComercial;
-    var margemBruta = m.receitaLiquida + cmvTotal;
+    var margemBruta = receitaLiquida + cmvTotal;
     D.meses.push(MESES_L[m.mi] + '/' + String(m.ano).slice(2));
     D.volume.push(m.volume);
     D.receitaBruta.push(receitaBruta);
     D.descontosAbatimentos.push(descontos);
-    D.receitaLiquida.push(m.receitaLiquida);
+    D.receitaLiquida.push(receitaLiquida);
     D.custoProduto.push(custoProduto);
     D.politicaComercial.push(m.politicaComercial);
     D.cmvTotal.push(cmvTotal);
@@ -952,6 +966,140 @@ function buildMargemTable(pctM){
   return html;
 }
 // ══════════════════════════════════════════════════════════════
+// BRIDGE DE RECONCILIAÇÃO DE MARGEM — Preço de Tabela → Margem Bruta
+// Diferente do bridge de variação (compara dois meses), este é um
+// bridge de RECONCILIAÇÃO dentro de um único mês: parte do preço de
+// tabela (GB) e caminha etapa a etapa até a Margem Bruta real, usando
+// valor_gb e valor_total (colunas nativas do fato_vendas, mapeadas
+// direto do import — "Valor GB" e "VLR TOTAL" da planilha).
+// AU (equivalente à coluna AU da planilha) = valor_gb - valor_total
+//   positivo = vendeu abaixo da tabela (desconto)
+//   negativo = vendeu acima da tabela
+// Validado célula a célula contra a TOP Line (Danilo, ago/2026):
+// fecha exato com Margem Bruta quando CMV Bonificação é deduzido
+// (mesmo critério agora usado em agregarDRETopline/agregarMargem).
+// ══════════════════════════════════════════════════════════════
+var bridgeReconState = { mes:null };
+
+function mesesDisponiveisFV(){
+  var set = {};
+  FV_HAWKS.forEach(function(r){ if (r.competencia) set[r.competencia.slice(0,7)] = true; });
+  return Object.keys(set).sort();
+}
+function labelMesChave(key){
+  var p = key.split('-'); var mi = parseInt(p[1],10)-1;
+  return MESES_LABELS[mi] + '/' + p[0].slice(2);
+}
+
+function calcularBridgeReconciliacao(mesKey){
+  var precoTabela=0, vendasAcimaTabela=0, descontoVsTabela=0, cmvBonificacao=0, cmvVendas=0, reembolsoVerbaCiclo=0;
+  FV_HAWKS.forEach(function(r){
+    var key = r.competencia ? r.competencia.slice(0,7) : null;
+    if (key !== mesKey) return;
+    if (r.tipo_operacao === 'venda') {
+      var vgb = parseFloat(r.valor_gb) || 0;
+      var vtot = parseFloat(r.valor_total) || 0;
+      var au = vgb - vtot;
+      precoTabela += vgb;
+      if (au < 0) vendasAcimaTabela += -au;
+      else if (au > 0) descontoVsTabela += au;
+      cmvVendas += parseFloat(r.cmv_total) || 0;
+    } else if (r.tipo_operacao === 'bonificacao') {
+      cmvBonificacao += parseFloat(r.cmv_total) || 0;
+    }
+    // Reembolso Verba de Ciclo soma reembolso_total de TODAS as linhas do
+    // mês, mesmo critério usado no restante do dashboard (DRE/Margem).
+    reembolsoVerbaCiclo += parseFloat(r.reembolso_total) || 0;
+  });
+  var etapa1 = precoTabela;
+  var etapa2 = etapa1 + vendasAcimaTabela;
+  var etapa3 = etapa2 - descontoVsTabela;
+  var etapa4 = etapa3 - cmvBonificacao;
+  var etapa5 = etapa4 - cmvVendas;
+  var etapa6 = etapa5 + reembolsoVerbaCiclo;
+  return {
+    mes: mesKey,
+    etapas: [
+      { label:'Pre\u00e7o de Tabela', valor:etapa1, resultado:etapa1, tipo:'ini' },
+      { label:'Vendas acima da tabela', valor:vendasAcimaTabela, resultado:etapa2, tipo:'pos' },
+      { label:'Desconto vs. Tabela', valor:-descontoVsTabela, resultado:etapa3, tipo:'neg' },
+      { label:'CMV Bonifica\u00e7\u00e3o', valor:-cmvBonificacao, resultado:etapa4, tipo:'neg' },
+      { label:'CMV de Vendas', valor:-cmvVendas, resultado:etapa5, tipo:'neg' },
+      { label:'Reembolso Verba de Ciclo', valor:reembolsoVerbaCiclo, resultado:etapa6, tipo:'pos' }
+    ],
+    margemBruta: etapa6
+  };
+}
+
+function bridgeReconCardHTML(){
+  var meses = mesesDisponiveisFV();
+  if (!meses.length) return '';
+  if (!bridgeReconState.mes || meses.indexOf(bridgeReconState.mes)===-1) bridgeReconState.mes = meses[meses.length-1];
+  var opMes = meses.map(function(k){return '<option value="'+k+'"'+(k===bridgeReconState.mes?' selected':'')+'>'+labelMesChave(k)+'</option>';}).join('');
+  return '<div class="chart-card" id="bridgeReconCard">'
+    +'<div class="chart-title">Bridge de Reconcilia\u00e7\u00e3o de Margem \u2014 Pre\u00e7o de Tabela \u2192 Margem Bruta</div>'
+    +'<div class="chart-sub">Mostra onde a margem se ganha ou se perde em rela\u00e7\u00e3o ao pre\u00e7o cheio de tabela, dentro de um \u00fanico m\u00eas</div>'
+    +'<div class="bi-filters" style="margin-bottom:1rem">'
+    +'<label>M\u00eas</label><select id="bridge-recon-sel-mes" onchange="bridgeReconMudou()">'+opMes+'</select>'
+    +'</div>'
+    +'<div style="height:300px;position:relative"><canvas id="chartBridgeRecon"></canvas></div>'
+    +'<div id="bridgeReconTabela"></div>'
+    +'</div>';
+}
+
+function bridgeReconMudou(){
+  bridgeReconState.mes = document.getElementById('bridge-recon-sel-mes').value;
+  renderBridgeRecon();
+}
+
+function initBridgeRecon(){
+  if (!document.getElementById('bridgeReconCard')) return;
+  renderBridgeRecon();
+}
+
+function bridgeReconTabelaHTML(res){
+  var fR2=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}));};
+  var rows = res.etapas.map(function(e){
+    var cls = e.tipo==='pos' ? 'positive' : (e.tipo==='neg' ? 'negative' : '');
+    return '<tr><td>'+e.label+'</td><td'+(cls?' class="'+cls+'"':'')+'>'+(e.tipo==='ini'?fR2(e.valor):(e.valor>=0?'+':'')+fR2(e.valor))+'</td><td class="v-total">'+fR2(e.resultado)+'</td></tr>';
+  }).join('');
+  return '<div style="overflow-x:auto;margin-top:10px"><table class="dre-table"><thead><tr>'
+    +'<th style="text-align:left">Etapa</th><th>Varia\u00e7\u00e3o</th><th>Resultado acumulado</th>'
+    +'</tr></thead><tbody>'+rows+'<tr class="highlight"><td>Margem Bruta</td><td></td><td class="v-total">'+fR2(res.margemBruta)+'</td></tr></tbody></table></div>';
+}
+
+function renderBridgeRecon(){
+  var mes = bridgeReconState.mes;
+  if (!mes) return;
+  var res = calcularBridgeReconciliacao(mes);
+  var canvas = document.getElementById('chartBridgeRecon');
+  if (!canvas) return;
+  var existing = Chart.getChart('chartBridgeRecon'); if (existing) existing.destroy();
+
+  var bData = res.etapas.map(function(e,i){
+    return { label:e.label, value: i===0 ? e.resultado : e.valor, type: e.tipo };
+  });
+  bData.push({ label:'Margem Bruta', value: res.margemBruta, type:'tot' });
+
+  var starts=[], bars=[], colors=[], run=0;
+  bData.forEach(function(v){
+    if (v.type==='ini' || v.type==='tot') { starts.push(0); bars.push(v.value); if(v.type==='ini') run=v.value; }
+    else if (v.type==='pos') { starts.push(run); bars.push(v.value); run+=v.value; }
+    else { starts.push(run+v.value); bars.push(-v.value); run+=v.value; }
+    colors.push(v.type==='ini'?'#1E2D40':v.type==='tot'?'#00B4D8':v.type==='pos'?'#2ECC71':'#c0392b');
+  });
+
+  var fR2=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000).toLocaleString('pt-BR')+'K');};
+
+  new Chart(canvas,{type:'bar',data:{labels:bData.map(function(v){return v.label;}),datasets:[
+    {data:starts,backgroundColor:'transparent',borderColor:'transparent',stack:'s'},
+    {data:bars,backgroundColor:colors,borderRadius:4,borderSkipped:false,stack:'s'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.datasetIndex===0)return null;var v=bData[c.dataIndex].value;return bData[c.dataIndex].label+': '+(v>=0&&bData[c.dataIndex].type!=='ini'?'+':'')+fR2(v);},filter:function(i){return i.datasetIndex===1;}}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0',font:{size:10}},stacked:true},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8BA0B0',callback:function(v){return fR2(v);}},stacked:true}}}});
+
+  document.getElementById('bridgeReconTabela').innerHTML = bridgeReconTabelaHTML(res);
+}
+
+// ══════════════════════════════════════════════════════════════
 // BRIDGE DE MARGEM — Preço x Volume x Mix x Custo (por categoria)
 // Explica de qual efeito vem a variação da % Margem Bruta entre dois
 // meses, usando o item a item de FV_HAWKS (mesma base do restante do BI).
@@ -965,16 +1113,6 @@ function buildMargemTable(pctM){
 // ══════════════════════════════════════════════════════════════
 var GRUPO_LABELS = {hc:'Home Care', pr:'Profissional', co:'Colora\u00e7\u00e3o', qu:'Qu\u00edmica', outros:'Outros'};
 var bridgeState = { de:null, para:null };
-
-function mesesDisponiveisFV(){
-  var set = {};
-  FV_HAWKS.forEach(function(r){ if (r.competencia) set[r.competencia.slice(0,7)] = true; });
-  return Object.keys(set).sort();
-}
-function labelMesChave(key){
-  var p = key.split('-'); var mi = parseInt(p[1],10)-1;
-  return MESES_LABELS[mi] + '/' + p[0].slice(2);
-}
 
 function calcularBridgeMargem(deKey, paraKey){
   var GRUPOS = ['hc','pr','co','qu','outros'];
@@ -1145,7 +1283,7 @@ function margemHTML(){
   var markup=(avgMgFrac>0&&avgMgFrac<1)?(1/(1-avgMgFrac)).toFixed(2):'\u2014';
   var fR=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000)+'K');};
   var tabelaMargem=buildMargemTable(pctM);
-  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+tabelaMargem+bridgeMargemCardHTML()+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
+  return'<div class="mg-kpi-grid"><div class="mg-kpi"><div class="mg-kpi-label">Receita L\u00edquida acum.</div><div class="mg-kpi-value">'+fR(totalRL)+'</div><div class="mg-kpi-sub">'+periods.margem+'</div></div><div class="mg-kpi" style="border-left-color:#c0392b"><div class="mg-kpi-label">CMV acumulado</div><div class="mg-kpi-value" style="color:#c0392b">'+fR(totalCMV)+'</div><div class="mg-kpi-sub">Custo Mercadoria Vendida</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">Margem Bruta acum.</div><div class="mg-kpi-value kpi-hi">'+fR(totalMB)+'</div><div class="mg-kpi-sub">Receita L\u00edq. \u2212 CMV</div></div><div class="mg-kpi" style="border-left-color:#006d8f"><div class="mg-kpi-label">% Margem Bruta m\u00e9dia</div><div class="mg-kpi-value kpi-hi">'+avgM+'%</div><div class="mg-kpi-sub">M\u00e9dia do per\u00edodo</div></div><div class="mg-kpi" style="border-left-color:#00B4D8"><div class="mg-kpi-label">Markup m\u00e9dio</div><div class="mg-kpi-value" style="color:#00B4D8">'+markup+'x</div><div class="mg-kpi-sub">1 \u00f7 (1 \u2212 margem)</div></div></div>'+'<div class="chart-card"><div class="chart-title">Receita L\u00edquida \u00d7 CMV \u2014 m\u00eas a m\u00eas</div><div class="chart-sub">Barras: Receita L\u00edquida (escuro) e CMV (azul) \u00b7 Linha verde: % Margem Bruta s/ Receita L\u00edquida</div><div class="legend"><span class="leg"><span class="leg-dot" style="background:#1E2D40"></span>Receita L\u00edquida</span><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>CMV</span><span class="leg"><span class="leg-line" style="background:#2ECC71"></span>% Margem Bruta</span></div><div class="chart-wrap" style="height:300px"><canvas id="chartMargem"></canvas></div></div>'+tabelaMargem+bridgeReconCardHTML()+bridgeMargemCardHTML()+'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
 }
 function initMargem(){
   var existing=Chart.getChart('chartMargem');if(existing)existing.destroy();
@@ -1185,6 +1323,7 @@ function initMargem(){
     }};
     new Chart(document.getElementById('chartMargem'),{type:'bar',plugins:[annotPlugin],data:{labels:MG.meses,datasets:[{label:'Receita L\u00edquida',data:MG.receitaLiq,backgroundColor:'#1E2D40',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'CMV',data:MG.cmv,backgroundColor:'#00B4D8',borderRadius:4,order:2,barPercentage:0.55,categoryPercentage:0.7},{label:'% Margem Bruta',data:pctM,type:'line',borderColor:'#2ECC71',borderWidth:2.5,pointRadius:6,pointBackgroundColor:'#2ECC71',pointBorderColor:'#fff',pointBorderWidth:2,fill:false,tension:0.3,order:1,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:34}},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{suggestedMax:maxBar*1.16,grid:{color:gc},ticks:{color:tc,callback:function(v){return fR(v);}},title:{display:true,text:'R$',color:tc,font:{size:10}}},y2:{position:'right',min:pctMin,max:pctMax,grid:{display:false},ticks:{color:'#2ECC71',callback:function(v){return v+'%';}},title:{display:true,text:'% Margem',color:'#2ECC71',font:{size:10}}}}}});
   },100);
+  initBridgeRecon();
   initBridgeMargem();
 }
 var MESES_LABELS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
