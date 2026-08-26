@@ -153,15 +153,15 @@ html.locked .auth-gate { display: flex; }
 .ini-cal-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text2); width: 22px; height: 22px; cursor: pointer; font-size: 13px; line-height: 1; }
 .ini-cal-nav button:hover { color: var(--text); background: var(--bg3); }
 .ini-cal-nav span { min-width: 84px; text-align: center; text-transform: capitalize; }
-.ini-cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-.ini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.ini-cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 10px; color: var(--text2); margin: 0 auto 4px; max-width: 240px; }
+.ini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; max-width: 240px; margin: 0 auto; }
 .ini-cal-day {
   aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-size: 12px; color: var(--text2); border-radius: 7px; position: relative;
+  font-size: 11px; color: var(--text2); border-radius: 6px; position: relative;
 }
 .ini-cal-day.other { opacity: .25; }
 .ini-cal-day.today { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
-.ini-cal-day .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); margin-top: 2px; }
+.ini-cal-day .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--accent); margin-top: 1px; }
 .ini-cal-day.today .dot { background: var(--accent); }
 
 .ini-sub { margin-bottom: 18px; }
@@ -384,6 +384,26 @@ button.primary:hover { background: #8d70f5; }
 .diary-entry .d-grat strong { color: var(--text); font-weight: 600; }
 .diary-entry .d-text { font-size: 14px; white-space: pre-wrap; }
 .diary-entry .d-foot { margin-top: 8px; text-align: right; }
+
+/* ── Frases ── */
+.quote-form { display: flex; gap: 8px; margin: 4px 0 20px; flex-wrap: wrap; }
+.quote-form input[type="text"] {
+  font-family: var(--body); font-size: 14px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px;
+}
+.quote-form input#quote-texto { flex: 1; min-width: 220px; }
+.quote-form input#quote-autor { width: 200px; }
+.quote-form input::placeholder { color: #5c527f; }
+.quote-list { display: flex; flex-direction: column; gap: 10px; }
+.quote-item {
+  background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.quote-item .q-body { flex: 1; min-width: 0; }
+.quote-item .q-texto { font-family: var(--display); font-style: italic; font-size: 15px; padding: 2px 4px; border-radius: 6px; }
+.quote-item .q-autor { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-top: 6px; padding: 2px 4px; border-radius: 6px; }
 
 /* ── Quadro dos Sonhos ── */
 .board-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 24px; }
@@ -819,6 +839,7 @@ function sairPersonal() {
       <a class="sb-link" href="#atividades" data-page="atividades"><span class="ico">📋</span>Atividades</a>
       <a class="sb-link" href="#habitos" data-page="habitos"><span class="ico">🔁</span>Hábitos</a>
       <a class="sb-link" href="#diario" data-page="diario"><span class="ico">📓</span>Diário</a>
+      <a class="sb-link" href="#frases" data-page="frases"><span class="ico">💬</span>Frases</a>
       <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
       <a class="sb-link" href="#investimentos" data-page="investimentos"><span class="ico">📈</span>Investimentos</a>
       <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🐺</span>Wolves<span class="sb-soon">em breve</span></a>
@@ -1064,6 +1085,21 @@ function sairPersonal() {
     <div class="list-empty" id="diary-empty">Nenhum registro ainda. Que tal começar por hoje?</div>
   </section>
 
+  <section id="frases" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Inspiração</div>
+      <h1>Frases</h1>
+      <p>Guarde frases que te movem. Uma delas aparece na página Início a cada dia.</p>
+    </div>
+    <div class="quote-form">
+      <input type="text" id="quote-texto" placeholder="Texto da frase">
+      <input type="text" id="quote-autor" placeholder="Autor (opcional)">
+      <button type="button" class="primary" id="btn-add-quote">Adicionar</button>
+    </div>
+    <div class="quote-list" id="quote-list"></div>
+    <div class="list-empty" id="quote-empty">Nenhuma frase ainda.</div>
+  </section>
+
   <section id="sonhos" class="page">
     <div class="page-head">
       <div class="eyebrow">Inspiração</div>
@@ -1171,7 +1207,7 @@ function sairPersonal() {
   ];
 
   // ── Estado ──
-  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [], investments: [], shopping: [], saldoBancario: { valor: 0, atualizadoEm: '' } };
+  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [], investments: [], shopping: [], saldoBancario: { valor: 0, atualizadoEm: '' }, quotes: [] };
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -2215,6 +2251,60 @@ function sairPersonal() {
     save(); renderDiary();
   });
 
+  // ── Frases ──
+  if (!state.quotes || !state.quotes.length) {
+    state.quotes = [{ id: 'q1', texto: 'A disciplina é a ponte entre metas e realização.', autor: 'Jim Rohn' }];
+  }
+  const quoteList = document.getElementById('quote-list');
+  const quoteEmpty = document.getElementById('quote-empty');
+
+  function renderQuotes() {
+    quoteList.innerHTML = '';
+    quoteEmpty.style.display = state.quotes.length ? 'none' : 'block';
+    state.quotes.forEach(q => {
+      const el = document.createElement('div');
+      el.className = 'quote-item';
+      el.dataset.id = q.id;
+      el.innerHTML = `
+        <div class="q-body">
+          <div class="q-texto" contenteditable="true" data-placeholder="Texto da frase"></div>
+          <div class="q-autor" contenteditable="true" data-placeholder="Autor"></div>
+        </div>
+        <button class="x-remove q-remove" type="button">×</button>`;
+      el.querySelector('.q-texto').textContent = q.texto;
+      el.querySelector('.q-autor').textContent = q.autor || '';
+      quoteList.appendChild(el);
+    });
+  }
+
+  document.getElementById('btn-add-quote').addEventListener('click', () => {
+    const texto = document.getElementById('quote-texto').value.trim();
+    const autor = document.getElementById('quote-autor').value.trim();
+    if (!texto) return;
+    state.quotes.push({ id: 'q' + Date.now(), texto, autor });
+    document.getElementById('quote-texto').value = '';
+    document.getElementById('quote-autor').value = '';
+    save(); renderQuotes();
+  });
+
+  quoteList.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.q-remove');
+    if (!btn) return;
+    if (!confirm('Remover esta frase?')) return;
+    state.quotes = state.quotes.filter(q => q.id !== btn.closest('.quote-item').dataset.id);
+    save(); renderQuotes();
+  });
+
+  quoteList.addEventListener('blur', (ev) => {
+    const el = ev.target.closest('[contenteditable]');
+    if (!el) return;
+    const q = state.quotes.find(x => x.id === el.closest('.quote-item').dataset.id);
+    if (!q) return;
+    if (el.classList.contains('q-texto')) q.texto = el.innerText.trim();
+    else if (el.classList.contains('q-autor')) q.autor = el.innerText.trim();
+    save();
+  }, true);
+
   // ── Quadro dos Sonhos ──
   const grid = document.getElementById('dream-grid');
   const boardEmpty = document.getElementById('board-empty');
@@ -2357,6 +2447,7 @@ function sairPersonal() {
           state.activities = mergeById(state.activities || [], data.activities);
           state.investments = mergeById(state.investments || [], data.investments);
           state.shopping = mergeById(state.shopping || [], data.shopping);
+          state.quotes = mergeById(state.quotes || [], data.quotes);
           if (data.saldoBancario && data.saldoBancario.atualizadoEm &&
               (!state.saldoBancario || data.saldoBancario.atualizadoEm > (state.saldoBancario.atualizadoEm || ''))) {
             state.saldoBancario = data.saldoBancario;
@@ -2371,6 +2462,7 @@ function sairPersonal() {
             activities: Array.isArray(data.activities) ? data.activities : [],
             investments: Array.isArray(data.investments) ? data.investments : [],
             shopping: Array.isArray(data.shopping) ? data.shopping : [],
+            quotes: Array.isArray(data.quotes) ? data.quotes : [],
             saldoBancario: data.saldoBancario || { valor: 0, atualizadoEm: '' },
           };
         }
@@ -2744,6 +2836,13 @@ function sairPersonal() {
     const now = new Date();
     document.getElementById('ini-date').textContent =
       `Hoje é ${DIAS_SEMANA[now.getDay()]}, ${now.getDate()} de ${MESES_LONG[now.getMonth()]} de ${now.getFullYear()}`;
+
+    if (state.quotes && state.quotes.length) {
+      const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+      const q = state.quotes[dayOfYear % state.quotes.length];
+      document.getElementById('ini-quote-text').textContent = q.texto;
+      document.getElementById('ini-quote-author').textContent = q.autor ? '— ' + q.autor.toUpperCase() : '';
+    }
   }
 
   function fmtWhen(iso) {
@@ -2974,6 +3073,7 @@ function sairPersonal() {
   renderActivities();
   renderHabits();
   renderDiary();
+  renderQuotes();
   renderDreams();
   renderInvestments();
   renderRpDashboard();
