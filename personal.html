@@ -145,6 +145,7 @@ html.locked .auth-gate { display: flex; }
 .ini-quote cite { display: block; margin-top: 10px; padding-left: 26px; font-style: normal; font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
 
 .ini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.ini-col { display: flex; flex-direction: column; gap: 18px; }
 .ini-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
 .ini-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .ini-card-head h3 { font-family: var(--display); font-weight: 600; font-size: 16px; }
@@ -179,10 +180,12 @@ html.locked .auth-gate { display: flex; }
 .ini-item .ini-when.overdue { color: #e57373; font-weight: 600; }
 .ini-empty { font-size: 13px; color: var(--text2); padding: 6px; }
 
-/* Saldo bancário */
+/* Saldo bancário / Faturamento */
+.ini-money-row { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; }
 .ini-balance-card {
+  flex: 1; min-width: 220px;
   background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 16px 20px; margin-bottom: 18px;
+  padding: 16px 20px;
   display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
 }
 .ini-balance-label { font-size: 13.5px; color: var(--text2); font-weight: 500; }
@@ -865,67 +868,79 @@ function sairPersonal() {
       <cite id="ini-quote-author">— JIM ROHN</cite>
     </blockquote>
 
-    <div class="ini-balance-card">
-      <div class="ini-balance-label">💰 Saldo Bancário</div>
-      <div class="ini-balance-row">
-        <span class="ini-balance-prefix">R$</span>
-        <input type="text" id="ini-balance-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
+    <div class="ini-money-row">
+      <div class="ini-balance-card">
+        <div class="ini-balance-label">💰 Saldo Bancário</div>
+        <div class="ini-balance-row">
+          <span class="ini-balance-prefix">R$</span>
+          <input type="text" id="ini-balance-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
+        </div>
+        <div class="ini-balance-updated" id="ini-balance-updated"></div>
       </div>
-      <div class="ini-balance-updated" id="ini-balance-updated"></div>
+      <div class="ini-balance-card">
+        <div class="ini-balance-label">📈 Faturamento</div>
+        <div class="ini-balance-row">
+          <span class="ini-balance-prefix">R$</span>
+          <input type="text" id="ini-fat-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
+        </div>
+        <div class="ini-balance-updated" id="ini-fat-updated"></div>
+      </div>
     </div>
 
     <div class="ini-grid">
-      <div class="ini-card">
-        <div class="ini-card-head">
-          <h3>Cronograma</h3>
-          <div class="ini-cal-nav">
-            <button type="button" id="ini-cal-prev" aria-label="Mês anterior">‹</button>
-            <span id="ini-cal-label"></span>
-            <button type="button" id="ini-cal-next" aria-label="Próximo mês">›</button>
+      <div class="ini-col">
+        <div class="ini-card">
+          <div class="ini-card-head">
+            <h3>Cronograma</h3>
+            <div class="ini-cal-nav">
+              <button type="button" id="ini-cal-prev" aria-label="Mês anterior">‹</button>
+              <span id="ini-cal-label"></span>
+              <button type="button" id="ini-cal-next" aria-label="Próximo mês">›</button>
+            </div>
+          </div>
+          <div class="ini-cal-weekdays">
+            <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+          </div>
+          <div class="ini-cal-grid" id="ini-cal-grid"></div>
+        </div>
+
+        <div class="ini-card">
+          <div class="ini-card-head"><h3>🖼️ Quadro dos Sonhos</h3></div>
+          <div class="ini-carousel" id="ini-carousel">
+            <button type="button" class="ini-car-btn" id="ini-car-prev" aria-label="Anterior">‹</button>
+            <div class="ini-car-viewport">
+              <img id="ini-car-img" src="" alt="" style="display:none;">
+              <div class="ini-car-caption" id="ini-car-caption"></div>
+            </div>
+            <button type="button" class="ini-car-btn" id="ini-car-next" aria-label="Próxima">›</button>
+          </div>
+          <div class="ini-car-dots" id="ini-car-dots"></div>
+          <div class="ini-empty" id="ini-car-empty" style="display:none;">Seu quadro dos sonhos ainda está vazio.</div>
+        </div>
+      </div>
+
+      <div class="ini-col">
+        <div class="ini-card">
+          <div class="ini-card-head"><h3>Próximas</h3></div>
+          <div class="ini-sub">
+            <div class="ini-sub-head">🎯 Metas</div>
+            <div id="ini-next-goals"></div>
+          </div>
+          <div class="ini-sub">
+            <div class="ini-sub-head">📋 Atividades</div>
+            <div id="ini-next-activities"></div>
           </div>
         </div>
-        <div class="ini-cal-weekdays">
-          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
-        </div>
-        <div class="ini-cal-grid" id="ini-cal-grid"></div>
-      </div>
 
-      <div class="ini-card">
-        <div class="ini-card-head"><h3>Próximas</h3></div>
-        <div class="ini-sub">
-          <div class="ini-sub-head">🎯 Metas</div>
-          <div id="ini-next-goals"></div>
-        </div>
-        <div class="ini-sub">
-          <div class="ini-sub-head">📋 Atividades</div>
-          <div id="ini-next-activities"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="ini-grid" style="margin-top:18px;">
-      <div class="ini-card">
-        <div class="ini-card-head"><h3>🖼️ Quadro dos Sonhos</h3></div>
-        <div class="ini-carousel" id="ini-carousel">
-          <button type="button" class="ini-car-btn" id="ini-car-prev" aria-label="Anterior">‹</button>
-          <div class="ini-car-viewport">
-            <img id="ini-car-img" src="" alt="" style="display:none;">
-            <div class="ini-car-caption" id="ini-car-caption"></div>
+        <div class="ini-card">
+          <div class="ini-card-head"><h3>🛒 Lista de Compras</h3></div>
+          <div class="ini-shop-add">
+            <input type="text" id="ini-shop-input" placeholder="＋ Novo item… (Enter para adicionar)">
+            <button type="button" class="primary" id="ini-shop-add-btn">Adicionar</button>
           </div>
-          <button type="button" class="ini-car-btn" id="ini-car-next" aria-label="Próxima">›</button>
+          <div id="ini-shop-list"></div>
+          <div class="ini-empty" id="ini-shop-empty">Lista vazia.</div>
         </div>
-        <div class="ini-car-dots" id="ini-car-dots"></div>
-        <div class="ini-empty" id="ini-car-empty" style="display:none;">Seu quadro dos sonhos ainda está vazio.</div>
-      </div>
-
-      <div class="ini-card">
-        <div class="ini-card-head"><h3>🛒 Lista de Compras</h3></div>
-        <div class="ini-shop-add">
-          <input type="text" id="ini-shop-input" placeholder="＋ Novo item… (Enter para adicionar)">
-          <button type="button" class="primary" id="ini-shop-add-btn">Adicionar</button>
-        </div>
-        <div id="ini-shop-list"></div>
-        <div class="ini-empty" id="ini-shop-empty">Lista vazia.</div>
       </div>
     </div>
   </section>
@@ -1207,7 +1222,7 @@ function sairPersonal() {
   ];
 
   // ── Estado ──
-  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [], investments: [], shopping: [], saldoBancario: { valor: 0, atualizadoEm: '' }, quotes: [] };
+  let state = { vfs: {}, dreams: [], habits: [], diary: [], goals: [], activities: [], investments: [], shopping: [], saldoBancario: { valor: 0, atualizadoEm: '' }, faturamento: { valor: 0, atualizadoEm: '' }, quotes: [] };
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -2452,6 +2467,10 @@ function sairPersonal() {
               (!state.saldoBancario || data.saldoBancario.atualizadoEm > (state.saldoBancario.atualizadoEm || ''))) {
             state.saldoBancario = data.saldoBancario;
           }
+          if (data.faturamento && data.faturamento.atualizadoEm &&
+              (!state.faturamento || data.faturamento.atualizadoEm > (state.faturamento.atualizadoEm || ''))) {
+            state.faturamento = data.faturamento;
+          }
         } else {
           state = {
             vfs: data.vfs || {},
@@ -2464,6 +2483,7 @@ function sairPersonal() {
             shopping: Array.isArray(data.shopping) ? data.shopping : [],
             quotes: Array.isArray(data.quotes) ? data.quotes : [],
             saldoBancario: data.saldoBancario || { valor: 0, atualizadoEm: '' },
+            faturamento: data.faturamento || { valor: 0, atualizadoEm: '' },
           };
         }
         save();
@@ -2939,21 +2959,26 @@ function sairPersonal() {
     renderIniCalendar();
   });
 
-  // Saldo bancário
-  const iniBalanceInput = document.getElementById('ini-balance-input');
-  function renderIniBalance() {
-    const b = state.saldoBancario || { valor: 0, atualizadoEm: '' };
-    iniBalanceInput.value = b.valor ? b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
-    document.getElementById('ini-balance-updated').textContent = b.atualizadoEm ? 'atualizado em ' + fmtBR(b.atualizadoEm) : 'ainda não informado';
+  // Saldo bancário / Faturamento (campo de valor editável, mesmo padrão pros dois)
+  function makeMoneyField(stateKey, inputId, updatedId) {
+    const input = document.getElementById(inputId);
+    function render() {
+      const b = state[stateKey] || { valor: 0, atualizadoEm: '' };
+      input.value = b.valor ? b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+      document.getElementById(updatedId).textContent = b.atualizadoEm ? 'atualizado em ' + fmtBR(b.atualizadoEm) : 'ainda não informado';
+    }
+    input.addEventListener('blur', () => {
+      const raw = input.value.trim().replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '');
+      const valor = raw ? parseFloat(raw) : 0;
+      state[stateKey] = { valor: isNaN(valor) ? 0 : valor, atualizadoEm: todayISO() };
+      save();
+      render();
+    });
+    input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
+    return render;
   }
-  iniBalanceInput.addEventListener('blur', () => {
-    const raw = iniBalanceInput.value.trim().replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '');
-    const valor = raw ? parseFloat(raw) : 0;
-    state.saldoBancario = { valor: isNaN(valor) ? 0 : valor, atualizadoEm: todayISO() };
-    save();
-    renderIniBalance();
-  });
-  iniBalanceInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') iniBalanceInput.blur(); });
+  const renderIniBalance = makeMoneyField('saldoBancario', 'ini-balance-input', 'ini-balance-updated');
+  const renderIniFaturamento = makeMoneyField('faturamento', 'ini-fat-input', 'ini-fat-updated');
 
   // Carrossel do quadro dos sonhos
   let iniCarIndex = 0;
@@ -3047,6 +3072,7 @@ function sairPersonal() {
     renderIniCalendar();
     renderIniUpcoming();
     renderIniBalance();
+    renderIniFaturamento();
     renderIniCarousel();
     renderIniShopping();
   }
