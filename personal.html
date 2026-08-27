@@ -131,18 +131,23 @@ html.locked .auth-gate { display: flex; }
 .page-head p { color: var(--text2); max-width: 600px; margin-top: 10px; font-size: 14.5px; }
 
 /* ── Início ── */
-.ini-header { padding: 42px 0 4px; }
+.ini-top-header { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; padding: 42px 0 4px; margin-bottom: 18px; }
+.ini-header { flex: none; padding: 0; }
 .ini-header h1 { font-family: var(--display); font-weight: 600; font-size: clamp(24px, 3.6vw, 32px); }
 .ini-header p { color: var(--text2); margin-top: 6px; font-size: 14px; text-transform: capitalize; }
 
 .ini-quote {
-  margin: 22px 0 30px; padding: 20px 24px;
+  flex: 1; min-width: 280px; margin: 0; padding: 16px 22px;
   background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
   border-radius: var(--radius); position: relative;
 }
-.ini-quote-mark { position: absolute; top: 10px; left: 16px; font-size: 34px; color: var(--accent); opacity: .35; font-family: var(--display); line-height: 1; }
-.ini-quote p { font-family: var(--display); font-style: italic; font-size: 17px; line-height: 1.5; padding-left: 26px; }
-.ini-quote cite { display: block; margin-top: 10px; padding-left: 26px; font-style: normal; font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+.ini-quote-mark { position: absolute; top: 8px; left: 14px; font-size: 30px; color: var(--accent); opacity: .35; font-family: var(--display); line-height: 1; }
+.ini-quote p { font-family: var(--display); font-style: italic; font-size: 15.5px; line-height: 1.45; padding-left: 24px; }
+.ini-quote cite { display: block; margin-top: 6px; padding-left: 24px; font-style: normal; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+
+@media (max-width: 700px) {
+  .ini-top-header { padding-top: 28px; }
+}
 
 .ini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .ini-col { display: flex; flex-direction: column; gap: 18px; }
@@ -868,16 +873,18 @@ function sairPersonal() {
     <main>
 
   <section id="inicio" class="page">
-    <div class="ini-header">
-      <h1 id="ini-greeting">Bom dia!</h1>
-      <p id="ini-date">—</p>
-    </div>
+    <div class="ini-top-header">
+      <div class="ini-header">
+        <h1 id="ini-greeting">Bom dia!</h1>
+        <p id="ini-date">—</p>
+      </div>
 
-    <blockquote class="ini-quote">
-      <span class="ini-quote-mark">❝</span>
-      <p id="ini-quote-text">A disciplina é a ponte entre metas e realização.</p>
-      <cite id="ini-quote-author">— JIM ROHN</cite>
-    </blockquote>
+      <blockquote class="ini-quote">
+        <span class="ini-quote-mark">❝</span>
+        <p id="ini-quote-text">A disciplina é a ponte entre metas e realização.</p>
+        <cite id="ini-quote-author">— JIM ROHN</cite>
+      </blockquote>
+    </div>
 
     <div class="ini-grid">
       <div class="ini-col">
