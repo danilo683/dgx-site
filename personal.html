@@ -181,13 +181,21 @@ html.locked .auth-gate { display: flex; }
 .ini-empty { font-size: 13px; color: var(--text2); padding: 6px; }
 
 /* Saldo bancário / Faturamento */
-.ini-money-row { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; }
+.ini-top-row { display: flex; gap: 14px; align-items: stretch; }
+.ini-cal-card { flex: none; }
+.ini-money-stack { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 10px; }
 .ini-balance-card {
   flex: 1; min-width: 220px;
   background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 16px 20px;
   display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
 }
+.ini-balance-card.compact {
+  flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 14px 16px;
+}
+.ini-balance-card.compact .ini-balance-row { width: 100%; }
+.ini-balance-card.compact .ini-balance-input { font-size: 19px; width: 100%; }
+.ini-balance-card.compact .ini-balance-updated { margin-left: 0; }
 .ini-balance-label { font-size: 13.5px; color: var(--text2); font-weight: 500; }
 .ini-balance-row { display: flex; align-items: baseline; gap: 6px; }
 .ini-balance-prefix { font-family: var(--display); font-size: 20px; color: var(--text2); }
@@ -237,6 +245,8 @@ html.locked .auth-gate { display: flex; }
 @media (max-width: 760px) {
   .ini-grid { grid-template-columns: 1fr; }
   .ini-balance-updated { margin-left: 0; width: 100%; }
+  .ini-top-row { flex-direction: column; }
+  .ini-cal-card { flex: none; width: 100%; }
 }
 
 @media (max-width: 900px) {
@@ -844,6 +854,7 @@ function sairPersonal() {
       <a class="sb-link" href="#diario" data-page="diario"><span class="ico">📓</span>Diário</a>
       <a class="sb-link" href="#frases" data-page="frases"><span class="ico">💬</span>Frases</a>
       <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
+      <a class="sb-link" href="#compras" data-page="compras"><span class="ico">🛒</span>Lista de Compras</a>
       <a class="sb-link" href="#investimentos" data-page="investimentos"><span class="ico">📈</span>Investimentos</a>
       <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🐺</span>Wolves<span class="sb-soon">em breve</span></a>
       <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🧲</span>Prospects<span class="sb-soon">em breve</span></a>
@@ -868,40 +879,42 @@ function sairPersonal() {
       <cite id="ini-quote-author">— JIM ROHN</cite>
     </blockquote>
 
-    <div class="ini-money-row">
-      <div class="ini-balance-card">
-        <div class="ini-balance-label">💰 Saldo Bancário</div>
-        <div class="ini-balance-row">
-          <span class="ini-balance-prefix">R$</span>
-          <input type="text" id="ini-balance-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
-        </div>
-        <div class="ini-balance-updated" id="ini-balance-updated"></div>
-      </div>
-      <div class="ini-balance-card">
-        <div class="ini-balance-label">📈 Faturamento</div>
-        <div class="ini-balance-row">
-          <span class="ini-balance-prefix">R$</span>
-          <input type="text" id="ini-fat-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
-        </div>
-        <div class="ini-balance-updated" id="ini-fat-updated"></div>
-      </div>
-    </div>
-
     <div class="ini-grid">
       <div class="ini-col">
-        <div class="ini-card">
-          <div class="ini-card-head">
-            <h3>Cronograma</h3>
-            <div class="ini-cal-nav">
-              <button type="button" id="ini-cal-prev" aria-label="Mês anterior">‹</button>
-              <span id="ini-cal-label"></span>
-              <button type="button" id="ini-cal-next" aria-label="Próximo mês">›</button>
+        <div class="ini-top-row">
+          <div class="ini-card ini-cal-card">
+            <div class="ini-card-head">
+              <h3>Cronograma</h3>
+              <div class="ini-cal-nav">
+                <button type="button" id="ini-cal-prev" aria-label="Mês anterior">‹</button>
+                <span id="ini-cal-label"></span>
+                <button type="button" id="ini-cal-next" aria-label="Próximo mês">›</button>
+              </div>
+            </div>
+            <div class="ini-cal-weekdays">
+              <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+            </div>
+            <div class="ini-cal-grid" id="ini-cal-grid"></div>
+          </div>
+
+          <div class="ini-money-stack">
+            <div class="ini-balance-card compact">
+              <div class="ini-balance-label">💰 Saldo Bancário</div>
+              <div class="ini-balance-row">
+                <span class="ini-balance-prefix">R$</span>
+                <input type="text" id="ini-balance-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
+              </div>
+              <div class="ini-balance-updated" id="ini-balance-updated"></div>
+            </div>
+            <div class="ini-balance-card compact">
+              <div class="ini-balance-label">📈 Faturamento</div>
+              <div class="ini-balance-row">
+                <span class="ini-balance-prefix">R$</span>
+                <input type="text" id="ini-fat-input" class="ini-balance-input" inputmode="decimal" placeholder="0,00">
+              </div>
+              <div class="ini-balance-updated" id="ini-fat-updated"></div>
             </div>
           </div>
-          <div class="ini-cal-weekdays">
-            <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
-          </div>
-          <div class="ini-cal-grid" id="ini-cal-grid"></div>
         </div>
 
         <div class="ini-card">
@@ -930,16 +943,6 @@ function sairPersonal() {
             <div class="ini-sub-head">📋 Atividades</div>
             <div id="ini-next-activities"></div>
           </div>
-        </div>
-
-        <div class="ini-card">
-          <div class="ini-card-head"><h3>🛒 Lista de Compras</h3></div>
-          <div class="ini-shop-add">
-            <input type="text" id="ini-shop-input" placeholder="＋ Novo item… (Enter para adicionar)">
-            <button type="button" class="primary" id="ini-shop-add-btn">Adicionar</button>
-          </div>
-          <div id="ini-shop-list"></div>
-          <div class="ini-empty" id="ini-shop-empty">Lista vazia.</div>
         </div>
       </div>
     </div>
@@ -1133,6 +1136,20 @@ function sairPersonal() {
     </div>
     <div class="dream-grid" id="dream-grid"></div>
     <div class="list-empty" id="board-empty">Seu quadro ainda está vazio. Adicione a primeira foto de uma visão que você quer viver.</div>
+  </section>
+
+  <section id="compras" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Dia a dia</div>
+      <h1>🛒 Lista de Compras</h1>
+      <p>O que precisa comprar. Marque conforme for pegando.</p>
+    </div>
+    <div class="ini-shop-add" style="max-width:520px;">
+      <input type="text" id="shop-input" placeholder="＋ Novo item… (Enter para adicionar)">
+      <button type="button" class="primary" id="shop-add-btn">Adicionar</button>
+    </div>
+    <div id="shop-list" style="max-width:520px;"></div>
+    <div class="list-empty" id="shop-empty">Lista vazia.</div>
   </section>
 
   <section id="investimentos" class="page">
@@ -3027,44 +3044,44 @@ function sairPersonal() {
     renderIniCarousel();
   }, 6000);
 
-  // Lista de compras
-  const iniShopList = document.getElementById('ini-shop-list');
-  const iniShopEmpty = document.getElementById('ini-shop-empty');
-  function renderIniShopping() {
+  // Lista de compras (página própria)
+  const shopList = document.getElementById('shop-list');
+  const shopEmpty = document.getElementById('shop-empty');
+  function renderShopping() {
     const list = state.shopping || [];
-    iniShopList.innerHTML = '';
-    iniShopEmpty.style.display = list.length ? 'none' : 'block';
+    shopList.innerHTML = '';
+    shopEmpty.style.display = list.length ? 'none' : 'block';
     list.forEach(item => {
       const row = document.createElement('div');
       row.className = 'ini-shop-item' + (item.done ? ' done' : '');
       row.dataset.id = item.id;
-      row.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''}><span class="ini-shop-name">${esc(item.name)}</span><button class="x-remove ini-shop-remove" type="button">×</button>`;
-      iniShopList.appendChild(row);
+      row.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''}><span class="ini-shop-name">${esc(item.name)}</span><button class="x-remove shop-remove" type="button">×</button>`;
+      shopList.appendChild(row);
     });
   }
-  function addIniShopItem() {
-    const input = document.getElementById('ini-shop-input');
+  function addShopItem() {
+    const input = document.getElementById('shop-input');
     const name = input.value.trim();
     if (!name) return;
     state.shopping.push({ id: 's' + Date.now(), name, done: false });
     input.value = '';
-    save(); renderIniShopping();
+    save(); renderShopping();
     input.focus();
   }
-  document.getElementById('ini-shop-add-btn').addEventListener('click', addIniShopItem);
-  document.getElementById('ini-shop-input').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); addIniShopItem(); } });
-  iniShopList.addEventListener('change', (ev) => {
+  document.getElementById('shop-add-btn').addEventListener('click', addShopItem);
+  document.getElementById('shop-input').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); addShopItem(); } });
+  shopList.addEventListener('change', (ev) => {
     const cb = ev.target.closest('input[type="checkbox"]');
     if (!cb) return;
     const item = state.shopping.find(x => x.id === cb.closest('.ini-shop-item').dataset.id);
-    if (item) { item.done = cb.checked; save(); renderIniShopping(); }
+    if (item) { item.done = cb.checked; save(); renderShopping(); }
   });
-  iniShopList.addEventListener('click', (ev) => {
-    const btn = ev.target.closest('.ini-shop-remove');
+  shopList.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.shop-remove');
     if (!btn) return;
     const id = btn.closest('.ini-shop-item').dataset.id;
     state.shopping = state.shopping.filter(x => x.id !== id);
-    save(); renderIniShopping();
+    save(); renderShopping();
   });
 
   function renderInicio() {
@@ -3074,11 +3091,10 @@ function sairPersonal() {
     renderIniBalance();
     renderIniFaturamento();
     renderIniCarousel();
-    renderIniShopping();
   }
 
   // ── Navegação entre páginas ──
-  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', investimentos: 'Investimentos' };
+  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos' };
   function showPage(id) {
     if (!PAGES[id]) id = 'inicio';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
@@ -3101,6 +3117,7 @@ function sairPersonal() {
   renderDiary();
   renderQuotes();
   renderDreams();
+  renderShopping();
   renderInvestments();
   renderRpDashboard();
 })();
