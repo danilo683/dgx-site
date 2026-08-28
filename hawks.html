@@ -194,6 +194,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">📦</span>Produtos<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">🏭</span>Estoque<span class="nav-badge">Em breve</span></div>
+    <div class="sidebar-section">Ferramentas</div>
+    <div class="nav-item" id="nav-simulador" onclick="setPage('simulador',this)"><span class="nav-icon">🧮</span>Simulador</div>
     <div class="sidebar-footer">
       <div class="dgx-badge">
         <div class="dgx-tri"><span></span><span></span><span></span></div>
@@ -541,10 +543,10 @@ document.addEventListener('DOMContentLoaded',async function(){
   window.location.href='/clientes';
 });
 function doLogout(){sb.auth.signOut().then(function(){window.location.href='/clientes';});}
-var periods={vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026'};
+var periods={vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',simulador:'Simula\u00e7\u00e3o'};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa'};
+  var titles={vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',simulador:'Simulador'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -552,6 +554,7 @@ function renderPage(page){
   else if(page==='dre'){c.innerHTML=dreHTML();}
   else if(page==='dfc'){c.innerHTML=dfcHTML();dfcShowView('anual');}
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
+  else if(page==='simulador'){c.innerHTML=simuladorHTML();initSimulador();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 function buildVendasTable(rowDefs,totais,fmt){var meses=V.meses;var hasData=meses.map(function(_,i){return totais[i]!==null&&totais[i]>0;});var html='<div style="overflow-x:auto;margin-top:14px"><table class="v-table"><thead><tr><th>Linha</th>'+meses.map(function(m,i){return '<th'+(hasData[i]?'':' class="v-empty"')+'>'+m+'</th><th'+(hasData[i]?'':' class="v-empty"')+' style="color:#aab">%</th>';}).join('')+'<th>Total</th><th style="color:#aab">%</th></tr></thead><tbody>';rowDefs.forEach(function(r){var tot=r.data.reduce(function(a,b){return a+(b||0);},0);var grandTotal=totais.reduce(function(a,b){return a+(b||0);},0);html+='<tr><td><span class="v-dot" style="background:'+r.color+'"></span>'+r.label+'</td>'+meses.map(function(_,i){var v=r.data[i];var t=totais[i];var pct=(v!==null&&t)?(v/t*100).toFixed(1)+'%':'--';return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(v!==null?fmt(v):'--')+'</td>'+'<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">'+pct+'</td>';}).join('')+'<td class="v-total">'+fmt(tot)+'</td>'+'<td class="v-pct">'+(grandTotal>0?(tot/grandTotal*100).toFixed(1)+'%':'--')+'</td></tr>';});html+='<tr class="v-tot-row"><td>Total</td>'+meses.map(function(_,i){var t=totais[i];return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(t!==null?fmt(t):'--')+'</td>'+'<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">100%</td>';}).join('')+'<td class="v-total">'+fmt(totais.reduce(function(a,b){return a+(b||0);},0))+'</td>'+'<td class="v-pct">100%</td></tr>';html+='</tbody></table></div>';return html;}
@@ -1326,6 +1329,159 @@ function initMargem(){
   initBridgeRecon();
   initBridgeMargem();
 }
+// ══════════════════════════════════════════════════════════════
+// SIMULADOR — Ciclo Financeiro + Comparação de Margem GB x Outra Marca
+// Equivalente à aba TOP Line, mas em modo "e se": parte do preço de
+// tabela real da Hawks (equalizado — mesmo preço usado pra comparar)
+// e simula o CMV que uma outra marca teria, dada uma margem-alvo por
+// categoria. A comparação com a outra marca ainda usa margens
+// fictícias/editáveis — Danilo vai desenvolver a lógica de precificação
+// real da concorrente depois (ago/2026).
+// Ciclo Financeiro = DOH exigido + PMR − PMP (sem PME calculado ainda,
+// usamos o DOH exigido pela marca como proxy).
+// ══════════════════════════════════════════════════════════════
+var simState = {
+  mes: null,
+  margens: { hc:35, pr:28, co:30, qu:25 },
+  pmr: 45, pmp: 60, doh: 30
+};
+var SIM_CATEGORIAS = ['hc','pr','co','qu'];
+var SIM_CAT_LABELS = { hc:'Home Care', pr:'Profissional', co:'Colora\u00e7\u00e3o', qu:'Qu\u00edmica' };
+
+function calcularSimuladorCategorias(mesKey){
+  var acc = {};
+  SIM_CATEGORIAS.forEach(function(g){ acc[g] = { qtd:0, precoTabela:0, cmvReal:0, receitaReal:0 }; });
+  FV_HAWKS.forEach(function(r){
+    if (r.tipo_operacao !== 'venda') return;
+    var key = r.competencia ? r.competencia.slice(0,7) : null;
+    if (key !== mesKey) return;
+    var g = normGrupo(r.grupo);
+    if (!acc[g]) return; // ignora "outros" no simulador por ora
+    acc[g].qtd += parseFloat(r.qtd) || 0;
+    acc[g].precoTabela += parseFloat(r.valor_gb) || 0;
+    acc[g].cmvReal += parseFloat(r.cmv_total) || 0;
+    acc[g].receitaReal += parseFloat(r.valor_liquido) || 0;
+  });
+  return SIM_CATEGORIAS.map(function(g){
+    var d = acc[g];
+    var margemRealPct = d.precoTabela ? (d.precoTabela - d.cmvReal) / d.precoTabela * 100 : null;
+    var margemAlvo = simState.margens[g];
+    var cmvSimulado = d.precoTabela * (1 - margemAlvo/100);
+    return {
+      grupo:g, label:SIM_CAT_LABELS[g], qtd:d.qtd, precoTabela:d.precoTabela,
+      cmvReal:d.cmvReal, margemRealPct:margemRealPct,
+      margemAlvo:margemAlvo, cmvSimulado:cmvSimulado,
+      deltaCmv: cmvSimulado - d.cmvReal
+    };
+  });
+}
+
+function simuladorHTML(){
+  var meses = mesesDisponiveisFV();
+  if (!meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
+  if (!simState.mes || meses.indexOf(simState.mes)===-1) simState.mes = meses[meses.length-1];
+  var opMes = meses.map(function(k){return '<option value="'+k+'"'+(k===simState.mes?' selected':'')+'>'+labelMesChave(k)+'</option>';}).join('');
+
+  var ciclo = simState.doh + simState.pmr - simState.pmp;
+
+  var h = '<div class="bi-filters" style="margin-bottom:1rem">'
+    +'<span class="bi-tag">N\u00fameros da outra marca s\u00e3o placeholders \u2014 em desenvolvimento</span>'
+    +'</div>';
+
+  // ── Ciclo Financeiro ──
+  h += '<div class="chart-card"><div class="chart-title">Ciclo Financeiro</div>'
+    +'<div class="chart-sub">DOH exigido pela marca + PMR (recebimento) \u2212 PMP (pagamento a fornecedor) \u2014 substitui o PME enquanto o giro de estoque real n\u00e3o \u00e9 calculado</div>'
+    +'<div class="lanc-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem">'
+      +'<div class="lanc-field"><label style="font-size:11px;color:#8BA0B0;display:block;margin-bottom:4px">DOH exigido pela marca (dias)</label><input type="number" id="sim-doh" value="'+simState.doh+'" onchange="simuladorInputMudou()" style="width:100%;padding:8px 10px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4"></div>'
+      +'<div class="lanc-field"><label style="font-size:11px;color:#8BA0B0;display:block;margin-bottom:4px">PMR \u2014 Prazo M\u00e9dio de Recebimento (dias)</label><input type="number" id="sim-pmr" value="'+simState.pmr+'" onchange="simuladorInputMudou()" style="width:100%;padding:8px 10px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4"></div>'
+      +'<div class="lanc-field"><label style="font-size:11px;color:#8BA0B0;display:block;margin-bottom:4px">PMP \u2014 Prazo M\u00e9dio de Pagamento (dias)</label><input type="number" id="sim-pmp" value="'+simState.pmp+'" onchange="simuladorInputMudou()" style="width:100%;padding:8px 10px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4"></div>'
+    +'</div>'
+    +'<div class="mg-kpi-grid" style="grid-template-columns:1fr">'
+      +'<div class="mg-kpi" style="border-left-color:'+(ciclo>=0?'#c0392b':'#2ECC71')+'"><div class="mg-kpi-label">Ciclo Financeiro (DOH + PMR \u2212 PMP)</div>'
+      +'<div class="mg-kpi-value" style="color:'+(ciclo>=0?'#e24b4a':'#2ECC71')+'">'+ciclo.toFixed(0)+' dias</div>'
+      +'<div class="mg-kpi-sub">'+(ciclo>=0?'A empresa financia o capital de giro por esse per\u00edodo':'Fornecedores financiam o capital de giro')+'</div></div>'
+    +'</div></div>';
+
+  // ── Seletor de mês + comparação de margem por categoria ──
+  var cats = calcularSimuladorCategorias(simState.mes);
+  var fR2=function(v){return'R$ '+(Math.abs(v)>=1000000?(v/1000000).toFixed(2)+'M':Math.round(v/1000).toLocaleString('pt-BR')+'K');};
+
+  h += '<div class="chart-card"><div class="chart-title">Compara\u00e7\u00e3o de Margem por Categoria \u2014 GB x Outra Marca</div>'
+    +'<div class="chart-sub">Parte do pre\u00e7o de tabela real da Hawks (equalizado) e simula o CMV que a outra marca teria, dada a margem-alvo definida abaixo</div>'
+    +'<div class="bi-filters" style="margin-bottom:1rem"><label>M\u00eas</label><select id="sim-sel-mes" onchange="simuladorMesMudou()">'+opMes+'</select></div>';
+
+  h += '<div style="overflow-x:auto"><table class="dre-table"><thead><tr>'
+    +'<th style="text-align:left">Categoria</th><th>Pre\u00e7o de Tabela (GB)</th><th>CMV GB (real)</th><th>Margem GB (real)</th>'
+    +'<th>Margem Alvo Outra Marca</th><th>CMV Simulado</th><th>\u0394 CMV</th>'
+    +'</tr></thead><tbody>';
+  cats.forEach(function(c){
+    var margemRealTxt = c.margemRealPct!==null ? c.margemRealPct.toFixed(1)+'%' : '\u2014';
+    h += '<tr><td>'+c.label+'</td>'
+      +'<td>'+fR2(c.precoTabela)+'</td>'
+      +'<td>'+fR2(c.cmvReal)+'</td>'
+      +'<td>'+margemRealTxt+'</td>'
+      +'<td><input type="number" step="0.1" value="'+c.margemAlvo+'" onchange="simuladorMargemMudou(\''+c.grupo+'\',this.value)" style="width:70px;padding:4px 6px;border-radius:4px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;text-align:right">%</td>'
+      +'<td>'+fR2(c.cmvSimulado)+'</td>'
+      +'<td'+(c.deltaCmv>=0?' class="negative"':' class="positive"')+'>'+(c.deltaCmv>=0?'+':'')+fR2(c.deltaCmv)+'</td></tr>';
+  });
+  h += '</tbody></table></div></div>';
+
+  // ── TOP Line consolidado: GB real x Outra Marca simulada ──
+  var totPreco = cats.reduce(function(a,c){return a+c.precoTabela;},0);
+  var totCmvReal = cats.reduce(function(a,c){return a+c.cmvReal;},0);
+  var totCmvSim = cats.reduce(function(a,c){return a+c.cmvSimulado;},0);
+  var margemBrutaGB = totPreco - totCmvReal;
+  var margemBrutaSim = totPreco - totCmvSim;
+  var pctGB = totPreco ? (margemBrutaGB/totPreco*100) : 0;
+  var pctSim = totPreco ? (margemBrutaSim/totPreco*100) : 0;
+
+  h += '<div class="chart-card"><div class="chart-title">TOP Line Consolidado \u2014 GB x Outra Marca (simulada)</div>'
+    +'<div class="chart-sub">Pre\u00e7o de tabela equalizado entre as duas marcas \u2014 s\u00f3 o CMV muda, conforme a margem-alvo de cada categoria</div>'
+    +'<div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="text-align:left">Linha</th><th>Hawks (GB)</th><th>Outra Marca (simulada)</th></tr></thead><tbody>'
+    +'<tr><td>Pre\u00e7o de Tabela (equalizado)</td><td>'+fR2(totPreco)+'</td><td>'+fR2(totPreco)+'</td></tr>'
+    +'<tr class="negative"><td>(\u2212) CMV</td><td>'+fR2(-totCmvReal)+'</td><td>'+fR2(-totCmvSim)+'</td></tr>'
+    +'<tr class="highlight"><td>= Margem Bruta</td><td>'+fR2(margemBrutaGB)+'</td><td>'+fR2(margemBrutaSim)+'</td></tr>'
+    +'<tr><td>% Margem Bruta</td><td>'+pctGB.toFixed(1)+'%</td><td>'+pctSim.toFixed(1)+'%</td></tr>'
+    +'</tbody></table></div>'
+    +'<div style="height:220px;position:relative;margin-top:1rem"><canvas id="chartSimComparativo"></canvas></div>'
+    +'</div>';
+
+  h += '<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
+  return h;
+}
+
+function simuladorMesMudou(){
+  simState.mes = document.getElementById('sim-sel-mes').value;
+  document.getElementById('content').innerHTML = simuladorHTML();
+  initSimulador();
+}
+function simuladorMargemMudou(grupo, valor){
+  simState.margens[grupo] = parseFloat(valor) || 0;
+  document.getElementById('content').innerHTML = simuladorHTML();
+  initSimulador();
+}
+function simuladorInputMudou(){
+  simState.doh = parseFloat(document.getElementById('sim-doh').value) || 0;
+  simState.pmr = parseFloat(document.getElementById('sim-pmr').value) || 0;
+  simState.pmp = parseFloat(document.getElementById('sim-pmp').value) || 0;
+  document.getElementById('content').innerHTML = simuladorHTML();
+  initSimulador();
+}
+
+function initSimulador(){
+  var canvas = document.getElementById('chartSimComparativo');
+  if (!canvas) return;
+  var existing = Chart.getChart('chartSimComparativo'); if (existing) existing.destroy();
+  var cats = calcularSimuladorCategorias(simState.mes);
+  new Chart(canvas,{type:'bar',data:{
+    labels: cats.map(function(c){return c.label;}),
+    datasets:[
+      {label:'Margem GB (real)', data: cats.map(function(c){return c.margemRealPct;}), backgroundColor:'#00B4D8', borderRadius:4},
+      {label:'Margem Outra Marca (alvo)', data: cats.map(function(c){return c.margemAlvo;}), backgroundColor:'#c0392b', borderRadius:4}
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#8BA0B0',font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8BA0B0',callback:function(v){return v+'%';}}}}}});
+}
+
 var MESES_LABELS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var MESES_FULL=['Janeiro','Fevereiro','Mar\u00e7o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function calcDFC(d){if(!d)return null;var entOp=d.recVendas+d.jurosMultas+d.outrasEnt;var saiOp=d.pgtoTruss+d.pgtoNaoTruss+d.pgtoPessoal+d.pgtoMkt+d.pgtoComissoes+d.pgtoLogistica+d.pgtoOcupacao+d.pgtoGerais+d.pgtoTerceiros+d.pgtoImpostos;var fcOp=entOp+saiOp;var fcInv=d.entInvest+d.saiInvest;var fcFin=d.emprestimos+d.pgtoFinanc;var liquido=fcOp+fcInv+fcFin;var caixaFinal=d.caixaInicial+liquido;return{entOp:entOp,saiOp:Math.abs(saiOp),saiTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc),fcOp:fcOp,fcInv:fcInv,fcFin:fcFin,liquido:liquido,caixaFinal:caixaFinal,entTotal:entOp+d.emprestimos,saiGrandTotal:Math.abs(saiOp)+Math.abs(d.saiInvest)+Math.abs(d.pgtoFinanc)};}
