@@ -767,14 +767,14 @@ async function hwPlanoCarregar(){
       ? '<div class="plano-item-data">📅 Até '+new Date(item.data_alvo+'T00:00:00').toLocaleDateString('pt-BR')+'</div>' : '';
 
     return '<div class="plano-item'+(item.concluido?' concluido':'')+'">'
-      +'<button class="plano-check'+(item.concluido?' checked':'')+'" onclick="hwPlanoToggleConcluido('+item.id+','+(!item.concluido)+')">'
+      +'<button class="plano-check'+(item.concluido?' checked':'')+'" onclick="hwPlanoToggleConcluido(\''+item.id+'\','+(!item.concluido)+')">'
       +'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>'
       +'<div class="plano-item-body">'
       +'<div class="plano-item-titulo">'+escapeHtml(item.titulo)+'<span class="plano-tipo-tag '+item.tipo+'">'+(isMeta?'Meta':'Ação')+'</span></div>'
       +(item.descricao ? '<div class="plano-item-desc">'+escapeHtml(item.descricao)+'</div>' : '')
       +dataAlvoHtml+progressoHtml
       +'</div>'
-      +'<button class="plano-del" onclick="hwPlanoExcluir('+item.id+')" title="Excluir">×</button>'
+      +'<button class="plano-del" onclick="hwPlanoExcluir(\''+item.id+'\')" title="Excluir">×</button>'
       +'</div>';
   }).join('');
 }
@@ -908,7 +908,7 @@ function hwCronoRenderListas(){
         +(horaStr ? '<div class="crono-evento-hora">'+horaStr+'</div>' : '')
         +(e.descricao ? '<div class="crono-evento-desc">'+escapeHtml(e.descricao)+'</div>' : '')
         +'</div>'
-        +'<button class="plano-del" onclick="hwCronoExcluir('+e.id+')" title="Excluir">×</button>'
+        +'<button class="plano-del" onclick="hwCronoExcluir(\''+e.id+'\')" title="Excluir">×</button>'
         +'</div>';
     }).join('');
   }
