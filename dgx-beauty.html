@@ -157,6 +157,78 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .filial-switch{display:flex;gap:2px;background:rgba(255,255,255,0.06);border-radius:20px;padding:2px}
 .filial-btn{font-size:11px;font-weight:600;padding:5px 14px;border-radius:18px;border:none;background:transparent;color:#8BA0B0;cursor:pointer;transition:all .15s}
 .filial-btn.active{background:#00B4D8;color:#fff}
+/* ── Início: Plano de Ação + Cronograma ── */
+.ini-split{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.ini-split .plano-card{flex:1;min-width:0}
+.ini-split .crono-card{flex:1;min-width:0}
+@media (max-width:1100px){.ini-split{flex-direction:column}}
+.plano-card{background:#111f35;border:1px solid rgba(0,174,239,0.12);border-radius:12px;padding:1.25rem 1.4rem}
+.crono-card{background:#111f35;border:1px solid rgba(0,174,239,0.12);border-radius:12px;padding:1.25rem 1.4rem}
+.ini-card-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.ini-card-head h3{font-size:14px;font-weight:600;color:#E2EAF4;margin:0}
+.plano-progresso-resumo{font-size:11px;color:#8BA0B0;font-weight:400}
+.ini-add-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid #1F3044;background:transparent;color:#8BA0B0;cursor:pointer;transition:all .15s}
+.ini-add-btn:hover{color:#00B4D8;border-color:#00B4D8}
+.plano-vazio{font-size:12px;color:#8BA0B0;padding:0.9rem 0;text-align:center}
+.plano-item{display:flex;align-items:flex-start;gap:10px;padding:.8rem 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.plano-item:last-child{border-bottom:none}
+.plano-item.concluido{opacity:.5}
+.plano-check{width:19px;height:19px;border-radius:5px;border:1.5px solid #1F3044;background:none;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;padding:0}
+.plano-check.checked{background:#00B4D8;border-color:#00B4D8}
+.plano-check.checked svg{display:block}
+.plano-check svg{display:none;width:11px;height:11px;stroke:#0A1525;stroke-width:3}
+.plano-item-body{flex:1;min-width:0}
+.plano-item-titulo{font-size:13px;font-weight:600;color:#E2EAF4;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.plano-item.concluido .plano-item-titulo{text-decoration:line-through}
+.plano-tipo-tag{font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:10px;font-weight:700}
+.plano-tipo-tag.acao{background:rgba(0,180,216,0.15);color:#00B4D8}
+.plano-tipo-tag.meta{background:rgba(46,204,113,0.15);color:#2ECC71}
+.plano-item-desc{font-size:12px;color:#8BA0B0;margin-top:4px;line-height:1.5}
+.plano-item-data{font-size:11px;color:#00B4D8;margin-top:5px}
+.plano-progresso-bar-wrap{margin-top:8px;display:flex;align-items:center;gap:10px}
+.plano-progresso-bar-bg{flex:1;height:6px;background:#0A1525;border-radius:3px;overflow:hidden}
+.plano-progresso-bar-fill{height:100%;background:#2ECC71;border-radius:3px;transition:width .3s}
+.plano-progresso-bar-txt{font-size:11px;color:#8BA0B0;white-space:nowrap;font-weight:600}
+.plano-del{background:none;border:none;color:#4A6580;cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;flex-shrink:0}
+.plano-del:hover{color:#C8B89A}
+.ini-mini-form{display:none;background:#0D1B2E;border:0.5px solid #1F3044;border-radius:8px;padding:.8rem;margin-bottom:1rem;gap:8px;flex-direction:column}
+.ini-mini-form.open{display:flex}
+.ini-mini-form input,.ini-mini-form select,.ini-mini-form textarea{font-size:12px;padding:7px 9px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;outline:none;font-family:inherit;width:100%}
+.ini-mini-form-row{display:flex;gap:8px}
+.ini-mini-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+.ini-mini-form-actions button{font-size:11px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.ini-mini-save{background:#00B4D8;color:#fff}
+.ini-mini-cancel{background:transparent;color:#8BA0B0;border:0.5px solid #1F3044!important}
+.crono-split{display:flex;gap:1.4rem;align-items:flex-start}
+.crono-cal-col{flex:0 0 180px;width:180px}
+.crono-lista-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:1rem;border-left:1px solid rgba(255,255,255,0.06);padding-left:1.4rem}
+.crono-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+.crono-cal-mes{font-size:12px;font-weight:700;color:#E2EAF4;text-transform:capitalize}
+.crono-nav-btn{background:none;border:0.5px solid #1F3044;color:#8BA0B0;width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
+.crono-nav-btn:hover{border-color:#00B4D8;color:#00B4D8}
+.crono-cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:9px;color:#6B8BAA;margin-bottom:.35rem;letter-spacing:.04em}
+.crono-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.crono-cal-dia{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#8BA0B0;border-radius:5px}
+.crono-cal-dia.outro-mes{color:#1F3044;opacity:.5}
+.crono-cal-dia.hoje{background:rgba(0,180,216,0.15);color:#00B4D8;font-weight:700;border:1px solid rgba(0,180,216,0.35)}
+.crono-cal-dots{display:flex;gap:1.5px;margin-top:1px;position:absolute;bottom:1px}
+.crono-dot{width:4px;height:4px;border-radius:50%;display:inline-block}
+.crono-dot.encontro{background:#7c9cff}
+.crono-dot.entrega{background:#00B4D8}
+.crono-cal-legenda{display:flex;gap:.7rem;margin-top:.6rem;font-size:9.5px;color:#8BA0B0;flex-wrap:wrap}
+.crono-cal-legenda span{display:flex;align-items:center;gap:.3rem}
+.crono-secao-titulo{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:.6rem}
+.crono-secao-titulo.encontro{color:#7c9cff}
+.crono-secao-titulo.entrega{color:#00B4D8}
+.crono-evento-item{display:flex;gap:.7rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.crono-evento-item:last-child{border-bottom:none}
+.crono-evento-data{width:36px;flex-shrink:0;text-align:center}
+.crono-evento-dia{font-size:14px;font-weight:700;color:#E2EAF4;line-height:1}
+.crono-evento-mes{font-size:9px;color:#6B8BAA;text-transform:uppercase;letter-spacing:.04em}
+.crono-evento-body{flex:1;min-width:0}
+.crono-evento-titulo{font-size:12px;font-weight:600;color:#E2EAF4}
+.crono-evento-hora{font-size:10.5px;color:#8BA0B0;margin-top:1px}
+.crono-evento-desc{font-size:11px;color:#8BA0B0;margin-top:2px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -186,7 +258,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
     <div class="sidebar-section">Principal</div>
-    <div class="nav-item active" id="nav-vendas" onclick="setPage('vendas',this)"><span class="nav-icon">📊</span>Vendas</div>
+    <div class="nav-item active" id="nav-inicio" onclick="setPage('inicio',this)"><span class="nav-icon">🏠</span>Início</div>
+    <div class="nav-item" id="nav-vendas" onclick="setPage('vendas',this)"><span class="nav-icon">📊</span>Vendas</div>
     <div class="nav-item" id="nav-margem" onclick="setPage('margem',this)"><span class="nav-icon">💹</span>Margem</div>
     <div class="sidebar-section">Financeiro</div>
     <div class="nav-item" id="nav-dre" onclick="setPage('dre',this)"><span class="nav-icon">📋</span>DRE</div>
@@ -206,10 +279,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="topbarTitle">Vendas</div>
+      <div class="topbar-title" id="topbarTitle">Início</div>
       <div class="topbar-right">
         <div class="filial-switch" id="filialSwitch"></div>
-        <span class="topbar-period" id="topbarPeriod">Jan - Mar 2026</span>
+        <span class="topbar-period" id="topbarPeriod"></span>
         <button class="logout-btn" onclick="doLogout()">Sair</button>
       </div>
     </div>
@@ -242,6 +315,11 @@ function renderFilialSwitch(){
     '<button class="filial-btn'+(FILIAL==='ny'?' active':'')+'" onclick="trocarFilial(\'ny\')">NY</button>'+
     '<button class="filial-btn'+(FILIAL==='fl'?' active':'')+'" onclick="trocarFilial(\'fl\')">FL</button>';
 }
+
+// Plano de Ação / Cronograma são reais (Supabase), separados por filial
+// (mesmo padrão do Hawks) — mesmo o resto do dashboard sendo fictício,
+// o Danilo preenche esses itens manualmente para fins de demonstração.
+function clienteIdAtual(){ return 'dgxbeauty_' + FILIAL; }
 
 // ── DADOS (serão populados do Supabase) ──────────────────────
 var V = {
@@ -576,7 +654,7 @@ async function iniciarDashboardDemo(){
   try{
     renderFilialSwitch();
     await carregarDadosHawks();
-    loading.style.display='none';app.style.display='flex';renderPage('vendas');
+    loading.style.display='none';app.style.display='flex';renderPage('inicio');
   }catch(e){console.error(e);}
 }
 
@@ -600,19 +678,340 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 });
 function doLogout(){sessionStorage.removeItem('dgxBeautyDemoOk');window.location.reload();}
-var periods={vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026'};
+var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026'};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
-  if(page==='vendas'){c.innerHTML=vendasHTML();initVendas();}
+  if(page==='inicio'){c.innerHTML=inicioHTML();initInicio();}
+  else if(page==='vendas'){c.innerHTML=vendasHTML();initVendas();}
   else if(page==='dre'){c.innerHTML=dreHTML();}
   else if(page==='dfc'){c.innerHTML=dfcHTML();dfcShowView('anual');}
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
+// ══════════════════════════════════════════════
+// INÍCIO — Plano de Ação + Cronograma (reuniões / entregas)
+// Tabelas Supabase: dgxbeauty_plano_acao / dgxbeauty_cronograma, filtradas
+// por cliente_id (separado por filial, mesmo padrão do Hawks). São reais
+// (não fictícias) — o Danilo preenche manualmente para fins de demonstração.
+// ══════════════════════════════════════════════
+function escapeHtml(s){
+  if(s===null||s===undefined) return '';
+  return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function inicioHTML(){
+  return `
+    <div class="ini-split">
+      <div class="plano-card">
+        <div class="ini-card-head">
+          <h3>Plano de Ação <span class="plano-progresso-resumo" id="plano-progresso-resumo"></span></h3>
+          <button class="ini-add-btn" onclick="hwPlanoFormToggle()">+ Novo item</button>
+        </div>
+        <div class="ini-mini-form" id="plano-form">
+          <select id="plano-form-tipo">
+            <option value="acao">Ação</option>
+            <option value="meta">Meta</option>
+          </select>
+          <input type="text" id="plano-form-titulo" placeholder="Título (ex.: Reduzir 20% despesas)">
+          <textarea id="plano-form-desc" rows="2" placeholder="Descrição (opcional)"></textarea>
+          <div class="ini-mini-form-row">
+            <input type="date" id="plano-form-data-alvo" title="Prazo (opcional)">
+            <input type="number" id="plano-form-meta-valor" placeholder="Meta (opcional, ex.: 20)">
+            <input type="number" id="plano-form-progresso-valor" placeholder="Progresso atual (opcional)">
+          </div>
+          <div class="ini-mini-form-actions">
+            <button class="ini-mini-cancel" onclick="hwPlanoFormToggle()">Cancelar</button>
+            <button class="ini-mini-save" onclick="hwPlanoSalvar()">Salvar</button>
+          </div>
+        </div>
+        <div class="orc-loading" id="plano-loading" style="padding:2rem;text-align:center;color:#8BA0B0;font-size:12px">Carregando...</div>
+        <div id="plano-lista"></div>
+        <div class="plano-vazio" id="plano-vazio" style="display:none">Nenhum item no plano de ação ainda.</div>
+      </div>
+
+      <div class="crono-card">
+        <div class="ini-card-head">
+          <h3>Cronograma</h3>
+          <button class="ini-add-btn" onclick="hwCronoFormToggle()">+ Novo evento</button>
+        </div>
+        <div class="ini-mini-form" id="crono-form">
+          <div class="ini-mini-form-row">
+            <select id="crono-form-tipo">
+              <option value="encontro">Encontro</option>
+              <option value="entrega">Entrega</option>
+            </select>
+            <input type="date" id="crono-form-data">
+            <input type="time" id="crono-form-hora">
+          </div>
+          <input type="text" id="crono-form-titulo" placeholder="Título (ex.: Reunião de fechamento mensal)">
+          <textarea id="crono-form-desc" rows="2" placeholder="Descrição (opcional)"></textarea>
+          <div class="ini-mini-form-actions">
+            <button class="ini-mini-cancel" onclick="hwCronoFormToggle()">Cancelar</button>
+            <button class="ini-mini-save" onclick="hwCronoSalvar()">Salvar</button>
+          </div>
+        </div>
+        <div class="crono-split">
+          <div class="crono-cal-col">
+            <div class="crono-cal-header">
+              <button class="crono-nav-btn" onclick="hwCronoMudarMes(-1)">‹</button>
+              <span class="crono-cal-mes" id="crono-cal-mes-label"></span>
+              <button class="crono-nav-btn" onclick="hwCronoMudarMes(1)">›</button>
+            </div>
+            <div class="crono-cal-dow"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div class="crono-cal-grid" id="crono-cal-grid"></div>
+            <div class="crono-cal-legenda">
+              <span><i class="crono-dot encontro"></i> Encontro</span>
+              <span><i class="crono-dot entrega"></i> Entrega</span>
+            </div>
+          </div>
+          <div class="crono-lista-col">
+            <div>
+              <div class="crono-secao-titulo encontro">📅 Próximos encontros</div>
+              <div id="crono-lista-encontros"></div>
+              <div class="plano-vazio" id="crono-vazio-encontros" style="display:none">Nenhum encontro agendado.</div>
+            </div>
+            <div>
+              <div class="crono-secao-titulo entrega">📦 Próximas entregas</div>
+              <div id="crono-lista-entregas"></div>
+              <div class="plano-vazio" id="crono-vazio-entregas" style="display:none">Nenhuma entrega agendada.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function initInicio(){
+  hwPlanoCarregar();
+  hwCronoCarregar();
+}
+
+// ── PLANO DE AÇÃO ──
+function hwPlanoFormToggle(){
+  document.getElementById('plano-form').classList.toggle('open');
+}
+
+async function hwPlanoCarregar(){
+  var loading=document.getElementById('plano-loading'), vazio=document.getElementById('plano-vazio');
+  loading.style.display='block';
+  document.getElementById('plano-lista').innerHTML='';
+  vazio.style.display='none';
+
+  var CLIENTE_ID = clienteIdAtual();
+  var {data,error} = await sb.from('dgxbeauty_plano_acao').select('*')
+    .eq('cliente_id',CLIENTE_ID).order('ordem',{ascending:true}).order('created_at',{ascending:true});
+
+  loading.style.display='none';
+  if(error){ console.error(error); vazio.style.display='block'; vazio.textContent='Não foi possível carregar o plano de ação.'; return; }
+
+  if(!data || !data.length){
+    vazio.style.display='block'; vazio.textContent='Nenhum item no plano de ação ainda.';
+    document.getElementById('plano-progresso-resumo').textContent='';
+    return;
+  }
+
+  var concluidos = data.filter(function(i){return i.concluido;}).length;
+  document.getElementById('plano-progresso-resumo').textContent = concluidos+' de '+data.length+' concluídos';
+
+  document.getElementById('plano-lista').innerHTML = data.map(function(item){
+    var isMeta = item.tipo === 'meta';
+    var progressoHtml = '';
+    if(isMeta && item.meta_valor){
+      var pct = Math.min(100, Math.round((Number(item.progresso_valor)||0)/Number(item.meta_valor)*100));
+      progressoHtml = '<div class="plano-progresso-bar-wrap"><div class="plano-progresso-bar-bg"><div class="plano-progresso-bar-fill" style="width:'+pct+'%"></div></div><div class="plano-progresso-bar-txt">'+pct+'%</div></div>';
+    }
+    var dataAlvoHtml = item.data_alvo
+      ? '<div class="plano-item-data">📅 Até '+new Date(item.data_alvo+'T00:00:00').toLocaleDateString('pt-BR')+'</div>' : '';
+
+    return '<div class="plano-item'+(item.concluido?' concluido':'')+'">'
+      +'<button class="plano-check'+(item.concluido?' checked':'')+'" onclick="hwPlanoToggleConcluido(\''+item.id+'\','+(!item.concluido)+')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>'
+      +'<div class="plano-item-body">'
+      +'<div class="plano-item-titulo">'+escapeHtml(item.titulo)+'<span class="plano-tipo-tag '+item.tipo+'">'+(isMeta?'Meta':'Ação')+'</span></div>'
+      +(item.descricao ? '<div class="plano-item-desc">'+escapeHtml(item.descricao)+'</div>' : '')
+      +dataAlvoHtml+progressoHtml
+      +'</div>'
+      +'<button class="plano-del" onclick="hwPlanoExcluir(\''+item.id+'\')" title="Excluir">×</button>'
+      +'</div>';
+  }).join('');
+}
+
+async function hwPlanoToggleConcluido(id, novoStatus){
+  var {error} = await sb.from('dgxbeauty_plano_acao').update({concluido:novoStatus}).eq('id',id);
+  if(error){ alert('Erro ao atualizar: '+error.message); return; }
+  hwPlanoCarregar();
+}
+
+async function hwPlanoExcluir(id){
+  if(!confirm('Excluir este item do plano de ação?')) return;
+  var {error} = await sb.from('dgxbeauty_plano_acao').delete().eq('id',id);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  hwPlanoCarregar();
+}
+
+async function hwPlanoSalvar(){
+  var tipo = document.getElementById('plano-form-tipo').value;
+  var titulo = document.getElementById('plano-form-titulo').value.trim();
+  var descricao = document.getElementById('plano-form-desc').value.trim() || null;
+  var dataAlvo = document.getElementById('plano-form-data-alvo').value || null;
+  var metaValor = document.getElementById('plano-form-meta-valor').value || null;
+  var progressoValor = document.getElementById('plano-form-progresso-valor').value || null;
+
+  if(!titulo){ alert('Preencha ao menos o título.'); return; }
+
+  var {error} = await sb.from('dgxbeauty_plano_acao').insert({
+    cliente_id: clienteIdAtual(), tipo:tipo, titulo:titulo, descricao:descricao,
+    data_alvo:dataAlvo, meta_valor:metaValor, progresso_valor:progressoValor, concluido:false
+  });
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+
+  document.getElementById('plano-form-titulo').value='';
+  document.getElementById('plano-form-desc').value='';
+  document.getElementById('plano-form-data-alvo').value='';
+  document.getElementById('plano-form-meta-valor').value='';
+  document.getElementById('plano-form-progresso-valor').value='';
+  hwPlanoFormToggle();
+  hwPlanoCarregar();
+}
+
+// ── CRONOGRAMA ──
+var CRONO_MESES_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+var hwCronoCalData = new Date();
+var hwCronoEventos = [];
+
+function hwCronoFormToggle(){
+  document.getElementById('crono-form').classList.toggle('open');
+}
+
+async function hwCronoCarregar(){
+  var CLIENTE_ID = clienteIdAtual();
+  var {data,error} = await sb.from('dgxbeauty_cronograma').select('*')
+    .eq('cliente_id',CLIENTE_ID).order('data',{ascending:true});
+
+  if(error){ console.error(error); hwCronoEventos=[]; }
+  else hwCronoEventos = data || [];
+
+  hwCronoRenderCalendario();
+  hwCronoRenderListas();
+}
+
+function hwCronoMudarMes(delta){
+  hwCronoCalData.setMonth(hwCronoCalData.getMonth()+delta);
+  hwCronoCalData = new Date(hwCronoCalData);
+  hwCronoRenderCalendario();
+}
+
+function hwCronoRenderCalendario(){
+  var ano = hwCronoCalData.getFullYear();
+  var mes = hwCronoCalData.getMonth();
+  document.getElementById('crono-cal-mes-label').textContent = CRONO_MESES_FULL[mes]+' '+ano;
+
+  var primeiroDia = new Date(ano, mes, 1);
+  var ultimoDia = new Date(ano, mes+1, 0);
+  var diaSemanaInicio = primeiroDia.getDay();
+  var totalDias = ultimoDia.getDate();
+  var diasMesAnterior = new Date(ano, mes, 0).getDate();
+
+  var hoje = new Date();
+  var hojeStr = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+
+  var porData = {};
+  hwCronoEventos.forEach(function(e){
+    if(!porData[e.data]) porData[e.data] = [];
+    porData[e.data].push(e);
+  });
+
+  var cells = [];
+  for(var i=diaSemanaInicio-1; i>=0; i--){ cells.push({dia:diasMesAnterior-i, outro:true}); }
+  for(var d=1; d<=totalDias; d++){
+    var dataStr = ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    cells.push({dia:d, outro:false, dataStr:dataStr, eventos:porData[dataStr]||[]});
+  }
+  while(cells.length % 7 !== 0){ cells.push({dia:cells.length, outro:true}); }
+
+  document.getElementById('crono-cal-grid').innerHTML = cells.map(function(c){
+    var isHoje = !c.outro && c.dataStr===hojeStr;
+    var dotsHtml = '';
+    if(c.eventos && c.eventos.length){
+      var tipos = c.eventos.map(function(e){return e.tipo;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+      dotsHtml = '<div class="crono-cal-dots">'+tipos.map(function(t){return '<span class="crono-dot '+t+'"></span>';}).join('')+'</div>';
+    }
+    return '<div class="crono-cal-dia'+(c.outro?' outro-mes':'')+(isHoje?' hoje':'')+'">'+c.dia+dotsHtml+'</div>';
+  }).join('');
+}
+
+function hwCronoRenderListas(){
+  var hoje = new Date();
+  hoje.setHours(0,0,0,0);
+
+  var futuros = hwCronoEventos.filter(function(e){
+    var d = new Date(e.data+'T00:00:00');
+    return d >= hoje;
+  });
+
+  var encontros = futuros.filter(function(e){return e.tipo==='encontro';}).slice(0,5);
+  var entregas = futuros.filter(function(e){return e.tipo==='entrega';}).slice(0,5);
+
+  function renderLista(lista){
+    return lista.map(function(e){
+      var d = new Date(e.data+'T00:00:00');
+      var dia = d.getDate();
+      var mesAbr = V.meses[d.getMonth()];
+      var horaStr = e.hora ? e.hora.slice(0,5) : '';
+      return '<div class="crono-evento-item">'
+        +'<div class="crono-evento-data"><div class="crono-evento-dia">'+dia+'</div><div class="crono-evento-mes">'+mesAbr+'</div></div>'
+        +'<div class="crono-evento-body">'
+        +'<div class="crono-evento-titulo">'+escapeHtml(e.titulo)+'</div>'
+        +(horaStr ? '<div class="crono-evento-hora">'+horaStr+'</div>' : '')
+        +(e.descricao ? '<div class="crono-evento-desc">'+escapeHtml(e.descricao)+'</div>' : '')
+        +'</div>'
+        +'<button class="plano-del" onclick="hwCronoExcluir(\''+e.id+'\')" title="Excluir">×</button>'
+        +'</div>';
+    }).join('');
+  }
+
+  document.getElementById('crono-lista-encontros').innerHTML = renderLista(encontros);
+  document.getElementById('crono-vazio-encontros').style.display = encontros.length ? 'none' : 'block';
+
+  document.getElementById('crono-lista-entregas').innerHTML = renderLista(entregas);
+  document.getElementById('crono-vazio-entregas').style.display = entregas.length ? 'none' : 'block';
+}
+
+async function hwCronoSalvar(){
+  var tipo = document.getElementById('crono-form-tipo').value;
+  var titulo = document.getElementById('crono-form-titulo').value.trim();
+  var data = document.getElementById('crono-form-data').value;
+  var hora = document.getElementById('crono-form-hora').value || null;
+  var descricao = document.getElementById('crono-form-desc').value.trim() || null;
+
+  if(!titulo || !data){ alert('Preencha pelo menos o título e a data.'); return; }
+
+  var {error} = await sb.from('dgxbeauty_cronograma').insert({
+    cliente_id: clienteIdAtual(), tipo:tipo, titulo:titulo, data:data, hora:hora, descricao:descricao
+  });
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+
+  document.getElementById('crono-form-titulo').value='';
+  document.getElementById('crono-form-data').value='';
+  document.getElementById('crono-form-hora').value='';
+  document.getElementById('crono-form-desc').value='';
+  hwCronoFormToggle();
+  hwCronoCarregar();
+}
+
+async function hwCronoExcluir(id){
+  if(!confirm('Excluir este evento do cronograma?')) return;
+  var {error} = await sb.from('dgxbeauty_cronograma').delete().eq('id',id);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  hwCronoCarregar();
+}
+
 function buildVendasTable(rowDefs,totais,fmt){var meses=V.meses;var hasData=meses.map(function(_,i){return totais[i]!==null&&totais[i]>0;});var html='<div style="overflow-x:auto;margin-top:14px"><table class="v-table"><thead><tr><th>Linha</th>'+meses.map(function(m,i){return '<th'+(hasData[i]?'':' class="v-empty"')+'>'+m+'</th><th'+(hasData[i]?'':' class="v-empty"')+' style="color:#aab">%</th>';}).join('')+'<th>Total</th><th style="color:#aab">%</th></tr></thead><tbody>';rowDefs.forEach(function(r){var tot=r.data.reduce(function(a,b){return a+(b||0);},0);var grandTotal=totais.reduce(function(a,b){return a+(b||0);},0);html+='<tr><td><span class="v-dot" style="background:'+r.color+'"></span>'+r.label+'</td>'+meses.map(function(_,i){var v=r.data[i];var t=totais[i];var pct=(v!==null&&t)?(v/t*100).toFixed(1)+'%':'--';return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(v!==null?fmt(v):'--')+'</td>'+'<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">'+pct+'</td>';}).join('')+'<td class="v-total">'+fmt(tot)+'</td>'+'<td class="v-pct">'+(grandTotal>0?(tot/grandTotal*100).toFixed(1)+'%':'--')+'</td></tr>';});html+='<tr class="v-tot-row"><td>Total</td>'+meses.map(function(_,i){var t=totais[i];return'<td'+(hasData[i]?'':' class="v-empty"')+'>'+(t!==null?fmt(t):'--')+'</td>'+'<td class="v-pct'+(hasData[i]?'':' v-empty"')+'">100%</td>';}).join('')+'<td class="v-total">'+fmt(totais.reduce(function(a,b){return a+(b||0);},0))+'</td>'+'<td class="v-pct">100%</td></tr>';html+='</tbody></table></div>';return html;}
 
 function vendasFiltrosHTML(){
