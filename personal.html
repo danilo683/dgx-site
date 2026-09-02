@@ -540,6 +540,13 @@ button.primary:hover { background: #8d70f5; }
   border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px;
   color-scheme: dark;
 }
+.task-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.task-list-head span { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+.t-sort-date {
+  background: none; border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text2); font-size: 11.5px; padding: 4px 9px; cursor: pointer;
+}
+.t-sort-date:hover { color: var(--text); border-color: var(--border2); }
 .task-list { display: flex; flex-direction: column; gap: 2px; }
 .task-item { display: flex; align-items: center; gap: 10px; padding: 4px 4px; border-radius: 6px; }
 .task-item:hover { background: rgba(255,255,255,.03); }
@@ -1643,6 +1650,10 @@ function sairPersonal() {
           </div>`;
         } else {
           bodyHtml = `
+          <div class="task-list-head">
+            <span>Itens de ação</span>
+            <button type="button" class="t-sort-date" title="Ordenar por data prevista">⇅ Ordenar por data</button>
+          </div>
           <div class="task-list"></div>
           <div class="task-add">
             <input type="text" placeholder="＋ Novo item de ação… (Enter para adicionar)">
@@ -1772,6 +1783,16 @@ function sairPersonal() {
       const id = row.dataset.id;
       openGoals.has(id) ? openGoals.delete(id) : openGoals.add(id);
       renderGoals();
+      return;
+    }
+    const sortDateBtn = ev.target.closest('.t-sort-date');
+    if (sortDateBtn) {
+      const det = sortDateBtn.closest('.goal-detail');
+      const g = gById(det.dataset.id);
+      if (g) {
+        g.tasks.sort((a, b) => (a.due || '9999-99-99').localeCompare(b.due || '9999-99-99'));
+        save(); renderGoals();
+      }
       return;
     }
     const addBtn = ev.target.closest('.t-add-btn');
