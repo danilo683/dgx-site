@@ -370,6 +370,24 @@ async function fetchFatoVendas(clienteId){
   return all;
 }
 
+// Busca paginada de despesas (fato_despesas) — mesmo padrão do fato_vendas
+async function fetchFatoDespesas(clienteId){
+  var all = [], from = 0, pageSize = 1000;
+  while (true) {
+    var res = await sb.from('fato_despesas')
+      .select('competencia,nu_conta,conta,sinal,valor')
+      .eq('cliente_id', clienteId)
+      .range(from, from + pageSize - 1);
+    if (res.error) { console.error('fetchFatoDespesas', res.error); break; }
+    var data = res.data;
+    if (!data || !data.length) break;
+    all = all.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
+}
+
 // Agrega item-a-item em canal/categoria/volume por mês + ranking de produtos.
 // Só considera tipo_operacao = 'venda' (bonificações e devoluções ficam fora
 // das métricas comerciais, mesmo critério usado na conferência de importação).
@@ -467,6 +485,8 @@ function agregarMargem(rows){
 // Trocas/Devoluções e Impostos sobre Vendas (ICMS/PIS/COFINS/Simples) aparecem
 // como 0 na própria TOP Line de origem (não computados pelo Danilo neste
 // nível) — mantidos como linhas informativas zeradas para fidelidade ao DRE.
+// D.mesesChave: chaves "YYYY-MM" paralelas a D.meses — usadas para alinhar
+// os dados de despesas (fato_despesas) aos mesmos meses do TOP Line.
 function agregarDRETopline(rows){
   var porMes = {};
   rows.forEach(function(r){
@@ -497,7 +517,7 @@ function agregarDRETopline(rows){
     return (pa.ano - pb.ano) || (pa.mi - pb.mi);
   });
   var MESES_L = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  var D = { meses:[], volume:[], receitaBruta:[], descontosAbatimentos:[], receitaLiquida:[], custoProduto:[], politicaComercial:[], cmvTotal:[], margemBruta:[] };
+  var D = { meses:[], mesesChave:[], volume:[], receitaBruta:[], descontosAbatimentos:[], receitaLiquida:[], custoProduto:[], politicaComercial:[], cmvTotal:[], margemBruta:[] };
   chaves.forEach(function(k){
     var m = porMes[k];
     var receitaBruta = m.receitaLiquida + m.vlrDesconto;
@@ -507,6 +527,7 @@ function agregarDRETopline(rows){
     var cmvTotal = custoProduto + m.politicaComercial;
     var margemBruta = receitaLiquida + cmvTotal;
     D.meses.push(MESES_L[m.mi] + '/' + String(m.ano).slice(2));
+    D.mesesChave.push(m.ano + '-' + String(m.mi+1).padStart(2,'0'));
     D.volume.push(m.volume);
     D.receitaBruta.push(receitaBruta);
     D.descontosAbatimentos.push(descontos);
@@ -517,6 +538,23 @@ function agregarDRETopline(rows){
     D.margemBruta.push(margemBruta);
   });
   return D;
+}
+
+// Alinha os lançamentos de despesas (fato_despesas) aos mesmos meses do
+// TOP Line (D.mesesChave). Retorna DESPESAS_DADOS[nu_conta] = array de
+// valores por mês, já somado quando há mais de um lançamento no mesmo mês.
+// Meses de despesa fora do período com vendas são ignorados por ora.
+function aggregarDespesas(rows, mesesChave){
+  var porConta = {};
+  rows.forEach(function(r){
+    if (!r.competencia) return;
+    var chave = r.competencia.slice(0,7);
+    var idx = mesesChave.indexOf(chave);
+    if (idx === -1) return;
+    if (!porConta[r.nu_conta]) porConta[r.nu_conta] = Array(mesesChave.length).fill(0);
+    porConta[r.nu_conta][idx] += parseFloat(r.valor) || 0;
+  });
+  return porConta;
 }
 
 function refreshVendasEMargem(){
@@ -552,12 +590,16 @@ async function carregarDadosHawks() {
   FV_HAWKS = await fetchFatoVendas(CLIENTE_ID);
   refreshVendasEMargem();
 
-  // DRE — agora recalculado a partir da base única (fato_vendas), replicando
+  // DRE — recalculado a partir da base única (fato_vendas), replicando
   // exatamente as fórmulas da aba TOP Line da planilha (Receita Bruta até
-  // Margem Bruta). Despesas operacionais/EBITDA/Lucro Líquido não constam na
-  // TOP Line — removidos por ora, a critério do Danilo.
+  // Margem Bruta). Despesas Operacionais até Lucro Líquido vêm de uma
+  // segunda base (fato_despesas), alimentada mensalmente pela planilha de
+  // Plano de Contas — ver despesasQuadroHTML().
   DRE_TOPLINE = agregarDRETopline(FV_HAWKS);
   if (DRE_TOPLINE.meses.length) periods.dre = DRE_TOPLINE.meses[0] + ' \u2013 ' + DRE_TOPLINE.meses[DRE_TOPLINE.meses.length-1];
+
+  var despesasRows = await fetchFatoDespesas(CLIENTE_ID);
+  DESPESAS_DADOS = aggregarDespesas(despesasRows, DRE_TOPLINE.mesesChave);
 
   // DFC — segue alimentado pelos Lançamentos (agora agregados via Apps Script).
   // Chave por "YYYY-MM" (não por mês 0-11) para não confundir anos diferentes
@@ -1053,32 +1095,23 @@ function initVendas(){
 }
 // ══════════════════════════════════════════════════════════════
 // QUADRO DESPESAS — Estrutura do Plano de Contas DRE 2026
-// (Blocos 2 a 5). Renderizado abaixo do TOP Line na página DRE.
-// Dados virão de planilha (GViz) futuramente; por ora estrutura zerada.
-// Para alimentar: DESPESAS_DADOS['7.1'] = [valores por mês, alinhado
-// a DRE_TOPLINE.meses]. Grupos somam os filhos automaticamente.
+// (Blocos de Despesas Variáveis, Fixas e Resultado Financeiro/Lucro).
+// Renderizado abaixo do TOP Line na página DRE.
+// Dados vêm de fato_despesas (importados em admin.html -> Importação ->
+// aba "Despesas (DRE)"), agregados em DESPESAS_DADOS por carregarDadosHawks().
+// Para alimentar manualmente: DESPESAS_DADOS['7.1'] = [valores por mês,
+// alinhado a DRE_TOPLINE.meses]. Grupos somam os filhos automaticamente
+// quando o próprio código não tem valor direto (ver despValores()).
+// Os subtotais "= EBITDA" / "= Resultado Operacional" / "= Resultado antes
+// dos Impostos" / "= Lucro Líquido" são calculados como acumulado corrido a
+// partir da Margem Bruta (ver despesasQuadroHTML) — não são lookups em
+// DESPESAS_DADOS, já que essas linhas não têm código próprio na planilha.
 // Obs: no plano original o código 10.6 estava duplicado (Leasing de
 // veículos e Pessoas Logístico) — Pessoas Logístico movido p/ 10.7.
 // ══════════════════════════════════════════════════════════════
 var DESPESAS_DADOS = {};
 var despesasAbertos = {};
 var ESTRUTURA_DESPESAS = [
-  { bloco:'Custos com Produtos e Pol\u00edtica Comercial', linhas:[
-    { codigo:'6', nome:'Custo total com Produto (CMV + Pol\u00edtica Comercial)', filhos:[
-      { codigo:'6.1', nome:'Custo Mercadoria', filhos:[
-        { codigo:'6.1.2', nome:'Custo Produto (VEGAN)' },
-        { codigo:'6.1.3', nome:'Taxa de Royalties TRF' },
-        { codigo:'6.1.4', nome:'Taxa de Propaganda REM' }
-      ]},
-      { codigo:'6.2', nome:'ICMS ST (Substitui\u00e7\u00e3o Tribut\u00e1ria)' },
-      { codigo:'6.3', nome:'Pol\u00edtica Comercial', filhos:[
-        { codigo:'6.3.1', nome:'Desconto s/ Compras (Verbas de Ciclo)' },
-        { codigo:'6.3.2', nome:'Verbas Comerciais' },
-        { codigo:'6.3.3', nome:'Reembolso Educa\u00e7\u00e3o' }
-      ]}
-    ]},
-    { codigo:'R1', nome:'= Margem Bruta', resultado:true }
-  ]},
   { bloco:'Despesas com Venda (Vari\u00e1veis)', linhas:[
     { codigo:'7', nome:'Despesas com Venda', filhos:[
       { codigo:'7.1', nome:'Taxa com Cart\u00f5es, Boletos e Cheques' },
@@ -1255,6 +1288,21 @@ function despLinhaHTML(l, nivel, nMeses, rl, rlTotal){
   }
   return h;
 }
+// Linha de resultado (EBITDA / Resultado Operacional / Resultado antes dos
+// Impostos / Lucro Líquido) — usa o acumulado corrido calculado em
+// despesasQuadroHTML, não um lookup em DESPESAS_DADOS (essas linhas não
+// têm código próprio na planilha, são somas parciais).
+function despResultadoHTML(l, acum, rl, rlTotal){
+  var tot = acum.reduce(function(a,b){return a+b;},0);
+  var h = '<tr class="highlight"><td style="padding-left:12px">'+l.nome+'</td>';
+  acum.forEach(function(v,i){
+    var pct = (rl[i] && v!==0) ? (v/rl[i]*100).toFixed(1)+'%' : '\u2014';
+    h += '<td>'+despFmt(v)+'</td><td class="v-pct">'+pct+'</td>';
+  });
+  var pctTot = (rlTotal && tot!==0) ? (tot/rlTotal*100).toFixed(1)+'%' : '\u2014';
+  h += '<td>'+despFmt(tot)+'</td><td class="v-pct">'+pctTot+'</td></tr>';
+  return h;
+}
 function despesasQuadroHTML(){
   var D = DRE_TOPLINE;
   var nMeses = D.meses.length;
@@ -1262,18 +1310,30 @@ function despesasQuadroHTML(){
   var rl = D.receitaLiquida;
   var rlTotal = rl.reduce(function(a,b){return a+b;},0);
   var temDados = Object.keys(DESPESAS_DADOS).length > 0;
+  // Acumulado corrido — parte da Margem Bruta (já exata, vem do fato_vendas)
+  // e vai sendo reduzido/aumentado linha a linha conforme percorremos os
+  // blocos de despesas, exatamente como a planilha TOP Line faz.
+  var acumulado = D.margemBruta.slice();
   var h = '<div class="chart-card" id="quadroDespesas">'
     + '<div class="qd-header"><div><div class="chart-title">Despesas e Resultado \u2014 Plano de Contas DRE 2026</div>'
-    + '<div class="chart-sub">Blocos 2 a 5: Custos, Despesas Vari\u00e1veis, Despesas Fixas e Resultado Financeiro \u00b7 clique nos grupos para expandir</div></div>'
+    + '<div class="chart-sub">Da Margem Bruta ao Lucro L\u00edquido \u00b7 clique nos grupos para expandir</div></div>'
     + '<div style="white-space:nowrap"><button class="qd-btn" onclick="despesasExpandir(true)">Expandir tudo</button>'
     + '<button class="qd-btn" onclick="despesasExpandir(false)">Recolher</button></div></div>';
-  if (!temDados) h += '<div class="qd-aviso">Estrutura do Plano de Contas 2026 \u2014 aguardando integra\u00e7\u00e3o da fonte de dados (planilha de despesas)</div>';
+  if (!temDados) h += '<div class="qd-aviso">Nenhuma despesa importada ainda \u2014 envie a planilha de Plano de Contas em Admin \u2192 Importa\u00e7\u00e3o \u2192 Despesas (DRE)</div>';
   h += '<div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:280px">Conta</th>'
     + D.meses.map(function(m){return '<th style="min-width:100px">'+m+'</th><th style="min-width:55px">%RL</th>';}).join('')
     + '<th style="min-width:100px">Acum.</th><th style="min-width:55px">%RL</th></tr></thead><tbody>';
   ESTRUTURA_DESPESAS.forEach(function(bloco){
     h += '<tr class="qd-bloco"><td colspan="'+(nMeses*2+3)+'">'+bloco.bloco+'</td></tr>';
-    bloco.linhas.forEach(function(l){ h += despLinhaHTML(l, 0, nMeses, rl, rlTotal); });
+    bloco.linhas.forEach(function(l){
+      if (l.resultado) {
+        h += despResultadoHTML(l, acumulado, rl, rlTotal);
+      } else {
+        var vals = despValores(l, nMeses);
+        for (var i=0;i<nMeses;i++) acumulado[i] += vals[i];
+        h += despLinhaHTML(l, 0, nMeses, rl, rlTotal);
+      }
+    });
   });
   h += '</tbody></table></div></div>';
   return h;
@@ -1318,7 +1378,7 @@ function dreHTML(){
     +'<div class="kpi"><div class="kpi-label">Margem Bruta acum.</div><div class="kpi-value" style="color:'+(totMB>=0?'#2ECC71':'#e24b4a')+'">'+fK(totMB)+'</div><div class="kpi-sub">Mg. bruta: '+(totRL?(totMB/totRL*100).toFixed(1):'0')+'%</div></div>'
     +'<div class="kpi"><div class="kpi-label">Custo Produto acum.</div><div class="kpi-value" style="color:#c0392b">'+fK(D.custoProduto.reduce(function(a,b){return a+b;},0))+'</div><div class="kpi-sub">CMV + Pol\u00edtica Comercial</div></div>'
     +'</div>';
-  h+='<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE (Receita Bruta \u2192 Margem Bruta) \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div><div class="chart-sub">Calculado a partir da base \u00fanica de vendas, espelhando a l\u00f3gica da aba TOP Line. Despesas operacionais e Lucro L\u00edquido n\u00e3o constam aqui \u2014 seguem fora do DRE por enquanto.</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:240px">Descri\u00e7\u00e3o</th>'+D.meses.map(function(m){return'<th style="min-width:100px">'+m+'</th><th style="min-width:55px">%RL</th>';}).join('')+'<th style="min-width:100px">Acum.</th><th style="min-width:55px">%RL</th></tr></thead><tbody>';
+  h+='<div class="chart-card"><div style="margin-bottom:1rem"><div class="chart-title">DRE (Receita Bruta \u2192 Margem Bruta) \u2014 '+D.meses[0]+' a '+D.meses[n-1]+'</div><div class="chart-sub">Calculado a partir da base \u00fanica de vendas, espelhando a l\u00f3gica da aba TOP Line. Despesas Operacionais at\u00e9 Lucro L\u00edquido continuam no quadro abaixo, alimentado pela planilha de Plano de Contas.</div></div><div style="overflow-x:auto"><table class="dre-table"><thead><tr><th style="min-width:240px">Descri\u00e7\u00e3o</th>'+D.meses.map(function(m){return'<th style="min-width:100px">'+m+'</th><th style="min-width:55px">%RL</th>';}).join('')+'<th style="min-width:100px">Acum.</th><th style="min-width:55px">%RL</th></tr></thead><tbody>';
   h+=rowRL('(+) Receita Bruta',D.receitaBruta,'subtotal');
   h+=rowRL('(-) Descontos e Abatimentos',D.descontosAbatimentos,'negative');
   h+=rowFixo('(-) Trocas e Devolu\u00e7\u00f5es');
