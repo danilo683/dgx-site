@@ -431,7 +431,7 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
       <div class="adm-page-header">
         <div>
           <h2>Importação</h2>
-          <p class="adm-page-sub">Base única de vendas — upload do arquivo mensal (item a item)</p>
+          <p class="adm-page-sub">Base única de vendas (item a item) e planilha de despesas (Plano de Contas DRE)</p>
         </div>
         <div style="display:flex;gap:.6rem;align-items:center">
           <select id="imp-cliente" class="adm-select" onchange="impResetar()">
@@ -443,59 +443,121 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--bg);color
         </div>
       </div>
 
-      <div class="cons-card">
-        <div class="cons-card-header">
-          <span class="cons-card-title">1. Arquivo (.xlsx)</span>
-          <span id="imp-layout-info" style="font-size:12px;color:var(--text3)">—</span>
-        </div>
-        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
-          <input type="file" id="imp-file" accept=".xlsx,.xls" class="adm-input" style="max-width:340px">
-          <button class="adm-btn-primary" onclick="impLerArquivo()"><i class="ti ti-file-search"></i> Ler arquivo</button>
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;color:var(--text2);cursor:pointer">
-            <input type="checkbox" id="imp-raw" checked> Guardar linha original (auditoria)
-          </label>
-          <span id="imp-ler-status" class="lanc-status"></span>
-        </div>
+      <div style="display:flex;gap:3px;background:#162230;border:0.5px solid #1F3044;border-radius:8px;padding:3px;width:fit-content;margin-bottom:1.25rem">
+        <button class="lanc-tab active" id="imp-tabbtn-vendas" onclick="impTab('vendas',this)">Vendas (item a item)</button>
+        <button class="lanc-tab" id="imp-tabbtn-despesas" onclick="impTab('despesas',this)">Despesas (DRE)</button>
       </div>
 
-      <div id="imp-conferencia" style="display:none">
-        <div class="cons-kpi-row" id="imp-kpis-fixos" style="grid-template-columns:repeat(2,1fr);max-width:420px;margin-bottom:.75rem">
-          <div class="cons-kpi"><div class="cons-kpi-label">Linhas lidas</div><div class="cons-kpi-value" id="ik-linhas">—</div><div class="cons-kpi-sub">itens de NF/pedido</div></div>
-          <div class="cons-kpi"><div class="cons-kpi-label">Fora da competência</div><div class="cons-kpi-value" id="ik-fora">—</div><div class="cons-kpi-sub">linhas com data em outro mês</div></div>
-        </div>
-        <div class="cons-kpi-row" id="imp-kpis-tipo" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"></div>
-
-
+      <!-- ── ABA: VENDAS (item a item, fato_vendas) ── -->
+      <div id="imp-tab-vendas">
         <div class="cons-card">
           <div class="cons-card-header">
-            <span class="cons-card-title">2. Conferência — amostra das primeiras linhas mapeadas</span>
-            <span style="font-size:12px;color:var(--text3)">Bata os totais com o TOP Line antes de gravar</span>
+            <span class="cons-card-title">1. Arquivo (.xlsx)</span>
+            <span id="imp-layout-info" style="font-size:12px;color:var(--text3)">—</span>
           </div>
-          <div style="overflow-x:auto">
-            <table class="cons-table">
-              <thead><tr id="imp-amostra-head"></tr></thead>
-              <tbody id="imp-amostra-body"></tbody>
-            </table>
+          <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <input type="file" id="imp-file" accept=".xlsx,.xls" class="adm-input" style="max-width:340px">
+            <button class="adm-btn-primary" onclick="impLerArquivo()"><i class="ti ti-file-search"></i> Ler arquivo</button>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;color:var(--text2);cursor:pointer">
+              <input type="checkbox" id="imp-raw" checked> Guardar linha original (auditoria)
+            </label>
+            <span id="imp-ler-status" class="lanc-status"></span>
+          </div>
+        </div>
+
+        <div id="imp-conferencia" style="display:none">
+          <div class="cons-kpi-row" id="imp-kpis-fixos" style="grid-template-columns:repeat(2,1fr);max-width:420px;margin-bottom:.75rem">
+            <div class="cons-kpi"><div class="cons-kpi-label">Linhas lidas</div><div class="cons-kpi-value" id="ik-linhas">—</div><div class="cons-kpi-sub">itens de NF/pedido</div></div>
+            <div class="cons-kpi"><div class="cons-kpi-label">Fora da competência</div><div class="cons-kpi-value" id="ik-fora">—</div><div class="cons-kpi-sub">linhas com data em outro mês</div></div>
+          </div>
+          <div class="cons-kpi-row" id="imp-kpis-tipo" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"></div>
+
+
+          <div class="cons-card">
+            <div class="cons-card-header">
+              <span class="cons-card-title">2. Conferência — amostra das primeiras linhas mapeadas</span>
+              <span style="font-size:12px;color:var(--text3)">Bata os totais com o TOP Line antes de gravar</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="cons-table">
+                <thead><tr id="imp-amostra-head"></tr></thead>
+                <tbody id="imp-amostra-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="cons-card">
+            <div class="cons-card-header"><span class="cons-card-title">3. Gravação</span></div>
+            <div class="cons-progress-bg"><div class="cons-progress-fill" id="imp-prog-fill" style="width:0%"></div></div>
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem">
+              <button class="adm-btn-primary" onclick="impGravar()"><i class="ti ti-database-import"></i> Confirmar e gravar na base única</button>
+              <span id="imp-gravar-status" class="lanc-status"></span>
+            </div>
           </div>
         </div>
 
         <div class="cons-card">
-          <div class="cons-card-header"><span class="cons-card-title">3. Gravação</span></div>
-          <div class="cons-progress-bg"><div class="cons-progress-fill" id="imp-prog-fill" style="width:0%"></div></div>
-          <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem">
-            <button class="adm-btn-primary" onclick="impGravar()"><i class="ti ti-database-import"></i> Confirmar e gravar na base única</button>
-            <span id="imp-gravar-status" class="lanc-status"></span>
+          <div class="cons-card-header"><span class="cons-card-title">Histórico de importações</span></div>
+          <table class="cons-table">
+            <thead><tr><th>Data</th><th>Cliente</th><th>Comp.</th><th>Arquivo</th><th>Linhas</th><th>Valor líquido</th><th>Status</th></tr></thead>
+            <tbody id="imp-hist-body"><tr><td colspan="7" class="cons-empty">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ABA: DESPESAS (DRE, fato_despesas) ── -->
+      <div id="imp-tab-despesas" style="display:none">
+        <div class="cons-card">
+          <div class="cons-card-header">
+            <span class="cons-card-title">1. Planilha de Despesas (.xlsx) — aba "PREENCHER"</span>
+            <span style="font-size:12px;color:var(--text3)">Cabeçalho: nu_Conta, Conta, (+/-), colunas de mês (Jan a Dez)</span>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">
+            O arquivo traz o ano inteiro (Jan–Dez) numa aba só, por filial. Ele já respeita o mesmo filtro MT/MG selecionado acima —
+            escolha a filial correta antes de gravar. Somente as contas de Despesas com Venda até Impostos sobre Lucro (Bloco 3 em diante,
+            após a Margem Bruta) são lidas — Receita/CMV continuam vindo do fato_vendas.
+          </p>
+          <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <input type="file" id="impd-file" accept=".xlsx,.xls" class="adm-input" style="max-width:340px">
+            <button class="adm-btn-primary" onclick="impdLerArquivo()"><i class="ti ti-file-search"></i> Ler arquivo</button>
+            <span id="impd-ler-status" class="lanc-status"></span>
+          </div>
+        </div>
+
+        <div id="impd-conferencia" style="display:none">
+          <div class="cons-kpi-row" style="grid-template-columns:repeat(3,1fr);max-width:640px;margin-bottom:.75rem">
+            <div class="cons-kpi"><div class="cons-kpi-label">Contas lidas</div><div class="cons-kpi-value" id="idk-contas">—</div><div class="cons-kpi-sub">linhas do plano de contas</div></div>
+            <div class="cons-kpi"><div class="cons-kpi-label">Meses com dado</div><div class="cons-kpi-value" id="idk-meses">—</div><div class="cons-kpi-sub">colunas de data no arquivo</div></div>
+            <div class="cons-kpi"><div class="cons-kpi-label">Total lançado (acum.)</div><div class="cons-kpi-value" id="idk-total">—</div><div class="cons-kpi-sub">soma de todas as contas e meses</div></div>
+          </div>
+
+          <div class="cons-card">
+            <div class="cons-card-header">
+              <span class="cons-card-title">2. Conferência — amostra</span>
+              <span style="font-size:12px;color:var(--text3)">nu_conta · conta · sinal · mês · valor</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="cons-table">
+                <thead><tr id="impd-amostra-head"></tr></thead>
+                <tbody id="impd-amostra-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="cons-card">
+            <div class="cons-card-header"><span class="cons-card-title">3. Gravação</span></div>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:.5rem">
+              Grava por upsert em (cliente, mês, conta) — reenviar o arquivo atualiza os valores existentes sem duplicar linhas.
+            </p>
+            <div class="cons-progress-bg"><div class="cons-progress-fill" id="impd-prog-fill" style="width:0%"></div></div>
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem">
+              <button class="adm-btn-primary" onclick="impdGravar()"><i class="ti ti-database-import"></i> Confirmar e gravar despesas</button>
+              <span id="impd-gravar-status" class="lanc-status"></span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="cons-card">
-        <div class="cons-card-header"><span class="cons-card-title">Histórico de importações</span></div>
-        <table class="cons-table">
-          <thead><tr><th>Data</th><th>Cliente</th><th>Comp.</th><th>Arquivo</th><th>Linhas</th><th>Valor líquido</th><th>Status</th></tr></thead>
-          <tbody id="imp-hist-body"><tr><td colspan="7" class="cons-empty">—</td></tr></tbody>
-        </table>
-      </div>
     </div>
 
   </main>
@@ -1038,6 +1100,17 @@ async function lancLimparMes() {
 // ============================================================
 let impLayout = null, impLinhas = null, impRawLinhas = null, impArquivoNome = '';
 
+// Alterna entre as abas "Vendas (item a item)" e "Despesas (DRE)" dentro
+// da página de Importação. Cliente e mês continuam compartilhados no topo
+// (a competência só é usada pela aba Vendas — a de Despesas lê o ano
+// inteiro do próprio arquivo).
+function impTab(nome, el) {
+  document.getElementById('imp-tab-vendas').style.display = nome === 'vendas' ? '' : 'none';
+  document.getElementById('imp-tab-despesas').style.display = nome === 'despesas' ? '' : 'none';
+  document.querySelectorAll('#imp-tabbtn-vendas,#imp-tabbtn-despesas').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
 const IMP_NUM = ['qtd','valor_unitario','valor_total','desconto','valor_liquido',
   'cmv_unit','cmv_total','margem','markup','unit_gb','valor_gb','margem_gb','markup_gb',
   'reembolso_unit','reembolso_total','valor_recomp','valor_recomp_total','variacao_margem',
@@ -1079,6 +1152,10 @@ function impResetar(){
   document.getElementById('imp-ler-status').textContent = '';
   document.getElementById('imp-layout-info').textContent = '—';
   document.getElementById('imp-prog-fill').style.width = '0%';
+  impdLinhas = null;
+  document.getElementById('impd-conferencia').style.display = 'none';
+  document.getElementById('impd-ler-status').textContent = '';
+  document.getElementById('impd-prog-fill').style.width = '0%';
 }
 
 async function impCarregarLayout(clienteId){
@@ -1324,6 +1401,146 @@ async function impCarregarHistorico(){
     '<td>' + fmtMoeda(i.valor_total || 0) + '</td>' +
     '<td><span class="cons-badge ' + stBadge(i.status) + '">' + i.status + '</span></td>' +
     '</tr>').join('');
+}
+
+// ============================================================
+// IMPORTAÇÃO — Despesas (DRE), tabela fato_despesas
+// Formato de origem: planilha "Plano de Contas DRE 2026", aba "PREENCHER",
+// com nu_Conta / Conta / (+/-) nas 3 primeiras colunas e uma coluna por mês
+// (data no cabeçalho). Só as contas de Despesas com Venda até Impostos
+// sobre Lucro (códigos 7,8,9,10,11,12,13,14,16) são lidas — o bloco de
+// Custos com Produto/Política Comercial (código 6) já vem do fato_vendas
+// e não deve ser duplicado aqui.
+// ============================================================
+let impdLinhas = null, impdArquivoNome = '';
+const IMPD_CODIGOS_PERMITIDOS = new Set(['7','8','9','10','11','12','13','14','16']);
+
+function impdParseDataCabecalho(h){
+  if (h instanceof Date && !isNaN(h)) {
+    return h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-01';
+  }
+  if (typeof h === 'number') {
+    // Serial de data do Excel, caso a leitura não converta para Date
+    const d = XLSX.SSF.parse_date_code(h);
+    if (!d) return null;
+    return d.y + '-' + String(d.m).padStart(2, '0') + '-01';
+  }
+  if (typeof h === 'string') {
+    const iso = h.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return iso[1] + '-' + iso[2] + '-01';
+    const br = h.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (br) return br[3] + '-' + br[2].padStart(2, '0') + '-01';
+  }
+  return null;
+}
+
+function impdParseNum(v){
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  let s = String(v).replace(/[R$\s]/g, '');
+  if (s.indexOf(',') >= 0) s = s.split('.').join('').replace(',', '.');
+  const n = parseFloat(s);
+  return isFinite(n) ? n : null;
+}
+
+async function impdLerArquivo(){
+  const st = document.getElementById('impd-ler-status');
+  const fileEl = document.getElementById('impd-file');
+  if (!fileEl.files.length) { alert('Selecione o arquivo .xlsx.'); return; }
+  st.textContent = 'Lendo...'; st.className = 'lanc-status';
+  try {
+    const buf = await fileEl.files[0].arrayBuffer();
+    impdArquivoNome = fileEl.files[0].name;
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const abaNome = wb.SheetNames.find(n => n.toUpperCase().indexOf('PREENCHER') >= 0) || wb.SheetNames[0];
+    const ws = wb.Sheets[abaNome];
+    // Lê como matriz bruta pra controlar a linha de cabeçalho manualmente
+    // (o cabeçalho real não está sempre na linha 1 — na planilha modelo é a linha 4)
+    const matriz = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(matriz.length, 20); i++) {
+      const c0 = (matriz[i][0] || '').toString().toLowerCase();
+      if (c0.indexOf('conta') >= 0) { headerRowIdx = i; break; }
+    }
+    if (headerRowIdx === -1) { st.textContent = 'Não encontrei a linha de cabeçalho (coluna "nu_Conta") na aba "' + abaNome + '"'; st.className = 'lanc-status erro'; return; }
+    const header = matriz[headerRowIdx];
+    const colsMes = [];
+    header.forEach((h, idx) => {
+      const d = impdParseDataCabecalho(h);
+      if (d) colsMes.push({ idx, competencia: d });
+    });
+    if (!colsMes.length) { st.textContent = 'Não encontrei colunas de mês (datas) no cabeçalho.'; st.className = 'lanc-status erro'; return; }
+    const linhas = [];
+    for (let i = headerRowIdx + 1; i < matriz.length; i++) {
+      const row = matriz[i];
+      if (!row) continue;
+      const nuConta = row[0], conta = row[1], sinal = row[2];
+      if (!nuConta || !conta) continue;
+      if (!sinal) continue; // pula linhas de agrupador/resultado (sem +/-, são somas calculadas)
+      const topCode = String(nuConta).split('.')[0];
+      if (!IMPD_CODIGOS_PERMITIDOS.has(topCode)) continue; // fora do escopo (Receita/CMV já vêm do fato_vendas)
+      colsMes.forEach(cm => {
+        const v = impdParseNum(row[cm.idx]);
+        linhas.push({ nu_conta: String(nuConta).trim(), conta: String(conta).trim(), sinal: String(sinal).trim(), competencia: cm.competencia, valor: v === null ? 0 : v });
+      });
+    }
+    if (!linhas.length) { st.textContent = 'Nenhuma linha de despesa (códigos 7–16) encontrada na aba "' + abaNome + '"'; st.className = 'lanc-status erro'; return; }
+    impdLinhas = linhas;
+    impdRenderConferencia();
+    st.textContent = '✓ ' + linhas.length + ' lançamentos lidos (aba "' + abaNome + '")';
+  } catch (e) {
+    st.textContent = 'Erro ao ler: ' + e.message; st.className = 'lanc-status erro';
+  }
+}
+
+function impdRenderConferencia(){
+  const contasUnicas = new Set(impdLinhas.map(l => l.nu_conta));
+  const mesesUnicos = new Set(impdLinhas.map(l => l.competencia));
+  const total = impdLinhas.reduce((s, l) => s + (l.valor || 0), 0);
+  document.getElementById('idk-contas').textContent = contasUnicas.size;
+  document.getElementById('idk-meses').textContent = mesesUnicos.size;
+  document.getElementById('idk-total').textContent = fmtMoeda(total);
+
+  const cols = ['nu_conta','conta','sinal','competencia','valor'];
+  document.getElementById('impd-amostra-head').innerHTML = cols.map(c => '<th>' + c.replace('_', ' ') + '</th>').join('');
+  document.getElementById('impd-amostra-body').innerHTML = impdLinhas.slice(0, 10).map(l => '<tr>' + cols.map(c => {
+    let v = l[c];
+    if (c === 'valor') v = fmtMoeda(v);
+    else if (c === 'competencia') v = fmtComp(v);
+    else if (typeof v === 'string' && v.length > 34) v = v.slice(0, 34) + '…';
+    return '<td>' + v + '</td>';
+  }).join('') + '</tr>').join('');
+
+  document.getElementById('impd-conferencia').style.display = 'block';
+  document.getElementById('impd-gravar-status').textContent = '';
+  document.getElementById('impd-prog-fill').style.width = '0%';
+}
+
+async function impdGravar(){
+  if (!impdLinhas || !impdLinhas.length) { alert('Leia um arquivo primeiro.'); return; }
+  const clienteId = document.getElementById('imp-cliente').value;
+  const st = document.getElementById('impd-gravar-status');
+  const fill = document.getElementById('impd-prog-fill');
+  st.className = 'lanc-status';
+
+  const batchAll = impdLinhas.map(l => ({
+    cliente_id: clienteId, competencia: l.competencia, nu_conta: l.nu_conta,
+    conta: l.conta, sinal: l.sinal, valor: l.valor, updated_at: new Date().toISOString()
+  }));
+
+  const LOTE = 200;
+  const totalLotes = Math.ceil(batchAll.length / LOTE);
+  for (let i = 0; i < totalLotes; i++) {
+    st.textContent = 'Gravando lote ' + (i + 1) + ' de ' + totalLotes + '...';
+    fill.style.width = Math.round((i / totalLotes) * 100) + '%';
+    const batch = batchAll.slice(i * LOTE, (i + 1) * LOTE);
+    const { error } = await sb.from('fato_despesas').upsert(batch, { onConflict: 'cliente_id,competencia,nu_conta' });
+    if (error) { st.textContent = 'Erro no lote ' + (i + 1) + ': ' + error.message; st.className = 'lanc-status erro'; return; }
+  }
+  fill.style.width = '100%';
+  st.textContent = '✓ ' + impdLinhas.length + ' lançamentos de despesa gravados';
+  impdLinhas = null;
+  document.getElementById('impd-file').value = '';
 }
 
 init();
