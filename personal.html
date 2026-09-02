@@ -2927,7 +2927,7 @@ function sairPersonal() {
       .filter(g => !g.done)
       .map(g => ({ g, next: computeNextDate(g) }))
       .filter(x => x.next)
-      .sort((a, b) => a.next.localeCompare(b.next))
+      .sort((a, b) => a.next.localeCompare(b.next) || (b.g.prio - a.g.prio))
       .slice(0, 6);
 
     goalsBox.innerHTML = '';
