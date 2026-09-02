@@ -1161,12 +1161,18 @@ var ESTRUTURA_DESPESAS = [
       { codigo:'10.5', nome:'Outros' },
       { codigo:'10.6', nome:'Leasing ou Aluguel de Ve\u00edculos' },
       { codigo:'10.8', nome:'Perdas de Estoque / Roubo' },
-      { codigo:'10.7', nome:'Pessoas Log\u00edstico Vari\u00e1vel', filhos:[
-        { codigo:'10.7.1', nome:'Sal\u00e1rios, Hora Extra' },
-        { codigo:'10.7.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
-        { codigo:'10.7.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
-        { codigo:'10.7.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
-        { codigo:'10.7.5', nome:'Rescis\u00e3o' }
+      // Código '10.6' está duplicado na planilha de origem entre "Leasing ou
+      // aluguel de veículos" (leaf acima) e "Pessoas Logístico Variável"
+      // (grupo). Como o grupo em si não tem sinal próprio na planilha (não é
+      // importado), usamos aqui um código sintético que não colide no
+      // lookup do despValores — os filhos usam os códigos reais gravados
+      // (10.6.1 a 10.6.5), então a soma bate com a planilha.
+      { codigo:'10.6-pessoas', nome:'Pessoas Log\u00edstico Vari\u00e1vel', filhos:[
+        { codigo:'10.6.1', nome:'Sal\u00e1rios, Hora Extra' },
+        { codigo:'10.6.2', nome:'Encargos Sociais, F\u00e9rias e 13\u00ba' },
+        { codigo:'10.6.3', nome:'Benef\u00edcios / Pr\u00eamio / B\u00f4nus' },
+        { codigo:'10.6.4', nome:'Tempor\u00e1rios / Estagi\u00e1rios' },
+        { codigo:'10.6.5', nome:'Rescis\u00e3o' }
       ]}
     ]},
     { codigo:'11', nome:'PDD (Provis\u00e3o da Inadimpl\u00eancia)', filhos:[
