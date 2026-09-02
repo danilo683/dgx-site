@@ -404,24 +404,79 @@ button.primary:hover { background: #8d70f5; }
 .diary-entry .d-foot { margin-top: 8px; text-align: right; }
 
 /* ── Frases ── */
-.quote-form { display: flex; gap: 8px; margin: 4px 0 20px; flex-wrap: wrap; }
-.quote-form input[type="text"] {
-  font-family: var(--body); font-size: 14px;
-  background: var(--bg2); color: var(--text);
-  border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px;
+.quote-box-title { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 12px; }
+.quote-import-box, .quote-form-box {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; margin-bottom: 18px;
 }
-.quote-form input#quote-texto { flex: 1; min-width: 220px; }
-.quote-form input#quote-autor { width: 200px; }
-.quote-form input::placeholder { color: #5c527f; }
-.quote-list { display: flex; flex-direction: column; gap: 10px; }
+.quote-import-box textarea, .quote-form-box textarea, .quote-form-box input[type="text"] {
+  width: 100%; font-family: var(--body); font-size: 13.5px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; resize: vertical;
+}
+.quote-import-box textarea::placeholder, .quote-form-box textarea::placeholder, .quote-form-box input::placeholder { color: #5c527f; }
+.quote-import-hint { font-size: 12px; color: var(--text2); margin-top: 8px; line-height: 1.5; }
+.quote-import-hint code { background: var(--bg3); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+.quote-import-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.quote-cancel {
+  background: none; border: 1px solid var(--border); border-radius: 9px;
+  color: var(--text2); font-size: 13.5px; padding: 9px 16px; cursor: pointer;
+}
+.quote-cancel:hover { color: var(--text); border-color: var(--border2); }
+.quote-saved-msg { font-size: 12.5px; color: #4ec98a; }
+
+.quote-form-grid { display: grid; grid-template-columns: 1fr 200px; gap: 14px; }
+.quote-field { display: flex; flex-direction: column; gap: 5px; }
+.quote-field.full { grid-column: 1 / -1; }
+.quote-field label { font-size: 11.5px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+.quote-radio-group { display: flex; gap: 14px; align-items: center; height: 100%; padding-top: 4px; }
+.quote-radio-group label { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--text); text-transform: none; letter-spacing: 0; cursor: pointer; }
+.quote-radio-group input { accent-color: var(--accent); }
+@media (max-width: 700px) { .quote-form-grid { grid-template-columns: 1fr; } }
+
+.quote-table { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.quote-table-header {
+  display: grid; grid-template-columns: 1fr 120px 200px; gap: 16px;
+  padding: 11px 20px; font-size: 10.5px; letter-spacing: 1.3px; text-transform: uppercase;
+  color: var(--text2); font-weight: 600; border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+}
+.quote-list { display: flex; flex-direction: column; }
 .quote-item {
-  background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
-  border-radius: var(--radius); padding: 14px 16px;
-  display: flex; align-items: flex-start; gap: 12px;
+  display: grid; grid-template-columns: 1fr 120px 200px; gap: 16px; align-items: flex-start;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
 }
-.quote-item .q-body { flex: 1; min-width: 0; }
-.quote-item .q-texto { font-family: var(--display); font-style: italic; font-size: 15px; padding: 2px 4px; border-radius: 6px; }
-.quote-item .q-autor { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-top: 6px; padding: 2px 4px; border-radius: 6px; }
+.quote-item:last-child { border-bottom: none; }
+.quote-item:hover { background: rgba(255,255,255,.02); }
+.quote-item.inativa { opacity: .55; }
+.quote-item .q-texto { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+.quote-item .q-autor { font-size: 11.5px; color: var(--accent); margin-top: 5px; letter-spacing: .3px; }
+.quote-item .q-nota { font-size: 11.5px; color: var(--text2); margin-top: 6px; line-height: 1.5; font-style: italic; }
+.quote-status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600;
+  padding: 4px 11px; border-radius: 20px; cursor: pointer; border: none; font-family: var(--body);
+}
+.quote-status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; display: block; }
+.quote-status-badge.ativa { background: rgba(78,201,138,.1); color: #4ec98a; }
+.quote-status-badge.ativa::before { background: #4ec98a; }
+.quote-status-badge.inativa { background: rgba(156,147,189,.1); color: var(--text2); }
+.quote-status-badge.inativa::before { background: var(--text2); }
+.quote-status-badge:hover { opacity: .75; }
+.quote-item-acoes { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.quote-item-acoes button {
+  background: none; border: 1px solid var(--border); color: var(--text2);
+  padding: 5px 12px; border-radius: 4px; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; font-family: var(--body);
+}
+.quote-item-acoes button:hover { border-color: var(--accent); color: var(--accent); }
+.quote-item-acoes button.danger:hover { border-color: #e57373; color: #e57373; }
+
+@media (max-width: 760px) {
+  .quote-table-header { display: none; }
+  .quote-item { grid-template-columns: 1fr; gap: 8px; }
+  .quote-item-acoes { justify-content: flex-start; }
+}
 
 /* ── Quadro dos Sonhos ── */
 .board-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 24px; }
@@ -1121,15 +1176,48 @@ function sairPersonal() {
     <div class="page-head">
       <div class="eyebrow">Inspiração</div>
       <h1>Frases</h1>
-      <p>Guarde frases que te movem. Uma delas aparece na página Início a cada dia.</p>
+      <p>Guarde frases que te movem. Uma das ativas aparece na página Início a cada dia.</p>
     </div>
-    <div class="quote-form">
-      <input type="text" id="quote-texto" placeholder="Texto da frase">
-      <input type="text" id="quote-autor" placeholder="Autor (opcional)">
-      <button type="button" class="primary" id="btn-add-quote">Adicionar</button>
+
+    <div class="quote-import-box">
+      <div class="quote-box-title">Importar em lote</div>
+      <textarea id="quote-import-texto" rows="4" placeholder='Cole aqui no formato:&#10;"Frase aqui." (Autor) - Nota explicativa opcional.&#10;"Outra frase." (Outro autor)'></textarea>
+      <div class="quote-import-hint">Uma frase por linha, no formato <code>"Frase" (Autor) - Nota opcional</code>. A nota é só pra você, não aparece na Início.</div>
+      <div class="quote-import-actions">
+        <button type="button" class="primary" id="btn-import-quotes">Importar frases</button>
+        <span class="quote-saved-msg" id="quote-import-msg"></span>
+      </div>
     </div>
-    <div class="quote-list" id="quote-list"></div>
-    <div class="list-empty" id="quote-empty">Nenhuma frase ainda.</div>
+
+    <div class="quote-form-box">
+      <div class="quote-box-title" id="quote-form-title">Adicionar nova frase</div>
+      <input type="hidden" id="quote-edit-id">
+      <div class="quote-form-grid">
+        <div class="quote-field full"><label>Frase *</label><textarea id="quote-texto" rows="2" placeholder="Digite a frase..."></textarea></div>
+        <div class="quote-field"><label>Autor</label><input type="text" id="quote-autor" placeholder="Ex: Warren Buffett"></div>
+        <div class="quote-field">
+          <label>Status</label>
+          <div class="quote-radio-group">
+            <label><input type="radio" name="quote-ativo" id="quote-ativo-sim" value="true" checked> Ativa</label>
+            <label><input type="radio" name="quote-ativo" id="quote-ativo-nao" value="false"> Inativa</label>
+          </div>
+        </div>
+        <div class="quote-field full"><label>Nota interna (não aparece na Início)</label><textarea id="quote-nota" rows="2" placeholder="Contexto, explicação..."></textarea></div>
+      </div>
+      <div class="quote-import-actions">
+        <button type="button" class="primary" id="btn-save-quote">Adicionar frase</button>
+        <button type="button" class="quote-cancel" id="btn-cancel-quote" style="display:none;">Cancelar edição</button>
+        <span class="quote-saved-msg" id="quote-saved-msg"></span>
+      </div>
+    </div>
+
+    <div class="quote-table">
+      <div class="quote-table-header">
+        <span>Frase</span><span>Status</span><span style="text-align:right;">Ações</span>
+      </div>
+      <div class="quote-list" id="quote-list"></div>
+    </div>
+    <div class="list-empty" id="quote-empty">Nenhuma frase cadastrada ainda. Use a importação em lote ou o formulário acima.</div>
   </section>
 
   <section id="sonhos" class="page">
@@ -2312,58 +2400,140 @@ function sairPersonal() {
   });
 
   // ── Frases ──
+  (state.quotes || []).forEach(q => {
+    if (q.ativo === undefined) q.ativo = true;
+    if (q.nota === undefined) q.nota = '';
+    if (q.createdAt === undefined) q.createdAt = todayISO();
+  });
   if (!state.quotes || !state.quotes.length) {
-    state.quotes = [{ id: 'q1', texto: 'A disciplina é a ponte entre metas e realização.', autor: 'Jim Rohn' }];
+    state.quotes = [{ id: 'q1', texto: 'A disciplina é a ponte entre metas e realização.', autor: 'Jim Rohn', nota: '', ativo: true, createdAt: todayISO() }];
   }
   const quoteList = document.getElementById('quote-list');
   const quoteEmpty = document.getElementById('quote-empty');
 
   function renderQuotes() {
     quoteList.innerHTML = '';
-    quoteEmpty.style.display = state.quotes.length ? 'none' : 'block';
-    state.quotes.forEach(q => {
+    const list = [...state.quotes].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    quoteEmpty.style.display = list.length ? 'none' : 'block';
+    list.forEach(q => {
       const el = document.createElement('div');
-      el.className = 'quote-item';
+      el.className = 'quote-item' + (q.ativo ? '' : ' inativa');
       el.dataset.id = q.id;
       el.innerHTML = `
-        <div class="q-body">
-          <div class="q-texto" contenteditable="true" data-placeholder="Texto da frase"></div>
-          <div class="q-autor" contenteditable="true" data-placeholder="Autor"></div>
+        <div>
+          <div class="q-texto">${esc(q.texto)}</div>
+          ${q.autor ? `<div class="q-autor">— ${esc(q.autor)}</div>` : ''}
+          ${q.nota ? `<div class="q-nota">Nota: ${esc(q.nota)}</div>` : ''}
         </div>
-        <button class="x-remove q-remove" type="button">×</button>`;
-      el.querySelector('.q-texto').textContent = q.texto;
-      el.querySelector('.q-autor').textContent = q.autor || '';
+        <div><button class="quote-status-badge ${q.ativo ? 'ativa' : 'inativa'}" type="button">${q.ativo ? 'Ativa' : 'Inativa'}</button></div>
+        <div class="quote-item-acoes">
+          <button type="button" class="q-editar">Editar</button>
+          <button type="button" class="danger q-excluir">Excluir</button>
+        </div>`;
       quoteList.appendChild(el);
     });
   }
 
-  document.getElementById('btn-add-quote').addEventListener('click', () => {
-    const texto = document.getElementById('quote-texto').value.trim();
-    const autor = document.getElementById('quote-autor').value.trim();
-    if (!texto) return;
-    state.quotes.push({ id: 'q' + Date.now(), texto, autor });
+  function quoteFormReset() {
+    document.getElementById('quote-edit-id').value = '';
     document.getElementById('quote-texto').value = '';
     document.getElementById('quote-autor').value = '';
-    save(); renderQuotes();
+    document.getElementById('quote-nota').value = '';
+    document.getElementById('quote-ativo-sim').checked = true;
+    document.getElementById('quote-form-title').textContent = 'Adicionar nova frase';
+    document.getElementById('btn-save-quote').textContent = 'Adicionar frase';
+    document.getElementById('btn-cancel-quote').style.display = 'none';
+  }
+
+  document.getElementById('btn-save-quote').addEventListener('click', () => {
+    const texto = document.getElementById('quote-texto').value.trim();
+    const autor = document.getElementById('quote-autor').value.trim();
+    const nota = document.getElementById('quote-nota').value.trim();
+    const ativo = document.getElementById('quote-ativo-sim').checked;
+    const editId = document.getElementById('quote-edit-id').value;
+    if (!texto) { alert('A frase não pode ficar em branco.'); return; }
+
+    if (editId) {
+      const q = state.quotes.find(x => x.id === editId);
+      if (q) { q.texto = texto; q.autor = autor; q.nota = nota; q.ativo = ativo; }
+    } else {
+      state.quotes.push({ id: 'q' + Date.now(), texto, autor, nota, ativo, createdAt: todayISO() });
+    }
+    save(); renderQuotes(); quoteFormReset();
+
+    const msg = document.getElementById('quote-saved-msg');
+    msg.textContent = '✓ Salvo!';
+    setTimeout(() => { msg.textContent = ''; }, 2000);
   });
+
+  document.getElementById('btn-cancel-quote').addEventListener('click', quoteFormReset);
 
   quoteList.addEventListener('click', (ev) => {
-    const btn = ev.target.closest('.q-remove');
-    if (!btn) return;
-    if (!confirm('Remover esta frase?')) return;
-    state.quotes = state.quotes.filter(q => q.id !== btn.closest('.quote-item').dataset.id);
-    save(); renderQuotes();
+    const item = ev.target.closest('.quote-item');
+    if (!item) return;
+    const q = state.quotes.find(x => x.id === item.dataset.id);
+    if (!q) return;
+
+    if (ev.target.closest('.q-editar')) {
+      document.getElementById('quote-edit-id').value = q.id;
+      document.getElementById('quote-texto').value = q.texto;
+      document.getElementById('quote-autor').value = q.autor || '';
+      document.getElementById('quote-nota').value = q.nota || '';
+      document.getElementById(q.ativo ? 'quote-ativo-sim' : 'quote-ativo-nao').checked = true;
+      document.getElementById('quote-form-title').textContent = 'Editar frase';
+      document.getElementById('btn-save-quote').textContent = 'Salvar alterações';
+      document.getElementById('btn-cancel-quote').style.display = 'inline-block';
+      document.querySelector('.quote-form-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (ev.target.closest('.q-excluir')) {
+      if (!confirm('Excluir esta frase permanentemente?')) return;
+      state.quotes = state.quotes.filter(x => x.id !== q.id);
+      save(); renderQuotes();
+      return;
+    }
+    if (ev.target.closest('.quote-status-badge')) {
+      q.ativo = !q.ativo;
+      save(); renderQuotes();
+    }
   });
 
-  quoteList.addEventListener('blur', (ev) => {
-    const el = ev.target.closest('[contenteditable]');
-    if (!el) return;
-    const q = state.quotes.find(x => x.id === el.closest('.quote-item').dataset.id);
-    if (!q) return;
-    if (el.classList.contains('q-texto')) q.texto = el.innerText.trim();
-    else if (el.classList.contains('q-autor')) q.autor = el.innerText.trim();
-    save();
-  }, true);
+  // Importação em lote — mesmo formato do admin de frases da DGX PF:
+  // "Frase aqui." (Autor) - Nota explicativa opcional.
+  function parseQuoteLine(line) {
+    const m = line.match(/^"(.+?)"\s*\(([^)]+)\)\s*(?:-\s*(.+))?$/);
+    if (!m) return null;
+    return { texto: m[1].trim(), autor: m[2].trim(), nota: m[3] ? m[3].trim() : '' };
+  }
+
+  document.getElementById('btn-import-quotes').addEventListener('click', () => {
+    const raw = document.getElementById('quote-import-texto').value;
+    const linhas = raw.split('\n').map(l => l.trim()).filter(Boolean);
+    if (!linhas.length) { alert('Cole pelo menos uma frase no formato indicado.'); return; }
+
+    const itens = [];
+    const invalidas = [];
+    linhas.forEach((linha, i) => {
+      const parsed = parseQuoteLine(linha);
+      if (parsed) itens.push(parsed);
+      else invalidas.push(i + 1);
+    });
+
+    if (!itens.length) { alert('Nenhuma linha no formato esperado foi reconhecida. Verifique o formato: "Frase" (Autor) - Nota opcional'); return; }
+
+    const now = Date.now();
+    itens.forEach((it, i) => {
+      state.quotes.push({ id: 'q' + (now + i), texto: it.texto, autor: it.autor, nota: it.nota, ativo: true, createdAt: todayISO() });
+    });
+    save(); renderQuotes();
+
+    let aviso = `✓ ${itens.length} frase(s) importada(s)!`;
+    if (invalidas.length) aviso += ` (${invalidas.length} linha(s) ignorada(s) — formato inválido: linha(s) ${invalidas.join(', ')})`;
+    const msg = document.getElementById('quote-import-msg');
+    msg.textContent = aviso;
+    setTimeout(() => { msg.textContent = ''; }, 6000);
+    document.getElementById('quote-import-texto').value = '';
+  });
 
   // ── Quadro dos Sonhos ──
   const grid = document.getElementById('dream-grid');
@@ -2902,9 +3072,10 @@ function sairPersonal() {
     document.getElementById('ini-date').textContent =
       `Hoje é ${DIAS_SEMANA[now.getDay()]}, ${now.getDate()} de ${MESES_LONG[now.getMonth()]} de ${now.getFullYear()}`;
 
-    if (state.quotes && state.quotes.length) {
+    const activeQuotes = (state.quotes || []).filter(q => q.ativo);
+    if (activeQuotes.length) {
       const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-      const q = state.quotes[dayOfYear % state.quotes.length];
+      const q = activeQuotes[dayOfYear % activeQuotes.length];
       document.getElementById('ini-quote-text').textContent = q.texto;
       document.getElementById('ini-quote-author').textContent = q.autor ? '— ' + q.autor.toUpperCase() : '';
     }
