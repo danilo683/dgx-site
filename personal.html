@@ -1536,11 +1536,17 @@ function sairPersonal() {
     esporadica: { label: 'Esporádica', icon: '🎯', order: 4 },
   };
 
-  // Próxima data: se o campo foi preenchido manualmente, usa ele. Senão, calcula
-  // conforme o tipo de atividade — diária = hoje, semanal = próximo domingo,
-  // mensal = último dia do mês, esporádica = data mais próxima do checklist.
+  // Próxima data: se o campo foi preenchido manualmente, usa ele.
+  // Meta do tipo Checklist: sempre usa a data mais próxima entre os itens de ação
+  // ainda não concluídos — é o que realmente importa nesse tipo de meta.
+  // Contador/Valor: calcula pela recorrência — diária = hoje, semanal = próximo
+  // domingo, mensal = último dia do mês, esporádica = sem data automática.
   function computeNextDate(g) {
     if (g.proximaData) return g.proximaData;
+    if (g.kind === 'checklist') {
+      const dues = (g.tasks || []).filter(t => !t.done && t.due).map(t => t.due).sort();
+      return dues.length ? dues[0] : '';
+    }
     const [y, m, d] = todayISO().split('-').map(Number);
     if (g.recorrencia === 'diaria') return todayISO();
     if (g.recorrencia === 'semanal') {
@@ -1551,9 +1557,7 @@ function sairPersonal() {
     if (g.recorrencia === 'mensal') {
       return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); // dia 0 do próximo mês = último dia do atual
     }
-    // esporádica: primeira data entre os itens de ação AINDA NÃO concluídos
-    const dues = (g.tasks || []).filter(t => !t.done && t.due).map(t => t.due).sort();
-    return dues.length ? dues[0] : '';
+    return ''; // esporádica sem itens de ação com data: sem próxima data automática
   }
 
   function actualPct(g) {
