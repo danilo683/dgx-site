@@ -3304,7 +3304,7 @@ function sairPersonal() {
   }
 
   // ── Navegação entre páginas ──
-  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos' };
+  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos' };
   function showPage(id) {
     if (!PAGES[id]) id = 'inicio';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
