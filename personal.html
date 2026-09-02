@@ -540,6 +540,11 @@ button.primary:hover { background: #8d70f5; }
 .sort-arrow { font-size: 9px; opacity: .8; }
 .sort-arrow:empty { display: none; }
 .goal-row { min-height: 46px; cursor: pointer; transition: background .1s; }
+.goal-row.proxima-hoje {
+  background: color-mix(in srgb, var(--c, var(--accent)) 8%, transparent);
+  box-shadow: inset 3px 0 0 0 var(--c, var(--accent)), 0 0 14px -6px var(--c, var(--accent));
+}
+.goal-row.proxima-hoje:hover { background: color-mix(in srgb, var(--c, var(--accent)) 14%, transparent); }
 .goal-row:hover { background: rgba(255,255,255,.035); }
 .goal-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; margin-left: 6px; }
 .g-name { font-weight: 500; padding: 8px 4px; border-radius: 5px; min-width: 0; overflow-wrap: anywhere; }
@@ -1668,7 +1673,8 @@ function sairPersonal() {
       const proximaVal = computeNextDate(g);
 
       const row = document.createElement('div');
-      row.className = 'goal-row' + (g.done ? ' done' : '') + (isOpen ? ' open' : '');
+      const isHoje = !g.done && proximaVal === todayISO();
+      row.className = 'goal-row' + (g.done ? ' done' : '') + (isOpen ? ' open' : '') + (isHoje ? ' proxima-hoje' : '');
       row.dataset.id = g.id;
       row.style.setProperty('--c', a.color);
       row.innerHTML = `
@@ -2012,6 +2018,7 @@ function sairPersonal() {
     row.querySelector('.tag').textContent = a.label;
     const proximaVal = computeNextDate(g);
     row.querySelector('.g-proxima').textContent = proximaVal ? fmtBR(proximaVal) : '—';
+    row.classList.toggle('proxima-hoje', !g.done && proximaVal === todayISO());
     const pct = actualPct(g);
     const expected = expectedPct(g);
     const diff = pct - expected;
