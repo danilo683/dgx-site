@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-personal-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-personal.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -742,6 +743,9 @@ button.primary:hover { background: #8d70f5; }
 .area-summary-card .as-count { font-size: 11px; color: var(--text2); margin-top: 6px; }
 
 /* ── Investimentos ── */
+.inv-import-bar { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; flex-wrap: wrap; }
+.inv-import-hint { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 18px; }
+.inv-import-hint code { background: var(--bg3); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
 .inv-table { font-size: 13.5px; }
 .inv-row-head, .inv-row {
   display: grid;
@@ -1267,6 +1271,15 @@ function sairPersonal() {
     </div>
     <div class="section-head">
       <span class="hint">clique para editar · salva sozinho</span>
+    </div>
+    <div class="inv-import-bar">
+      <button type="button" class="primary" id="btn-import-inv">📤 Importar planilha de negociações</button>
+      <input type="file" id="inv-import-file" accept=".xlsx,.xls,.csv" hidden>
+      <span class="quote-saved-msg" id="inv-import-msg"></span>
+    </div>
+    <div class="inv-import-hint">
+      Aceita .xlsx, .xls ou .csv com as colunas: <code>Data de negociação, Instituição, Número, Documento, Moeda, Total de Taxas, Ativo, Grupo, Quantidade, Operação, Tipo, Preço sem taxas, Preço com taxas, Total sem taxas, Total com taxas, Obs</code>.
+      Cada linha vira um lançamento (compra ou venda); ativos com o mesmo nome são agrupados e o preço médio é recalculado sozinho. Pode importar o mesmo arquivo mais de uma vez sem duplicar.
     </div>
     <div class="inv-table">
       <div class="inv-row-head">
@@ -2743,6 +2756,120 @@ function sairPersonal() {
     delete x.precoMedio;
   });
 
+  // ── Importação de planilha de negociações ──
+  function invParseNumBR(v) {
+    if (typeof v === 'number') return v;
+    if (!v) return 0;
+    let s = String(v).trim();
+    if (!s) return 0;
+    s = s.replace(/[^\d,.-]/g, ''); // tira "R$", espaços etc.
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); // formato BR: 1.234,56
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  }
+  function invParseDateBR(v) {
+    if (v instanceof Date && !isNaN(v)) {
+      return v.getFullYear() + '-' + String(v.getMonth() + 1).padStart(2, '0') + '-' + String(v.getDate()).padStart(2, '0');
+    }
+    const s = String(v || '').trim();
+    let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if (m) {
+      let [, d, mo, y] = m;
+      if (y.length === 2) y = '20' + y;
+      return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    return todayISO();
+  }
+  function invGuessClasse(grupo) {
+    const g = String(grupo || '').toLowerCase();
+    if (g.includes('fii') || g.includes('imobili')) return 'fii';
+    if (g.includes('bdr') || g.includes('ação') || g.includes('acao') || g.includes('units') || g.includes('etf')) return 'acao';
+    if (g.includes('renda fixa') || g.includes('tesouro') || g.includes('cdb') || g.includes('debênt') || g.includes('debent') || g.includes('lci') || g.includes('lca')) return 'rendafixa';
+    if (g.includes('cripto') || g.includes('bitcoin') || g.includes('crypto')) return 'cripto';
+    if (g.includes('fundo')) return 'fundo';
+    return 'outro';
+  }
+  function invGuessTipo(operacao) {
+    const o = String(operacao || '').trim().toLowerCase();
+    if (o.startsWith('v')) return 'venda';
+    return 'compra';
+  }
+  function invPickPreco(row, qtd) {
+    let p = invParseNumBR(row['Preço com taxas']);
+    if (p) return p;
+    const totalCom = invParseNumBR(row['Total com taxas']);
+    if (totalCom && qtd) return totalCom / qtd;
+    p = invParseNumBR(row['Preço sem taxas']);
+    if (p) return p;
+    const totalSem = invParseNumBR(row['Total sem taxas']);
+    if (totalSem && qtd) return totalSem / qtd;
+    return 0;
+  }
+
+  document.getElementById('btn-import-inv').addEventListener('click', () => {
+    document.getElementById('inv-import-file').click();
+  });
+
+  document.getElementById('inv-import-file').addEventListener('change', (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        if (!rows.length) { alert('A planilha está vazia ou não consegui ler as linhas.'); return; }
+
+        let importadas = 0, duplicadas = 0, invalidas = 0;
+        const ativosTocados = new Set();
+
+        rows.forEach(row => {
+          const nomeAtivo = String(row['Ativo'] || '').trim();
+          const qtd = invParseNumBR(row['Quantidade']);
+          if (!nomeAtivo || !qtd) { invalidas++; return; }
+
+          const tipo = invGuessTipo(row['Operação']);
+          const dataIso = invParseDateBR(row['Data de negociação']);
+          const preco = invPickPreco(row, qtd);
+          const obs = String(row['Obs'] || '').trim();
+
+          let asset = state.investments.find(x => (x.nome || '').trim().toLowerCase() === nomeAtivo.toLowerCase());
+          if (!asset) {
+            asset = { id: 'i' + Date.now() + Math.random().toString(16).slice(2, 6), nome: nomeAtivo, classe: invGuessClasse(row['Grupo']), precoAtual: 0, transacoes: [] };
+            state.investments.push(asset);
+          }
+
+          const jaExiste = asset.transacoes.some(t =>
+            t.data === dataIso && t.tipo === tipo &&
+            Math.abs(t.qtd - qtd) < 1e-9 && Math.abs(t.preco - preco) < 0.01
+          );
+          if (jaExiste) { duplicadas++; return; }
+
+          asset.transacoes.push({ id: 'tx' + Date.now() + Math.random().toString(16).slice(2, 6), data: dataIso, tipo, qtd, preco, obs });
+          ativosTocados.add(asset.nome);
+          importadas++;
+        });
+
+        save(); renderInvestments();
+
+        let msg = `✓ ${importadas} lançamento(s) importado(s) em ${ativosTocados.size} ativo(s).`;
+        if (duplicadas) msg += ` ${duplicadas} já existiam (ignorados).`;
+        if (invalidas) msg += ` ${invalidas} linha(s) inválida(s) (sem Ativo ou Quantidade).`;
+        const msgEl = document.getElementById('inv-import-msg');
+        msgEl.textContent = msg;
+        setTimeout(() => { msgEl.textContent = ''; }, 9000);
+      } catch (err) {
+        alert('Não consegui ler esse arquivo. Verifique se é um .xlsx, .xls ou .csv válido, exportado com essas colunas.');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
   const invRows = document.getElementById('inv-rows');
   const invEmpty = document.getElementById('inv-empty');
   let invSortCol = 'total';
@@ -2864,6 +2991,7 @@ function sairPersonal() {
           const tr = document.createElement('div');
           tr.className = 'inv-tx-item';
           tr.dataset.tid = t.id;
+          if (t.obs) tr.title = t.obs;
           tr.innerHTML = `
             <span class="tx-date">${fmtBR(t.data)}</span>
             <span class="tx-tipo-tag ${t.tipo}">${t.tipo === 'compra' ? '↑ Compra' : '↓ Venda'}</span>
@@ -3252,7 +3380,7 @@ function sairPersonal() {
     if (!inicioPage.classList.contains('active') || n < 2) return;
     iniCarIndex = (iniCarIndex + 1) % n;
     renderIniCarousel();
-  }, 6000);
+  }, 300000); // 5 minutos
 
   // Lista de compras (página própria)
   const shopList = document.getElementById('shop-list');
