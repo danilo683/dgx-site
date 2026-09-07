@@ -743,13 +743,68 @@ button.primary:hover { background: #8d70f5; }
 .area-summary-card .as-count { font-size: 11px; color: var(--text2); margin-top: 6px; }
 
 /* ── Investimentos ── */
+/* Sub-abas dentro de Investimentos (extensível: Dashboard, Lançamentos, e futuras) */
+.inv-subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 10px 0 22px; overflow-x: auto; }
+.inv-subtab {
+  background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
+  color: var(--text2); font-size: 13.5px; font-weight: 500; padding: 10px 16px; cursor: pointer; white-space: nowrap;
+}
+.inv-subtab:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.inv-subtab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.inv-subpage { display: none; }
+.inv-subpage.active { display: block; }
+
 .inv-import-bar { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; flex-wrap: wrap; }
-.inv-import-hint { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 18px; }
+.inv-import-hint { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 22px; }
 .inv-import-hint code { background: var(--bg3); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+.lanc-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; align-items: center; }
+.lanc-form input, .lanc-form select {
+  font-family: var(--body); font-size: 13px; color-scheme: dark;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+}
+.lanc-form input::placeholder { color: #5c527f; }
+#lanc-ativo { width: 150px; }
+#lanc-classe { width: 110px; }
+#lanc-instituicao { width: 130px; }
+#lanc-data { width: 140px; }
+#lanc-operacao { width: 95px; }
+#lanc-qtd, #lanc-preco { width: 110px; }
+#lanc-obs { flex: 1; min-width: 140px; }
+
+.lanc-table { font-size: 13px; }
+.lanc-row-head, .lanc-row {
+  display: grid;
+  grid-template-columns: 100px minmax(90px,1fr) 90px 120px 90px 80px 100px 110px minmax(90px,1fr) 28px;
+  align-items: center; gap: 10px; padding: 0 6px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.lanc-row-head { color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding-top: 12px; padding-bottom: 6px; }
+.lanc-row { min-height: 42px; }
+.lanc-row:hover { background: rgba(255,255,255,.03); }
+.lanc-row select, .lanc-row input[type="date"], .lanc-row input[type="number"], .lanc-row input[type="text"] {
+  font-family: var(--body); font-size: 12px;
+  background: transparent; color: var(--text);
+  border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; width: 100%;
+}
+.lanc-row select:hover, .lanc-row input:hover, .lanc-row select:focus, .lanc-row input:focus { border-color: var(--border); background: var(--bg); }
+.lanc-row .l-tipo { font-size: 11.5px; padding: 2px 8px; border-radius: 20px; width: fit-content; }
+.lanc-row .l-tipo.compra { background: rgba(78,201,138,.14); color: #4ec98a; }
+.lanc-row .l-tipo.venda { background: rgba(229,115,115,.14); color: #e57373; }
+.lanc-row .l-total { font-weight: 600; }
+.lanc-row .l-obs { color: var(--text2); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lanc-row .l-instituicao { color: var(--text2); }
+@media (max-width: 900px) {
+  .lanc-row-head, .lanc-row { grid-template-columns: 90px 1fr 80px 90px 28px; }
+  .lanc-row-head span:nth-child(3), .lanc-row-head span:nth-child(6), .lanc-row-head span:nth-child(8),
+  .lanc-row .l-classe, .lanc-row .l-total, .lanc-row .l-obs, .lanc-row .l-instituicao { display: none; }
+}
+
 .inv-table { font-size: 13.5px; }
 .inv-row-head, .inv-row {
   display: grid;
-  grid-template-columns: minmax(140px,1fr) 130px 80px 110px 120px 130px 90px 28px;
+  grid-template-columns: minmax(140px,1fr) 130px 80px 110px 120px 130px 90px;
   align-items: center; gap: 10px;
   padding: 0 6px;
   border-bottom: 1px solid rgba(255,255,255,.06);
@@ -839,7 +894,7 @@ button.primary:hover { background: #8d70f5; }
 .rp-bar-label { font-size: 11px; color: var(--text2); margin-top: 8px; }
 
 @media (max-width: 760px) {
-  .inv-row-head, .inv-row { grid-template-columns: 1fr 90px 90px 26px; }
+  .inv-row-head, .inv-row { grid-template-columns: 1fr 90px 90px; }
   .inv-row-head .inv-hc, .inv-row .inv-qtd-display, .inv-row .inv-pm-display, .inv-row .inv-precoAtual, .inv-row .inv-rent { display: none; }
   .inv-tx-item { grid-template-columns: 1fr 1fr 26px; row-gap: 2px; }
   .inv-tx-item .tx-preco-val, .inv-tx-item .tx-total-val { display: none; }
@@ -1267,61 +1322,99 @@ function sairPersonal() {
     <div class="page-head">
       <div class="eyebrow">Patrimônio</div>
       <h1>Investimentos</h1>
-      <p>Sua carteira: ativos, quantidade, preço médio e preço atual. Valor total e rentabilidade calculam sozinhos.</p>
+      <p>Sua carteira: posição consolidada e o histórico de lançamentos que gera tudo.</p>
     </div>
-    <div class="section-head">
-      <span class="hint">clique para editar · salva sozinho</span>
+
+    <div class="inv-subtabs" id="inv-subtabs">
+      <button type="button" class="inv-subtab active" data-sub="dashboard">📊 Dashboard</button>
+      <button type="button" class="inv-subtab" data-sub="lancamentos">📋 Lançamentos</button>
     </div>
-    <div class="inv-import-bar">
-      <button type="button" class="primary" id="btn-import-inv">📤 Importar planilha de negociações</button>
-      <input type="file" id="inv-import-file" accept=".xlsx,.xls,.csv" hidden>
-      <span class="quote-saved-msg" id="inv-import-msg"></span>
-    </div>
-    <div class="inv-import-hint">
-      Aceita .xlsx, .xls ou .csv com as colunas: <code>Data de negociação, Instituição, Número, Documento, Moeda, Total de Taxas, Ativo, Grupo, Quantidade, Operação, Tipo, Preço sem taxas, Preço com taxas, Total sem taxas, Total com taxas, Obs</code>.
-      Cada linha vira um lançamento (compra ou venda); ativos com o mesmo nome são agrupados e o preço médio é recalculado sozinho. Pode importar o mesmo arquivo mais de uma vez sem duplicar.
-    </div>
-    <div class="inv-table">
-      <div class="inv-row-head">
-        <button class="col-sort" data-col="nome">Ativo<span class="sort-arrow"></span></button>
-        <button class="col-sort" data-col="classe">Classe<span class="sort-arrow"></span></button>
-        <button class="col-sort inv-hc" data-col="qtd">Qtd.<span class="sort-arrow"></span></button>
-        <button class="col-sort inv-hc" data-col="precoMedio">Preço Médio<span class="sort-arrow"></span></button>
-        <button class="col-sort inv-hc" data-col="precoAtual">Preço Atual<span class="sort-arrow"></span></button>
-        <button class="col-sort" data-col="total">Valor Total<span class="sort-arrow"></span></button>
-        <button class="col-sort inv-hc" data-col="rent">Rentab.<span class="sort-arrow"></span></button>
-        <span></span>
+
+    <div class="inv-subpage active" id="inv-sub-dashboard">
+      <div class="section-head">
+        <span class="hint">calculado a partir dos lançamentos</span>
       </div>
-      <div id="inv-rows"></div>
-      <button class="goal-new" id="btn-add-inv">＋ Novo ativo</button>
+      <div class="inv-table">
+        <div class="inv-row-head">
+          <button class="col-sort" data-col="nome">Ativo<span class="sort-arrow"></span></button>
+          <button class="col-sort" data-col="classe">Classe<span class="sort-arrow"></span></button>
+          <button class="col-sort inv-hc" data-col="qtd">Qtd.<span class="sort-arrow"></span></button>
+          <button class="col-sort inv-hc" data-col="precoMedio">Preço Médio<span class="sort-arrow"></span></button>
+          <button class="col-sort inv-hc" data-col="precoAtual">Preço Atual<span class="sort-arrow"></span></button>
+          <button class="col-sort" data-col="total">Valor Total<span class="sort-arrow"></span></button>
+          <button class="col-sort inv-hc" data-col="rent">Rentab.<span class="sort-arrow"></span></button>
+        </div>
+        <div id="inv-rows"></div>
+      </div>
+      <div class="list-empty" id="inv-empty">Sua carteira ainda está vazia. Adicione o primeiro lançamento na aba "Lançamentos".</div>
+
+      <div class="area-summary-head">
+        <h3>Total investido</h3>
+        <span class="hint" id="inv-total-hint"></span>
+      </div>
+      <div class="area-summary-grid" id="inv-summary-grid"></div>
+
+      <div class="area-summary-head">
+        <h3>📊 Renda Passiva — Histórico</h3>
+        <span class="hint">importado da sua planilha · snapshot de 07/08/2026</span>
+      </div>
+      <p class="section-intro">Proventos recebidos mês a mês, por ano. Meses adiante do mês atual podem conter estimativas da própria planilha, não valores confirmados.</p>
+
+      <div class="rp-yearbar" id="rp-yearbar"></div>
+      <div class="rp-cards" id="rp-cards"></div>
+      <div class="rp-chart-wrap">
+        <div class="rp-chart" id="rp-chart"></div>
+      </div>
+
+      <div class="area-summary-head" style="margin-top:32px;">
+        <h3>Composição por classe (ano selecionado)</h3>
+        <span class="hint" id="rp-comp-hint"></span>
+      </div>
+      <div class="area-summary-grid" id="rp-comp-grid"></div>
     </div>
-    <div class="list-empty" id="inv-empty">Sua carteira ainda está vazia. Adicione o primeiro ativo.</div>
 
-    <div class="area-summary-head">
-      <h3>Total investido</h3>
-      <span class="hint" id="inv-total-hint"></span>
+    <div class="inv-subpage" id="inv-sub-lancamentos">
+      <div class="inv-import-bar">
+        <button type="button" class="primary" id="btn-import-inv">📤 Importar planilha de negociações</button>
+        <input type="file" id="inv-import-file" accept=".xlsx,.xls,.csv" hidden>
+        <span class="quote-saved-msg" id="inv-import-msg"></span>
+      </div>
+      <div class="inv-import-hint">
+        Aceita .xlsx, .xls ou .csv com as colunas: <code>Data de negociação, Instituição, Número, Documento, Moeda, Total de Taxas, Ativo, Grupo, Quantidade, Operação, Tipo, Preço sem taxas, Preço com taxas, Total sem taxas, Total com taxas, Obs</code>.
+        Cada linha vira um lançamento; ativos com o mesmo nome são agrupados. Pode importar o mesmo arquivo mais de uma vez sem duplicar.
+      </div>
+
+      <div class="lanc-form">
+        <input type="text" id="lanc-ativo" placeholder="Ativo (ex.: HGLG11)" list="lanc-ativos-existentes">
+        <datalist id="lanc-ativos-existentes"></datalist>
+        <select id="lanc-classe"></select>
+        <input type="text" id="lanc-instituicao" placeholder="Instituição" list="lanc-instituicoes-existentes">
+        <datalist id="lanc-instituicoes-existentes"></datalist>
+        <input type="date" id="lanc-data" value="">
+        <select id="lanc-operacao"><option value="compra">Compra</option><option value="venda">Venda</option></select>
+        <input type="number" min="0" step="any" id="lanc-qtd" placeholder="Quantidade">
+        <input type="number" min="0" step="0.01" id="lanc-preco" placeholder="Preço unitário">
+        <input type="text" id="lanc-obs" placeholder="Obs (opcional)">
+        <button type="button" class="primary" id="btn-add-lanc">+ Lançar</button>
+      </div>
+
+      <div class="lanc-table">
+        <div class="lanc-row-head">
+          <button class="col-sort" data-col="data">Data<span class="sort-arrow"></span></button>
+          <button class="col-sort" data-col="ativo">Ativo<span class="sort-arrow"></span></button>
+          <span>Classe</span>
+          <button class="col-sort inv-hc" data-col="instituicao">Instituição<span class="sort-arrow"></span></button>
+          <span>Operação</span>
+          <button class="col-sort inv-hc" data-col="qtd">Qtd.<span class="sort-arrow"></span></button>
+          <button class="col-sort inv-hc" data-col="preco">Preço<span class="sort-arrow"></span></button>
+          <span>Total</span>
+          <span>Obs</span>
+          <span></span>
+        </div>
+        <div id="lanc-rows"></div>
+      </div>
+      <div class="list-empty" id="lanc-empty">Nenhum lançamento ainda. Importe uma planilha ou lance manualmente acima.</div>
     </div>
-    <div class="area-summary-grid" id="inv-summary-grid"></div>
-
-    <div class="area-summary-head">
-      <h3>📊 Renda Passiva — Histórico</h3>
-      <span class="hint">importado da sua planilha · snapshot de 07/08/2026</span>
-    </div>
-    <p class="section-intro">Proventos recebidos mês a mês, por ano. Meses adiante do mês atual podem conter estimativas da própria planilha, não valores confirmados.</p>
-
-    <div class="rp-yearbar" id="rp-yearbar"></div>
-
-    <div class="rp-cards" id="rp-cards"></div>
-
-    <div class="rp-chart-wrap">
-      <div class="rp-chart" id="rp-chart"></div>
-    </div>
-
-    <div class="area-summary-head" style="margin-top:32px;">
-      <h3>Composição por classe (ano selecionado)</h3>
-      <span class="hint" id="rp-comp-hint"></span>
-    </div>
-    <div class="area-summary-grid" id="rp-comp-grid"></div>
   </section>
 
     </main>
@@ -2754,6 +2847,7 @@ function sairPersonal() {
     }
     delete x.qtd;
     delete x.precoMedio;
+    (x.transacoes || []).forEach(t => { if (t.instituicao === undefined) t.instituicao = ''; });
   });
 
   // ── Importação de planilha de negociações ──
@@ -2836,6 +2930,7 @@ function sairPersonal() {
           const dataIso = invParseDateBR(row['Data de negociação']);
           const preco = invPickPreco(row, qtd);
           const obs = String(row['Obs'] || '').trim();
+          const instituicao = String(row['Instituição'] || '').trim();
 
           let asset = state.investments.find(x => (x.nome || '').trim().toLowerCase() === nomeAtivo.toLowerCase());
           if (!asset) {
@@ -2849,12 +2944,12 @@ function sairPersonal() {
           );
           if (jaExiste) { duplicadas++; return; }
 
-          asset.transacoes.push({ id: 'tx' + Date.now() + Math.random().toString(16).slice(2, 6), data: dataIso, tipo, qtd, preco, obs });
+          asset.transacoes.push({ id: 'tx' + Date.now() + Math.random().toString(16).slice(2, 6), data: dataIso, tipo, qtd, preco, obs, instituicao });
           ativosTocados.add(asset.nome);
           importadas++;
         });
 
-        save(); renderInvestments();
+        save(); renderInvestments(); renderLancamentos();
 
         let msg = `✓ ${importadas} lançamento(s) importado(s) em ${ativosTocados.size} ativo(s).`;
         if (duplicadas) msg += ` ${duplicadas} já existiam (ignorados).`;
@@ -2870,11 +2965,178 @@ function sairPersonal() {
     reader.readAsArrayBuffer(file);
   });
 
+  // Abas horizontais dentro de Investimentos (Dashboard / Lançamentos — extensível)
+  document.querySelectorAll('.inv-subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.inv-subtab').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.inv-subpage').forEach(p => p.classList.toggle('active', p.id === 'inv-sub-' + btn.dataset.sub));
+    });
+  });
+
+  // ── Lançamentos (planilha) ──
+  const lancRows = document.getElementById('lanc-rows');
+  const lancEmpty = document.getElementById('lanc-empty');
+  let lancSortCol = 'data';
+  let lancSortDir = 'desc';
+  const LANC_DEFAULT_DIR = { data: 'desc', ativo: 'asc', instituicao: 'asc', qtd: 'desc', preco: 'desc' };
+
+  document.getElementById('lanc-classe').innerHTML = Object.keys(INV_CLASSES)
+    .map(k => `<option value="${k}">${INV_CLASSES[k].icon} ${INV_CLASSES[k].label}</option>`).join('');
+  document.getElementById('lanc-data').value = todayISO();
+
+  document.querySelectorAll('#inv-sub-lancamentos .col-sort').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const col = btn.dataset.col;
+      if (lancSortCol === col) lancSortDir = lancSortDir === 'asc' ? 'desc' : 'asc';
+      else { lancSortCol = col; lancSortDir = LANC_DEFAULT_DIR[col] || 'asc'; }
+      renderLancamentos();
+    });
+  });
+  function updateLancSortHeaderUI() {
+    document.querySelectorAll('#inv-sub-lancamentos .col-sort').forEach(btn => {
+      const isActive = btn.dataset.col === lancSortCol;
+      btn.classList.toggle('active-sort', isActive);
+      btn.querySelector('.sort-arrow').textContent = isActive ? (lancSortDir === 'asc' ? '▲' : '▼') : '';
+    });
+  }
+
+  function flattenLancamentos() {
+    const rows = [];
+    (state.investments || []).forEach(asset => {
+      (asset.transacoes || []).forEach(t => {
+        rows.push({ assetId: asset.id, nome: asset.nome, classe: asset.classe, txId: t.id, data: t.data, tipo: t.tipo, qtd: t.qtd, preco: t.preco, obs: t.obs || '', instituicao: t.instituicao || '' });
+      });
+    });
+    return rows;
+  }
+
+  function renderLancamentos() {
+    const rows = flattenLancamentos();
+    const dir = lancSortDir === 'asc' ? 1 : -1;
+    rows.sort((a, b) => {
+      let av, bv;
+      switch (lancSortCol) {
+        case 'ativo': av = a.nome.toLowerCase(); bv = b.nome.toLowerCase(); break;
+        case 'instituicao': av = a.instituicao.toLowerCase(); bv = b.instituicao.toLowerCase(); break;
+        case 'qtd': av = a.qtd; bv = b.qtd; break;
+        case 'preco': av = a.preco; bv = b.preco; break;
+        default: av = a.data; bv = b.data;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    updateLancSortHeaderUI();
+    lancRows.innerHTML = '';
+    lancEmpty.style.display = rows.length ? 'none' : 'block';
+
+    rows.forEach(r => {
+      const cls = INV_CLASSES[r.classe];
+      const row = document.createElement('div');
+      row.className = 'lanc-row';
+      row.dataset.assetId = r.assetId;
+      row.dataset.txId = r.txId;
+      const classOpts = Object.keys(INV_CLASSES).map(k => `<option value="${k}" ${r.classe === k ? 'selected' : ''}>${INV_CLASSES[k].icon} ${INV_CLASSES[k].label}</option>`).join('');
+      row.innerHTML = `
+        <input type="date" class="l-data" value="${r.data}">
+        <span class="l-ativo">${esc(r.nome)}</span>
+        <select class="l-classe">${classOpts}</select>
+        <input type="text" class="l-instituicao" value="${esc(r.instituicao)}" placeholder="—" list="lanc-instituicoes-existentes">
+        <select class="l-operacao-edit">
+          <option value="compra" ${r.tipo === 'compra' ? 'selected' : ''}>↑ Compra</option>
+          <option value="venda" ${r.tipo === 'venda' ? 'selected' : ''}>↓ Venda</option>
+        </select>
+        <input type="number" min="0" step="any" class="l-qtd" value="${r.qtd}">
+        <input type="number" min="0" step="0.01" class="l-preco" value="${r.preco}">
+        <span class="l-total">${fmtBRL(r.qtd * r.preco)}</span>
+        <input type="text" class="l-obs" value="${esc(r.obs)}" placeholder="—">
+        <button class="x-remove l-remove" type="button">×</button>`;
+      lancRows.appendChild(row);
+    });
+
+    // atualiza as listas de sugestão (ativos e instituições já usadas)
+    const datalist = document.getElementById('lanc-ativos-existentes');
+    datalist.innerHTML = [...new Set((state.investments || []).map(a => a.nome))]
+      .map(n => `<option value="${esc(n)}">`).join('');
+    const instDatalist = document.getElementById('lanc-instituicoes-existentes');
+    const instituicoes = new Set();
+    (state.investments || []).forEach(a => (a.transacoes || []).forEach(t => { if (t.instituicao) instituicoes.add(t.instituicao); }));
+    instDatalist.innerHTML = [...instituicoes].map(n => `<option value="${esc(n)}">`).join('');
+  }
+
+  function findAssetTx(assetId, txId) {
+    const asset = invById(assetId);
+    if (!asset) return {};
+    const t = asset.transacoes.find(x => x.id === txId);
+    return { asset, t };
+  }
+
+  document.getElementById('btn-add-lanc').addEventListener('click', () => {
+    const nome = document.getElementById('lanc-ativo').value.trim();
+    const classe = document.getElementById('lanc-classe').value;
+    const instituicao = document.getElementById('lanc-instituicao').value.trim();
+    const data = document.getElementById('lanc-data').value || todayISO();
+    const tipo = document.getElementById('lanc-operacao').value;
+    const qtd = parseFloat(document.getElementById('lanc-qtd').value);
+    const preco = parseFloat(document.getElementById('lanc-preco').value);
+    const obs = document.getElementById('lanc-obs').value.trim();
+
+    if (!nome) { document.getElementById('lanc-ativo').focus(); return; }
+    if (!qtd || qtd <= 0) { document.getElementById('lanc-qtd').focus(); return; }
+    if (!preco || preco <= 0) { document.getElementById('lanc-preco').focus(); return; }
+
+    let asset = state.investments.find(x => (x.nome || '').trim().toLowerCase() === nome.toLowerCase());
+    if (!asset) {
+      asset = { id: 'i' + Date.now(), nome, classe, precoAtual: 0, transacoes: [] };
+      state.investments.push(asset);
+    }
+    asset.transacoes.push({ id: 'tx' + Date.now(), data, tipo, qtd, preco, obs, instituicao });
+    save(); renderLancamentos(); renderInvestments();
+
+    document.getElementById('lanc-ativo').value = '';
+    document.getElementById('lanc-instituicao').value = '';
+    document.getElementById('lanc-qtd').value = '';
+    document.getElementById('lanc-preco').value = '';
+    document.getElementById('lanc-obs').value = '';
+    document.getElementById('lanc-ativo').focus();
+  });
+
+  lancRows.addEventListener('change', (ev) => {
+    const row = ev.target.closest('.lanc-row');
+    if (!row) return;
+    const { asset, t } = findAssetTx(row.dataset.assetId, row.dataset.txId);
+    if (!asset || !t) return;
+
+    if (ev.target.classList.contains('l-data')) t.data = ev.target.value;
+    else if (ev.target.classList.contains('l-classe')) asset.classe = ev.target.value;
+    else if (ev.target.classList.contains('l-instituicao')) t.instituicao = ev.target.value.trim();
+    else if (ev.target.classList.contains('l-operacao-edit')) t.tipo = ev.target.value;
+    else if (ev.target.classList.contains('l-qtd')) t.qtd = parseFloat(ev.target.value) || 0;
+    else if (ev.target.classList.contains('l-preco')) t.preco = parseFloat(ev.target.value) || 0;
+    else if (ev.target.classList.contains('l-obs')) t.obs = ev.target.value.trim();
+    else return;
+
+    save(); renderLancamentos(); renderInvestments();
+  });
+
+  lancRows.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.l-remove');
+    if (!btn) return;
+    const row = btn.closest('.lanc-row');
+    const asset = invById(row.dataset.assetId);
+    if (!asset) return;
+    if (!confirm('Remover este lançamento?')) return;
+    asset.transacoes = asset.transacoes.filter(t => t.id !== row.dataset.txId);
+    if (!asset.transacoes.length) {
+      state.investments = state.investments.filter(x => x.id !== asset.id);
+    }
+    save(); renderLancamentos(); renderInvestments();
+  });
+
   const invRows = document.getElementById('inv-rows');
   const invEmpty = document.getElementById('inv-empty');
   let invSortCol = 'total';
   let invSortDir = 'desc';
-  let openInv = new Set();
   const INV_DEFAULT_DIR = { nome: 'asc', classe: 'asc', qtd: 'desc', precoMedio: 'desc', precoAtual: 'desc', total: 'desc', rent: 'desc' };
 
   const invById = id => (state.investments || []).find(x => x.id === id);
@@ -2926,7 +3188,7 @@ function sairPersonal() {
 
   function renderInvestments() {
     invRows.innerHTML = '';
-    const list = [...(state.investments || [])];
+    const list = [...(state.investments || [])].filter(x => (x.transacoes || []).length);
     const dir = invSortDir === 'asc' ? 1 : -1;
     list.sort((a, b) => {
       let av, bv;
@@ -2952,60 +3214,19 @@ function sairPersonal() {
       const pos = calcPosition(x);
       const total = invTotal(x);
       const rent = invRent(x);
-      const isOpen = openInv.has(x.id);
       const row = document.createElement('div');
-      row.className = 'inv-row' + (isOpen ? ' open' : '');
+      row.className = 'inv-row';
       row.dataset.id = x.id;
       const classOpts = Object.keys(INV_CLASSES).map(k => `<option value="${k}" ${x.classe === k ? 'selected' : ''}>${INV_CLASSES[k].icon} ${INV_CLASSES[k].label}</option>`).join('');
       row.innerHTML = `
-        <div class="inv-name" contenteditable="true" data-placeholder="Nome do ativo (ex.: HGLG11)"></div>
+        <span class="inv-name">${esc(x.nome)}</span>
         <select class="inv-class-select" style="--c:${cls.color}">${classOpts}</select>
         <span class="inv-qtd-display">${pos.qtd ? fmtQtd(pos.qtd) : '—'}</span>
         <span class="inv-pm-display">${pos.precoMedio ? fmtBRL(pos.precoMedio) : '—'}</span>
         <input type="number" min="0" step="0.01" class="inv-num inv-precoAtual" value="${x.precoAtual || ''}" placeholder="= preço médio">
         <span class="inv-total">${fmtBRL(total)}</span>
-        <span class="inv-rent ${rent === null ? 'zero' : rent > 0 ? 'pos' : rent < 0 ? 'neg' : 'zero'}">${rent === null ? '—' : (rent > 0 ? '+' : '') + rent.toFixed(1) + '%'}</span>
-        <span class="inv-chevron">▶</span>`;
-      row.querySelector('.inv-name').textContent = x.nome;
+        <span class="inv-rent ${rent === null ? 'zero' : rent > 0 ? 'pos' : rent < 0 ? 'neg' : 'zero'}">${rent === null ? '—' : (rent > 0 ? '+' : '') + rent.toFixed(1) + '%'}</span>`;
       invRows.appendChild(row);
-
-      if (isOpen) {
-        const det = document.createElement('div');
-        det.className = 'inv-detail';
-        det.dataset.id = x.id;
-        det.innerHTML = `
-          <div class="inv-tx-list"></div>
-          <div class="inv-tx-add">
-            <input type="date" class="tx-data" value="${todayISO()}">
-            <select class="tx-tipo">
-              <option value="compra">Compra</option>
-              <option value="venda">Venda</option>
-            </select>
-            <input type="number" min="0" step="any" class="tx-qtd" placeholder="Quantidade">
-            <input type="number" min="0" step="0.01" class="tx-preco" placeholder="Preço unitário">
-            <button type="button" class="primary tx-add-btn">+ Lançar</button>
-          </div>
-          <div class="inv-detail-foot"><button class="x-remove inv-remove" type="button">remover ativo</button></div>`;
-        const txList = det.querySelector('.inv-tx-list');
-        [...x.transacoes].sort((a, b) => b.data.localeCompare(a.data)).forEach(t => {
-          const tr = document.createElement('div');
-          tr.className = 'inv-tx-item';
-          tr.dataset.tid = t.id;
-          if (t.obs) tr.title = t.obs;
-          tr.innerHTML = `
-            <span class="tx-date">${fmtBR(t.data)}</span>
-            <span class="tx-tipo-tag ${t.tipo}">${t.tipo === 'compra' ? '↑ Compra' : '↓ Venda'}</span>
-            <span class="tx-qtd-val">${fmtQtd(t.qtd)}</span>
-            <span class="tx-preco-val">${fmtBRL(t.preco)}</span>
-            <span class="tx-total-val">${fmtBRL(t.qtd * t.preco)}</span>
-            <button class="x-remove tx-remove" type="button">×</button>`;
-          txList.appendChild(tr);
-        });
-        if (!x.transacoes.length) {
-          txList.innerHTML = '<p class="inv-tx-empty">Nenhum lançamento ainda. Registre a primeira compra abaixo.</p>';
-        }
-        invRows.appendChild(det);
-      }
     });
     renderInvSummary();
   }
@@ -3014,7 +3235,7 @@ function sairPersonal() {
     const grid = document.getElementById('inv-summary-grid');
     const hint = document.getElementById('inv-total-hint');
     if (!grid) return;
-    const list = state.investments || [];
+    const list = (state.investments || []).filter(x => (x.transacoes || []).length);
     const grandTotal = list.reduce((s, x) => s + invTotal(x), 0);
     hint.textContent = fmtBRL(grandTotal);
     grid.innerHTML = '';
@@ -3039,69 +3260,11 @@ function sairPersonal() {
     });
   }
 
-  document.getElementById('btn-add-inv').addEventListener('click', () => {
-    const x = { id: 'i' + Date.now(), nome: '', classe: 'acao', precoAtual: 0, transacoes: [] };
-    state.investments.push(x);
-    openInv.add(x.id);
-    save(); renderInvestments();
-    const el = invRows.querySelector(`.inv-row[data-id="${x.id}"] .inv-name`);
-    if (el) el.focus();
-  });
-
-  invRows.addEventListener('click', (ev) => {
-    const row = ev.target.closest('.inv-row');
-    if (row && !ev.target.closest('input, [contenteditable], select, button')) {
-      const id = row.dataset.id;
-      openInv.has(id) ? openInv.delete(id) : openInv.add(id);
-      renderInvestments();
-      return;
-    }
-    const remove = ev.target.closest('.inv-remove');
-    if (remove) {
-      const id = remove.closest('.inv-detail').dataset.id;
-      if (!confirm('Remover este ativo e todos os seus lançamentos?')) return;
-      state.investments = state.investments.filter(x => x.id !== id);
-      openInv.delete(id);
-      save(); renderInvestments();
-      return;
-    }
-    const addTx = ev.target.closest('.tx-add-btn');
-    if (addTx) {
-      const det = addTx.closest('.inv-detail');
-      const x = invById(det.dataset.id);
-      const dataEl = det.querySelector('.tx-data');
-      const tipoEl = det.querySelector('.tx-tipo');
-      const qtdEl = det.querySelector('.tx-qtd');
-      const precoEl = det.querySelector('.tx-preco');
-      const qtd = parseFloat(qtdEl.value);
-      const preco = parseFloat(precoEl.value);
-      if (!qtd || qtd <= 0 || !preco || preco <= 0) { (qtd ? precoEl : qtdEl).focus(); return; }
-      x.transacoes.push({ id: 'tx' + Date.now(), data: dataEl.value || todayISO(), tipo: tipoEl.value, qtd, preco });
-      save(); renderInvestments();
-      return;
-    }
-    const removeTx = ev.target.closest('.tx-remove');
-    if (removeTx) {
-      const det = removeTx.closest('.inv-detail');
-      const x = invById(det.dataset.id);
-      const tid = removeTx.closest('.inv-tx-item').dataset.tid;
-      x.transacoes = x.transacoes.filter(t => t.id !== tid);
-      save(); renderInvestments();
-    }
-  });
-
-  invRows.addEventListener('blur', (ev) => {
-    const el = ev.target.closest('.inv-name');
-    if (!el) return;
-    const x = invById(el.closest('.inv-row').dataset.id);
-    if (x) { x.nome = el.innerText.trim(); save(); }
-  }, true);
-
   invRows.addEventListener('change', (ev) => {
     const sel = ev.target.closest('.inv-class-select');
     if (sel) {
       const x = invById(sel.closest('.inv-row').dataset.id);
-      if (x) { x.classe = sel.value; save(); renderInvestments(); }
+      if (x) { x.classe = sel.value; save(); renderInvestments(); renderLancamentos(); }
     }
   });
 
@@ -3457,6 +3620,7 @@ function sairPersonal() {
   renderDreams();
   renderShopping();
   renderInvestments();
+  renderLancamentos();
   renderRpDashboard();
 })();
 </script>
