@@ -768,6 +768,7 @@ button.primary:hover { background: #8d70f5; }
 #lanc-ativo { width: 150px; }
 #lanc-classe { width: 110px; }
 #lanc-instituicao { width: 130px; }
+#lanc-numero { width: 100px; }
 #lanc-data { width: 140px; }
 #lanc-operacao { width: 95px; }
 #lanc-qtd, #lanc-preco { width: 110px; }
@@ -776,7 +777,7 @@ button.primary:hover { background: #8d70f5; }
 .lanc-table { font-size: 13px; }
 .lanc-row-head, .lanc-row {
   display: grid;
-  grid-template-columns: 100px minmax(90px,1fr) 90px 120px 90px 80px 100px 110px minmax(90px,1fr) 28px;
+  grid-template-columns: 100px minmax(90px,1fr) 90px 120px 90px 90px 80px 100px 110px minmax(90px,1fr) 28px;
   align-items: center; gap: 10px; padding: 0 6px;
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
@@ -797,8 +798,9 @@ button.primary:hover { background: #8d70f5; }
 .lanc-row .l-instituicao { color: var(--text2); }
 @media (max-width: 900px) {
   .lanc-row-head, .lanc-row { grid-template-columns: 90px 1fr 80px 90px 28px; }
-  .lanc-row-head span:nth-child(3), .lanc-row-head span:nth-child(6), .lanc-row-head span:nth-child(8),
-  .lanc-row .l-classe, .lanc-row .l-total, .lanc-row .l-obs, .lanc-row .l-instituicao { display: none; }
+  .lanc-row-head [data-col="instituicao"], .lanc-row-head [data-col="numero"],
+  .lanc-row-head span:nth-child(3), .lanc-row-head span:nth-child(9),
+  .lanc-row .l-classe, .lanc-row .l-total, .lanc-row .l-obs, .lanc-row .l-instituicao, .lanc-row .l-numero { display: none; }
 }
 
 .inv-table { font-size: 13.5px; }
@@ -1327,11 +1329,32 @@ function sairPersonal() {
 
     <div class="inv-subtabs" id="inv-subtabs">
       <button type="button" class="inv-subtab active" data-sub="dashboard">📊 Dashboard</button>
+      <button type="button" class="inv-subtab" data-sub="carteira">💼 Carteira</button>
       <button type="button" class="inv-subtab" data-sub="lancamentos">📋 Lançamentos</button>
     </div>
 
     <div class="inv-subpage active" id="inv-sub-dashboard">
-      <div class="section-head">
+      <div class="area-summary-head" style="margin-top:0;">
+        <h3>📊 Renda Passiva — Histórico</h3>
+        <span class="hint">importado da sua planilha · snapshot de 07/08/2026</span>
+      </div>
+      <p class="section-intro">Proventos recebidos mês a mês, por ano. Meses adiante do mês atual podem conter estimativas da própria planilha, não valores confirmados.</p>
+
+      <div class="rp-yearbar" id="rp-yearbar"></div>
+      <div class="rp-cards" id="rp-cards"></div>
+      <div class="rp-chart-wrap">
+        <div class="rp-chart" id="rp-chart"></div>
+      </div>
+
+      <div class="area-summary-head" style="margin-top:32px;">
+        <h3>Composição por classe (ano selecionado)</h3>
+        <span class="hint" id="rp-comp-hint"></span>
+      </div>
+      <div class="area-summary-grid" id="rp-comp-grid"></div>
+    </div>
+
+    <div class="inv-subpage" id="inv-sub-carteira">
+      <div class="section-head" style="margin-top:0;">
         <span class="hint">calculado a partir dos lançamentos</span>
       </div>
       <div class="inv-table">
@@ -1353,24 +1376,6 @@ function sairPersonal() {
         <span class="hint" id="inv-total-hint"></span>
       </div>
       <div class="area-summary-grid" id="inv-summary-grid"></div>
-
-      <div class="area-summary-head">
-        <h3>📊 Renda Passiva — Histórico</h3>
-        <span class="hint">importado da sua planilha · snapshot de 07/08/2026</span>
-      </div>
-      <p class="section-intro">Proventos recebidos mês a mês, por ano. Meses adiante do mês atual podem conter estimativas da própria planilha, não valores confirmados.</p>
-
-      <div class="rp-yearbar" id="rp-yearbar"></div>
-      <div class="rp-cards" id="rp-cards"></div>
-      <div class="rp-chart-wrap">
-        <div class="rp-chart" id="rp-chart"></div>
-      </div>
-
-      <div class="area-summary-head" style="margin-top:32px;">
-        <h3>Composição por classe (ano selecionado)</h3>
-        <span class="hint" id="rp-comp-hint"></span>
-      </div>
-      <div class="area-summary-grid" id="rp-comp-grid"></div>
     </div>
 
     <div class="inv-subpage" id="inv-sub-lancamentos">
@@ -1388,8 +1393,9 @@ function sairPersonal() {
         <input type="text" id="lanc-ativo" placeholder="Ativo (ex.: HGLG11)" list="lanc-ativos-existentes">
         <datalist id="lanc-ativos-existentes"></datalist>
         <select id="lanc-classe"></select>
-        <input type="text" id="lanc-instituicao" placeholder="Instituição" list="lanc-instituicoes-existentes">
+        <input type="text" id="lanc-instituicao" placeholder="Instituição" list="lanc-instituicoes-existentes" value="Clear">
         <datalist id="lanc-instituicoes-existentes"></datalist>
+        <input type="text" id="lanc-numero" placeholder="Nº da nota">
         <input type="date" id="lanc-data" value="">
         <select id="lanc-operacao"><option value="compra">Compra</option><option value="venda">Venda</option></select>
         <input type="number" min="0" step="any" id="lanc-qtd" placeholder="Quantidade">
@@ -1404,6 +1410,7 @@ function sairPersonal() {
           <button class="col-sort" data-col="ativo">Ativo<span class="sort-arrow"></span></button>
           <span>Classe</span>
           <button class="col-sort inv-hc" data-col="instituicao">Instituição<span class="sort-arrow"></span></button>
+          <button class="col-sort inv-hc" data-col="numero">Nº Nota<span class="sort-arrow"></span></button>
           <span>Operação</span>
           <button class="col-sort inv-hc" data-col="qtd">Qtd.<span class="sort-arrow"></span></button>
           <button class="col-sort inv-hc" data-col="preco">Preço<span class="sort-arrow"></span></button>
@@ -2847,7 +2854,10 @@ function sairPersonal() {
     }
     delete x.qtd;
     delete x.precoMedio;
-    (x.transacoes || []).forEach(t => { if (t.instituicao === undefined) t.instituicao = ''; });
+    (x.transacoes || []).forEach(t => {
+      if (!t.instituicao) t.instituicao = 'Clear';
+      if (t.numero === undefined) t.numero = '';
+    });
   });
 
   // ── Importação de planilha de negociações ──
@@ -2885,20 +2895,20 @@ function sairPersonal() {
     if (g.includes('fundo')) return 'fundo';
     return 'outro';
   }
-  function invGuessTipo(operacao) {
-    const o = String(operacao || '').trim().toLowerCase();
-    if (o.startsWith('v')) return 'venda';
+  function invGuessTipo(tipoColuna) {
+    const t = String(tipoColuna || '').trim().toLowerCase();
+    if (t.startsWith('v')) return 'venda';
     return 'compra';
   }
   function invPickPreco(row, qtd) {
     let p = invParseNumBR(row['Preço com taxas']);
-    if (p) return p;
+    if (p) return Math.abs(p);
     const totalCom = invParseNumBR(row['Total com taxas']);
-    if (totalCom && qtd) return totalCom / qtd;
+    if (totalCom && qtd) return Math.abs(totalCom / qtd);
     p = invParseNumBR(row['Preço sem taxas']);
-    if (p) return p;
+    if (p) return Math.abs(p);
     const totalSem = invParseNumBR(row['Total sem taxas']);
-    if (totalSem && qtd) return totalSem / qtd;
+    if (totalSem && qtd) return Math.abs(totalSem / qtd);
     return 0;
   }
 
@@ -2926,11 +2936,12 @@ function sairPersonal() {
           const qtd = invParseNumBR(row['Quantidade']);
           if (!nomeAtivo || !qtd) { invalidas++; return; }
 
-          const tipo = invGuessTipo(row['Operação']);
+          const tipo = invGuessTipo(row['Tipo']);
           const dataIso = invParseDateBR(row['Data de negociação']);
           const preco = invPickPreco(row, qtd);
           const obs = String(row['Obs'] || '').trim();
           const instituicao = String(row['Instituição'] || '').trim();
+          const numero = String(row['Número'] || '').trim();
 
           let asset = state.investments.find(x => (x.nome || '').trim().toLowerCase() === nomeAtivo.toLowerCase());
           if (!asset) {
@@ -2940,11 +2951,12 @@ function sairPersonal() {
 
           const jaExiste = asset.transacoes.some(t =>
             t.data === dataIso && t.tipo === tipo &&
-            Math.abs(t.qtd - qtd) < 1e-9 && Math.abs(t.preco - preco) < 0.01
+            Math.abs(t.qtd - qtd) < 1e-9 && Math.abs(t.preco - preco) < 0.01 &&
+            (numero ? t.numero === numero : true)
           );
           if (jaExiste) { duplicadas++; return; }
 
-          asset.transacoes.push({ id: 'tx' + Date.now() + Math.random().toString(16).slice(2, 6), data: dataIso, tipo, qtd, preco, obs, instituicao });
+          asset.transacoes.push({ id: 'tx' + Date.now() + Math.random().toString(16).slice(2, 6), data: dataIso, tipo, qtd, preco, obs, instituicao, numero });
           ativosTocados.add(asset.nome);
           importadas++;
         });
@@ -2978,7 +2990,7 @@ function sairPersonal() {
   const lancEmpty = document.getElementById('lanc-empty');
   let lancSortCol = 'data';
   let lancSortDir = 'desc';
-  const LANC_DEFAULT_DIR = { data: 'desc', ativo: 'asc', instituicao: 'asc', qtd: 'desc', preco: 'desc' };
+  const LANC_DEFAULT_DIR = { data: 'desc', ativo: 'asc', instituicao: 'asc', numero: 'asc', qtd: 'desc', preco: 'desc' };
 
   document.getElementById('lanc-classe').innerHTML = Object.keys(INV_CLASSES)
     .map(k => `<option value="${k}">${INV_CLASSES[k].icon} ${INV_CLASSES[k].label}</option>`).join('');
@@ -3004,7 +3016,7 @@ function sairPersonal() {
     const rows = [];
     (state.investments || []).forEach(asset => {
       (asset.transacoes || []).forEach(t => {
-        rows.push({ assetId: asset.id, nome: asset.nome, classe: asset.classe, txId: t.id, data: t.data, tipo: t.tipo, qtd: t.qtd, preco: t.preco, obs: t.obs || '', instituicao: t.instituicao || '' });
+        rows.push({ assetId: asset.id, nome: asset.nome, classe: asset.classe, txId: t.id, data: t.data, tipo: t.tipo, qtd: t.qtd, preco: t.preco, obs: t.obs || '', instituicao: t.instituicao || '', numero: t.numero || '' });
       });
     });
     return rows;
@@ -3018,6 +3030,7 @@ function sairPersonal() {
       switch (lancSortCol) {
         case 'ativo': av = a.nome.toLowerCase(); bv = b.nome.toLowerCase(); break;
         case 'instituicao': av = a.instituicao.toLowerCase(); bv = b.instituicao.toLowerCase(); break;
+        case 'numero': av = a.numero; bv = b.numero; break;
         case 'qtd': av = a.qtd; bv = b.qtd; break;
         case 'preco': av = a.preco; bv = b.preco; break;
         default: av = a.data; bv = b.data;
@@ -3042,6 +3055,7 @@ function sairPersonal() {
         <span class="l-ativo">${esc(r.nome)}</span>
         <select class="l-classe">${classOpts}</select>
         <input type="text" class="l-instituicao" value="${esc(r.instituicao)}" placeholder="—" list="lanc-instituicoes-existentes">
+        <input type="text" class="l-numero" value="${esc(r.numero)}" placeholder="—">
         <select class="l-operacao-edit">
           <option value="compra" ${r.tipo === 'compra' ? 'selected' : ''}>↑ Compra</option>
           <option value="venda" ${r.tipo === 'venda' ? 'selected' : ''}>↓ Venda</option>
@@ -3075,6 +3089,7 @@ function sairPersonal() {
     const nome = document.getElementById('lanc-ativo').value.trim();
     const classe = document.getElementById('lanc-classe').value;
     const instituicao = document.getElementById('lanc-instituicao').value.trim();
+    const numero = document.getElementById('lanc-numero').value.trim();
     const data = document.getElementById('lanc-data').value || todayISO();
     const tipo = document.getElementById('lanc-operacao').value;
     const qtd = parseFloat(document.getElementById('lanc-qtd').value);
@@ -3090,11 +3105,12 @@ function sairPersonal() {
       asset = { id: 'i' + Date.now(), nome, classe, precoAtual: 0, transacoes: [] };
       state.investments.push(asset);
     }
-    asset.transacoes.push({ id: 'tx' + Date.now(), data, tipo, qtd, preco, obs, instituicao });
+    asset.transacoes.push({ id: 'tx' + Date.now(), data, tipo, qtd, preco, obs, instituicao, numero });
     save(); renderLancamentos(); renderInvestments();
 
     document.getElementById('lanc-ativo').value = '';
-    document.getElementById('lanc-instituicao').value = '';
+    document.getElementById('lanc-instituicao').value = 'Clear';
+    document.getElementById('lanc-numero').value = '';
     document.getElementById('lanc-qtd').value = '';
     document.getElementById('lanc-preco').value = '';
     document.getElementById('lanc-obs').value = '';
@@ -3110,6 +3126,7 @@ function sairPersonal() {
     if (ev.target.classList.contains('l-data')) t.data = ev.target.value;
     else if (ev.target.classList.contains('l-classe')) asset.classe = ev.target.value;
     else if (ev.target.classList.contains('l-instituicao')) t.instituicao = ev.target.value.trim();
+    else if (ev.target.classList.contains('l-numero')) t.numero = ev.target.value.trim();
     else if (ev.target.classList.contains('l-operacao-edit')) t.tipo = ev.target.value;
     else if (ev.target.classList.contains('l-qtd')) t.qtd = parseFloat(ev.target.value) || 0;
     else if (ev.target.classList.contains('l-preco')) t.preco = parseFloat(ev.target.value) || 0;
