@@ -518,7 +518,7 @@ function seededRandom(seed){
 }
 function gerarFatoVendasFicticio(){
   var rnd = seededRandom(FILIAL==='fl' ? 88 : 42);
-  var MESES_ATIVOS = [0,1,2,3,4,5]; // Jan a Jun/2026
+  var MESES_ATIVOS = [0,1,2,3,4,5,6,7]; // Jan a Ago/2026
   var canais = ['SALAO','LOJA','FUNCIONARIO'];
   var grupos = ['HOME CARE','PROFISSIONAL','COLORACAO','QUIMICA'];
   var vendedores = FILIAL==='fl'
@@ -578,7 +578,7 @@ function gerarDFCFicticio(){
   var chaves = [];
   var caixa = FILIAL==='fl' ? 58000 : 85000;
   var recBase = FILIAL==='fl' ? 124000 : 175000;
-  for (var mi=0; mi<6; mi++){
+  for (var mi=0; mi<8; mi++){
     var chave = '2026-'+String(mi+1).padStart(2,'0');
     chaves.push(chave);
     var recVendas = recBase + mi*(recBase*0.048) + rnd()*10000;
