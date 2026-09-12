@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-personal.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/wolves-financeiro.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -989,7 +990,7 @@ function sairPersonal() {
       <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
       <a class="sb-link" href="#compras" data-page="compras"><span class="ico">🛒</span>Lista de Compras</a>
       <a class="sb-link" href="#investimentos" data-page="investimentos"><span class="ico">📈</span>Investimentos</a>
-      <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🐺</span>Wolves<span class="sb-soon">em breve</span></a>
+      <a class="sb-link" href="#wolves" data-page="wolves"><span class="ico">🐺</span>Wolves</a>
       <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🧲</span>Prospects<span class="sb-soon">em breve</span></a>
     </nav>
     <div class="sb-foot">
@@ -1422,6 +1423,15 @@ function sairPersonal() {
       </div>
       <div class="list-empty" id="lanc-empty">Nenhum lançamento ainda. Importe uma planilha ou lance manualmente acima.</div>
     </div>
+  </section>
+
+  <section id="wolves" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Time</div>
+      <h1>⚽ Wolves — Financeiro</h1>
+      <p>Saldo em caixa, inadimplência e itens pendentes de conciliação, direto da planilha do time.</p>
+    </div>
+    <div id="wolves-financeiro-container"></div>
   </section>
 
     </main>
@@ -3612,7 +3622,7 @@ function sairPersonal() {
   }
 
   // ── Navegação entre páginas ──
-  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos' };
+  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos', wolves: 'Wolves' };
   function showPage(id) {
     if (!PAGES[id]) id = 'inicio';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
@@ -3621,6 +3631,9 @@ function sairPersonal() {
     document.body.classList.remove('sb-open');
     window.scrollTo(0, 0);
     if (id === 'inicio') renderInicio();
+    if (id === 'wolves' && typeof window.renderWolvesFinanceiro === 'function') {
+      window.renderWolvesFinanceiro(document.getElementById('wolves-financeiro-container'));
+    }
   }
   window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
   document.getElementById('btn-burger').addEventListener('click', () => document.body.classList.toggle('sb-open'));
