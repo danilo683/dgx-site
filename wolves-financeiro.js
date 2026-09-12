@@ -9,7 +9,9 @@
  * 1. SHEET_ID — copiado da skill de conciliação que você já usa.
  * 2. Nomes exatos das abas (TAB_EXTRATO / TAB_ATLETAS / TAB_LOG) batem com o
  *    Sheets real. TAB_LOG é uma suposição ("Log") — ajuste se o nome real
- *    da aba com o histórico de execuções da conciliação for outro.
+ *    da aba com o histórico de execuções da conciliação for outro. Se essa
+ *    aba não existir/tiver outro nome, o card carrega normal e só omite a
+ *    linha "Última conciliação" (loga um aviso no console).
  * 3. Planilha compartilhada como "qualquer pessoa com o link pode visualizar".
  *
  * Expõe window.renderWolvesFinanceiro(containerEl), chamada pelo showPage()
@@ -26,6 +28,13 @@
     return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   }
 
+  /**
+   * Retorna { cols, rows, rowsF }.
+   * - rows: valores "crus" (v) — números como number, texto como string.
+   * - rowsF: valores FORMATADOS (f) exatamente como aparecem na planilha —
+   *   essencial para datas, que o GViz devolve em v como "Date(2026,0,5)"
+   *   (mês 0-indexado) em vez de texto. Sempre usar rowsF para datas.
+   */
   async function fetchGvizSheet(sheetName) {
     const res = await fetch(gvizUrl(sheetName));
     const text = await res.text();
@@ -33,7 +42,22 @@
     const data = JSON.parse(jsonStr);
     const cols = data.table.cols.map((c) => c.label || c.id);
     const rows = data.table.rows.map((r) => r.c.map((cell) => (cell ? cell.v : null)));
-    return { cols, rows };
+    const rowsF = data.table.rows.map((r) =>
+      r.c.map((cell) => {
+        if (!cell) return null;
+        if (cell.f != null) return cell.f;
+        // fallback: se vier como "Date(Y,M,D)" cru, converte pra DD/MM/AAAA
+        if (typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+          const m = cell.v.match(/Date\((\d+),(\d+),(\d+)/);
+          if (m) {
+            const [, y, mo, d] = m;
+            return `${String(d).padStart(2, '0')}/${String(parseInt(mo, 10) + 1).padStart(2, '0')}/${y}`;
+          }
+        }
+        return cell.v;
+      })
+    );
+    return { cols, rows, rowsF };
   }
 
   function colIndex(cols, label) {
@@ -52,7 +76,7 @@
     return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
-  // Aceita "DD/MM/AAAA" ou "DD/MM/AAAA HH:mm:ss" e devolve {ms, dataStr}
+  // Aceita "DD/MM/AAAA" ou "DD/MM/AAAA HH:mm:ss" (texto formatado) e devolve {ms, dataStr}
   function parseDataHoraBR(v) {
     if (!v) return null;
     const s = v.toString().trim();
@@ -100,17 +124,18 @@
     const naoConciliados = [];
     const monthly = {}; // { 'YYYY-MM': { entradas, saidas, saldoFinal } }
 
-    extrato.rows.forEach((row) => {
-      if (!row[idxData]) return;
+    extrato.rows.forEach((row, i) => {
+      const dataTexto = extrato.rowsF[i][idxData]; // sempre usar a versão formatada pra datas
+      if (!dataTexto) return;
+
       const valor = parseValorBR(row[idxValor]);
       const saldo = row[idxSaldoExtrato] != null ? parseValorBR(row[idxSaldoExtrato]) : null;
       const conciliado = (row[idxConciliado] || '').toString().trim().toLowerCase() === 'sim';
 
       if (!conciliado) naoConciliados.push({ valor });
-
       if (saldo != null) saldoAtual = saldo; // última linha com saldo = saldo mais recente
 
-      const key = monthKeyFromBR(row[idxData]);
+      const key = monthKeyFromBR(dataTexto);
       if (key) {
         if (!monthly[key]) monthly[key] = { entradas: 0, saidas: 0, saldoFinal: null };
         if (valor > 0) monthly[key].entradas += valor;
@@ -143,8 +168,8 @@
       const log = await fetchGvizSheet(TAB_LOG);
       const idxLogData = colIndex(log.cols, 'Data');
       let best = null;
-      log.rows.forEach((row) => {
-        const parsed = parseDataHoraBR(row[idxLogData]);
+      log.rowsF.forEach((rowF) => {
+        const parsed = parseDataHoraBR(rowF[idxLogData]);
         if (parsed && (!best || parsed.ms > best.ms)) best = parsed;
       });
       ultimaConciliacao = best ? best.dataStr : null;
@@ -182,7 +207,7 @@
           <span class="rp-bar-val" style="white-space:normal; text-align:center; line-height:1.2;">${saldoTxt}</span>
           <div style="display:flex; align-items:flex-end; gap:3px; height:150px;">
             <div class="rp-bar" style="height:${hE}px; max-width:16px; background:#4ade80;" title="Entradas ${m.label}: ${fmtBRL(m.entradas)}"></div>
-            <div class="rp-bar" style="height:${hS}px; max-width:16px; background:#f87171;" title="Saídas: ${fmtBRL(m.saidas)}"></div>
+            <div class="rp-bar" style="height:${hS}px; max-width:16px; background:#f87171;" title="Saídas ${m.label}: ${fmtBRL(m.saidas)}"></div>
           </div>
           <span class="rp-bar-label">${m.label}</span>
         </div>`;
