@@ -10,7 +10,6 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-personal.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="/wolves-financeiro.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -596,7 +595,8 @@ button.primary:hover { background: #8d70f5; }
 .goal-props { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
 .goal-props .prop { display: flex; flex-direction: column; gap: 4px; }
 .goal-props label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; }
-.goal-props select, .goal-props input[type="date"] {
+.goal-props select, .goal-props input[type="date"], .goal-props input[type="number"] {
+  width: 100%;
   font-family: var(--body); font-size: 13px;
   background: var(--bg2); color: var(--text);
   border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px;
@@ -990,7 +990,7 @@ function sairPersonal() {
       <a class="sb-link" href="#sonhos" data-page="sonhos"><span class="ico">🖼️</span>Quadro dos Sonhos</a>
       <a class="sb-link" href="#compras" data-page="compras"><span class="ico">🛒</span>Lista de Compras</a>
       <a class="sb-link" href="#investimentos" data-page="investimentos"><span class="ico">📈</span>Investimentos</a>
-      <a class="sb-link" href="#wolves" data-page="wolves"><span class="ico">🐺</span>Wolves</a>
+      <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🐺</span>Wolves<span class="sb-soon">em breve</span></a>
       <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🧲</span>Prospects<span class="sb-soon">em breve</span></a>
     </nav>
     <div class="sb-foot">
@@ -1425,15 +1425,6 @@ function sairPersonal() {
     </div>
   </section>
 
-  <section id="wolves" class="page">
-    <div class="page-head">
-      <div class="eyebrow">Time</div>
-      <h1>⚽ Wolves — Financeiro</h1>
-      <p>Saldo em caixa, inadimplência e itens pendentes de conciliação, direto da planilha do time.</p>
-    </div>
-    <div id="wolves-financeiro-container"></div>
-  </section>
-
     </main>
   </div>
 </div>
@@ -1580,6 +1571,7 @@ function sairPersonal() {
     (g.tasks || []).forEach(t => { if (t.due === undefined) t.due = ''; });
     if (g.recorrencia === undefined) g.recorrencia = 'esporadica';
     if (g.proximaData === undefined) g.proximaData = '';
+    if (g.ordem === undefined) g.ordem = 0;
     if (g.createdAt === undefined) {
       const ts = parseInt(String(g.id).slice(1), 10);
       if (!isNaN(ts) && ts > 0) {
@@ -1778,6 +1770,7 @@ function sairPersonal() {
       }
       if (av < bv) return -1 * dir;
       if (av > bv) return 1 * dir;
+      if (goalSortCol === 'proxima') return (a.ordem || 0) - (b.ordem || 0);
       return 0;
     });
     updateSortHeaderUI();
@@ -1903,9 +1896,10 @@ function sairPersonal() {
             <div class="prop"><label>Próxima data (manual)</label><input type="date" data-prop="proximaData" value="${g.proximaData || ''}"></div>
             <div class="prop"><label>Completar até</label><input type="date" data-prop="due" value="${g.due || ''}"></div>
             <div class="prop"><label>Prioridade</label><select data-prop="prio">${prioOpts}</select></div>
+            <div class="prop"><label>Ordem no dia</label><input type="number" step="1" class="ordem-input" data-prop="ordem" value="${g.ordem || 0}" title="Desempate quando a Próxima Data for igual — menor número aparece primeiro"></div>
             ${g.done && g.doneAt ? `<div class="prop"><label>Completada em</label><span style="font-size:13px; padding-top:6px;">${fmtBR(g.doneAt)}</span></div>` : ''}
           </div>
-          <p class="proxima-hint">Próxima data: <strong>${computeNextDate(g) ? fmtBR(computeNextDate(g)) : '—'}</strong> — deixe "Próxima data (manual)" vazio para calcular sozinho a partir do tipo de atividade (diária = hoje, semanal = domingo, mensal = último dia do mês, esporádica = 1ª data do checklist).</p>
+          <p class="proxima-hint">Próxima data: <strong>${computeNextDate(g) ? fmtBR(computeNextDate(g)) : '—'}</strong> — deixe "Próxima data (manual)" vazio para calcular sozinho a partir do tipo de atividade (diária = hoje, semanal = domingo, mensal = último dia do mês, esporádica = 1ª data do checklist). "Ordem no dia" só entra em ação quando duas metas caem na mesma data e você ordena a tabela por "Próxima Data" — quem tem o número menor aparece primeiro.</p>
           ${!g.done ? (() => {
             const p = paceStatusHtml(g);
             return `<div class="pace-block">
@@ -1982,7 +1976,7 @@ function sairPersonal() {
       name: '', area: 'pro', vf: 'vf1', prio: 3, tipo: 'anual', createdAt: todayISO(),
       due: '', done: false, doneAt: '', tasks: [],
       kind: 'checklist', target: null, unit: '', count: 0, entries: [],
-      recorrencia: 'esporadica', proximaData: '',
+      recorrencia: 'esporadica', proximaData: '', ordem: 0,
     };
     state.goals.push(g);
     openGoals.add(g.id);
@@ -2183,6 +2177,13 @@ function sairPersonal() {
         item.classList.toggle('overdue', !t.done && !!t.due && t.due < todayISO());
         updateRowSummary(g);
       }
+      return;
+    }
+    const ordemProp = ev.target.closest('.ordem-input');
+    if (ordemProp) {
+      const g = gById(ordemProp.closest('.goal-detail').dataset.id);
+      g.ordem = parseInt(ordemProp.value, 10) || 0;
+      save();
       return;
     }
     const dateProp = ev.target.closest('.goal-props input[type="date"]');
@@ -3622,7 +3623,7 @@ function sairPersonal() {
   }
 
   // ── Navegação entre páginas ──
-  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos', wolves: 'Wolves' };
+  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos' };
   function showPage(id) {
     if (!PAGES[id]) id = 'inicio';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
@@ -3631,9 +3632,6 @@ function sairPersonal() {
     document.body.classList.remove('sb-open');
     window.scrollTo(0, 0);
     if (id === 'inicio') renderInicio();
-    if (id === 'wolves' && typeof window.renderWolvesFinanceiro === 'function') {
-      window.renderWolvesFinanceiro(document.getElementById('wolves-financeiro-container'));
-    }
   }
   window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
   document.getElementById('btn-burger').addEventListener('click', () => document.body.classList.toggle('sb-open'));
