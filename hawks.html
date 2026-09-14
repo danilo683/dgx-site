@@ -585,9 +585,27 @@ async function carregarDadosHawks() {
 
   var CLIENTE_ID = clienteIdAtual();
 
+  // Otimização: as 3 buscas (fato_vendas, fato_despesas, dash_dfc) não dependem
+  // uma da outra — antes eram feitas em sequência (await um após o outro), o
+  // que soma os tempos de rede das três. Disparando em paralelo com Promise.all,
+  // o tempo total de espera passa a ser o da busca mais lenta, não a soma delas.
+  var DFC_COLS = 'cliente_id,competencia,caixa_inicial,rec_vendas,juros_multas,outras_ent_op,'
+    + 'pgto_truss,pgto_nao_truss,pgto_pessoal,pgto_mkt,pgto_comissoes,pgto_logistica,'
+    + 'pgto_ocupacao,pgto_gerais,pgto_terceiros,pgto_impostos,ent_invest,sai_invest,'
+    + 'emprestimos,pgto_financ';
+  var resultados = await Promise.all([
+    fetchFatoVendas(CLIENTE_ID),
+    fetchFatoDespesas(CLIENTE_ID),
+    sb.from('dash_dfc').select(DFC_COLS)
+      .eq('cliente_id',CLIENTE_ID).order('competencia',{ascending:true})
+  ]);
+  var fvRows = resultados[0];
+  var despesasRows = resultados[1];
+  var dfcRes = resultados[2];
+
   // VENDAS + MARGEM — agora vêm da base única (fato_vendas), item a item.
   // Substitui as antigas tabelas agregadas dash_vendas / dash_margem.
-  FV_HAWKS = await fetchFatoVendas(CLIENTE_ID);
+  FV_HAWKS = fvRows;
   refreshVendasEMargem();
 
   // DRE — recalculado a partir da base única (fato_vendas), replicando
@@ -598,14 +616,12 @@ async function carregarDadosHawks() {
   DRE_TOPLINE = agregarDRETopline(FV_HAWKS);
   if (DRE_TOPLINE.meses.length) periods.dre = DRE_TOPLINE.meses[0] + ' \u2013 ' + DRE_TOPLINE.meses[DRE_TOPLINE.meses.length-1];
 
-  var despesasRows = await fetchFatoDespesas(CLIENTE_ID);
   DESPESAS_DADOS = aggregarDespesas(despesasRows, DRE_TOPLINE.mesesChave);
 
   // DFC — segue alimentado pelos Lançamentos (agora agregados via Apps Script).
   // Chave por "YYYY-MM" (não por mês 0-11) para não confundir anos diferentes
   // (ex.: Nov/2025 e Nov/2026 são chaves distintas, não a mesma posição).
-  const {data:dfc} = await sb.from('dash_dfc').select('*')
-    .eq('cliente_id',CLIENTE_ID).order('competencia',{ascending:true});
+  const dfc = dfcRes.data;
   DFC_DADOS = {};
   MESES_COM_DADOS = [];
   if (dfc && dfc.length) {
