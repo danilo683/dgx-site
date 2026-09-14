@@ -352,41 +352,50 @@ function normGrupo(g){
   return 'outros';
 }
 
-// Busca paginada — o Supabase limita ~1000 linhas por request
-async function fetchFatoVendas(clienteId){
-  var all = [], from = 0, pageSize = 1000;
-  while (true) {
-    var res = await sb.from('fato_vendas')
-      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem,valor_gb,valor_total')
-      .eq('cliente_id', clienteId)
-      .range(from, from + pageSize - 1);
-    if (res.error) { console.error('fetchFatoVendas', res.error); break; }
-    var data = res.data;
-    if (!data || !data.length) break;
-    all = all.concat(data);
-    if (data.length < pageSize) break;
-    from += pageSize;
+// Busca paginada com paralelismo controlado.
+// Antes: 1 requisição por página de 1000 linhas, em sequência — para o
+// histórico da Hawks (~82 mil linhas em fato_vendas) isso significava ~82
+// round-trips de rede um esperando o outro, que é o maior gargalo real do
+// carregamento. Agora: busca a 1ª página + contagem total, depois busca o
+// restante em lotes paralelos (maxConcorrencia por vez) em vez de sequencial.
+async function fetchPaginado(tabela, colunas, clienteId, pageSize, maxConcorrencia){
+  pageSize = pageSize || 1000;
+  maxConcorrencia = maxConcorrencia || 5;
+
+  var primeira = await sb.from(tabela).select(colunas, {count:'exact'})
+    .eq('cliente_id', clienteId).range(0, pageSize - 1);
+  if (primeira.error) { console.error('fetchPaginado:'+tabela, primeira.error); return []; }
+
+  var all = primeira.data || [];
+  var total = primeira.count != null ? primeira.count : all.length;
+  if (all.length < pageSize || total <= pageSize) return all;
+
+  var offsets = [];
+  for (var from = pageSize; from < total; from += pageSize) offsets.push(from);
+
+  for (var i = 0; i < offsets.length; i += maxConcorrencia) {
+    var lote = offsets.slice(i, i + maxConcorrencia);
+    var respostas = await Promise.all(lote.map(function(from){
+      return sb.from(tabela).select(colunas).eq('cliente_id', clienteId).range(from, from + pageSize - 1);
+    }));
+    for (var j = 0; j < respostas.length; j++) {
+      if (respostas[j].error) { console.error('fetchPaginado:'+tabela, respostas[j].error); continue; }
+      all = all.concat(respostas[j].data);
+    }
   }
   return all;
 }
 
-// Busca paginada de despesas (fato_despesas) — mesmo padrão do fato_vendas
-async function fetchFatoDespesas(clienteId){
-  var all = [], from = 0, pageSize = 1000;
-  while (true) {
-    var res = await sb.from('fato_despesas')
-      .select('competencia,nu_conta,conta,sinal,valor')
-      .eq('cliente_id', clienteId)
-      .range(from, from + pageSize - 1);
-    if (res.error) { console.error('fetchFatoDespesas', res.error); break; }
-    var data = res.data;
-    if (!data || !data.length) break;
-    all = all.concat(data);
-    if (data.length < pageSize) break;
-    from += pageSize;
-  }
-  return all;
+function fetchFatoVendas(clienteId){
+  return fetchPaginado('fato_vendas',
+    'competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem,valor_gb,valor_total',
+    clienteId);
 }
+
+function fetchFatoDespesas(clienteId){
+  return fetchPaginado('fato_despesas', 'competencia,nu_conta,conta,sinal,valor', clienteId);
+}
+
 
 // Agrega item-a-item em canal/categoria/volume por mês + ranking de produtos.
 // Só considera tipo_operacao = 'venda' (bonificações e devoluções ficam fora
