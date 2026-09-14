@@ -373,7 +373,8 @@ async function fetchPaginado(tabela, colunas, clienteId, pageSize, maxConcorrenc
     for (var k = 0; k < maxConcorrencia; k++) offsets.push(from + k * pageSize);
 
     var respostas = await Promise.all(offsets.map(function(o){
-      return sb.from(tabela).select(colunas).eq('cliente_id', clienteId).range(o, o + pageSize - 1);
+      return sb.from(tabela).select(colunas).eq('cliente_id', clienteId)
+        .order('id', {ascending:true}).range(o, o + pageSize - 1);
     }));
 
     for (var j = 0; j < respostas.length; j++) {
