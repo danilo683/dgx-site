@@ -352,27 +352,26 @@ function normGrupo(g){
   return 'outros';
 }
 
-// Busca paginada — sequencial (uma página por vez), mesmo comportamento do
-// código original, só com .order('id') explícito para garantir ordem
-// estável entre páginas. Chegamos a tentar paralelizar isso, mas causou
-// cortes de dados (MT e MG parando antes do mês real mais recente) — para
-// um dashboard financeiro em produção, correção vem antes de velocidade
-// aqui. A parte segura que continua paralela é o Promise.all lá em
-// carregarDadosHawks(), entre vendas/despesas/DFC (tabelas independentes).
+// Busca paginada por CURSOR (id > último visto), não por OFFSET (range).
+// Paginação por OFFSET (range(from, from+999)) degrada conforme o offset
+// cresce — o Postgres precisa escanear e descartar todas as linhas
+// anteriores a cada página. Para a MG (~58 mil linhas em fato_vendas) isso
+// aparentemente estava batendo um timeout de consulta lá por volta da 20ª
+// página (~abril), fazendo a busca parar ali sem avisar. Paginação por
+// cursor busca sempre "a próxima leva depois deste id" — sempre rápida,
+// independente de estarmos na página 1 ou na página 59.
 async function fetchPaginado(tabela, colunas, clienteId, pageSize){
   pageSize = pageSize || 1000;
-  var all = [], from = 0;
+  var colunasComId = (','+colunas+',').indexOf(',id,') === -1 ? colunas + ',id' : colunas;
+  var all = [], lastId = 0;
   while (true) {
-    var res = await sb.from(tabela).select(colunas).eq('cliente_id', clienteId)
-      .order('id', {ascending:true}).range(from, from + pageSize - 1);
+    var res = await sb.from(tabela).select(colunasComId).eq('cliente_id', clienteId)
+      .gt('id', lastId).order('id', {ascending:true}).limit(pageSize);
     if (res.error) { console.error('fetchPaginado:'+tabela, res.error); break; }
     var dados = res.data || [];
-    if (!dados.length) break; // só termina quando a página vem REALMENTE vazia
+    if (!dados.length) break; // só termina quando não vem mais nenhuma linha
     all = all.concat(dados);
-    from += dados.length; // avança pelo que veio de fato, não pelo pageSize pedido
-    // (se o Supabase devolver menos linhas que pageSize por algum limite de
-    // configuração — "Max Rows" em Settings → API — ainda assim continuamos
-    // buscando; parar em "veio menos que o pedido" foi o bug real dos cortes)
+    lastId = dados[dados.length - 1].id;
   }
   return all;
 }
@@ -386,6 +385,7 @@ function fetchFatoVendas(clienteId){
 function fetchFatoDespesas(clienteId){
   return fetchPaginado('fato_despesas', 'competencia,nu_conta,conta,sinal,valor', clienteId);
 }
+
 
 
 
