@@ -131,6 +131,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-pos{color:#00D4DA!important}
 .dfc-neg{color:#C8B89A!important}
 .dfc-tbl tr.dfc-tot td.dfc-pos,.dfc-tbl tr.dfc-tot td.dfc-neg{color:#0A1520!important}
+.disp-input{font-size:12px;padding:5px 8px;border-radius:6px;border:0.5px solid #1F3044;background:#0D1B2E;color:#E2EAF4;outline:none;font-family:inherit;width:100px;text-align:right}
+.disp-input-obs{width:190px;text-align:left}
+.disp-save-btn{font-size:12px;font-weight:600;padding:8px 18px;border-radius:6px;border:none;cursor:pointer;background:#00B4D8;color:#fff;transition:background .15s}
+.disp-save-btn:hover{background:#00D4DA}
+.disp-note{font-size:10px;color:#4A6580;margin-top:.5rem}
+.disp-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px}
+.disp-section-label{font-size:10px;font-weight:700;color:#6B8BAA;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem;display:flex;align-items:center;gap:10px}
+.disp-section-label::after{content:'';flex:1;height:0.5px;background:#1F3044}
+.disp-atual-line{font-size:12px;color:#8BA0B0;margin-bottom:1rem}
+.disp-atual-line strong{color:#E2EAF4;font-size:15px;font-weight:600}
+.disp-cards-row{display:flex;align-items:stretch;gap:0;margin-bottom:1.25rem;flex-wrap:wrap}
+.disp-card{background:#162230;border:0.5px solid #1F3044;border-radius:12px;padding:1rem 1.1rem;flex:1 1 240px;min-width:220px;display:flex;flex-direction:column;gap:8px}
+.disp-chevron{display:flex;align-items:center;justify-content:center;color:#3A5570;font-size:22px;padding:0 6px;flex:0 0 auto}
+.disp-card-head{display:flex;justify-content:space-between;align-items:baseline}
+.disp-card-head>span:first-child{font-size:14px;font-weight:700;color:#00D4DA;text-transform:uppercase;letter-spacing:.04em}
+.disp-card-mes{font-size:10px;color:#6B8BAA}
+.disp-card-sub{font-size:9.5px;color:#4A6580;text-transform:uppercase;letter-spacing:.06em}
+.disp-itens{display:flex;flex-direction:column;gap:5px;margin:2px 0}
+.disp-item{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:#8BA0B0}
+.disp-item span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.disp-pos{color:#2ECC71;font-weight:600;white-space:nowrap}
+.disp-neg{color:#C8B89A;font-weight:600;white-space:nowrap}
+.disp-total-row{display:flex;justify-content:space-between;font-size:11px;color:#6B8BAA;border-top:0.5px solid #1F3044;padding-top:8px;font-weight:600}
+.disp-total-row span:last-child{color:#E2EAF4}
+.disp-pressao{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6B8BAA}
+.disp-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid;text-transform:uppercase;letter-spacing:.03em}
+.disp-disponivel-row{display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid #1F3044;padding-top:8px;margin-top:2px}
+.disp-disponivel-row span:first-child{font-size:10px;color:#6B8BAA;text-transform:uppercase;letter-spacing:.05em}
+.disp-disponivel-val{font-size:18px;font-weight:700;color:#00D4DA}
 .v-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px}
 .v-table thead th{padding:7px 10px;background:#0D1B2E;color:#8BA0B0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;text-align:right;white-space:nowrap;border-bottom:1px solid #e5e9ef}
 .v-table thead th:first-child{text-align:left;position:sticky;left:0;background:#f0f2f5;z-index:1}
@@ -1986,8 +2015,8 @@ function rotuloMes(chave){
   return MESES_LABELS[d.mes] + '/' + String(d.ano).slice(2);
 }
 
-function dfcHTML(){return'<div class="dfc-nav"><button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button><button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button></div><div id="dfc-view-anual"></div><div id="dfc-view-mensal" style="display:none"></div><div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';}
-function dfcShowView(v){document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});document.getElementById('dfc-btn-'+v).classList.add('active');document.getElementById('dfc-view-anual').style.display=v==='anual'?'':'none';document.getElementById('dfc-view-mensal').style.display=v==='mensal'?'':'none';if(v==='anual')renderDFCAnual();else renderDFCMensal();}
+function dfcHTML(){return'<div class="dfc-nav"><button class="dfc-nav-btn" id="dfc-btn-anual" onclick="dfcShowView(\'anual\')">Anual</button><button class="dfc-nav-btn" id="dfc-btn-mensal" onclick="dfcShowView(\'mensal\')">Mensal</button><button class="dfc-nav-btn" id="dfc-btn-disponibilidades" onclick="dfcShowView(\'disponibilidades\')">Disponibilidades</button></div><div id="dfc-view-anual"></div><div id="dfc-view-mensal" style="display:none"></div><div id="dfc-view-disponibilidades" style="display:none"></div><div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';}
+function dfcShowView(v){document.querySelectorAll('.dfc-nav-btn').forEach(function(b){b.classList.remove('active');});document.getElementById('dfc-btn-'+v).classList.add('active');document.getElementById('dfc-view-anual').style.display=v==='anual'?'':'none';document.getElementById('dfc-view-mensal').style.display=v==='mensal'?'':'none';document.getElementById('dfc-view-disponibilidades').style.display=v==='disponibilidades'?'':'none';if(v==='anual')renderDFCAnual();else if(v==='mensal')renderDFCMensal();else renderDFCDisponibilidades();}
 
 function renderDFCAnual(){
   var el=document.getElementById('dfc-view-anual');
@@ -2106,6 +2135,262 @@ function renderDFCMensalAtualiza(){
   setTimeout(function(){buildTabelaMensal(d,c,temDados,mesLabel);},80);
 }
 function buildTabelaMensal(d,c,temDados,mesLabel){function rowM(lbl,val,cls){cls=cls||'';return'<tr class="'+cls+'"><td>'+lbl+'</td><td'+tcClass(val)+'>'+(val===null||val===undefined?'\u2014':fv(val))+'</td></tr>';}var h='<thead><tr><th style="min-width:220px;text-align:left">Linha</th><th>'+mesLabel+'</th></tr></thead><tbody>';if(!temDados){h+='<tr><td colspan="2" style="text-align:center;color:#4A6580;padding:2rem">Sem dados para este m\u00eas</td></tr>';h+='</tbody>';document.getElementById('dfc-tabela-mensal').innerHTML=h;return;}h+='<tr class="dfc-grp"><td colspan="2">Atividade Operacional</td></tr>';h+=rowM('Recebimentos de vendas',d.recVendas);h+=rowM('Pgto. compras Truss',d.pgtoTruss);h+=rowM('Pgto. fornecedores n\u00e3o Truss',d.pgtoNaoTruss);h+=rowM('Pgto. pessoal',d.pgtoPessoal);h+=rowM('Pgto. marketing',d.pgtoMkt);h+=rowM('Pgto. comiss\u00f5es',d.pgtoComissoes);h+=rowM('Pgto. log\u00edstica',d.pgtoLogistica);h+=rowM('Pgto. ocupa\u00e7\u00e3o',d.pgtoOcupacao);h+=rowM('Pgto. gerais',d.pgtoGerais);h+=rowM('Servi\u00e7os de terceiros',d.pgtoTerceiros);h+=rowM('Pgto. impostos',d.pgtoImpostos);h+=rowM('= FC Operacional',c.fcOp,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="2">Atividade de Investimento</td></tr>';h+=rowM('Entradas de investimento',d.entInvest);h+=rowM('Sa\u00eddas de investimento',d.saiInvest);h+=rowM('= FC Investimento',c.fcInv,'dfc-sub');h+='<tr class="dfc-grp"><td colspan="2">Atividade de Financiamento</td></tr>';h+=rowM('Empr\u00e9stimos tomados',d.emprestimos);h+=rowM('Pgto. financiamentos',d.pgtoFinanc);h+=rowM('= FC Financiamento',c.fcFin,'dfc-sub');h+=rowM('= Varia\u00e7\u00e3o l\u00edquida de caixa',c.liquido,'dfc-tot');h+=rowM('Saldo inicial',d.caixaInicial,'dfc-sub');h+=rowM('Saldo final',c.caixaFinal,'dfc-sub');h+='</tbody>';document.getElementById('dfc-tabela-mensal').innerHTML=h;}
+
+// ══════════════════════════════════════════════
+// DFC — DISPONIBILIDADES (Mapa 30/60/90 + Projeções editáveis)
+// Base: dash_dfc (mesma fonte do DFC Anual/Mensal) + dfc_projecoes_ajustes
+// (ajustes manuais opcionais lançados por Danilo, por filial/mês).
+// Metodologia: média móvel dos últimos 3 meses realizados como linha de
+// base, projetada para os 3 próximos meses de competência (rótulo
+// "30/60/90 dias" — como o DFC é mensal, não há vencimento diário aqui).
+// ══════════════════════════════════════════════
+var DISP_DADOS = {mt:{}, mg:{}};
+var DISP_MESES = {mt:[], mg:[]};
+var AJUSTES = {mt:{}, mg:{}};
+var DISP_CARREGADO = false;
+var DISP_VIEW = 'mapa';
+var DISP_FIL = FILIAL;
+var DISP_PROJ_ATUAL = null;
+
+function dispParseComp(dateStr){var p=String(dateStr).split('-');return{ano:parseInt(p[0],10),mes:parseInt(p[1],10)-1};}
+function rotuloMesChave(k){var L=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var ano=k.slice(0,4),mes=parseInt(k.slice(5,7),10)-1;return L[mes]+'/'+ano.slice(2);}
+
+async function carregarDisponibilidades(){
+  var cols='cliente_id,competencia,caixa_inicial,rec_vendas,juros_multas,outras_ent_op,'
+    +'pgto_truss,pgto_nao_truss,pgto_pessoal,pgto_mkt,pgto_comissoes,pgto_logistica,'
+    +'pgto_ocupacao,pgto_gerais,pgto_terceiros,pgto_impostos,ent_invest,sai_invest,'
+    +'emprestimos,pgto_financ';
+  var resultados=await Promise.all([
+    sb.from('dash_dfc').select(cols).in('cliente_id',['hawks_mt','hawks_mg']).order('competencia',{ascending:true}),
+    sb.from('dfc_projecoes_ajustes').select('*').in('cliente_id',['hawks_mt','hawks_mg'])
+  ]);
+  var dfcRes=resultados[0], ajRes=resultados[1];
+  DISP_DADOS={mt:{},mg:{}}; DISP_MESES={mt:[],mg:[]};
+  (dfcRes.data||[]).forEach(function(r){
+    var fil=r.cliente_id==='hawks_mg'?'mg':'mt';
+    var c=dispParseComp(r.competencia);
+    var chave=c.ano+'-'+String(c.mes+1).padStart(2,'0');
+    DISP_MESES[fil].push(chave);
+    DISP_DADOS[fil][chave]={
+      ano:c.ano, mes:c.mes,
+      caixaInicial:n(r.caixa_inicial), recVendas:n(r.rec_vendas)||0,
+      jurosMultas:n(r.juros_multas)||0, outrasEnt:n(r.outras_ent_op)||0,
+      pgtoTruss:n(r.pgto_truss)||0, pgtoNaoTruss:n(r.pgto_nao_truss)||0,
+      pgtoPessoal:n(r.pgto_pessoal)||0, pgtoMkt:n(r.pgto_mkt)||0,
+      pgtoComissoes:n(r.pgto_comissoes)||0, pgtoLogistica:n(r.pgto_logistica)||0,
+      pgtoOcupacao:n(r.pgto_ocupacao)||0, pgtoGerais:n(r.pgto_gerais)||0,
+      pgtoTerceiros:n(r.pgto_terceiros)||0, pgtoImpostos:n(r.pgto_impostos)||0,
+      entInvest:n(r.ent_invest)||0, saiInvest:n(r.sai_invest)||0,
+      emprestimos:n(r.emprestimos)||0, pgtoFinanc:n(r.pgto_financ)||0
+    };
+  });
+  ['mt','mg'].forEach(function(f){
+    DISP_MESES[f].sort(function(a,b){var da=DISP_DADOS[f][a],db=DISP_DADOS[f][b];return(da.ano-db.ano)||(da.mes-db.mes);});
+  });
+  AJUSTES={mt:{},mg:{}};
+  (ajRes.data||[]).forEach(function(r){
+    var fil=r.cliente_id==='hawks_mg'?'mg':'mt';
+    var c=dispParseComp(r.competencia);
+    var chave=c.ano+'-'+String(c.mes+1).padStart(2,'0');
+    AJUSTES[fil][chave]={entradas:n(r.ajuste_entradas)||0, saidas:n(r.ajuste_saidas)||0, obs:r.observacao||''};
+  });
+}
+
+function dispMediaMovel(fil){
+  var meses=(DISP_MESES[fil]||[]).slice(-3);
+  if(!meses.length) return {entradas:0,saidas:0,liquido:0};
+  var somaEnt=0,somaSai=0,somaLiq=0;
+  meses.forEach(function(k){var c=calcDFC(DISP_DADOS[fil][k]);somaEnt+=c.entTotal;somaSai+=c.saiGrandTotal;somaLiq+=c.liquido;});
+  return {entradas:somaEnt/meses.length, saidas:somaSai/meses.length, liquido:somaLiq/meses.length};
+}
+function dispSaldoAtual(fil){
+  var meses=DISP_MESES[fil]||[];
+  if(!meses.length) return null;
+  var k=meses[meses.length-1];
+  var c=calcDFC(DISP_DADOS[fil][k]);
+  return {chave:k, saldo:c.caixaFinal};
+}
+function dispProximosMeses(chaveBase,qtd){
+  var ano=parseInt(chaveBase.slice(0,4),10), mes=parseInt(chaveBase.slice(5,7),10)-1;
+  var arr=[];
+  for(var i=1;i<=qtd;i++){var m=mes+i,y=ano+Math.floor(m/12),mm=((m%12)+12)%12;arr.push(y+'-'+String(mm+1).padStart(2,'0'));}
+  return arr;
+}
+function dispAjusteDoMes(fil,chave){var a=AJUSTES[fil]&&AJUSTES[fil][chave];return a?a:{entradas:0,saidas:0,obs:''};}
+
+function projetarFilial(fil,qtdMeses){
+  var atual=dispSaldoAtual(fil);
+  if(!atual) return {baseChave:null,baseSaldo:0,meses:[]};
+  var media=dispMediaMovel(fil);
+  var chaves=dispProximosMeses(atual.chave,qtdMeses);
+  var saldo=atual.saldo, resultado=[];
+  chaves.forEach(function(k){
+    var aj=dispAjusteDoMes(fil,k);
+    var entradas=media.entradas+aj.entradas, saidas=media.saidas+aj.saidas;
+    var liquido=entradas-saidas;
+    saldo=saldo+liquido;
+    resultado.push({chave:k, entradas:entradas, saidas:saidas, liquido:liquido, saldo:saldo, ajusteEnt:aj.entradas, ajusteSai:aj.saidas, obs:aj.obs});
+  });
+  return {baseChave:atual.chave, baseSaldo:atual.saldo, mediaEntradas:media.entradas, mediaSaidas:media.saidas, mediaLiquido:media.liquido, meses:resultado};
+}
+function projetarConsolidado(qtdMeses){
+  var mt=projetarFilial('mt',qtdMeses), mg=projetarFilial('mg',qtdMeses);
+  var qtd=Math.max(mt.meses.length,mg.meses.length);
+  var meses=[];
+  for(var i=0;i<qtd;i++){
+    var m1=mt.meses[i],m2=mg.meses[i];
+    meses.push({
+      chave:(m1&&m1.chave)||(m2&&m2.chave),
+      entradas:(m1?m1.entradas:0)+(m2?m2.entradas:0),
+      saidas:(m1?m1.saidas:0)+(m2?m2.saidas:0),
+      liquido:(m1?m1.liquido:0)+(m2?m2.liquido:0),
+      saldo:(m1?m1.saldo:0)+(m2?m2.saldo:0)
+    });
+  }
+  return {baseChave:mt.baseChave||mg.baseChave, baseSaldo:(mt.baseSaldo||0)+(mg.baseSaldo||0), mediaEntradas:(mt.mediaEntradas||0)+(mg.mediaEntradas||0), mediaSaidas:(mt.mediaSaidas||0)+(mg.mediaSaidas||0), mediaLiquido:(mt.mediaLiquido||0)+(mg.mediaLiquido||0), meses:meses};
+}
+
+function renderDFCDisponibilidades(){
+  var el=document.getElementById('dfc-view-disponibilidades');
+  if(!DISP_CARREGADO){
+    el.innerHTML='<div class="dfc-section-label">Carregando\u2026</div>';
+    carregarDisponibilidades().then(function(){DISP_CARREGADO=true;renderDFCDisponibilidades();});
+    return;
+  }
+  el.innerHTML=dispHTML();
+  dispRenderConteudo();
+}
+function dispHTML(){
+  return '<div class="disp-topbar"><div class="dfc-nav" id="disp-sub-nav">'
+    +'<button class="dfc-nav-btn'+(DISP_VIEW==='mapa'?' active':'')+'" onclick="dispShowView(\'mapa\',this)">Mapa 30/60/90</button>'
+    +'<button class="dfc-nav-btn'+(DISP_VIEW==='projecoes'?' active':'')+'" onclick="dispShowView(\'projecoes\',this)">Proje\u00e7\u00f5es</button>'
+    +'</div><div class="filial-switch" id="dispFilialSwitch">'
+    +'<button class="filial-btn'+(DISP_FIL==='mt'?' active':'')+'" onclick="dispSetFilial(\'mt\',this)">MT</button>'
+    +'<button class="filial-btn'+(DISP_FIL==='mg'?' active':'')+'" onclick="dispSetFilial(\'mg\',this)">MG</button>'
+    +'<button class="filial-btn'+(DISP_FIL==='cons'?' active':'')+'" onclick="dispSetFilial(\'cons\',this)">Consolidado</button>'
+    +'</div></div><div id="disp-conteudo"></div>';
+}
+function dispShowView(v,el){DISP_VIEW=v;document.querySelectorAll('#disp-sub-nav .dfc-nav-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');dispRenderConteudo();}
+function dispSetFilial(f,el){DISP_FIL=f;document.querySelectorAll('#dispFilialSwitch .filial-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');dispRenderConteudo();}
+
+function dispRenderConteudo(){
+  var proj=DISP_FIL==='cons'?projetarConsolidado(3):projetarFilial(DISP_FIL,3);
+  DISP_PROJ_ATUAL=proj;
+  var host=document.getElementById('disp-conteudo');
+  if(!proj||!proj.meses.length){host.innerHTML='<div class="dfc-section-label">Sem dados suficientes para gerar a proje\u00e7\u00e3o nesta filial.</div>';return;}
+  host.innerHTML=DISP_VIEW==='mapa'?dispMapaHTML(proj):dispProjecoesHTML(proj);
+  if(DISP_VIEW==='mapa')setTimeout(function(){dispRenderChartMapa(proj);},50);
+}
+var CAT_LABELS={vendas:'Recebimentos de vendas',outrasEnt:'Outras entradas',fornecedores:'Fornecedores',pessoal:'Folha de pagamento',impostos:'Tributos',despesasGerais:'Despesas operacionais',investimentos:'Investimentos',financiamentos:'Financiamentos'};
+function dispMediaCategorias(fil){
+  var meses=(DISP_MESES[fil]||[]).slice(-3);
+  var cats={vendas:0,outrasEnt:0,fornecedores:0,pessoal:0,impostos:0,despesasGerais:0,investimentos:0,financiamentos:0};
+  if(!meses.length) return cats;
+  meses.forEach(function(k){
+    var d=DISP_DADOS[fil][k];
+    cats.vendas+=d.recVendas;
+    cats.outrasEnt+=d.jurosMultas+d.outrasEnt;
+    cats.fornecedores+=d.pgtoTruss+d.pgtoNaoTruss;
+    cats.pessoal+=d.pgtoPessoal;
+    cats.impostos+=d.pgtoImpostos;
+    cats.despesasGerais+=d.pgtoMkt+d.pgtoComissoes+d.pgtoLogistica+d.pgtoOcupacao+d.pgtoGerais+d.pgtoTerceiros;
+    cats.investimentos+=d.entInvest+d.saiInvest;
+    cats.financiamentos+=d.emprestimos+d.pgtoFinanc;
+  });
+  Object.keys(cats).forEach(function(k){cats[k]=cats[k]/meses.length;});
+  return cats;
+}
+function dispSomarCategorias(a,b){var r={};Object.keys(a).forEach(function(k){r[k]=(a[k]||0)+(b?(b[k]||0):0);});return r;}
+function dispTopCategorias(cats,qtd){
+  return Object.keys(cats).map(function(k){return{key:k,label:CAT_LABELS[k],val:cats[k]};})
+    .filter(function(it){return Math.abs(it.val)>=1;})
+    .sort(function(a,b){return Math.abs(b.val)-Math.abs(a.val);})
+    .slice(0,qtd);
+}
+function dispPressao(entradas,saidas){
+  var ratio=entradas>0?saidas/entradas:(saidas>0?2:0);
+  if(ratio<=0.75) return {label:'Controlada',cor:'#2ECC71'};
+  if(ratio<=0.95) return {label:'Moderada',cor:'#C8B89A'};
+  return {label:'Aten\u00e7\u00e3o',cor:'#e74c3c'};
+}
+function dispMiniSpark(v0,v1,cor){
+  var w=100,h=28,pad=6,min=Math.min(v0,v1),max=Math.max(v0,v1),range=(max-min)||1;
+  var y0=h-pad-((v0-min)/range)*(h-2*pad), y1=h-pad-((v1-min)/range)*(h-2*pad);
+  return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'
+    +'<line x1="4" y1="'+y0+'" x2="'+(w-4)+'" y2="'+y1+'" stroke="'+cor+'" stroke-width="2" stroke-dasharray="4,3"/>'
+    +'<circle cx="4" cy="'+y0+'" r="3" fill="'+cor+'"/><circle cx="'+(w-4)+'" cy="'+y1+'" r="3.5" fill="'+cor+'"/></svg>';
+}
+function dispMapaHTML(proj){
+  var labels=['30 dias','60 dias','90 dias'];
+  var catsBase = DISP_FIL==='cons' ? dispSomarCategorias(dispMediaCategorias('mt'),dispMediaCategorias('mg')) : dispMediaCategorias(DISP_FIL);
+  var pontos=[proj.baseSaldo].concat(proj.meses.map(function(m){return m.saldo;}));
+  var cardsHtml=proj.meses.map(function(m,i){
+    var itens=dispTopCategorias(catsBase,4);
+    var linhasItens=itens.map(function(it){return '<div class="disp-item"><span>'+it.label+'</span><span class="'+(it.val>=0?'disp-pos':'disp-neg')+'">'+(it.val>=0?'+':'')+fmtD(it.val)+'</span></div>';}).join('');
+    if(m.ajusteEnt||m.ajusteSai){
+      var ajLiq=m.ajusteEnt-m.ajusteSai;
+      linhasItens+='<div class="disp-item"><span>Ajuste manual lan\u00e7ado</span><span class="'+(ajLiq>=0?'disp-pos':'disp-neg')+'">'+(ajLiq>=0?'+':'')+fmtD(ajLiq)+'</span></div>';
+    }
+    var press=dispPressao(m.entradas,m.saidas);
+    var spark=dispMiniSpark(pontos[i],pontos[i+1],press.cor);
+    return '<div class="disp-card">'
+      +'<div class="disp-card-head"><span>'+labels[i]+'</span><span class="disp-card-mes">'+rotuloMesChave(m.chave)+'</span></div>'
+      +'<div class="disp-card-sub">Compromissos e movimenta\u00e7\u00f5es</div>'
+      +'<div class="disp-itens">'+linhasItens+'</div>'
+      +'<div class="disp-total-row"><span>Total comprometido</span><span>'+fmtD(Math.abs(m.saidas))+'</span></div>'
+      +'<div class="disp-pressao"><span>Press\u00e3o projetada</span><span class="disp-badge" style="color:'+press.cor+';border-color:'+press.cor+'">'+press.label+'</span></div>'
+      +spark
+      +'<div class="disp-disponivel-row"><span>Dispon\u00edvel projetado</span><span class="disp-disponivel-val">'+fmtD(m.saldo)+'</span></div>'
+    +'</div>';
+  }).join('<div class="disp-chevron">\u203a</div>');
+  return '<div class="disp-section-label">Mapa 30/60/90 \u2014 compromissos e disponibilidade de caixa</div>'
+    +'<div class="disp-atual-line">Saldo atual de caixa: <strong>'+fmtD(proj.baseSaldo)+'</strong>'+(proj.baseChave?(' \u00b7 posi\u00e7\u00e3o ao final de '+rotuloMesChave(proj.baseChave)):'')+'</div>'
+    +'<div class="disp-cards-row">'+cardsHtml+'</div>'
+    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Trajet\u00f3ria do dispon\u00edvel projetado</div><div class="dfc-chart-sub">Saldo de hoje at\u00e9 +90 dias (m\u00e9dia m\u00f3vel de 3 meses'+(DISP_FIL==='cons'?', MT + MG':'')+', com ajustes manuais quando lan\u00e7ados)</div><div style="height:200px;position:relative"><canvas id="dispChartSaldo"></canvas></div></div>'
+    +'<div class="disp-note">* O DFC \u00e9 mensal; \u201830/60/90 dias\u2019 corresponde aos 3 pr\u00f3ximos meses de compet\u00eancia ap\u00f3s '+(proj.baseChave?rotuloMesChave(proj.baseChave):'o \u00faltimo m\u00eas realizado')+', n\u00e3o a um c\u00e1lculo di\u00e1rio por vencimento de t\u00edtulo. Os itens de cada card usam a m\u00e9dia dos \u00faltimos 3 meses por categoria; a press\u00e3o projetada compara sa\u00eddas e entradas esperadas do per\u00edodo.</div>';
+}
+function dispRenderChartMapa(proj){
+  var c=Chart.getChart('dispChartSaldo');if(c)c.destroy();
+  var canvas=document.getElementById('dispChartSaldo');if(!canvas)return;
+  var labels=['Hoje','30 dias','60 dias','90 dias'];
+  var dados=[proj.baseSaldo].concat(proj.meses.map(function(m){return m.saldo;}));
+  new Chart(canvas,{type:'line',data:{labels:labels,datasets:[{data:dados,borderColor:CYAN,backgroundColor:'rgba(0,212,218,0.08)',fill:true,tension:0.3,pointRadius:5,pointBackgroundColor:CYAN,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC,callback:function(v){return fmtD(v);}}}}}});
+}
+function dispProjecoesHTML(proj){
+  if(DISP_FIL==='cons'){
+    return '<div class="dfc-section-label">Ajustes manuais s\u00e3o definidos por filial</div>'
+      +'<div style="font-size:12px;color:#8BA0B0;margin-bottom:1rem">Selecione MT ou MG acima para editar as premissas de entradas/sa\u00eddas esperadas. Abaixo, a proje\u00e7\u00e3o consolidada resultante (MT + MG).</div>'
+      +dispMapaHTML(proj);
+  }
+  var linhas=proj.meses.map(function(m,i){
+    return '<tr><td style="text-align:left">'+rotuloMesChave(m.chave)+'</td>'
+      +'<td>'+fmtD(proj.mediaEntradas)+'</td><td>'+fmtD(proj.mediaSaidas)+'</td>'
+      +'<td><input type="number" class="disp-input" id="disp-aj-ent-'+i+'" value="'+m.ajusteEnt+'" step="100"></td>'
+      +'<td><input type="number" class="disp-input" id="disp-aj-sai-'+i+'" value="'+m.ajusteSai+'" step="100"></td>'
+      +'<td>'+fmtD(m.saldo)+'</td>'
+      +'<td><input type="text" class="disp-input disp-input-obs" id="disp-aj-obs-'+i+'" value="'+escapeHtml(m.obs||'')+'" placeholder="Observa\u00e7\u00e3o (opcional)"></td></tr>';
+  }).join('');
+  return '<div class="dfc-section-label">Premissas de proje\u00e7\u00e3o \u2014 '+(DISP_FIL==='mg'?'MG':'MT')+'</div>'
+    +'<div style="font-size:12px;color:#8BA0B0;margin-bottom:1rem">Base: m\u00e9dia m\u00f3vel dos \u00faltimos 3 meses realizados. Use os ajustes para somar ou descontar valores esperados (ex.: um investimento previsto, um pagamento extraordin\u00e1rio) sem alterar o hist\u00f3rico do DFC.</div>'
+    +'<div class="dfc-outer"><table class="dfc-tbl"><thead><tr><th style="text-align:left">M\u00eas</th><th>Entradas m\u00e9dia</th><th>Sa\u00eddas m\u00e9dia</th><th>Ajuste entradas (R$)</th><th>Ajuste sa\u00eddas (R$)</th><th>Saldo projetado</th><th>Observa\u00e7\u00e3o</th></tr></thead><tbody>'+linhas+'</tbody></table></div>'
+    +'<div style="display:flex;justify-content:flex-end;margin-top:.75rem"><button class="disp-save-btn" onclick="dispSalvarAjustes()">Salvar ajustes</button></div>';
+}
+async function dispSalvarAjustes(){
+  if(!DISP_PROJ_ATUAL||DISP_FIL==='cons')return;
+  var clienteId='hawks_'+DISP_FIL;
+  var linhas=DISP_PROJ_ATUAL.meses.map(function(m,i){
+    var ent=parseFloat(document.getElementById('disp-aj-ent-'+i).value)||0;
+    var sai=parseFloat(document.getElementById('disp-aj-sai-'+i).value)||0;
+    var obs=document.getElementById('disp-aj-obs-'+i).value.trim()||null;
+    return {cliente_id:clienteId, competencia:m.chave+'-01', ajuste_entradas:ent, ajuste_saidas:sai, observacao:obs};
+  });
+  var {error}=await sb.from('dfc_projecoes_ajustes').upsert(linhas,{onConflict:'cliente_id,competencia'});
+  if(error){alert('Erro ao salvar ajustes: '+error.message);return;}
+  DISP_CARREGADO=false;
+  await carregarDisponibilidades();
+  DISP_CARREGADO=true;
+  dispRenderConteudo();
+}
 </script>
 </body>
 </html>
