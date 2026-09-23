@@ -1128,7 +1128,7 @@ function produtosHTML(){
     +'</div>'
     +'<div class="chart-card">'
     +'<div class="chart-title">Faturamento \u00d7 Varia\u00e7\u00e3o de Margem vs. GB</div>'
-    +'<div class="chart-sub">Eixo X: % do faturamento da categoria \u00b7 Eixo Y: margem do produto \u2212 Margem GB (p.p.) \u00b7 Tamanho da bolha: faturamento em R$</div>'
+    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.) \u00b7 Eixo Y: % do faturamento da categoria \u00b7 Tamanho da bolha: faturamento em R$</div>'
     +'<div style="height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
     +'</div>'
     +'<div class="chart-sub" style="margin-top:-4px">Mostrando os '+produtosState.top+' produtos de maior faturamento na categoria/m\u00eas selecionados.</div>'
@@ -1195,15 +1195,15 @@ function renderProdutosCharts(){
       return 6 + t * 28; // 6px a 34px
     }
     var pontos = top.filter(function(p){ return p.variacaoPP !== null; }).map(function(p){
-      return { x:p.pctFaturamento, y:p.variacaoPP, r:raio(p.receita), _p:p };
+      return { x:p.variacaoPP, y:p.pctFaturamento, r:raio(p.receita), _p:p };
     });
     new Chart(document.getElementById('chartProdutosScatter'),{
       type:'bubble',
       data:{ datasets:[{
         label:'Produtos',
         data:pontos,
-        backgroundColor:pontos.map(function(pt){ return pt.y>=0 ? 'rgba(46,204,113,0.65)' : 'rgba(192,57,43,0.65)'; }),
-        borderColor:pontos.map(function(pt){ return pt.y>=0 ? '#2ECC71' : '#c0392b'; }),
+        backgroundColor:pontos.map(function(pt){ return pt.x>=0 ? 'rgba(46,204,113,0.65)' : 'rgba(192,57,43,0.65)'; }),
+        borderColor:pontos.map(function(pt){ return pt.x>=0 ? '#2ECC71' : '#c0392b'; }),
         borderWidth:1
       }] },
       options:{ responsive:true, maintainAspectRatio:false,
@@ -1213,8 +1213,8 @@ function renderProdutosCharts(){
             return [p.produto, '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
           } } } },
         scales:{
-          x:{ title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } },
-          y:{ title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } }
+          x:{ title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
+          y:{ title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
         } }
     });
   }
