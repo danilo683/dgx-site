@@ -297,7 +297,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sidebar-section">Comercial</div>
     <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
-    <div class="nav-item disabled"><span class="nav-icon">📦</span>Produtos<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item" id="nav-produtos" onclick="setPage('produtos',this)"><span class="nav-icon">📦</span>Produtos</div>
     <div class="nav-item disabled"><span class="nav-icon">🏭</span>Estoque<span class="nav-badge">Em breve</span></div>
     <div class="sidebar-section">Ferramentas</div>
     <div class="nav-item" id="nav-simulador" onclick="setPage('simulador',this)"><span class="nav-icon">🧮</span>Simulador</div>
@@ -708,10 +708,10 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 });
 function doLogout(){sessionStorage.removeItem('dgxBeautyDemoOk');window.location.reload();}
-var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026'};
+var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',produtos:''};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',simulador:'Simulador'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',simulador:'Simulador',produtos:'An\u00e1lise de Produtos'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -721,6 +721,7 @@ function renderPage(page){
   else if(page==='dfc'){c.innerHTML=dfcHTML();dfcShowView('anual');}
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
   else if(page==='simulador'){c.innerHTML=simuladorHTML();initSimulador();}
+  else if(page==='produtos'){c.innerHTML=produtosHTML();setTimeout(initProdutos,80);}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -1925,6 +1926,172 @@ function initSimulador(){
       {label:'Margem Outra Marca (alvo)', data: cats.map(function(c){return c.margemAlvo;}), backgroundColor:'#c0392b', borderRadius:4}
     ]
   },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#8BA0B0',font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8BA0B0',callback:function(v){return v+'%';}}}}}});
+}
+
+// ══════════════════════════════════════════════
+// ANÁLISE DE PRODUTOS — margem por produto vs. Margem GB, por categoria/mês
+// Fonte: FV_HAWKS (aqui, dados fictícios gerados localmente por
+// gerarFatoVendasFicticio, mesma estrutura de fato_vendas dos clientes
+// reais), filtrado pela filial atual (NY/FL). Categoria = grupo
+// normalizado (normGrupo: hc/pr/co/qu/outros). Margem GB segue a mesma
+// lógica do Simulador (calcularSimuladorCategorias): (Σ valor_gb −
+// Σ cmv_total) / Σ valor_gb — a margem que a filial teria vendendo ao
+// Preço de Tabela (GB) com o CMV real. Margem real do produto =
+// (Σ valor_liquido − Σ cmv_total) / Σ valor_liquido.
+// ══════════════════════════════════════════════
+var produtosState = { mes:null, categoria:'hc', top:25 };
+
+function produtosCategoriasDisponiveis(){
+  return ['hc','pr','co','qu','outros'];
+}
+
+function agregarProdutos(mesKey, categoriaKey){
+  var porProduto = {}; // sku -> {produto, receita, cmv, valorGB}
+  var totReceitaCategoria = 0, totCmvCategoria = 0, totValorGBCategoria = 0;
+
+  FV_HAWKS.forEach(function(r){
+    if (r.tipo_operacao !== 'venda') return;
+    if (!r.competencia || r.competencia.slice(0,7) !== mesKey) return;
+    if (normGrupo(r.grupo) !== categoriaKey) return;
+    var val = parseFloat(r.valor_liquido) || 0;
+    var cmv = parseFloat(r.cmv_total) || 0;
+    var vgb = parseFloat(r.valor_gb) || 0;
+    var sku = r.sku || '(sem SKU)';
+    if (!porProduto[sku]) porProduto[sku] = { produto: r.produto || sku, receita:0, cmv:0, valorGB:0 };
+    var p = porProduto[sku];
+    p.receita += val; p.cmv += cmv; p.valorGB += vgb;
+    totReceitaCategoria += val; totCmvCategoria += cmv; totValorGBCategoria += vgb;
+  });
+
+  var margemGBCategoria = totValorGBCategoria ? (totValorGBCategoria - totCmvCategoria) / totValorGBCategoria : null;
+
+  var lista = Object.keys(porProduto).map(function(sku){
+    var p = porProduto[sku];
+    var margem = p.receita ? (p.receita - p.cmv) / p.receita : 0;
+    var margemGB = p.valorGB ? (p.valorGB - p.cmv) / p.valorGB : margemGBCategoria;
+    return {
+      sku: sku, produto: p.produto, receita: p.receita,
+      margem: margem, margemGB: margemGB,
+      variacaoPP: (margemGB !== null) ? (margem - margemGB) * 100 : null,
+      pctFaturamento: totReceitaCategoria ? (p.receita / totReceitaCategoria * 100) : 0
+    };
+  }).filter(function(p){ return p.receita > 0; })
+    .sort(function(a,b){ return b.receita - a.receita; });
+
+  return { produtos: lista, margemGBCategoria: margemGBCategoria, totalReceita: totReceitaCategoria };
+}
+
+function produtosHTML(){
+  var meses = mesesDisponiveisFV();
+  if (!meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
+  if (!produtosState.mes || meses.indexOf(produtosState.mes) === -1) produtosState.mes = meses[meses.length-1];
+  var CAT_ORDEM = produtosCategoriasDisponiveis();
+  var opMes = meses.map(function(k){ return '<option value="'+k+'"'+(k===produtosState.mes?' selected':'')+'>'+labelMesChave(k)+'</option>'; }).join('');
+  var opCat = CAT_ORDEM.map(function(g){ return '<option value="'+g+'"'+(g===produtosState.categoria?' selected':'')+'>'+GRUPO_LABELS[g]+'</option>'; }).join('');
+  periods.produtos = labelMesChave(produtosState.mes);
+
+  return '<div class="bi-filters">'
+    +'<label>Categoria</label><select id="prod-sel-cat" onchange="produtosMudou()">'+opCat+'</select>'
+    +'<label>M\u00eas</label><select id="prod-sel-mes" onchange="produtosMudou()">'+opMes+'</select>'
+    +'</div>'
+    +'<div class="chart-card">'
+    +'<div class="chart-title">Margem por produto \u2014 <span id="prod-cat-label"></span></div>'
+    +'<div class="chart-sub">Barras: % margem real do produto no m\u00eas \u00b7 Linha pontilhada: % Margem GB da categoria (Pre\u00e7o de Tabela \u2212 CMV real)</div>'
+    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#2ECC71"></span>Acima da Margem GB</span><span class="leg"><span class="leg-dot" style="background:#c0392b"></span>Abaixo da Margem GB</span><span class="leg"><span class="leg-line" style="background:#E2EAF4;border-top:2px dashed #E2EAF4"></span>Margem GB da categoria</span></div>'
+    +'<div style="height:340px;position:relative"><canvas id="chartProdutosMargem"></canvas></div>'
+    +'</div>'
+    +'<div class="chart-card">'
+    +'<div class="chart-title">Faturamento \u00d7 Varia\u00e7\u00e3o de Margem vs. GB</div>'
+    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.) \u00b7 Eixo Y: % do faturamento da categoria \u00b7 Tamanho da bolha: faturamento em R$</div>'
+    +'<div style="height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
+    +'</div>'
+    +'<div class="chart-sub" style="margin-top:-4px">Mostrando os '+produtosState.top+' produtos de maior faturamento na categoria/m\u00eas selecionados \u00b7 Filial '+nomeFilial()+'.</div>'
+    +'<div class="confidential">© 2026 DGX Consulting · Dashboard de demonstra\u00e7\u00e3o (DGX Beauty) \u00b7 Dados fict\u00edcios</div>';
+}
+
+function produtosMudou(){
+  produtosState.categoria = document.getElementById('prod-sel-cat').value;
+  produtosState.mes = document.getElementById('prod-sel-mes').value;
+  periods.produtos = labelMesChave(produtosState.mes);
+  document.getElementById('topbarPeriod').textContent = periods.produtos;
+  renderProdutosCharts();
+}
+
+function initProdutos(){
+  if (!document.getElementById('chartProdutosMargem')) return;
+  renderProdutosCharts();
+}
+
+function fmtPct1(v){ return (v===null||v===undefined) ? '\u2014' : v.toFixed(1)+'%'; }
+
+function renderProdutosCharts(){
+  var res = agregarProdutos(produtosState.mes, produtosState.categoria);
+  var labelEl = document.getElementById('prod-cat-label');
+  if (labelEl) labelEl.textContent = GRUPO_LABELS[produtosState.categoria] + ' \u2014 ' + labelMesChave(produtosState.mes);
+
+  var top = res.produtos.slice(0, produtosState.top);
+  var margemGBCategoriaPct = res.margemGBCategoria !== null ? res.margemGBCategoria*100 : null;
+
+  // ── Gráfico 1: barras (margem real do produto) + linha pontilhada (Margem GB da categoria) ──
+  destroyChart('chartProdutosMargem');
+  if (top.length && margemGBCategoriaPct !== null) {
+    var labels = top.map(function(p){ return p.produto.length>28 ? p.produto.slice(0,26)+'\u2026' : p.produto; });
+    var margens = top.map(function(p){ return p.margem*100; });
+    var cores = margens.map(function(m){ return m>=margemGBCategoriaPct ? '#2ECC71' : '#c0392b'; });
+    new Chart(document.getElementById('chartProdutosMargem'),{
+      type:'bar',
+      data:{ labels:labels, datasets:[
+        { label:'% Margem real do produto', data:margens, backgroundColor:cores, borderRadius:4, order:2 },
+        { label:'% Margem GB (categoria)', data:labels.map(function(){ return margemGBCategoriaPct; }), type:'line', borderColor:'#E2EAF4', borderDash:[6,4], borderWidth:2, pointRadius:0, fill:false, order:1 }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ label:function(c){
+            if (c.datasetIndex===1) return 'Margem GB da categoria: '+fmtPct1(margemGBCategoriaPct);
+            var p = top[c.dataIndex];
+            return ['% Margem: '+fmtPct1(p.margem*100), 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
+          } } } },
+        scales:{
+          x:{ grid:{display:false}, ticks:{ color:'#6B8BAA', font:{size:10}, maxRotation:60, minRotation:40 } },
+          y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+        } }
+    });
+  }
+
+  // ── Gráfico 2: dispersão (bolha) — X: variação vs GB · Y: % faturamento ──
+  destroyChart('chartProdutosScatter');
+  if (top.length) {
+    var receitas = top.map(function(p){ return p.receita; });
+    var rMin = Math.min.apply(null, receitas), rMax = Math.max.apply(null, receitas);
+    function raio(v){
+      if (rMax === rMin) return 14;
+      var t = (v - rMin) / (rMax - rMin);
+      return 6 + t * 28; // 6px a 34px
+    }
+    var pontos = top.filter(function(p){ return p.variacaoPP !== null; }).map(function(p){
+      return { x:p.variacaoPP, y:p.pctFaturamento, r:raio(p.receita), _p:p };
+    });
+    new Chart(document.getElementById('chartProdutosScatter'),{
+      type:'bubble',
+      data:{ datasets:[{
+        label:'Produtos',
+        data:pontos,
+        backgroundColor:pontos.map(function(pt){ return pt.x>=0 ? 'rgba(46,204,113,0.65)' : 'rgba(192,57,43,0.65)'; }),
+        borderColor:pontos.map(function(pt){ return pt.x>=0 ? '#2ECC71' : '#c0392b'; }),
+        borderWidth:1
+      }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ label:function(c){
+            var p = c.raw._p;
+            return [p.produto, 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
+          } } } },
+        scales:{
+          x:{ title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
+          y:{ title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+        } }
+    });
+  }
 }
 
 var MESES_LABELS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
