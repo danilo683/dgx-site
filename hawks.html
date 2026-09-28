@@ -381,41 +381,51 @@ function normGrupo(g){
   return 'outros';
 }
 
-// Busca paginada com paralelismo controlado.
-// Antes: 1 requisição por página de 1000 linhas, em sequência — para o
-// histórico da Hawks (~82 mil linhas em fato_vendas) isso significava ~82
-// round-trips de rede um esperando o outro, que é o maior gargalo real do
-// carregamento. Agora: busca lotes de páginas em paralelo (maxConcorrencia
-// por vez) e para quando alguma página do lote vier mais curta que
-// pageSize — mesmo critério de parada do código original, sem depender de
-// um count() prévio (que não retornou corretamente para a filial MG sob RLS).
-async function fetchPaginado(tabela, colunas, clienteId, pageSize, maxConcorrencia){
+// Busca paginada por cursor (keyset): pede sempre "id > último id recebido",
+// em sequência, com nova tentativa em caso de falha. Antes: lotes paralelos
+// por OFFSET (range) que paravam em silêncio na primeira página curta ou com
+// erro, e o dashboard exibia só parte dos meses (ex.: MT com Mar–Mai vazios
+// mesmo com os dados no banco). Agora: se a carga não completar, aparece um
+// aviso vermelho na tela em vez de números parciais sem explicação.
+async function fetchPaginado(tabela, colunas, clienteId, pageSize){
   pageSize = pageSize || 1000;
-  maxConcorrencia = maxConcorrencia || 5;
+  if ((','+colunas+',').indexOf(',id,') < 0) colunas = colunas + ',id';
 
   var all = [];
-  var from = 0;
-  var acabou = false;
+  var ultimoId = null;
 
-  while (!acabou) {
-    var offsets = [];
-    for (var k = 0; k < maxConcorrencia; k++) offsets.push(from + k * pageSize);
-
-    var respostas = await Promise.all(offsets.map(function(o){
-      return sb.from(tabela).select(colunas).eq('cliente_id', clienteId)
-        .order('id', {ascending:true}).range(o, o + pageSize - 1);
-    }));
-
-    for (var j = 0; j < respostas.length; j++) {
-      var r = respostas[j];
-      if (r.error) { console.error('fetchPaginado:'+tabela, r.error); acabou = true; break; }
-      var dados = r.data || [];
-      all = all.concat(dados);
-      if (dados.length < pageSize) { acabou = true; break; } // página curta = chegou ao fim
+  while (true) {
+    var dados = null, ultimoErro = null;
+    for (var tentativa = 1; tentativa <= 3 && dados === null; tentativa++) {
+      var q = sb.from(tabela).select(colunas).eq('cliente_id', clienteId)
+        .order('id', {ascending:true}).limit(pageSize);
+      if (ultimoId !== null) q = q.gt('id', ultimoId);
+      var r = await q;
+      if (r.error) {
+        ultimoErro = r.error;
+        console.error('fetchPaginado:'+tabela+' (tentativa '+tentativa+')', r.error);
+        await new Promise(function(res){ setTimeout(res, 400 * tentativa); });
+      } else {
+        dados = r.data || [];
+      }
     }
-    from += maxConcorrencia * pageSize;
+    if (dados === null) {
+      // Falhou 3x: devolve o que já carregou, mas avisa na tela.
+      window.__CARGA_INCOMPLETA = true;
+      try {
+        if (!document.getElementById('avisoCargaIncompleta')) {
+          document.body.insertAdjacentHTML('afterbegin',
+            '<div id="avisoCargaIncompleta" style="position:fixed;top:0;left:0;right:0;z-index:99999;'
+            +'background:#b3261e;color:#fff;font-size:12px;padding:6px 12px;text-align:center">'
+            +'Carga incompleta ('+tabela+'): alguns meses podem estar faltando. Recarregue a p\u00e1gina.</div>');
+        }
+      } catch(e){}
+      break;
+    }
+    all = all.concat(dados);
+    if (dados.length < pageSize) break;      // fim real: p\u00e1gina curta
+    ultimoId = dados[dados.length - 1].id;
   }
-
   return all;
 }
 
