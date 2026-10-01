@@ -258,6 +258,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .crono-evento-titulo{font-size:12px;font-weight:600;color:#E2EAF4}
 .crono-evento-hora{font-size:10.5px;color:#8BA0B0;margin-top:1px}
 .crono-evento-desc{font-size:11px;color:#8BA0B0;margin-top:2px;line-height:1.4}
+/* ── Estoque / Sugestão de Pedido (módulo DGX) ── */
+.ped-banner{background:rgba(200,184,154,0.12);border:0.5px solid rgba(200,184,154,0.4);color:#C8B89A;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.ped-banner.err{background:rgba(192,57,43,0.14);border-color:rgba(192,57,43,0.5);color:#e74c3c}
+.ped-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:0}
+.ped-grid2>.chart-card{min-width:0}
+.ped-grid-janela{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+@media (max-width:1100px){.ped-grid2,.ped-grid-janela{grid-template-columns:1fr}}
+.ped-janela{background:#111f35;border:1px solid rgba(0,174,239,0.12);border-left:4px solid #C8B89A;border-radius:12px;padding:1.1rem 1.25rem}
+.ped-cal{background:#111f35;border:1px solid rgba(0,174,239,0.12);border-radius:12px;padding:1.1rem 1.25rem;overflow-x:auto}
+.ped-janela-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ped-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.ped-janela-rot{font-size:14px;font-weight:600;color:#E2EAF4}
+.ped-janela-main{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ped-lbl{font-size:10px;color:#6B8BAA;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.ped-big{font-size:22px;font-weight:600;color:#00D4DA}
+.ped-big.sm{font-size:16px;color:#E2EAF4}
+.ped-sub{font-size:10.5px;color:#6B8BAA;margin-top:3px;line-height:1.45}
+.ped-sub strong{color:#E2EAF4}
+.ped-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.ped-tbl th,.ped-tbl td{white-space:nowrap}
+.ped-tbl thead th{position:sticky;top:0;z-index:2}
+.ped-tbl tr.ped-urg td:first-child{box-shadow:inset 3px 0 0 #c0392b}
+.ped-inp{width:86px!important}
+.ped-inp.editado{border-color:#00D4DA;background:rgba(0,212,218,0.08)}
+.ped-totais{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;font-size:12px;color:#8BA0B0;border-top:0.5px solid #1F3044;padding-top:10px}
+.ped-totais strong{color:#E2EAF4;font-size:14px}
+.ped-params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:6px}
+.ped-param label{display:block;font-size:11px;color:#8BA0B0;margin-bottom:4px}
+.ped-matriz{margin-top:10px;font-size:12px}
+.ped-matriz td{text-align:center!important}
+.ped-matriz th{text-align:center!important}
 </style>
 </head>
 <body>
@@ -295,7 +326,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">📦</span>Produtos<span class="nav-badge">Em breve</span></div>
-    <div class="nav-item disabled"><span class="nav-icon">🏭</span>Estoque<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item" id="nav-estoque" onclick="setPage('estoque',this)"><span class="nav-icon">🏭</span>Estoque</div>
     <div class="sidebar-section">Ferramentas</div>
     <div class="nav-item" id="nav-simulador" onclick="setPage('simulador',this)"><span class="nav-icon">🧮</span>Simulador</div>
     <div class="sidebar-footer">
@@ -727,10 +758,10 @@ document.addEventListener('DOMContentLoaded',async function(){
   window.location.href='/clientes';
 });
 function doLogout(){sb.auth.signOut().then(function(){window.location.href='/clientes';});}
-var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',simulador:'Simula\u00e7\u00e3o'};
+var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',estoque:'',simulador:'Simula\u00e7\u00e3o'};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',simulador:'Simulador'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',simulador:'Simulador'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -740,6 +771,7 @@ function renderPage(page){
   else if(page==='dfc'){c.innerHTML=dfcHTML();dfcShowView('anual');}
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
   else if(page==='simulador'){c.innerHTML=simuladorHTML();initSimulador();}
+  else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -2412,6 +2444,704 @@ async function dispSalvarAjustes(){
   DISP_CARREGADO=true;
   dispRenderConteudo();
 }
+
+/* ═══ MÓDULO ESTOQUE / SUGESTÃO DE PEDIDO (DGX) ═══ */
+/* ══════════════════════════════════════════════════════════════════════
+   ESTOQUE — SUGESTÃO DE PEDIDO · MOTOR DE CÁLCULO (DGX)
+   Só demanda (unidades). Sem margem. Funções puras: não tocam no DOM.
+   Entrada de vendas: linhas de fato_vendas já carregadas em FV_HAWKS
+   (sku, produto, grupo, competencia 'YYYY-MM-DD', qtd, tipo_operacao,
+   cmv_total). Entrada de estoque: linhas de ped_estoque (última posição).
+══════════════════════════════════════════════════════════════════════ */
+var PED_DIAS_MES = 30.4375;
+var PED_PARAM_PADRAO = {
+  janela_meses: 24,          // histórico considerado
+  peso_u6m: 0.5, peso_7a12m: 0.3, peso_13a24m: 0.2,   // média ponderada (renormaliza se faltar janela)
+  lead_time: 21,             // dias (a validar com a Hawks)
+  doh_alvo: 45,              // dias de cobertura após a chegada (A DEFINIR com a Hawks)
+  ciclo_compra: 15,          // dias entre pedidos (quinzenal) — entra no estoque de segurança
+  servico_a: 98, servico_b: 95, servico_c: 90,         // nível de serviço (%) por curva
+  corte_a: 80, corte_b: 95,  // ABC por unidades (% acumulado)
+  cv_x: 0.5, cv_y: 1.0, freq_z: 0.5,                   // XYZ (CV) e frequência mínima p/ não ser Z
+  excesso_mult: 2,           // excesso = cobertura > mult × DOH alvo
+  sem_giro_dias: 90,         // sem venda há X dias com estoque
+  meses_novo: 6,             // produto novo = 1ª venda há <= X meses (após histórico sem venda)
+  meses_ativo: 12,           // SKU sem venda há mais de X meses e sem estoque = inativo
+  qtd_minima_novo: 0,        // piso de pedido para produto novo (franqueado pode editar linha a linha)
+  lote_minimo: 1,            // múltiplo de arredondamento (pendente: lote/caixa por fornecedor)
+  usar_sazonalidade: 0,      // 1 = aplica índice sazonal por SKU (suavizado)
+  estoque_ausente_zero: 1,   // SKU com venda fora do arquivo de estoque: 1 = trata como estoque 0
+  dias_faturamento: 5,       // dias entre entrada do pedido e faturamento (exemplo; a validar)
+  mes_ref: '',               // 'YYYY-MM' p/ forçar o último mês fechado; vazio = automático
+  feriados_extra: ''         // datas AAAA-MM-DD separadas por vírgula (feriados estaduais etc.)
+};
+var PED_FERIADOS_NAC = ['2026-01-01','2026-04-03','2026-04-21','2026-05-01','2026-09-07','2026-10-12',
+  '2026-11-02','2026-11-15','2026-11-20','2026-12-25','2027-01-01','2027-03-26','2027-04-21','2027-05-01',
+  '2027-09-07','2027-10-12','2027-11-02','2027-11-15','2027-11-20','2027-12-25'];
+
+/* ── utilidades ── */
+function pedSemAcento(s){ return (s==null?'':String(s)).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function pedNormSku(s){ return pedSemAcento(s).replace(/^0+(?=.)/,''); }
+function pedCategoriaLabel(g){
+  var s = pedSemAcento(g);
+  if (!s) return 'Outros';
+  if (s.indexOf('HOME') >= 0) return 'Home Care';
+  if (s.indexOf('COLORA') >= 0) return 'Colora\u00e7\u00e3o';
+  if (s.indexOf('PROFISSIONAL') >= 0) return 'Profissional';
+  if (s.indexOf('QUIMIC') >= 0) return 'Qu\u00edmica';
+  return String(g).trim();
+}
+function pedZ(p){ // inversa da normal (Abramowitz-Stegun 26.2.23), p > 0,5
+  if (p <= 0.5) return 0; if (p >= 0.9999) p = 0.9999;
+  var t = Math.sqrt(-2*Math.log(1-p));
+  return t - (2.515517 + 0.802853*t + 0.010328*t*t) / (1 + 1.432788*t + 0.189269*t*t + 0.001308*t*t*t);
+}
+function pedYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function pedParseYMD(s){ var p=String(s).split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function pedAddDias(d,n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()+n); }
+function pedFmtBR(d){ return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
+function pedFmtBRc(d){ return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); }
+function pedMesKey(c){ return String(c).slice(0,7); }
+function pedMesMais(key,n){ var y=+key.slice(0,4), m=+key.slice(5,7)-1+n; y+=Math.floor(m/12); m=((m%12)+12)%12; return y+'-'+String(m+1).padStart(2,'0'); }
+function pedMesesLista(fim,n){ var a=[]; for(var i=n-1;i>=0;i--) a.push(pedMesMais(fim,-i)); return a; }
+function pedMedia(a){ return a.length ? a.reduce(function(x,y){return x+y;},0)/a.length : 0; }
+function pedDesvio(a){ if(a.length<2) return 0; var m=pedMedia(a); return Math.sqrt(a.reduce(function(s,v){return s+(v-m)*(v-m);},0)/(a.length-1)); }
+
+/* ── calendário de compras (quinzenas) ── */
+function pedFeriadosSet(extra){
+  var set = {}; PED_FERIADOS_NAC.forEach(function(k){ set[k]=true; });
+  String(extra||'').split(/[,; \n]+/).forEach(function(k){ if(/^\d{4}-\d{2}-\d{2}$/.test(k)) set[k]=true; });
+  return set;
+}
+function pedEhUtil(d,set){ var w=d.getDay(); return w>=1 && w<=5 && !set[pedYMD(d)]; }
+function pedQuinzena(d){
+  var q = d.getDate()<=15 ? 1 : 2, y=d.getFullYear(), m=d.getMonth();
+  return { q:q, inicio:new Date(y,m,q===1?1:16), fim: q===1 ? new Date(y,m,15) : new Date(y,m+1,0) };
+}
+function pedJanela(base,set){ // quinzena que contém "base"
+  var qz = pedQuinzena(base);
+  var ult = qz.fim; while(!pedEhUtil(ult,set) && ult>=qz.inicio) ult = pedAddDias(ult,-1);
+  var rec = pedAddDias(ult,-1); while(!pedEhUtil(rec,set) && rec>=qz.inicio) rec = pedAddDias(rec,-1);
+  if (rec < qz.inicio) rec = ult;
+  return { q:qz.q, inicio:qz.inicio, fim:qz.fim, ultimoUtil:ult, recomendada:rec,
+           prazos: qz.q===1 ? [45,75,105,135] : [30,60,90,120] };
+}
+function pedProximaQuinzenaInicio(d){ var qz=pedQuinzena(d); return pedAddDias(qz.fim,1); }
+function pedDiasUteisEntre(de,ate,set){ // dias úteis em (de, ate]
+  var n=0, d=pedAddDias(de,1); while(d<=ate){ if(pedEhUtil(d,set)) n++; d=pedAddDias(d,1); } return n;
+}
+function pedSituacao(hoje,set){
+  var h = new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate());
+  var j = pedJanela(h,set), cor, rotulo, alvo, fechada=false;
+  if (+h===+j.recomendada)      { cor='verde';    rotulo='Hoje \u00e9 a data ideal de pedido'; alvo=h; }
+  else if (+h===+j.ultimoUtil)  { cor='laranja';  rotulo='\u00daltimo dia \u00fatil da quinzena (reserva)'; alvo=h; }
+  else if (h < j.ultimoUtil)    { cor='amarelo';  rotulo='Aguardar a data ideal'; alvo=j.recomendada>h ? j.recomendada : j.ultimoUtil; }
+  else { // depois do último dia útil (fim de semana/feriado no fim da quinzena)
+    cor='vermelho'; rotulo='Janela fechada \u2014 pr\u00f3xima quinzena'; fechada=true;
+    alvo = pedJanela(pedProximaQuinzenaInicio(h),set).recomendada;
+  }
+  return { hoje:h, janela:j, cor:cor, rotulo:rotulo, dataAlvo:alvo, fechada:fechada,
+           diasAteAlvo: Math.round((alvo-h)/86400000),
+           diasUteisAteAlvo: alvo>h ? pedDiasUteisEntre(h,alvo,set) : 0 };
+}
+function pedCenarioPrazo(dataPedido,diasFat){
+  var q = dataPedido.getDate()<=15 ? 1 : 2, prazos = q===1 ? [45,75,105,135] : [30,60,90,120];
+  var fat = pedAddDias(dataPedido,diasFat);
+  return { q:q, prazos:prazos, faturamento:fat, prazoMedio:pedMedia(prazos),
+           parcelas: prazos.map(function(p){ return { dias:p, data:pedAddDias(fat,p) }; }) };
+}
+function pedProximasJanelas(hoje,set,n){
+  var out=[], base=new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate());
+  for (var i=0;i<n;i++){ var j=pedJanela(base,set); out.push(j); base=pedProximaQuinzenaInicio(base); }
+  return out;
+}
+
+/* ── séries de venda por SKU (vendas − devoluções) ── */
+function pedConstruirSerie(rows){
+  var serie={}, minKey=null, maxKey=null;
+  (rows||[]).forEach(function(r){
+    if (!r.sku || !r.competencia) return;
+    var t = pedSemAcento(r.tipo_operacao), sinal;
+    if (t==='VENDA') sinal=1; else if (t.indexOf('DEVOL')===0 && t.indexOf('COMPRA')<0) sinal=-1; else return;   // fora: bonificação e devolução de COMPRA
+    var k = pedNormSku(r.sku), mk = pedMesKey(r.competencia);
+    var q = sinal>0 ? (parseFloat(r.qtd)||0) : -Math.abs(parseFloat(r.qtd)||0);
+    var s = serie[k] || (serie[k] = { sku:k, skuOrig:r.sku, produto:'', grupo:'', m:{}, cmv:{}, qv:{} });
+    if (r.produto && (sinal>0 || !s.produto)) s.produto = r.produto;
+    if (r.grupo && (sinal>0 || !s.grupo)) s.grupo = r.grupo;
+    s.m[mk] = (s.m[mk]||0) + q;
+    if (sinal>0){ s.cmv[mk]=(s.cmv[mk]||0)+(parseFloat(r.cmv_total)||0); s.qv[mk]=(s.qv[mk]||0)+(parseFloat(r.qtd)||0); }
+    if (!minKey || mk<minKey) minKey=mk; if (!maxKey || mk>maxKey) maxKey=mk;
+  });
+  return { serie:serie, minKey:minKey, maxKey:maxKey };
+}
+function pedMesRef(maxKey,hoje,P){
+  if (/^\d{4}-\d{2}$/.test(P.mes_ref)) return P.mes_ref;
+  var atual = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  return maxKey===atual ? pedMesMais(maxKey,-1) : maxKey;   // mês corrente é parcial
+}
+
+/* ── métricas de demanda de um SKU ── */
+function pedMetricasSku(s,meses,minKey,P){
+  var n = meses.length;
+  var vals = meses.map(function(k){ return Math.max(0, s.m[k]||0); });
+  var ini0 = 0; while (ini0<n && meses[ini0]<minKey) ini0++;                 // 1º mês com dado possível
+  var first = -1; for (var i=0;i<n;i++){ if ((s.m[meses[i]]||0)>0){ first=i; break; } }
+  var antes = Object.keys(s.m).some(function(k){ return k<meses[0] && s.m[k]>0; });
+  var novo = first>=0 && !antes && (n-first)<=P.meses_novo && (first-ini0)>=P.meses_novo;
+  var ini = novo ? first : ini0;
+  var obs = vals.slice(ini);
+  var jan = [ [n-6,n-1,P.peso_u6m], [n-12,n-7,P.peso_7a12m], [n-24,n-13,P.peso_13a24m] ];
+  var medias = jan.map(function(w){
+    var a = Math.max(w[0],ini), b = w[1];
+    return b>=a ? pedMedia(vals.slice(a,b+1)) : null;
+  });
+  var num=0, den=0;
+  medias.forEach(function(m,ix){ if (m!==null){ num+=m*jan[ix][2]; den+=jan[ix][2]; } });
+  var mediaPond = den>0 ? num/den : 0;
+  var total = vals.reduce(function(x,y){return x+y;},0);
+  var mesesVenda = obs.filter(function(v){return v>0;}).length;
+  var media = pedMedia(obs), desvio = obs.length>=3 ? pedDesvio(obs) : media;   // poucos meses: assume CV = 1
+  var ult=-1; for (var j=n-1;j>=0;j--){ if (vals[j]>0){ ult=j; break; } }
+  var seas = null;
+  if (P.usar_sazonalidade && media>0){                                         // índice por mês do calendário, suavizado
+    seas = {};
+    for (var c=1;c<=12;c++){
+      var cv=[]; for (var q=ini;q<n;q++){ if (+meses[q].slice(5,7)===c) cv.push(vals[q]); }
+      var idx=1; if (cv.length>=2){ idx = 1 + 0.5*(pedMedia(cv)/media - 1); idx = Math.max(0.7, Math.min(1.3, idx)); }
+      seas[c]=idx;
+    }
+  }
+  return { vals:vals, mediaPond:mediaPond, u6:medias[0], m7a12:medias[1], m13a24:medias[2],
+    tendencia: (medias[0]!==null && medias[1]!==null && medias[1]>0) ? medias[0]/medias[1]-1 : null,
+    total:total, mesesObs:obs.length, mesesVenda:mesesVenda, freq: obs.length ? mesesVenda/obs.length : 0,
+    media:media, desvio:desvio, cv: media>0 ? desvio/media : null, novo:novo,
+    mesesSemVenda: ult<0 ? null : n-1-ult, vendas12m: vals.slice(Math.max(0,n-P.meses_ativo)).reduce(function(x,y){return x+y;},0),
+    seas:seas };
+}
+function pedFatorSazonal(seas,dataIni,dias){
+  if (!seas) return 1; var t=0, cnt=Math.max(1,Math.round(dias));
+  for (var i=0;i<cnt;i++){ t += seas[pedAddDias(dataIni,i).getMonth()+1]; }
+  return t/cnt;
+}
+function pedCustoUnit(s,meses){
+  function calc(ms){ var c=0,q=0; ms.forEach(function(k){ c+=s.cmv[k]||0; q+=s.qv[k]||0; }); return q>0 ? c/q : null; }
+  return calc(meses.slice(-3)) || calc(meses);
+}
+
+/* ── cálculo principal ── */
+function pedCalcular(fvRows, estRows, P, hoje){
+  hoje = hoje || new Date();
+  var fer = pedFeriadosSet(P.feriados_extra);
+  var sit = pedSituacao(hoje, fer);
+  var base = pedConstruirSerie(fvRows);
+  var res = { P:P, sit:sit, feriados:fer, skus:[], kpis:{}, avisos:[], serieTotal:null };
+  if (!base.maxKey){ res.avisos.push('Sem vendas no hist\u00f3rico (fato_vendas).'); return res; }
+  var ref = pedMesRef(base.maxKey,hoje,P);
+  var meses = pedMesesLista(ref, P.janela_meses);
+  res.mesRef = ref; res.meses = meses; res.minKey = base.minKey; res.maxKey = base.maxKey;
+  res.mesesComDado = meses.filter(function(k){return k>=base.minKey;}).length;
+  var esperado = pedMesMais(hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0'),-1);
+  if (ref < esperado) res.avisos.push('Último mês de vendas carregado: '+ref.slice(5,7)+'/'+ref.slice(0,4)+' — faltam meses recentes; a demanda pode estar defasada. Atualize fato_vendas.');
+  if (res.mesesComDado < P.janela_meses) res.avisos.push('Hist\u00f3rico de vendas tem '+res.mesesComDado+' meses (janela configurada: '+P.janela_meses+'). A m\u00e9dia usa s\u00f3 os meses dispon\u00edveis.');
+
+  var temEst = !!(estRows && estRows.length), estMap = {};
+  (estRows||[]).forEach(function(r){
+    var k=pedNormSku(r.sku); if(!k) return;
+    estMap[k] = { qtd:parseFloat(r.qtd)||0, transito:parseFloat(r.qtd_transito)||0, produto:r.produto, categoria:r.categoria, skuOrig:r.sku };
+  });
+  var chaves = {}; Object.keys(base.serie).forEach(function(k){chaves[k]=1;}); Object.keys(estMap).forEach(function(k){chaves[k]=1;});
+  var vazio = { m:{}, cmv:{}, qv:{}, produto:'', grupo:'' };
+  var Dideal = sit.diasAteAlvo, dataAlvo = sit.dataAlvo;
+  var lista = [], semPosicao = 0, estoqueSemVenda = 0;
+
+  Object.keys(chaves).forEach(function(k){
+    var s = base.serie[k] || vazio, e = estMap[k];
+    var m = pedMetricasSku(s, meses, base.minKey, P);
+    var est = temEst ? (e ? e.qtd : (P.estoque_ausente_zero ? 0 : null)) : null;
+    var transito = e ? e.transito : 0;
+    if (temEst && !e && base.serie[k]) semPosicao++;
+    if (e && !base.serie[k]) estoqueSemVenda++;
+    var ativo = m.vendas12m>0 || (est!==null && est>0);
+    if (!ativo) return;
+    lista.push({ sku:k, skuOrig:(base.serie[k]&&base.serie[k].skuOrig)||(e&&e.skuOrig)||k, serie:s, m:m, est:est, transito:transito,
+      produto:(s.produto || (e&&e.produto) || k), categoria:pedCategoriaLabel(s.grupo || (e&&e.categoria)), semPosicao: temEst && !e });
+  });
+
+  /* ABC por unidades (histórico da janela) */
+  var porVenda = lista.filter(function(x){return x.m.total>0;}).sort(function(a,b){return b.m.total-a.m.total;});
+  var totGeral = porVenda.reduce(function(a,x){return a+x.m.total;},0), acum=0;
+  porVenda.forEach(function(x){
+    x.curva = acum/totGeral*100 < P.corte_a ? 'A' : (acum/totGeral*100 < P.corte_b ? 'B' : 'C');
+    acum += x.m.total; x.acumPct = acum/totGeral*100;
+  });
+  lista.forEach(function(x){ if(!x.curva){ x.curva='C'; x.acumPct=100; } });
+
+  /* XYZ + reposição */
+  var cobRaw = [];
+  lista.forEach(function(x){
+    var m=x.m;
+    x.xyz = (m.total<=0 || m.novo) ? '\u2014' : (m.freq<P.freq_z ? 'Z' : (m.cv<=P.cv_x ? 'X' : (m.cv<=P.cv_y ? 'Y' : 'Z')));
+    var servico = (x.curva==='A'?P.servico_a:(x.curva==='B'?P.servico_b:P.servico_c))/100, z = pedZ(servico);
+    var dDia = m.mediaPond/PED_DIAS_MES;
+    x.dDia = dDia;
+    x.ss = Math.ceil(z * (m.desvio/Math.sqrt(PED_DIAS_MES)) * Math.sqrt(Math.max(1,P.lead_time+P.ciclo_compra)));
+    if (dDia<=0) x.ss = 0;
+    var pos = (x.est===null) ? null : x.est + x.transito;
+    x.cobertura = (pos!==null && dDia>0) ? pos/dDia : null;
+    x.mesesSemVenda = m.mesesSemVenda;
+    var semGiro = x.est!==null && x.est>0 && (m.mesesSemVenda===null || m.mesesSemVenda >= Math.ceil(P.sem_giro_dias/PED_DIAS_MES));
+    var status;
+    if (x.est===null) status='sem_posicao';
+    else if (semGiro) status='sem_giro';
+    else if (dDia<=0) status='sem_demanda';
+    else if (pos<=0) status='ruptura';
+    else if (x.cobertura < P.lead_time) status='critico';
+    else if (x.cobertura > P.excesso_mult*P.doh_alvo) status='excesso';
+    else status='ok';
+    x.status = status;
+
+    // nível-alvo e sugestão — duas versões: pedir hoje (D=0) e pedir na data ideal (D=Dideal)
+    function sugerir(D){
+      var fS = P.usar_sazonalidade ? pedFatorSazonal(m.seas, pedAddDias(sit.hoje,D), P.lead_time+P.doh_alvo) : 1;
+      var d2 = dDia*fS, alvo = d2*(P.lead_time+P.doh_alvo) + x.ss;
+      var posProj = Math.max(0, (pos||0) - dDia*D);
+      var q = Math.max(0, alvo - posProj);
+      if (m.novo && q < P.qtd_minima_novo) q = P.qtd_minima_novo;
+      var lote = Math.max(1,P.lote_minimo); q = Math.ceil(q/lote)*lote;
+      return { alvo:alvo, qtd:q };
+    }
+    var sHoje = sugerir(0), sData = sugerir(Dideal);
+    x.nivelAlvo = sHoje.alvo;
+    var agora = status!=='sem_posicao' && dDia>0 && x.cobertura!==null && x.cobertura < (Dideal + P.lead_time) && sHoje.qtd>0;
+    var usa = agora ? sHoje : sData;
+    x.qtdSugerida = (status==='sem_posicao' || status==='sem_giro' || (dDia<=0 && !m.novo)) ? 0 : usa.qtd;   // sem giro: revisar, não comprar
+    x.prioridade = x.qtdSugerida<=0 ? 'ok' : (agora ? 'agora' : 'janela');
+    x.quandoPedir = x.prioridade==='agora' ? sit.hoje : dataAlvo;
+    x.custo = pedCustoUnit(x.serie, meses);
+    x.invest = (x.custo!==null) ? x.qtdSugerida*x.custo : null;
+    x.excessoUn = (status==='excesso'||status==='sem_giro') && x.est!==null ? Math.max(0, x.est - (status==='sem_giro'?0:x.nivelAlvo)) : 0;
+    x.riscoUnMes = (status==='ruptura') ? Math.round(m.mediaPond) : 0;
+    if (x.cobertura!==null) cobRaw.push(x);
+  });
+
+  /* KPIs */
+  var K = res.kpis, A = lista;
+  K.skusAtivos = A.length;
+  K.ruptura = A.filter(function(x){return x.status==='ruptura';}).length;
+  K.critico = A.filter(function(x){return x.status==='critico';}).length;
+  K.excesso = A.filter(function(x){return x.status==='excesso';}).length;
+  K.semGiro = A.filter(function(x){return x.status==='sem_giro';}).length;
+  K.unEstoque = A.reduce(function(a,x){return a+(x.est||0);},0);
+  var somaEst = cobRaw.reduce(function(a,x){return a+(x.est||0)+x.transito;},0), somaD = cobRaw.reduce(function(a,x){return a+x.dDia;},0);
+  K.coberturaMedia = somaD>0 ? somaEst/somaD : null;
+  K.skusComprar = A.filter(function(x){return x.prioridade!=='ok';}).length;
+  K.skusAgora = A.filter(function(x){return x.prioridade==='agora';}).length;
+  K.unSugeridas = A.reduce(function(a,x){return a+x.qtdSugerida;},0);
+  K.invest = A.reduce(function(a,x){return a+(x.invest||0);},0);
+  K.unExcesso = A.reduce(function(a,x){return a+x.excessoUn;},0);
+  K.semPosicao = semPosicao; K.estoqueSemVenda = estoqueSemVenda; K.temEstoque = temEst;
+  if (!temEst) res.avisos.push('Nenhuma posi\u00e7\u00e3o de estoque importada (ped_estoque): mostrando s\u00f3 demanda e curvas.');
+  if (semPosicao>0) res.avisos.push(semPosicao+' SKU(s) com venda e sem posi\u00e7\u00e3o no arquivo de estoque'+(P.estoque_ausente_zero?' (tratados como estoque 0)':' (ignorados na sugest\u00e3o)')+'. Se o n\u00famero for alto, confira a chave de SKU.');
+  if (P.doh_alvo < P.ciclo_compra) res.avisos.push('DOH alvo ('+P.doh_alvo+' d) est\u00e1 abaixo do ciclo de compra ('+P.ciclo_compra+' d): haver\u00e1 ruptura entre pedidos.');
+
+  /* séries para os gráficos */
+  res.skus = lista;
+  res.serieTotal = meses.map(function(k){ var t=0; lista.forEach(function(x){ t+= Math.max(0,x.serie.m[k]||0); }); return t; });
+  res.matriz = { A:{X:0,Y:0,Z:0,'\u2014':0}, B:{X:0,Y:0,Z:0,'\u2014':0}, C:{X:0,Y:0,Z:0,'\u2014':0} };
+  lista.forEach(function(x){ res.matriz[x.curva][x.xyz]++; });
+  res.pareto = porVenda.map(function(x,i){ return { rank:(i+1)/porVenda.length*100, acum:x.acumPct, curva:x.curva }; });
+  return res;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ESTOQUE — SUGESTÃO DE PEDIDO · TELA (usa o motor acima)
+   Dados de venda: FV_HAWKS (já carregado pelo portal). Estoque, parâmetros
+   e rascunho do pedido: tabelas ped_estoque, ped_parametro, ped_pedido_item.
+══════════════════════════════════════════════════════════════════════ */
+var PED_RES = null, PED_ESTOQUE = [], PED_PARAM = {}, PED_EDICOES = {};
+var PED_CARREGADO = false, PED_ED_CARREGADAS = false, PED_DATA_POSICAO = null, PED_ERROS = [], PED_QUINZENA = null;
+var PED_FILTROS = { cat:'todas', curva:'todas', prio:'comprar', busca:'' };
+var PED_LINHAS = [];
+var PED_PARAM_CAMPOS = [
+  ['Reposição', [
+    ['lead_time','Lead time (dias)','1','A validar com a Hawks'],
+    ['doh_alvo','DOH alvo (dias)','1','A definir: política de caixa'],
+    ['ciclo_compra','Ciclo de compra (dias)','1','Quinzenal = 15; entra no estoque de segurança'],
+    ['lote_minimo','Lote mínimo (múltiplo)','1','Pendente: lote/caixa por fornecedor'],
+    ['qtd_minima_novo','Qtd. mínima de produto novo','1','Piso para produto novo; editável linha a linha'] ]],
+  ['Demanda', [
+    ['janela_meses','Janela de histórico (meses)','1','Máx. 36'],
+    ['peso_u6m','Peso: últimos 6 meses','0.05',''],
+    ['peso_7a12m','Peso: meses 7 a 12','0.05',''],
+    ['peso_13a24m','Peso: meses 13 a 24','0.05',''],
+    ['usar_sazonalidade','Sazonalidade por SKU (0 = off, 1 = on)','1','Suavizada; com 24 meses há só 2 observações por mês'],
+    ['meses_novo','Produto novo (meses desde a 1ª venda)','1',''] ]],
+  ['Curvas e serviço', [
+    ['corte_a','Curva A: até (% acum. das unidades)','1',''],
+    ['corte_b','Curva B: até (% acum. das unidades)','1',''],
+    ['cv_x','XYZ: limite do X (CV)','0.05',''],
+    ['cv_y','XYZ: limite do Y (CV)','0.05',''],
+    ['servico_a','Nível de serviço curva A (%)','1',''],
+    ['servico_b','Nível de serviço curva B (%)','1',''],
+    ['servico_c','Nível de serviço curva C (%)','1',''] ]],
+  ['Alertas e dados', [
+    ['excesso_mult','Excesso: cobertura > X × DOH alvo','0.5',''],
+    ['sem_giro_dias','Sem giro: dias sem venda','1',''],
+    ['meses_ativo','Inativo: meses sem venda e sem estoque','1',''],
+    ['estoque_ausente_zero','SKU sem posição no estoque (1 = tratar como 0)','1','Confirme a chave de SKU antes'],
+    ['dias_faturamento','Dias entre pedido e faturamento','1','Exemplo informado (5); a validar'],
+    ['mes_ref','Último mês fechado (AAAA-MM; vazio = auto)','text',''],
+    ['feriados_extra','Feriados extras (AAAA-MM-DD, separados por vírgula)','text','Estaduais/municipais'] ]]
+];
+
+function pedParams(){
+  var P = {};
+  Object.keys(PED_PARAM_PADRAO).forEach(function(k){
+    var d = PED_PARAM_PADRAO[k], v = PED_PARAM[k];
+    if (v===undefined || v===null || v==='') v = d;
+    P[k] = (typeof d==='number') ? (isFinite(parseFloat(v)) ? parseFloat(v) : d) : String(v);
+  });
+  P.janela_meses = Math.max(3, Math.min(36, Math.round(P.janela_meses)));
+  return P;
+}
+function pedFmtN(v,dec){ return (v===null||v===undefined||!isFinite(v)) ? '\u2014' : Number(v).toLocaleString('pt-BR',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0}); }
+function pedFmtR(v){ return (v===null||v===undefined||!isFinite(v)) ? '\u2014' : 'R$ '+Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0}); }
+var PED_DOW = ['dom','seg','ter','qua','qui','sex','s\u00e1b'];
+function pedDataLonga(d){ return pedFmtBRc(d)+' ('+PED_DOW[d.getDay()]+')'; }
+function pedMesLabel(k){ return MESES_LABELS[+k.slice(5,7)-1]+'/'+k.slice(2,4); }
+var PED_STATUS = {
+  ruptura:['Ruptura','#c0392b'], critico:['Cr\u00edtico','#e67e22'], ok:['OK','#2ECC71'], excesso:['Excesso','#5B8DB8'],
+  sem_giro:['Sem giro','#8BA0B0'], sem_demanda:['Sem demanda','#4A6580'], sem_posicao:['Sem posi\u00e7\u00e3o','#4A6580'] };
+
+/* ── carga de dados (Supabase) ── */
+async function pedCarregar(){
+  var cid = clienteIdAtual(); PED_ERROS = []; PED_ESTOQUE = []; PED_DATA_POSICAO = null; PED_PARAM = {};
+  try {
+    var r1 = await sb.from('ped_estoque').select('data_posicao').eq('cliente_id',cid).order('data_posicao',{ascending:false}).limit(1);
+    if (r1.error) PED_ERROS.push('ped_estoque: '+r1.error.message);
+    else if (r1.data && r1.data.length) {
+      PED_DATA_POSICAO = r1.data[0].data_posicao;
+      var from = 0, step = 1000;
+      while (true) {
+        var r = await sb.from('ped_estoque').select('sku,produto,categoria,qtd,qtd_transito').eq('cliente_id',cid)
+          .eq('data_posicao',PED_DATA_POSICAO).order('sku',{ascending:true}).range(from,from+step-1);
+        if (r.error) { PED_ERROS.push('ped_estoque: '+r.error.message); break; }
+        PED_ESTOQUE = PED_ESTOQUE.concat(r.data||[]);
+        if (!r.data || r.data.length < step) break; from += step;
+      }
+    }
+    var r2 = await sb.from('ped_parametro').select('chave,valor').eq('cliente_id',cid);
+    if (r2.error) PED_ERROS.push('ped_parametro: '+r2.error.message);
+    else (r2.data||[]).forEach(function(x){ PED_PARAM[x.chave] = x.valor; });
+  } catch(e){ PED_ERROS.push(String(e && e.message || e)); }
+}
+async function pedCarregarEdicoes(){
+  PED_EDICOES = {}; PED_ED_CARREGADAS = true;
+  if (!PED_QUINZENA) return;
+  try {
+    var r = await sb.from('ped_pedido_item').select('sku,qtd_pedido,obs').eq('cliente_id',clienteIdAtual()).eq('quinzena',PED_QUINZENA);
+    if (r.error) { PED_ERROS.push('ped_pedido_item: '+r.error.message); return; }
+    (r.data||[]).forEach(function(x){ PED_EDICOES[pedNormSku(x.sku)] = { qtd: parseFloat(x.qtd_pedido)||0, obs: x.obs||'' }; });
+  } catch(e){ PED_ERROS.push(String(e && e.message || e)); }
+}
+function pedRecalcular(){
+  PED_RES = pedCalcular(FV_HAWKS, PED_ESTOQUE, pedParams(), new Date());
+  var j = pedJanela(PED_RES.sit.dataAlvo, PED_RES.feriados);
+  var novaQ = pedYMD(j.inicio);
+  if (novaQ !== PED_QUINZENA) { PED_QUINZENA = novaQ; PED_ED_CARREGADAS = false; }
+}
+
+/* ── tela ── */
+function estoqueHTML(){
+  return '<div id="pedRoot"><div style="padding:3rem;text-align:center;color:#8BA0B0;font-size:13px">Carregando estoque e demanda\u2026</div></div>';
+}
+async function initEstoque(){
+  if (!PED_CARREGADO) { await pedCarregar(); PED_CARREGADO = true; }
+  pedRecalcular();
+  if (!PED_ED_CARREGADAS) await pedCarregarEdicoes();
+  var root = document.getElementById('pedRoot'); if (!root) return;
+  root.innerHTML = pedPaginaHTML();
+  var tp = document.getElementById('topbarPeriod');
+  if (tp) tp.textContent = PED_DATA_POSICAO ? 'Posi\u00e7\u00e3o de estoque: '+pedFmtBR(pedParseYMD(PED_DATA_POSICAO)) : 'Estoque: sem posi\u00e7\u00e3o importada';
+  pedRenderTabela(); pedRenderDesembolso();
+  setTimeout(pedDesenharGraficos, 60);
+}
+function pedPaginaHTML(){
+  var R = PED_RES, K = R.kpis, sit = R.sit, h = '';
+  PED_ERROS.forEach(function(e){ h += '<div class="ped-banner err">'+escapeHtml(e)+(/relation|does not exist|schema cache/i.test(e)?' \u2014 rode o ped_schema.sql no Supabase.':'')+'</div>'; });
+  (R.avisos||[]).forEach(function(a){ h += '<div class="ped-banner">'+escapeHtml(a)+'</div>'; });
+  if (!R.skus.length) return h + '<div style="padding:2rem;text-align:center;color:#8BA0B0">Sem dados para calcular.</div>';
+
+  /* janela de compra */
+  var cen = pedCenarioPrazo(sit.dataAlvo, R.P.dias_faturamento), cenHoje = pedCenarioPrazo(sit.hoje, R.P.dias_faturamento);
+  var ganho = Math.round((cen.parcelas.reduce(function(a,p,i){return a+(p.data-cenHoje.parcelas[i].data);},0)/4)/86400000);
+  var cores = { verde:'#2ECC71', laranja:'#e67e22', amarelo:'#C8B89A', vermelho:'#c0392b' };
+  var proj = pedProximasJanelas(sit.hoje, R.feriados, 6);
+  h += '<div class="ped-grid-janela"><div class="ped-janela" style="border-left-color:'+cores[sit.cor]+'">'
+    +'<div class="ped-janela-top"><span class="ped-dot" style="background:'+cores[sit.cor]+'"></span><span class="ped-janela-rot">'+sit.rotulo+'</span><span class="bi-tag">'+nomeFilial()+' \u00b7 pedido separado por filial</span></div>'
+    +'<div class="ped-janela-main"><div><div class="ped-lbl">Data ideal do pedido</div><div class="ped-big">'+pedDataLonga(sit.dataAlvo)+'</div></div>'
+    +'<div><div class="ped-lbl">Fechamento da quinzena</div><div class="ped-big sm">'+pedDataLonga(sit.janela.ultimoUtil)+'</div></div>'
+    +'<div><div class="ped-lbl">Dias \u00fateis at\u00e9 a data ideal</div><div class="ped-big sm">'+sit.diasUteisAteAlvo+'</div></div>'
+    +'<div><div class="ped-lbl">Prazo m\u00e9dio na data ideal</div><div class="ped-big sm">'+cen.prazoMedio+' dias</div><div class="ped-sub">'+cen.prazos.join(' \u00b7 ')+'</div></div></div>'
+    +'<div class="ped-sub" style="margin-top:8px">'+(sit.diasAteAlvo>0 ? 'Aguardar at\u00e9 a data ideal adia o desembolso em m\u00e9dia <strong>'+ganho+' dias</strong> frente a pedir hoje (faturamento '+R.P.dias_faturamento+' d ap\u00f3s o pedido \u2014 a validar). ' : '')
+    +'SKUs com risco de ruptura antes da chegada s\u00e3o marcados <strong>Comprar agora</strong>.</div></div>'
+    +'<div class="ped-cal"><div class="ped-lbl" style="margin-bottom:6px">Calend\u00e1rio de compras</div><table class="dre-table" style="font-size:11.5px"><thead><tr><th>Quinzena</th><th>Data ideal</th><th>Fechamento</th><th>Prazos</th><th>M\u00e9dio</th></tr></thead><tbody>'
+    + proj.map(function(j,i){ return '<tr'+(i===0?' class="subtotal"':'')+'><td style="text-align:left">'+pedFmtBRc(j.inicio)+' \u2013 '+pedFmtBRc(j.fim)+'</td><td>'+pedDataLonga(j.recomendada)+'</td><td>'+pedFmtBRc(j.ultimoUtil)+'</td><td>'+j.prazos.join('/')+'</td><td>'+pedMedia(j.prazos)+' d</td></tr>'; }).join('')
+    +'</tbody></table></div></div>';
+
+  /* KPIs */
+  var temE = K.temEstoque;
+  function kpi(l,v,s,c){ return '<div class="kpi"'+(c?' style="border-left-color:'+c+'"':'')+'><div class="kpi-label">'+l+'</div><div class="kpi-value">'+v+'</div><div class="kpi-sub">'+s+'</div></div>'; }
+  h += '<div class="kpi-grid">'
+    + kpi('SKUs ativos', pedFmtN(K.skusAtivos), 'venda nos \u00faltimos '+R.P.meses_ativo+' meses ou com estoque')
+    + kpi('Em ruptura', temE?pedFmtN(K.ruptura):'\u2014', temE?(pedFmtN(K.critico)+' em n\u00edvel cr\u00edtico (cobertura < lead time)'):'sem estoque importado','#c0392b')
+    + kpi('Com excesso', temE?pedFmtN(K.excesso):'\u2014', temE?(pedFmtN(K.semGiro)+' sem giro \u00b7 '+pedFmtN(K.unExcesso)+' un. acima do alvo'):'\u2014','#5B8DB8')
+    + kpi('Cobertura m\u00e9dia', temE&&K.coberturaMedia!==null?pedFmtN(K.coberturaMedia,0)+' dias':'\u2014', 'unidades em estoque \u00f7 demanda di\u00e1ria total (alvo: '+(R.P.lead_time+R.P.doh_alvo)+' d com lead time)')
+    +'</div><div class="kpi-grid">'
+    + kpi('Unidades em estoque', temE?pedFmtN(K.unEstoque):'\u2014', PED_DATA_POSICAO?('posi\u00e7\u00e3o de '+pedFmtBR(pedParseYMD(PED_DATA_POSICAO))):'importe o estoque')
+    + kpi('SKUs a comprar', temE?pedFmtN(K.skusComprar):'\u2014', temE?(pedFmtN(K.skusAgora)+' para comprar agora'):'\u2014','#e67e22')
+    + kpi('Unidades sugeridas', temE?pedFmtN(K.unSugeridas):'\u2014', 'antes das edi\u00e7\u00f5es do franqueado')
+    + kpi('Investimento estimado', temE?pedFmtR(K.invest):'\u2014', 'custo m\u00e9dio recente (CMV \u00f7 qtd) \u00d7 sugest\u00e3o','#00B4D8')
+    +'</div>';
+
+  /* gr\u00e1ficos */
+  h += '<div class="ped-grid2">'
+    +'<div class="chart-card"><div class="chart-title">Sa\u00fade do estoque por SKU</div><div class="chart-sub">Demanda di\u00e1ria \u00d7 cobertura em dias \u00b7 tamanho = unidades em estoque \u00b7 linhas: lead time e limite de excesso</div>'
+    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Curva A</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Curva B</span><span class="leg"><span class="leg-dot" style="background:#A8C8E0"></span>Curva C</span></div>'
+    +'<div class="chart-wrap" style="height:300px"><canvas id="chartPedDisp"></canvas></div></div>'
+    +'<div class="chart-card"><div class="chart-title">Status por categoria</div><div class="chart-sub">N\u00ba de SKUs por situa\u00e7\u00e3o de cobertura</div>'
+    +'<div class="legend">'+['ruptura','critico','ok','excesso','sem_giro'].map(function(s){return '<span class="leg"><span class="leg-dot" style="background:'+PED_STATUS[s][1]+'"></span>'+PED_STATUS[s][0]+'</span>';}).join('')+'</div>'
+    +'<div class="chart-wrap" style="height:300px"><canvas id="chartPedStatus"></canvas></div></div></div>'
+    +'<div class="ped-grid2">'
+    +'<div class="chart-card"><div class="chart-title">Demanda mensal (unidades)</div><div class="chart-sub">Vendas l\u00edquidas de devolu\u00e7\u00e3o, SKUs ativos \u00b7 linha tracejada = mesmo m\u00eas do ano anterior</div><div class="chart-wrap" style="height:260px"><canvas id="chartPedDemanda"></canvas></div></div>'
+    +'<div class="chart-card"><div class="chart-title">Curvas ABC \u00d7 XYZ</div><div class="chart-sub">Pareto das unidades vendidas e matriz de SKUs por curva e variabilidade</div>'
+    +'<div class="chart-wrap" style="height:170px"><canvas id="chartPedPareto"></canvas></div>'+pedMatrizHTML(R)+'</div></div>';
+
+  /* top rupturas / excessos */
+  var rup = R.skus.filter(function(x){return x.status==='ruptura';}).sort(function(a,b){return b.m.mediaPond-a.m.mediaPond;}).slice(0,10);
+  var exc = R.skus.filter(function(x){return x.excessoUn>0;}).sort(function(a,b){return b.excessoUn-a.excessoUn;}).slice(0,10);
+  function nm(x){ return '<td style="text-align:left">'+escapeHtml(x.skuOrig)+' \u00b7 '+escapeHtml(x.produto).slice(0,38)+'</td>'; }
+  h += '<div class="ped-grid2"><div class="chart-card"><div class="chart-title">Top 10 rupturas</div><div class="chart-sub">Ordenado pela demanda mensal (unidades que deixam de vender por m\u00eas)</div>'
+    +(rup.length?'<table class="dre-table"><thead><tr><th style="text-align:left">SKU \u00b7 Produto</th><th>Curva</th><th>Dem./m\u00eas</th></tr></thead><tbody>'+rup.map(function(x){return '<tr>'+nm(x)+'<td>'+x.curva+x.xyz+'</td><td>'+pedFmtN(x.m.mediaPond,0)+'</td></tr>';}).join('')+'</tbody></table>':'<div class="plano-vazio">'+(temE?'Nenhum SKU em ruptura.':'Importe o estoque para ver as rupturas.')+'</div>')+'</div>'
+    +'<div class="chart-card"><div class="chart-title">Top 10 excessos</div><div class="chart-sub">Unidades acima do n\u00edvel-alvo (sem giro conta o estoque inteiro)</div>'
+    +(exc.length?'<table class="dre-table"><thead><tr><th style="text-align:left">SKU \u00b7 Produto</th><th>Estoque</th><th>Cob. (d)</th><th>Excesso</th></tr></thead><tbody>'+exc.map(function(x){return '<tr>'+nm(x)+'<td>'+pedFmtN(x.est)+'</td><td>'+(x.cobertura===null?'\u2014':pedFmtN(x.cobertura))+'</td><td>'+pedFmtN(x.excessoUn)+'</td></tr>';}).join('')+'</tbody></table>':'<div class="plano-vazio">'+(temE?'Nenhum excesso.':'Importe o estoque para ver os excessos.')+'</div>')+'</div></div>';
+
+  /* sugest\u00e3o de pedido */
+  var cats = {}; R.skus.forEach(function(x){ cats[x.categoria]=1; });
+  h += '<div class="chart-card" id="pedCardTabela"><div class="qd-header"><div><div class="chart-title">Sugest\u00e3o de pedido \u2014 '+nomeFilial()+'</div><div class="chart-sub">Quantidade edit\u00e1vel \u00b7 pedido na data ideal ('+pedFmtBRc(sit.dataAlvo)+') salvo os itens marcados \u201cComprar agora\u201d</div></div>'
+    +'<div style="white-space:nowrap"><button class="qd-btn" onclick="pedExportarCSV()">Exportar CSV</button><button class="disp-save-btn" style="margin-left:8px" onclick="pedSalvarRascunho()">Salvar rascunho</button></div></div>'
+    +'<div class="bi-filters"><label>Mostrar</label><select id="pedF-prio" onchange="pedFiltrou()"><option value="comprar">A comprar (agora + data ideal)</option><option value="agora">S\u00f3 comprar agora</option><option value="janela">S\u00f3 data ideal</option><option value="todas">Todos os SKUs</option></select>'
+    +'<label>Categoria</label><select id="pedF-cat" onchange="pedFiltrou()"><option value="todas">Todas</option>'+Object.keys(cats).sort().map(function(c){return '<option>'+escapeHtml(c)+'</option>';}).join('')+'</select>'
+    +'<label>Curva</label><select id="pedF-curva" onchange="pedFiltrou()"><option value="todas">Todas</option><option>A</option><option>B</option><option>C</option></select>'
+    +'<input type="text" id="pedF-busca" class="disp-input disp-input-obs" placeholder="Buscar SKU ou produto" oninput="pedFiltrou()"></div>'
+    +'<div id="pedMsg" class="disp-note" style="min-height:14px"></div>'
+    +'<div style="overflow-x:auto;max-height:520px;overflow-y:auto"><table class="dre-table ped-tbl"><thead><tr><th style="text-align:left">SKU \u00b7 Produto</th><th>Categ.</th><th>Curva</th><th>Dem./dia</th><th>Estoque</th><th>Cob. (d)</th><th>Status</th><th>Prioridade</th><th>Sugerido</th><th>Pedido</th><th>Custo un.</th><th>Invest.</th></tr></thead><tbody id="pedTbody"></tbody></table></div>'
+    +'<div class="ped-totais" id="pedTotais"></div></div>';
+
+  h += '<div class="chart-card"><div class="chart-title">Cronograma de desembolso do pedido</div><div class="chart-sub">4 parcelas iguais, contadas a partir do faturamento \u00b7 tabela de prazo definida pela quinzena de entrada do pedido</div><div id="pedDesembolso"></div></div>';
+
+  /* par\u00e2metros */
+  h += '<div class="chart-card"><div class="qd-header"><div><div class="chart-title">Par\u00e2metros</div><div class="chart-sub">Valores iniciais propostos \u2014 edit\u00e1veis. \u201cAplicar\u201d recalcula; \u201cSalvar\u201d grava para esta filial.</div></div>'
+    +'<div style="white-space:nowrap"><button class="qd-btn" onclick="pedAplicarParametros(false)">Aplicar</button><button class="disp-save-btn" style="margin-left:8px" onclick="pedAplicarParametros(true)">Salvar par\u00e2metros</button></div></div><div id="pedParamMsg" class="disp-note"></div>'
+    + PED_PARAM_CAMPOS.map(function(g){
+        return '<div class="disp-section-label" style="margin-top:.8rem">'+g[0]+'</div><div class="ped-params">'+g[1].map(function(c){
+          var v = R.P[c[0]];
+          return '<div class="ped-param"><label>'+c[1]+'</label><input class="disp-input" style="width:100%;text-align:'+(c[2]==='text'?'left':'right')+'" id="pedP-'+c[0]+'" '+(c[2]==='text'?'type="text"':'type="number" step="'+c[2]+'"')+' value="'+escapeHtml(v)+'">'+(c[3]?'<div class="ped-sub">'+c[3]+'</div>':'')+'</div>'; }).join('')+'</div>'; }).join('')
+    +'</div>';
+  h += '<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
+  return h;
+}
+function pedMatrizHTML(R){
+  var max = 1; ['A','B','C'].forEach(function(c){ ['X','Y','Z','\u2014'].forEach(function(x){ max=Math.max(max,R.matriz[c][x]); }); });
+  return '<table class="dre-table ped-matriz"><thead><tr><th></th><th>X (est\u00e1vel)</th><th>Y (oscila)</th><th>Z (err\u00e1tica)</th><th>Novo/s.d.</th></tr></thead><tbody>'
+    + ['A','B','C'].map(function(c){ return '<tr><td style="text-align:left;font-weight:600">Curva '+c+'</td>'+['X','Y','Z','\u2014'].map(function(x){
+        var n=R.matriz[c][x]; return '<td style="background:rgba(0,180,216,'+(0.05+0.45*n/max).toFixed(2)+')">'+n+'</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
+}
+
+/* ── tabela de sugestão ── */
+function pedQtdFinal(x){ return PED_EDICOES[x.sku] ? PED_EDICOES[x.sku].qtd : x.qtdSugerida; }
+function pedFiltrou(){
+  PED_FILTROS.prio = document.getElementById('pedF-prio').value; PED_FILTROS.cat = document.getElementById('pedF-cat').value;
+  PED_FILTROS.curva = document.getElementById('pedF-curva').value; PED_FILTROS.busca = document.getElementById('pedF-busca').value;
+  pedRenderTabela();
+}
+function pedListaFiltrada(){
+  var F = PED_FILTROS, b = pedSemAcento(F.busca), rk = { agora:0, janela:1, ok:2 };
+  return PED_RES.skus.filter(function(x){
+    if (F.prio==='comprar' && x.prioridade==='ok' && !PED_EDICOES[x.sku]) return false;
+    if ((F.prio==='agora'||F.prio==='janela') && x.prioridade!==F.prio) return false;
+    if (F.cat!=='todas' && x.categoria!==F.cat) return false;
+    if (F.curva!=='todas' && x.curva!==F.curva) return false;
+    if (b && (pedSemAcento(x.skuOrig+' '+x.produto).indexOf(b)<0)) return false;
+    return true;
+  }).sort(function(a,b){ return (rk[a.prioridade]-rk[b.prioridade]) || (b.qtdSugerida-a.qtdSugerida) || (b.m.mediaPond-a.m.mediaPond); });
+}
+function pedRenderTabela(){
+  var tb = document.getElementById('pedTbody'); if (!tb) return;
+  PED_LINHAS = pedListaFiltrada();
+  var sit = PED_RES.sit, h = '';
+  PED_LINHAS.slice(0,600).forEach(function(x,i){
+    var st = PED_STATUS[x.status], q = pedQtdFinal(x), edit = !!PED_EDICOES[x.sku];
+    var pr = x.prioridade==='agora' ? '<span class="ped-tag" style="background:rgba(192,57,43,.18);color:#e74c3c">Comprar agora</span>'
+      : (x.prioridade==='janela' ? '<span class="ped-tag" style="background:rgba(0,180,216,.15);color:#00B4D8">Pedir em '+pedFmtBRc(x.quandoPedir)+'</span>' : '<span style="opacity:.35">\u2014</span>');
+    h += '<tr'+(x.prioridade==='agora'?' class="ped-urg"':'')+'><td style="text-align:left">'+escapeHtml(x.skuOrig)+' \u00b7 '+escapeHtml(x.produto).slice(0,44)+(x.m.novo?' <span class="ped-tag" style="background:rgba(0,180,216,.15);color:#00B4D8">novo</span>':'')+'</td>'
+      +'<td>'+escapeHtml(x.categoria)+'</td><td>'+x.curva+x.xyz+'</td><td>'+pedFmtN(x.dDia,2)+'</td><td>'+(x.est===null?'\u2014':pedFmtN(x.est))+'</td>'
+      +'<td>'+(x.cobertura===null?'\u2014':pedFmtN(x.cobertura))+'</td><td><span class="ped-tag" style="background:'+st[1]+'22;color:'+st[1]+'">'+st[0]+'</span></td><td>'+pr+'</td>'
+      +'<td>'+pedFmtN(x.qtdSugerida)+'</td><td><input type="number" min="0" step="1" class="disp-input ped-inp'+(edit?' editado':'')+'" data-i="'+i+'" value="'+q+'" onchange="pedEditou(this)"></td>'
+      +'<td>'+(x.custo===null?'\u2014':pedFmtN(x.custo,2))+'</td><td id="pedInv'+i+'">'+(x.custo===null?'\u2014':pedFmtR(q*x.custo))+'</td></tr>';
+  });
+  if (!PED_LINHAS.length) h = '<tr><td colspan="12" style="text-align:center;padding:1.5rem;color:#8BA0B0">Nenhum SKU neste filtro.</td></tr>';
+  if (PED_LINHAS.length>600) h += '<tr><td colspan="12" style="text-align:center;color:#8BA0B0">Mostrando 600 de '+PED_LINHAS.length+' \u2014 refine o filtro.</td></tr>';
+  tb.innerHTML = h; pedAtualizarTotais();
+}
+function pedEditou(inp){
+  var x = PED_LINHAS[+inp.getAttribute('data-i')]; if (!x) return;
+  var v = Math.max(0, Math.round(parseFloat(inp.value)||0)); inp.value = v;
+  if (v===x.qtdSugerida) { delete PED_EDICOES[x.sku]; inp.classList.remove('editado'); } else { PED_EDICOES[x.sku] = { qtd:v, obs:'' }; inp.classList.add('editado'); }
+  var c = document.getElementById('pedInv'+inp.getAttribute('data-i')); if (c) c.textContent = x.custo===null ? '\u2014' : pedFmtR(v*x.custo);
+  pedAtualizarTotais();
+}
+function pedTotais(){
+  var T = { agora:{un:0,inv:0,skus:0}, data:{un:0,inv:0,skus:0}, semCusto:0 };
+  PED_RES.skus.forEach(function(x){
+    var q = pedQtdFinal(x); if (q<=0) return;
+    var g = x.prioridade==='agora' ? T.agora : T.data;
+    g.un += q; g.skus++; if (x.custo!==null) g.inv += q*x.custo; else T.semCusto++;
+  });
+  return T;
+}
+function pedAtualizarTotais(){
+  var el = document.getElementById('pedTotais'); if (!el) return;
+  var T = pedTotais(), un = T.agora.un+T.data.un, inv = T.agora.inv+T.data.inv, ed = Object.keys(PED_EDICOES).length;
+  el.innerHTML = '<span><strong>'+pedFmtN(T.agora.skus+T.data.skus)+'</strong> SKUs</span><span><strong>'+pedFmtN(un)+'</strong> unidades</span><span><strong>'+pedFmtR(inv)+'</strong> investimento estimado</span><span>'+pedFmtN(ed)+' linha(s) editada(s) pelo franqueado</span>'
+    +(T.semCusto?'<span style="color:#C8B89A">'+T.semCusto+' SKU(s) sem custo conhecido ficam fora do valor</span>':'');
+  pedRenderDesembolso();
+}
+function pedLinhasPedido(){
+  var sit = PED_RES.sit;
+  return PED_RES.skus.filter(function(x){ return pedQtdFinal(x)>0; }).map(function(x){
+    var q = pedQtdFinal(x);
+    return { sku:x.skuOrig, produto:x.produto, categoria:x.categoria, qtd:q, sug:x.qtdSugerida, custo:x.custo, inv:x.custo===null?null:q*x.custo,
+             quando:(x.prioridade==='agora'?sit.hoje:sit.dataAlvo), prio:(x.prioridade==='agora'?'Comprar agora':'Data ideal'), key:x.sku };
+  });
+}
+function pedExportarCSV(){
+  var L = pedLinhasPedido(); if (!L.length) { pedMsg('Nada para exportar: nenhum SKU com quantidade.'); return; }
+  function esc(v){ v = (v===null||v===undefined)?'':String(v); return /[;"\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  var linhas = [['SKU','Produto','Categoria','Qtd pedido','Qtd sugerida','Custo unit. estimado','Investimento estimado','Quando pedir','Prioridade'].join(';')];
+  L.forEach(function(x){ linhas.push([x.sku,x.produto,x.categoria,x.qtd,x.sug,x.custo===null?'':x.custo.toFixed(2).replace('.',','),x.inv===null?'':x.inv.toFixed(2).replace('.',','),pedFmtBR(x.quando),x.prio].map(esc).join(';')); });
+  var blob = new Blob(['\ufeff'+linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'pedido_hawks_'+FILIAL+'_'+pedYMD(PED_RES.sit.dataAlvo)+'.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function pedMsg(t,erro){ var el=document.getElementById('pedMsg'); if(el){ el.textContent=t; el.style.color=erro?'#e74c3c':'#6B8BAA'; } }
+async function pedSalvarRascunho(){
+  var cid = clienteIdAtual(), now = new Date().toISOString();
+  var linhas = PED_RES.skus.filter(function(x){ return pedQtdFinal(x)>0 || PED_EDICOES[x.sku]; }).map(function(x){
+    return { cliente_id:cid, quinzena:PED_QUINZENA, sku:x.skuOrig, qtd_sugerida:x.qtdSugerida, qtd_pedido:pedQtdFinal(x), obs:(PED_EDICOES[x.sku]&&PED_EDICOES[x.sku].obs)||null, updated_at:now };
+  });
+  if (!linhas.length) { pedMsg('Nada para salvar.'); return; }
+  var r = await sb.from('ped_pedido_item').upsert(linhas, { onConflict:'cliente_id,quinzena,sku' });
+  if (r.error) { pedMsg('Erro ao salvar rascunho: '+r.error.message, true); return; }
+  pedMsg('Rascunho salvo: '+linhas.length+' itens (quinzena de '+pedFmtBR(pedParseYMD(PED_QUINZENA))+').');
+}
+async function pedAplicarParametros(salvar){
+  var novo = {}, linhas = [], cid = clienteIdAtual(), now = new Date().toISOString();
+  PED_PARAM_CAMPOS.forEach(function(g){ g[1].forEach(function(c){
+    var el = document.getElementById('pedP-'+c[0]); if (!el) return;
+    novo[c[0]] = el.value; linhas.push({ cliente_id:cid, chave:c[0], valor:String(el.value), updated_at:now });
+  }); });
+  PED_PARAM = novo; pedRecalcular();
+  if (!PED_ED_CARREGADAS) await pedCarregarEdicoes();
+  var msg = 'Par\u00e2metros aplicados.';
+  if (salvar) { var r = await sb.from('ped_parametro').upsert(linhas, { onConflict:'cliente_id,chave' }); msg = r.error ? 'Erro ao salvar: '+r.error.message : 'Par\u00e2metros salvos para '+nomeFilial()+'.'; }
+  var root = document.getElementById('pedRoot'); if (!root) return;
+  var y = window.scrollY; root.innerHTML = pedPaginaHTML(); pedRenderTabela(); pedRenderDesembolso(); setTimeout(pedDesenharGraficos,60);
+  var m = document.getElementById('pedParamMsg'); if (m) m.textContent = msg; window.scrollTo(0,y);
+}
+
+/* ── desembolso ── */
+function pedRenderDesembolso(){
+  var el = document.getElementById('pedDesembolso'); if (!el || !PED_RES) return;
+  var R = PED_RES, sit = R.sit, T = pedTotais(), dias = R.P.dias_faturamento;
+  var unico = sit.diasAteAlvo===0;
+  var cH = pedCenarioPrazo(sit.hoje, dias), cD = pedCenarioPrazo(sit.dataAlvo, dias);
+  var totD = unico ? T.agora.inv+T.data.inv : T.data.inv, totH = unico ? 0 : T.agora.inv;
+  if (!(totD>0 || totH>0)) { el.innerHTML = '<div class="plano-vazio">Sem investimento estimado: sem pedido com custo conhecido.</div>'; destroyChart('chartPedDesemb'); return; }
+  var rows = [], datas = {};
+  function add(c,v,rot){ c.parcelas.forEach(function(p,i){ var k=pedYMD(p.data); datas[k]=datas[k]||{d:p.data,h:0,t:0}; datas[k][rot]+=v/4; }); }
+  if (totH>0) add(cH,totH,'h'); if (totD>0) add(cD,totD,'t');
+  var ks = Object.keys(datas).sort();
+  var head = '<th style="text-align:left">Vencimento</th>'+(totH>0?'<th>Pedido agora (hoje)</th>':'')+'<th>'+(unico?'Pedido hoje (data ideal)':'Pedido na data ideal')+'</th><th>Total</th>';
+  var body = ks.map(function(k){ var o=datas[k]; return '<tr><td style="text-align:left">'+pedFmtBR(o.d)+'</td>'+(totH>0?'<td>'+pedFmtR(o.h)+'</td>':'')+'<td>'+pedFmtR(o.t)+'</td><td class="v-total">'+pedFmtR(o.h+o.t)+'</td></tr>'; }).join('');
+  el.innerHTML = '<div class="ped-grid2"><div><table class="dre-table"><thead><tr>'+head+'</tr></thead><tbody>'+body+'<tr class="highlight"><td style="text-align:left">Total</td>'+(totH>0?'<td>'+pedFmtR(totH)+'</td>':'')+'<td>'+pedFmtR(totD)+'</td><td>'+pedFmtR(totH+totD)+'</td></tr></tbody></table>'
+    +'<div class="ped-sub" style="margin-top:6px">Tabela '+cD.prazos.join('/')+' dias para o pedido na data ideal'+(totH>0?'; pedido de hoje usa '+cH.prazos.join('/')+' dias':'')+'. Faturamento '+dias+' d ap\u00f3s o pedido (a validar).</div></div>'
+    +'<div class="chart-wrap" style="height:210px"><canvas id="chartPedDesemb"></canvas></div></div>';
+  destroyChart('chartPedDesemb');
+  var cv = document.getElementById('chartPedDesemb'); if (!cv || typeof Chart==='undefined') return;
+  var ds = [{ label:(unico?'Pedido hoje':'Na data ideal'), data:ks.map(function(k){return datas[k].t;}), backgroundColor:'#00B4D8', stack:'s', borderRadius:3 }];
+  if (totH>0) ds.unshift({ label:'Comprar agora', data:ks.map(function(k){return datas[k].h;}), backgroundColor:'#c0392b', stack:'s', borderRadius:3 });
+  new Chart(cv, { type:'bar', data:{ labels:ks.map(function(k){return pedFmtBRc(datas[k].d);}), datasets:ds },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:ds.length>1, labels:{color:'#8BA0B0',font:{size:11}} } },
+      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:'#8BA0B0'} }, y:{ stacked:true, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8BA0B0', callback:function(v){return pedFmtR(v);}} } } } });
+}
+
+/* ── gráficos ── */
+function pedDesenharGraficos(){
+  if (typeof Chart==='undefined' || !PED_RES || !PED_RES.skus.length) return;
+  var R = PED_RES, P = R.P, tc = '#8BA0B0', gc = 'rgba(255,255,255,0.06)';
+  ['chartPedDisp','chartPedStatus','chartPedDemanda','chartPedPareto'].forEach(destroyChart);
+  var CAP = 240, cor = { A:'#00B4D8', B:'#5B8DB8', C:'#A8C8E0' };
+  /* dispersão */
+  var cv = document.getElementById('chartPedDisp');
+  if (cv) {
+    var ds = ['A','B','C'].map(function(c){
+      return { label:'Curva '+c, backgroundColor:cor[c]+'99', borderColor:cor[c], borderWidth:1,
+        data: R.skus.filter(function(x){ return x.curva===c && x.dDia>0 && x.cobertura!==null; }).map(function(x){
+          return { x:x.dDia, y:Math.min(x.cobertura,CAP), r:Math.max(3,Math.min(14,3+Math.sqrt(x.est||0)*0.45)), _x:x }; }) };
+    });
+    var linhas = { id:'pedLinhas', afterDraw:function(ch){
+      var c=ch.ctx, a=ch.chartArea, y=ch.scales.y; c.save(); c.setLineDash([5,4]); c.font='10px sans-serif';
+      [[P.lead_time,'lead time','#e67e22'],[P.excesso_mult*P.doh_alvo,'excesso','#5B8DB8']].forEach(function(l){
+        if (l[0]>CAP) return; var py=y.getPixelForValue(l[0]); c.strokeStyle=l[2]; c.fillStyle=l[2]; c.beginPath(); c.moveTo(a.left,py); c.lineTo(a.right,py); c.stroke(); c.fillText(l[1]+' '+l[0]+'d',a.left+4,py-4); });
+      c.restore(); } };
+    new Chart(cv, { type:'bubble', plugins:[linhas], data:{ datasets:ds }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:function(c){ var x=c.raw._x; return [x.skuOrig+' \u00b7 '+x.produto.slice(0,30), 'Demanda: '+pedFmtN(x.dDia,2)+'/dia \u00b7 Estoque: '+pedFmtN(x.est)+' \u00b7 Cobertura: '+pedFmtN(x.cobertura)+' d']; } } } },
+      scales:{ x:{ type:'logarithmic', title:{display:true,text:'Demanda di\u00e1ria (un./dia, escala log)',color:tc,font:{size:10}}, ticks:{color:tc, callback:function(v){ return [0.01,0.1,1,10,100].indexOf(v)>=0 ? v : ''; }}, grid:{color:gc} },
+               y:{ min:0, max:CAP+10, title:{display:true,text:'Cobertura (dias; limitada a '+CAP+')',color:tc,font:{size:10}}, ticks:{color:tc}, grid:{color:gc} } } } });
+  }
+  /* status por categoria */
+  cv = document.getElementById('chartPedStatus');
+  if (cv) {
+    var cats = {}; R.skus.forEach(function(x){ cats[x.categoria]=1; }); cats = Object.keys(cats).sort();
+    var sts = ['ruptura','critico','ok','excesso','sem_giro'];
+    new Chart(cv, { type:'bar', data:{ labels:cats, datasets: sts.map(function(s){ return { label:PED_STATUS[s][0], backgroundColor:PED_STATUS[s][1],
+        data:cats.map(function(c){ return R.skus.filter(function(x){return x.categoria===c && x.status===s;}).length; }), stack:'a' }; }) },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{stacked:true,grid:{display:false},ticks:{color:tc}}, y:{stacked:true,grid:{color:gc},ticks:{color:tc,precision:0}} } } });
+  }
+  /* demanda mensal + ano anterior */
+  cv = document.getElementById('chartPedDemanda');
+  if (cv) {
+    var n = R.meses.length, tot = R.meses.map(function(k,i){ return k>=R.minKey ? R.serieTotal[i] : null; });
+    var prev = R.meses.map(function(k,i){ return i>=12 ? tot[i-12] : null; });
+    new Chart(cv, { type:'line', data:{ labels:R.meses.map(pedMesLabel), datasets:[
+      { label:'Unidades', data:tot, borderColor:'#00B4D8', backgroundColor:'rgba(0,180,216,0.10)', fill:true, tension:0.3, pointRadius:3, borderWidth:2.5 },
+      { label:'Ano anterior', data:prev, borderColor:'#8BA0B0', borderDash:[5,4], fill:false, tension:0.3, pointRadius:0, borderWidth:1.5 } ] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:true,labels:{color:tc,font:{size:11}}} }, scales:{ x:{grid:{display:false},ticks:{color:tc,maxRotation:60,autoSkip:true}}, y:{grid:{color:gc},ticks:{color:tc,callback:function(v){return pedFmtN(v);}}} } } });
+  }
+  /* pareto */
+  cv = document.getElementById('chartPedPareto');
+  if (cv) {
+    var pts = R.pareto.filter(function(p,i){ return i%Math.max(1,Math.floor(R.pareto.length/120))===0 || i===R.pareto.length-1; }).map(function(p){ return {x:p.rank,y:p.acum}; });
+    pts.unshift({x:0,y:0});
+    new Chart(cv, { type:'scatter', data:{ datasets:[
+      { label:'% acumulado das unidades', data:pts, showLine:true, borderColor:'#00B4D8', backgroundColor:'rgba(0,180,216,0.12)', fill:true, pointRadius:0, borderWidth:2.5, tension:0.2 },
+      { label:'Corte A', data:[{x:0,y:P.corte_a},{x:100,y:P.corte_a}], showLine:true, borderColor:'#e67e22', borderDash:[4,4], pointRadius:0, borderWidth:1 },
+      { label:'Corte B', data:[{x:0,y:P.corte_b},{x:100,y:P.corte_b}], showLine:true, borderColor:'#5B8DB8', borderDash:[4,4], pointRadius:0, borderWidth:1 } ] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{min:0,max:100,title:{display:true,text:'% dos SKUs (ordenados por unidades)',color:tc,font:{size:10}},ticks:{color:tc,callback:function(v){return v+'%';}},grid:{color:gc}}, y:{min:0,max:100,ticks:{color:tc,callback:function(v){return v+'%';}},grid:{color:gc}} } } });
+  }
+}
+/* ═══ FIM MÓDULO ESTOQUE ═══ */
 </script>
 </body>
 </html>
