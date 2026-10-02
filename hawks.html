@@ -3274,7 +3274,6 @@ function pedPaginaHTML(){
     +'<div class="ped-totais" id="pedTotais"></div></div>';
 
   h += pedPainelHTML();
-  h += '<div class="chart-card"><div class="chart-title">Cronograma de desembolso do pedido</div><div class="chart-sub">4 parcelas iguais, contadas a partir do faturamento \u00b7 tabela de prazo definida pela quinzena de entrada do pedido</div><div id="pedDesembolso"></div></div>';
 
   h += pedDeparaPaginaHTML();
   /* par\u00e2metros */
@@ -3447,9 +3446,7 @@ function pedDesenharGraficos(){
     var pts = R.skus.filter(function(x){ return x.dDia>0 && x.cobertura!==null && x.truss && !x.inativo; });
     var lt = P.lead_time, exc = P.excesso_mult*P.doh_alvo;
     var Apts = pts.filter(function(x){ return x.curva==='A'; }), cutA = Apts.length ? Math.min.apply(null, Apts.map(function(x){ return x.dDia; })) : null;
-    var nAR = Apts.filter(function(x){ return x.cobertura<lt; }).length, rot = {};
-    Apts.filter(function(x){ return x.cobertura<lt; }).sort(function(a,b){ return b.dDia-a.dDia; }).slice(0,4).forEach(function(x){ rot[x.sku]=1; });
-    pts.filter(function(x){ return x.cobertura>exc; }).sort(function(a,b){ return (b.est||0)-(a.est||0); }).slice(0,2).forEach(function(x){ rot[x.sku]=1; });
+    var nAR = Apts.filter(function(x){ return x.cobertura<lt; }).length;
     var dmin = pts.length ? Math.min.apply(null, pts.map(function(x){ return x.dDia; })) : 1, dmax = pts.length ? Math.max.apply(null, pts.map(function(x){ return x.dDia; })) : 10;
     var xmin = Math.pow(10, Math.floor(Math.log(dmin)/Math.LN10)), xmax = Math.pow(10, Math.ceil(Math.log(dmax)/Math.LN10));
     var ds = ['A','B','C'].map(function(c){
@@ -3472,7 +3469,6 @@ function pedDesenharGraficos(){
         c.fillText('Capital parado (acima de '+pedFmtN(exc,0)+' d)',a.left+8,a.top+16); c.fillText('Saud\u00e1vel ('+pedFmtN(lt,0)+' a '+pedFmtN(exc,0)+' d)',a.left+8,yE+16); c.fillText('Risco de ruptura (abaixo de '+pedFmtN(lt,0)+' d)',a.left+8,yL+16);
         if (cutA!==null) { var xb=x.getPixelForValue(cutA); c.fillStyle='#ff8a3d'; c.fillText('Curva A: acima de '+pedFmtN(cutA,1)+' un./dia',xb+8,a.top+16); c.fillStyle=tc; c.textAlign='right'; c.fillText('Risco de alto impacto: '+nAR+' de '+Apts.length+' produtos A',a.right-8,a.bottom-8); }
         c.textAlign='left'; c.font='11px sans-serif';
-        ch.data.datasets.forEach(function(ds,i){ ch.getDatasetMeta(i).data.forEach(function(el,j){ var p=ds.data[j]; if (p && rot[p._x.sku]) { c.fillStyle='#E2EAF4'; c.fillText(p._x.produto.slice(0,24)+' ('+pedFmtN(p._x.cobertura,0)+' d)', el.x+el.options.radius+4, el.y-4); } }); });
         c.restore(); } };
     new Chart(cv, { type:'bubble', plugins:[zonas], data:{ datasets:ds }, options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ right:12, top:4 } }, plugins:{ legend:{display:false},
         tooltip:{ callbacks:{ label:function(c){ var x=c.raw._x; return [x.skuOrig+' \u00b7 '+x.produto.slice(0,30), 'Demanda: '+pedFmtN(x.dDia,2)+'/dia \u00b7 Estoque: '+pedFmtN(x.est)+' \u00b7 Cobertura: '+pedFmtN(x.cobertura)+' d']; } } } },
