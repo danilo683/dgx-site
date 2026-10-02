@@ -3809,13 +3809,16 @@ function pedPainelRender(){
     if (x.camp) t += '<br><span style="color:#ff8a3d">Campanha: '+Object.keys(x.camp).sort().map(function(k){ return pedMesLabel(k)+' ('+Math.round(x.camp[k].desc*100)+'% off)'; }).join(', ')+(x.fatorManual!==null?' \u00b7 fator manual '+x.fatorManual:'')+'</span>';
     info.innerHTML = t;
   }
-  box.innerHTML = pedPainelSVG(x, sim, PED_SNAP[x.sku] || []);
+  var W = Math.round(box.clientWidth) || 680; W = Math.max(520, Math.min(1400, W));
+  box.innerHTML = pedPainelSVG(x, sim, PED_SNAP[x.sku] || [], W);
+  if (!window.__pedPainelResize) { window.__pedPainelResize = true; var tmr = null;
+    window.addEventListener('resize', function(){ clearTimeout(tmr); tmr = setTimeout(function(){ if (document.getElementById('pedPainelSvg')) pedPainelRender(); }, 150); }); }
 }
 function pedNiceTicks(max,n){
   var rough = Math.max(1,max)/n, mag = Math.pow(10, Math.floor(Math.log(rough)/Math.LN10)), res = rough/mag, step = (res<=1?1:(res<=2?2:(res<=5?5:10)))*mag;
   var top = Math.ceil(max/step)*step, t = []; for (var v=0; v<=top+step/1000; v+=step) t.push(Math.round(v*1000)/1000); return { step:step, top:top, ticks:t };
 }
-function pedPainelSVG(x, sim, snaps){
+function pedPainelSVG(x, sim, snaps, Wd){
   var R = PED_RES, P = R.P, hoje = sim.hoje, N = sim.N, mon = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   var iniKey = R.minKey > R.meses[0] ? R.minKey : R.meses[0];
   var fim = pedAddDias(hoje, N), endKey = pedMesKey(pedYMD(fim));
@@ -3823,7 +3826,7 @@ function pedPainelSVG(x, sim, snaps){
   var tStart = pedParseYMD(iniKey+'-01'), dayOf = function(d){ return Math.round((d - tStart)/86400000); };
   var starts = months.map(function(k){ return dayOf(pedParseYMD(k+'-01')); }); starts.push(dayOf(pedParseYMD(pedMesMais(endKey,1)+'-01')));
   var DT = starts[starts.length-1], H0 = dayOf(hoje);
-  var Wd = 680, X0 = 58, XW = 610, T1 = 30, B1 = 180, T2 = 246, B2 = 436;
+  Wd = Wd || 680; var X0 = 58, XW = Wd - X0 - 14, T1 = 28, B1 = 150, T2 = 206, B2 = 336, H = B2 + 32;
   var X = function(t){ return X0 + t/DT*XW; };
   // vendas: histórico e projeção por mês
   var projMes = {}; for (var t=0;t<=N;t++){ var k = pedMesKey(pedYMD(pedAddDias(hoje,t))); projMes[k] = (projMes[k]||0) + x.dDia*(x.fDia ? x.fDia(t) : 1); }
@@ -3838,7 +3841,7 @@ function pedPainelSVG(x, sim, snaps){
   var maxS = Math.max(sim.ser.reduce(function(a,b){ return Math.max(a,b); },0), sim.ordenavel ? x.nivelAlvo : 0, sim.sem[0]||0);
   (snaps||[]).forEach(function(s){ if (s.q>maxS) maxS = s.q; });
   var tk2 = pedNiceTicks(maxS*1.1, 4), Y2 = function(v){ return B2 - v/tk2.top*(B2-T2); };
-  var o = '<svg viewBox="0 0 '+Wd+' 476" width="100%" role="img" aria-label="Painel de vendas mensais e painel de estoque projetado do produto">';
+  var o = '<svg viewBox="0 0 '+Wd+' '+H+'" width="100%" height="'+H+'" role="img" aria-label="Painel de vendas mensais e painel de estoque projetado do produto">';
   function T(px,py,txt,anc,fill){ return '<text x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" font-size="11" text-anchor="'+(anc||'start')+'" fill="'+(fill||PP.txt)+'">'+txt+'</text>'; }
   function L(x1,y1,x2,y2,st,w,da){ return '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="'+st+'" stroke-width="'+(w||1)+'"'+(da?' stroke-dasharray="'+da+'"':'')+'/>'; }
   o += '<rect x="'+X(H0).toFixed(1)+'" y="'+T1+'" width="'+(X(DT)-X(H0)).toFixed(1)+'" height="'+(B1-T1)+'" fill="'+PP.zona+'"/><rect x="'+X(H0).toFixed(1)+'" y="'+T2+'" width="'+(X(DT)-X(H0)).toFixed(1)+'" height="'+(B2-T2)+'" fill="'+PP.zona+'"/>';
@@ -3846,7 +3849,7 @@ function pedPainelSVG(x, sim, snaps){
   if (x.camp) months.forEach(function(k,i){ var c = x.camp[k]; if (!c) return;
     o += '<rect x="'+X(starts[i]).toFixed(1)+'" y="'+T1+'" width="'+(X(starts[i+1])-X(starts[i])).toFixed(1)+'" height="'+(B1-T1)+'" fill="'+PP.camp+'"/><rect x="'+X(starts[i]).toFixed(1)+'" y="'+T2+'" width="'+(X(starts[i+1])-X(starts[i])).toFixed(1)+'" height="'+(B2-T2)+'" fill="'+PP.camp+'"/>'
        + T((X(starts[i])+X(starts[i+1]))/2, T1+12, 'campanha \u2212'+Math.round(c.desc*100)+'%', 'middle', PP.hoje); });
-  o += T(X0,18,'Vendas por m\u00eas (unidades)',null,PP.pri)+T(X0,T2-10,'Estoque (unidades)',null,PP.pri);
+  o += T(X0,16,'Vendas por m\u00eas (unidades)<tspan fill="'+PP.txt+'"> \u00b7 linha tracejada: m\u00e9dia ponderada de '+pedFmtN(x.m.mediaPond)+' por m\u00eas</tspan>',null,PP.pri)+T(X0,T2-10,'Estoque (unidades)',null,PP.pri);
   tk1.ticks.forEach(function(v){ o += L(X0,Y1(v),X0+XW,Y1(v),PP.grid,0.6)+T(X0-6,Y1(v)+4,pedFmtN(v),'end'); });
   tk2.ticks.forEach(function(v){ o += L(X0,Y2(v),X0+XW,Y2(v),PP.grid,0.6)+T(X0-6,Y2(v)+4,pedFmtN(v),'end'); });
   for (var i=1;i<months.length;i++){ o += L(X(starts[i]),T1,X(starts[i]),B1,PP.grid,0.5)+L(X(starts[i]),T2,X(starts[i]),B2,PP.grid,0.5); }
@@ -3857,7 +3860,7 @@ function pedPainelSVG(x, sim, snaps){
     else o += T(cx,B1-8,'sem dados','middle');
     o += T(cx,B2+16,lab,'middle');
   });
-  o += L(X0,Y1(x.m.mediaPond),X0+XW,Y1(x.m.mediaPond),PP.sem,1.2,'6 4')+T(X0+XW-2,Y1(x.m.mediaPond)-6,'m\u00e9dia ponderada: '+pedFmtN(x.m.mediaPond)+' por m\u00eas','end');
+  o += L(X0,Y1(x.m.mediaPond),X0+XW,Y1(x.m.mediaPond),PP.sem,1.2,'6 4');
   // estoque: histórico das posições importadas
   var pts = (snaps||[]).filter(function(s){ return s.d>=iniKey+'-01' && s.d<=pedYMD(hoje); });
   if (pts.length>1) o += '<path d="M'+pts.map(function(s){ return X(dayOf(pedParseYMD(s.d))).toFixed(1)+','+Y2(s.q).toFixed(1); }).join(' L')+'" fill="none" stroke="'+PP.est+'" stroke-width="1.6"/>';
