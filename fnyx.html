@@ -200,6 +200,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .crono-evento-titulo{font-size:12px;font-weight:600;color:#E2EAF4}
 .crono-evento-hora{font-size:10.5px;color:#8BA0B0;margin-top:1px}
 .crono-evento-desc{font-size:11px;color:#8BA0B0;margin-top:2px;line-height:1.4}
+/* ── Edição de itens (Plano de Ação + Cronograma) ── */
+.plano-item-acoes{display:flex;gap:2px;flex-shrink:0;align-items:flex-start}
+.plano-edit-btn{background:none;border:none;color:#4A6580;cursor:pointer;font-size:13px;line-height:1;padding:2px 4px;flex-shrink:0}
+.plano-edit-btn:hover{color:#00B4D8}
+.plano-item-data.clicavel{cursor:pointer;display:inline-block}
+.plano-item-data.clicavel:hover{text-decoration:underline}
+.plano-item-data.atrasado{color:#e74c3c;font-weight:600}
+.plano-item-data.sem-prazo{color:#6B8BAA}
+.plano-resumo-atraso{color:#e74c3c;font-weight:600}
+.plano-item.editando,.crono-evento-item.editando{display:block}
+.ini-edit-field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.ini-edit-field>span{font-size:10px;color:#6B8BAA;text-transform:uppercase;letter-spacing:.05em}
+.ini-mini-form-row.wrap{flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -574,6 +587,9 @@ function hwPlanoFormToggle(){
   document.getElementById('plano-form').classList.toggle('open');
 }
 
+var hwPlanoDados = [];
+var hwPlanoEditandoId = null;
+
 async function hwPlanoCarregar(){
   var loading=document.getElementById('plano-loading'), vazio=document.getElementById('plano-vazio');
   loading.style.display='block';
@@ -585,26 +601,50 @@ async function hwPlanoCarregar(){
     .eq('cliente_id',CLIENTE_ID).order('ordem',{ascending:true}).order('created_at',{ascending:true});
 
   loading.style.display='none';
-  if(error){ console.error(error); vazio.style.display='block'; vazio.textContent='Não foi possível carregar o plano de ação.'; return; }
+  if(error){ console.error(error); hwPlanoDados=[]; vazio.style.display='block'; vazio.textContent='Não foi possível carregar o plano de ação.'; return; }
 
-  if(!data || !data.length){
+  hwPlanoDados = data || [];
+  hwPlanoEditandoId = null;
+  hwPlanoRender();
+}
+
+function hwPlanoRender(){
+  var vazio=document.getElementById('plano-vazio'), resumo=document.getElementById('plano-progresso-resumo');
+  var data = hwPlanoDados;
+
+  if(!data.length){
     vazio.style.display='block'; vazio.textContent='Nenhum item no plano de ação ainda.';
-    document.getElementById('plano-progresso-resumo').textContent='';
+    resumo.textContent='';
+    document.getElementById('plano-lista').innerHTML='';
     return;
   }
+  vazio.style.display='none';
+
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  function atrasado(i){ return !i.concluido && i.data_alvo && new Date(i.data_alvo+'T00:00:00') < hoje; }
 
   var concluidos = data.filter(function(i){return i.concluido;}).length;
-  document.getElementById('plano-progresso-resumo').textContent = concluidos+' de '+data.length+' concluídos';
+  var nAtrasados = data.filter(atrasado).length;
+  resumo.innerHTML = concluidos+' de '+data.length+' concluídos'
+    +(nAtrasados ? ' · <span class="plano-resumo-atraso">'+nAtrasados+(nAtrasados>1?' atrasados':' atrasado')+'</span>' : '');
 
   document.getElementById('plano-lista').innerHTML = data.map(function(item){
+    if(String(item.id)===String(hwPlanoEditandoId)) return hwPlanoEditHTML(item);
+
     var isMeta = item.tipo === 'meta';
+    var isAtr = atrasado(item);
     var progressoHtml = '';
     if(isMeta && item.meta_valor){
       var pct = Math.min(100, Math.round((Number(item.progresso_valor)||0)/Number(item.meta_valor)*100));
       progressoHtml = '<div class="plano-progresso-bar-wrap"><div class="plano-progresso-bar-bg"><div class="plano-progresso-bar-fill" style="width:'+pct+'%"></div></div><div class="plano-progresso-bar-txt">'+pct+'%</div></div>';
     }
-    var dataAlvoHtml = item.data_alvo
-      ? '<div class="plano-item-data">📅 Até '+new Date(item.data_alvo+'T00:00:00').toLocaleDateString('pt-BR')+'</div>' : '';
+    var dataAlvoHtml = '';
+    if(item.data_alvo){
+      dataAlvoHtml = '<div class="plano-item-data clicavel'+(isAtr?' atrasado':'')+'" onclick="hwPlanoEditar(\''+item.id+'\')" title="Clique para alterar o prazo">'
+        +(isAtr?'⚠ Atrasado · ':'📅 ')+'Até '+new Date(item.data_alvo+'T00:00:00').toLocaleDateString('pt-BR')+'</div>';
+    } else if(!item.concluido){
+      dataAlvoHtml = '<div class="plano-item-data clicavel sem-prazo" onclick="hwPlanoEditar(\''+item.id+'\')" title="Definir um prazo">＋ definir prazo</div>';
+    }
 
     return '<div class="plano-item'+(item.concluido?' concluido':'')+'">'
       +'<button class="plano-check'+(item.concluido?' checked':'')+'" onclick="hwPlanoToggleConcluido(\''+item.id+'\','+(!item.concluido)+')">'
@@ -614,9 +654,62 @@ async function hwPlanoCarregar(){
       +(item.descricao ? '<div class="plano-item-desc">'+escapeHtml(item.descricao)+'</div>' : '')
       +dataAlvoHtml+progressoHtml
       +'</div>'
+      +'<div class="plano-item-acoes">'
+      +'<button class="plano-edit-btn" onclick="hwPlanoEditar(\''+item.id+'\')" title="Editar">✎</button>'
       +'<button class="plano-del" onclick="hwPlanoExcluir(\''+item.id+'\')" title="Excluir">×</button>'
+      +'</div>'
       +'</div>';
   }).join('');
+}
+
+function hwPlanoEditHTML(item){
+  return '<div class="plano-item editando"><div class="ini-mini-form open" style="margin-bottom:0;width:100%">'
+    +'<div class="ini-mini-form-row wrap">'
+    +'<label class="ini-edit-field"><span>Tipo</span><select id="plano-edit-tipo">'
+    +'<option value="acao"'+(item.tipo!=='meta'?' selected':'')+'>Ação</option>'
+    +'<option value="meta"'+(item.tipo==='meta'?' selected':'')+'>Meta</option></select></label>'
+    +'<label class="ini-edit-field"><span>Prazo</span><input type="date" id="plano-edit-data-alvo" value="'+escapeHtml(item.data_alvo)+'"></label>'
+    +'</div>'
+    +'<label class="ini-edit-field"><span>Título</span><input type="text" id="plano-edit-titulo" value="'+escapeHtml(item.titulo)+'"></label>'
+    +'<label class="ini-edit-field"><span>Descrição</span><textarea id="plano-edit-desc" rows="2">'+escapeHtml(item.descricao)+'</textarea></label>'
+    +'<div class="ini-mini-form-row wrap">'
+    +'<label class="ini-edit-field"><span>Meta</span><input type="number" id="plano-edit-meta-valor" value="'+escapeHtml(item.meta_valor)+'" placeholder="opcional"></label>'
+    +'<label class="ini-edit-field"><span>Progresso atual</span><input type="number" id="plano-edit-progresso-valor" value="'+escapeHtml(item.progresso_valor)+'" placeholder="opcional"></label>'
+    +'</div>'
+    +'<div class="ini-mini-form-actions">'
+    +'<button class="ini-mini-cancel" onclick="hwPlanoEditarCancelar()">Cancelar</button>'
+    +'<button class="ini-mini-save" onclick="hwPlanoEditarSalvar(\''+item.id+'\')">Salvar</button>'
+    +'</div></div></div>';
+}
+
+function hwPlanoEditar(id){
+  hwPlanoEditandoId = id;
+  hwPlanoRender();
+  var el = document.getElementById('plano-edit-titulo');
+  if(el) el.focus();
+}
+
+function hwPlanoEditarCancelar(){
+  hwPlanoEditandoId = null;
+  hwPlanoRender();
+}
+
+async function hwPlanoEditarSalvar(id){
+  var titulo = document.getElementById('plano-edit-titulo').value.trim();
+  if(!titulo){ alert('Preencha ao menos o título.'); return; }
+
+  var payload = {
+    tipo: document.getElementById('plano-edit-tipo').value,
+    titulo: titulo,
+    descricao: document.getElementById('plano-edit-desc').value.trim() || null,
+    data_alvo: document.getElementById('plano-edit-data-alvo').value || null,
+    meta_valor: document.getElementById('plano-edit-meta-valor').value || null,
+    progresso_valor: document.getElementById('plano-edit-progresso-valor').value || null
+  };
+
+  var {error} = await sb.from('fnyx_plano_acao').update(payload).eq('id',id);
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+  hwPlanoCarregar();
 }
 
 async function hwPlanoToggleConcluido(id, novoStatus){
@@ -723,6 +816,8 @@ function hwCronoRenderCalendario(){
   }).join('');
 }
 
+var hwCronoEditandoId = null;
+
 function hwCronoRenderListas(){
   var hoje = new Date();
   hoje.setHours(0,0,0,0);
@@ -737,6 +832,7 @@ function hwCronoRenderListas(){
 
   function renderLista(lista){
     return lista.map(function(e){
+      if(String(e.id)===String(hwCronoEditandoId)) return hwCronoEditHTML(e);
       var d = new Date(e.data+'T00:00:00');
       var dia = d.getDate();
       var mesAbr = V.meses[d.getMonth()];
@@ -748,7 +844,10 @@ function hwCronoRenderListas(){
         +(horaStr ? '<div class="crono-evento-hora">'+horaStr+'</div>' : '')
         +(e.descricao ? '<div class="crono-evento-desc">'+escapeHtml(e.descricao)+'</div>' : '')
         +'</div>'
+        +'<div class="plano-item-acoes">'
+        +'<button class="plano-edit-btn" onclick="hwCronoEditar(\''+e.id+'\')" title="Editar">✎</button>'
         +'<button class="plano-del" onclick="hwCronoExcluir(\''+e.id+'\')" title="Excluir">×</button>'
+        +'</div>'
         +'</div>';
     }).join('');
   }
@@ -758,6 +857,54 @@ function hwCronoRenderListas(){
 
   document.getElementById('crono-lista-entregas').innerHTML = renderLista(entregas);
   document.getElementById('crono-vazio-entregas').style.display = entregas.length ? 'none' : 'block';
+}
+
+function hwCronoEditHTML(e){
+  return '<div class="crono-evento-item editando"><div class="ini-mini-form open" style="margin-bottom:0;width:100%">'
+    +'<div class="ini-mini-form-row wrap">'
+    +'<label class="ini-edit-field"><span>Tipo</span><select id="crono-edit-tipo">'
+    +'<option value="encontro"'+(e.tipo!=='entrega'?' selected':'')+'>Encontro</option>'
+    +'<option value="entrega"'+(e.tipo==='entrega'?' selected':'')+'>Entrega</option></select></label>'
+    +'<label class="ini-edit-field"><span>Data</span><input type="date" id="crono-edit-data" value="'+escapeHtml(e.data)+'"></label>'
+    +'<label class="ini-edit-field"><span>Hora</span><input type="time" id="crono-edit-hora" value="'+escapeHtml(e.hora ? String(e.hora).slice(0,5) : '')+'"></label>'
+    +'</div>'
+    +'<label class="ini-edit-field"><span>Título</span><input type="text" id="crono-edit-titulo" value="'+escapeHtml(e.titulo)+'"></label>'
+    +'<label class="ini-edit-field"><span>Descrição</span><textarea id="crono-edit-desc" rows="2">'+escapeHtml(e.descricao)+'</textarea></label>'
+    +'<div class="ini-mini-form-actions">'
+    +'<button class="ini-mini-cancel" onclick="hwCronoEditarCancelar()">Cancelar</button>'
+    +'<button class="ini-mini-save" onclick="hwCronoEditarSalvar(\''+e.id+'\')">Salvar</button>'
+    +'</div></div></div>';
+}
+
+function hwCronoEditar(id){
+  hwCronoEditandoId = id;
+  hwCronoRenderListas();
+  var el = document.getElementById('crono-edit-titulo');
+  if(el) el.focus();
+}
+
+function hwCronoEditarCancelar(){
+  hwCronoEditandoId = null;
+  hwCronoRenderListas();
+}
+
+async function hwCronoEditarSalvar(id){
+  var titulo = document.getElementById('crono-edit-titulo').value.trim();
+  var data = document.getElementById('crono-edit-data').value;
+  if(!titulo || !data){ alert('Preencha pelo menos o título e a data.'); return; }
+
+  var payload = {
+    tipo: document.getElementById('crono-edit-tipo').value,
+    titulo: titulo,
+    data: data,
+    hora: document.getElementById('crono-edit-hora').value || null,
+    descricao: document.getElementById('crono-edit-desc').value.trim() || null
+  };
+
+  var {error} = await sb.from('fnyx_cronograma').update(payload).eq('id',id);
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+  hwCronoEditandoId = null;
+  hwCronoCarregar();
 }
 
 async function hwCronoSalvar(){
