@@ -372,6 +372,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .orc-in-ini{color:#00D4DA;font-weight:600}
 .orc-rep{position:absolute;right:-2px;top:2px;font-size:10px;color:#00B4D8;cursor:pointer;opacity:0;padding:0 3px;background:#162230;border-radius:3px}
 .orc-cell:hover .orc-rep{opacity:1}
+.orc-tabs{display:flex;gap:4px;margin-bottom:1rem;border-bottom:1px solid #1F3044}
+.orc-tabs button{background:none;border:0;border-bottom:2px solid transparent;color:#8BA0B0;font-size:13px;padding:8px 16px;cursor:pointer;margin-bottom:-1px}
+.orc-tabs button.active{color:#fff;border-bottom-color:#00B4D8}
+.orc-chartbox{height:230px;background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:12px;margin-bottom:1rem}
+.orc-tbl tr td.orc-pos{color:#6FD39A!important}.orc-tbl tr td.orc-neg{color:#E58B8B!important}.orc-pos{color:#6FD39A}.orc-neg{color:#E58B8B}
 
 </style>
 </head>
@@ -2900,7 +2905,8 @@ var ORC_PLANO=[
   {c:'3.2.1',n:'Serviço da Dívida e Juros (-)',i:[['3.2.1.1','Pagamentos e Financiamentos Bancários'],['3.2.1.2','Pagamentos de Juros e Encargos Bancários']]},
   {c:'3.2.2',n:'Pagamento a Sócios e Outros (-)',i:[['3.2.2.1','Pagamento de Dividendos'],['3.2.2.2','Outras Saídas de Financiamento']]}]}
 ];
-var ORC={ano:(new Date()).getFullYear(),mes:(new Date()).getMonth()+1,view:'dia',v:{},fechados:{},carregado:false,erro:''};
+var ORC={ano:(new Date()).getFullYear(),mes:(new Date()).getMonth()+1,view:'dia',modo:'orcado',v:{},r:{},fechados:{},carregado:false,erro:'',chart:null};
+function orcS(){return ORC.modo==='realizado'?ORC.r:ORC.v;}
 function orcSinal(c){return c.charAt(0)==='2'?1:-1;}
 function orcFmt(v){if(v===null||v===undefined||v===0)return '';return Math.round(v).toLocaleString('pt-BR');}
 function orcFmtS(v){if(!v)return '—';return (v<0?'-':'')+Math.abs(Math.round(v)).toLocaleString('pt-BR');}
@@ -2910,11 +2916,11 @@ function orcKey(m,d,c){return m+'|'+d+'|'+c;}
 
 function orcHTML(){
   var anos=[];var y=(new Date()).getFullYear();for(var a=y-1;a<=y+3;a++)anos.push(a);
-  return '<div class="orc-head"><div class="orc-sel"><label>Ano</label><select id="orc-ano" onchange="orcSetAno(this.value)">'+anos.map(function(a){return'<option value="'+a+'"'+(a===ORC.ano?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'
+  return '<div class="orc-tabs" id="orc-tabs"><button data-m="orcado" onclick="orcSetModo(\'orcado\')">Orçado</button><button data-m="realizado" onclick="orcSetModo(\'realizado\')">Realizado</button><button data-m="comp" onclick="orcSetModo(\'comp\')">Orçado × Realizado</button></div><div class="orc-head"><div class="orc-sel"><label>Ano</label><select id="orc-ano" onchange="orcSetAno(this.value)">'+anos.map(function(a){return'<option value="'+a+'"'+(a===ORC.ano?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'
    +'<div class="orc-seg" id="orc-view"><button data-v="dia" onclick="orcSetView(\'dia\')">Dia a dia</button><button data-v="mes" onclick="orcSetView(\'mes\')">Mês a mês</button></div>'
    +'<div class="orc-status" id="orc-status"></div></div>'
-   +'<div class="orc-meses" id="orc-meses"></div><div class="dfc-cards" id="orc-cards" style="grid-template-columns:repeat(4,1fr)"></div>'
-   +'<div class="orc-hint">Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.</div>'
+   +'<div class="orc-meses" id="orc-meses"></div><div class="dfc-cards" id="orc-cards" style="grid-template-columns:repeat(4,1fr)"></div><div class="orc-chartbox" id="orc-chartbox" style="display:none"><canvas id="orc-chart"></canvas></div>'
+   +'<div class="orc-hint" id="orc-hint">Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.</div>'
    +'<div class="orc-outer"><table class="dfc-tbl orc-tbl" id="orc-tbl"></table></div>';
 }
 async function initOrcamento(){
@@ -2922,50 +2928,52 @@ async function initOrcamento(){
   await orcCarregar();orcDesenhar();
 }
 async function orcCarregar(){
-  ORC.v={};ORC.erro='';
+  ORC.v={};ORC.r={};ORC.erro='';
   var cid=clienteIdAtual(),from=0,ps=1000;
   while(true){
-    var r=await sb.from('orcamento_dfc').select('mes,dia,codigo,valor').eq('cliente_id',cid).eq('ano',ORC.ano).order('mes').order('dia').range(from,from+ps-1);
+    var r=await sb.from('orcamento_dfc').select('tipo,mes,dia,codigo,valor').eq('cliente_id',cid).eq('ano',ORC.ano).order('tipo').order('mes').order('dia').range(from,from+ps-1);
     if(r.error){ORC.erro='Não foi possível carregar o orçamento (rode o SQL 03_orcamento_dfc.sql no Supabase).';console.error(r.error);break;}
-    (r.data||[]).forEach(function(x){ORC.v[orcKey(x.mes,x.dia,x.codigo)]=parseFloat(x.valor);});
+    (r.data||[]).forEach(function(x){(x.tipo==='realizado'?ORC.r:ORC.v)[orcKey(x.mes,x.dia,x.codigo)]=parseFloat(x.valor);});
     if((r.data||[]).length<ps)break;from+=ps;
   }
   ORC.carregado=true;
 }
 async function orcSetAno(a){ORC.ano=parseInt(a);ORC.carregado=false;orcDesenhar();await orcCarregar();orcDesenhar();}
+function orcSetModo(m){ORC.modo=m;orcDesenhar();var o=document.querySelector('.orc-outer');if(o)o.scrollTop=0;}
 function orcSetMes(m){ORC.mes=m;orcDesenhar();var o=document.querySelector('.orc-outer');if(o)o.scrollTop=0;}
 function orcSetView(v){ORC.view=v;orcDesenhar();}
 function orcToggle(c){ORC.fechados[c]=!ORC.fechados[c];orcDesenhar();}
 
 // colunas: dia a dia = dias do mês; mês a mês = 12 meses
 function orcCols(){if(ORC.view==='dia'){var n=orcDias(ORC.ano,ORC.mes),a=[];for(var d=1;d<=n;d++)a.push(d);return a;}return [1,2,3,4,5,6,7,8,9,10,11,12];}
-function orcVal(col,c){
-  if(ORC.view==='dia')return ORC.v[orcKey(ORC.mes,col,c)]||0;
-  var s=0,n=orcDias(ORC.ano,col);for(var d=1;d<=n;d++)s+=ORC.v[orcKey(col,d,c)]||0;return s;
+function orcVal(col,c,S){
+  S=S||orcS();
+  if(ORC.view==='dia')return S[orcKey(ORC.mes,col,c)]||0;
+  var s=0,n=orcDias(ORC.ano,col);for(var d=1;d<=n;d++)s+=S[orcKey(col,d,c)]||0;return s;
 }
-function orcMesTot(m,c){var s=0,n=orcDias(ORC.ano,m);for(var d=1;d<=n;d++)s+=ORC.v[orcKey(m,d,c)]||0;return s;}
+function orcMesTot(m,c,S){S=S||orcS();var s=0,n=orcDias(ORC.ano,m);for(var d=1;d<=n;d++)s+=S[orcKey(m,d,c)]||0;return s;}
 // saldo inicial de cada mês (encadeado, com possibilidade de override no 1.1)
-function orcIniciais(){
+function orcIniciais(S){S=S||orcS();
   var ini=[],fin=[];
   for(var m=1;m<=12;m++){
-    var ov=ORC.v[orcKey(m,1,'1.1')];
+    var ov=S[orcKey(m,1,'1.1')];
     var i=(ov!==undefined)?ov:(m>1?fin[m-1]:0);
     ini[m]=i;var liq=0;
-    ORC_PLANO.forEach(function(a){a.grupos.forEach(function(g){var s=orcSinal(g.c);g.i.forEach(function(it){liq+=s*orcMesTot(m,it[0]);});});});
+    ORC_PLANO.forEach(function(a){a.grupos.forEach(function(g){var s=orcSinal(g.c);g.i.forEach(function(it){liq+=s*orcMesTot(m,it[0],S);});});});
     fin[m]=i+liq;
   }
   return {ini:ini,fin:fin};
 }
 // calcula todos os valores derivados: retorna {rowId:[v por coluna], rowId_t: total}
-function orcCalc(){
-  var cols=orcCols(),ch=orcIniciais(),R={},nC=cols.length;
+function orcCalc(S){
+  S=S||orcS();var cols=orcCols(),ch=orcIniciais(S),R={},nC=cols.length;
   var liquido=cols.map(function(){return 0;});
   ORC_PLANO.forEach(function(a){
     var fc=cols.map(function(){return 0;});
     a.grupos.forEach(function(g){
       var gs=cols.map(function(){return 0;});
       g.i.forEach(function(it){
-        var arr=cols.map(function(c,ix){var x=orcVal(c,it[0]);gs[ix]+=x;fc[ix]+=orcSinal(g.c)*x;liquido[ix]+=orcSinal(g.c)*x;return x;});
+        var arr=cols.map(function(c,ix){var x=orcVal(c,it[0],S);gs[ix]+=x;fc[ix]+=orcSinal(g.c)*x;liquido[ix]+=orcSinal(g.c)*x;return x;});
         R[it[0]]=arr;
       });
       R[g.c]=gs;
@@ -2986,9 +2994,14 @@ function orcCalc(){
 }
 function orcDesenhar(){
   var el=document.getElementById('orc-tbl');if(!el)return;
+  var tb=document.querySelectorAll('#orc-tabs button');for(var q=0;q<tb.length;q++)tb[q].classList.toggle('active',tb[q].getAttribute('data-m')===ORC.modo);
+  var cb=document.getElementById('orc-chartbox');cb.style.display=ORC.modo==='comp'?'block':'none';
+  if(ORC.modo!=='comp'&&ORC.chart){ORC.chart.destroy();ORC.chart=null;}
+  document.getElementById('orc-hint').innerHTML=ORC.modo==='comp'?'Δ = realizado − orçado. <span class="orc-pos">Verde</span> = favorável (entrou mais ou saiu menos), <span class="orc-neg">vermelho</span> = desfavorável.':(ORC.modo==='realizado'?'<b>Realizado:</b> ':'')+'Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.';
   var vb=document.querySelectorAll('#orc-view button');for(var i=0;i<vb.length;i++)vb[i].classList.toggle('active',vb[i].getAttribute('data-v')===ORC.view);
   var mh=document.getElementById('orc-meses');
   mh.style.display=ORC.view==='dia'?'flex':'none';
+  if(ORC.modo==='comp'){orcDesenharComp();return;}
   mh.innerHTML=ORC_M.map(function(n,i){return'<button class="'+((i+1)===ORC.mes?'active':'')+'" onclick="orcSetMes('+(i+1)+')">'+n+'</button>';}).join('');
   var st=document.getElementById('orc-status');
   if(ORC.erro){st.innerHTML='<span style="color:#E88">'+ORC.erro+'</span>';}else st.textContent=ORC.carregado?'':'Carregando…';
@@ -3028,7 +3041,7 @@ function orcLinhaItem(it,cols){
   var h='<tr class="orc-it"><td class="orc-lbl orc-sub">'+it[1]+'</td>';
   cols.forEach(function(c,ix){
     var bloq=false;
-    if(ORC.view==='mes'){var n=0,dd=orcDias(ORC.ano,c);for(var d=1;d<=dd;d++){if(ORC.v[orcKey(c,d,it[0])])n++;}bloq=n>1||(n===1&&!ORC.v[orcKey(c,1,it[0])]);}
+    if(ORC.view==='mes'){var n=0,dd=orcDias(ORC.ano,c);for(var d=1;d<=dd;d++){if(orcS()[orcKey(c,d,it[0])])n++;}bloq=n>1||(n===1&&!orcS()[orcKey(c,1,it[0])]);}
     var we='';if(ORC.view==='dia'){var w=new Date(ORC.ano,ORC.mes-1,c).getDay();if(w===0||w===6)we=' orc-we';}
     h+='<td class="'+we.trim()+'"><div class="orc-cell"><input class="orc-in" data-c="'+it[0]+'" data-col="'+c+'" data-r="'+it[0]+'" data-i="'+ix+'"'+(bloq?' disabled title="Há lançamentos em vários dias — edite na visão dia a dia"':'')+' onfocus="this.select()" onchange="orcEdit(this)" onkeydown="orcKeyNav(event,this)">'
       +(ORC.view==='mes'&&!bloq&&c<12?'<span class="orc-rep" title="Replicar para os meses seguintes" onclick="orcRep(\''+it[0]+'\','+c+')">→</span>':'')+'</div></td>';
@@ -3056,19 +3069,19 @@ function orcCards(){
   R.sal.forEach(function(x){if(minSaldo===null||x<minSaldo)minSaldo=x;});
   var lbl=ORC.view==='dia'?ORC_M[ORC.mes-1]+'/'+ORC.ano:ORC.ano;
   var cd=function(l,v,s,c){return'<div class="dfc-card'+(c||'')+'"><div class="dfc-card-label">'+l+'</div><div class="dfc-card-value">'+v+'</div><div class="dfc-card-sub">'+s+'</div></div>';};
-  document.getElementById('orc-cards').innerHTML=cd('Entradas orçadas',fmtD(ent),lbl)+cd('Saídas orçadas',fmtD(sai),lbl,' neg')+cd('Saldo final',fmtD(R.sal_t),lbl)+cd(ORC.view==='dia'?'Menor saldo do mês':'Menor saldo mensal',fmtD(minSaldo||0),ORC.view==='dia'?'dia a dia':'fim de mês');
+  document.getElementById('orc-cards').innerHTML=cd(ORC.modo==='realizado'?'Entradas realizadas':'Entradas orçadas',fmtD(ent),lbl)+cd(ORC.modo==='realizado'?'Saídas realizadas':'Saídas orçadas',fmtD(sai),lbl,' neg')+cd('Saldo final',fmtD(R.sal_t),lbl)+cd(ORC.view==='dia'?'Menor saldo do mês':'Menor saldo mensal',fmtD(minSaldo||0),ORC.view==='dia'?'dia a dia':'fim de mês');
 }
 function orcStatus(t,erro){var s=document.getElementById('orc-status');if(s){s.innerHTML=erro?'<span style="color:#E88">'+t+'</span>':t;}}
 async function orcPersist(ops){
   var cid=clienteIdAtual(),ups=[],dels=[];
-  ops.forEach(function(o){if(o.valor===null)dels.push(o);else ups.push({cliente_id:cid,ano:ORC.ano,mes:o.mes,dia:o.dia,codigo:o.cod,valor:o.valor});});
+  ops.forEach(function(o){if(o.valor===null)dels.push(o);else ups.push({cliente_id:cid,tipo:(ORC.modo==='realizado'?'realizado':'orcado'),ano:ORC.ano,mes:o.mes,dia:o.dia,codigo:o.cod,valor:o.valor});});
   orcStatus('Salvando…');
   var err=null;
-  if(ups.length){var r=await sb.from('orcamento_dfc').upsert(ups,{onConflict:'cliente_id,ano,mes,dia,codigo'});if(r.error)err=r.error;}
-  for(var i=0;i<dels.length&&!err;i++){var o=dels[i];var q=sb.from('orcamento_dfc').delete().eq('cliente_id',cid).eq('ano',ORC.ano).eq('mes',o.mes).eq('codigo',o.cod);if(o.dia!==null&&o.dia!==undefined)q=q.eq('dia',o.dia);var r2=await q;if(r2.error)err=r2.error;}
+  if(ups.length){var r=await sb.from('orcamento_dfc').upsert(ups,{onConflict:'cliente_id,tipo,ano,mes,dia,codigo'});if(r.error)err=r.error;}
+  for(var i=0;i<dels.length&&!err;i++){var o=dels[i];var q=sb.from('orcamento_dfc').delete().eq('cliente_id',cid).eq('tipo',ORC.modo==='realizado'?'realizado':'orcado').eq('ano',ORC.ano).eq('mes',o.mes).eq('codigo',o.cod);if(o.dia!==null&&o.dia!==undefined)q=q.eq('dia',o.dia);var r2=await q;if(r2.error)err=r2.error;}
   if(err){console.error(err);orcStatus('Erro ao salvar: '+(err.message||err),true);}else orcStatus('✓ Salvo');
 }
-function orcSetLocal(m,d,c,val){var k=orcKey(m,d,c);if(val===null||val===0)delete ORC.v[k];else ORC.v[k]=val;}
+function orcSetLocal(m,d,c,val){var k=orcKey(m,d,c),S=orcS();if(val===null||val===0)delete S[k];else S[k]=val;}
 function orcEdit(inp){
   var c=inp.getAttribute('data-c'),col=parseInt(inp.getAttribute('data-col')),val=orcParse(inp.value),ops=[];
   if(val!==null)val=Math.abs(val);
@@ -3085,7 +3098,7 @@ function orcEditIni(inp){
   var m=parseInt(inp.getAttribute('data-ini')),val=orcParse(inp.value);
   orcSetLocal(m,1,'1.1',null);
   var ops=[{mes:m,dia:1,cod:'1.1',valor:null}];
-  if(val!==null&&inp.value.trim()!==''){ORC.v[orcKey(m,1,'1.1')]=val;ops=[{mes:m,dia:1,cod:'1.1',valor:val}];}
+  if(val!==null&&inp.value.trim()!==''){orcS()[orcKey(m,1,'1.1')]=val;ops=[{mes:m,dia:1,cod:'1.1',valor:val}];}
   orcAtualizar();orcCards();orcPersist(ops);
 }
 function orcRep(c,m){
@@ -3104,6 +3117,45 @@ function orcKeyNav(ev,inp){
   var col=inp.getAttribute('data-col'),same=all.filter(function(x){return x.getAttribute('data-col')===col;});
   var ix=same.indexOf(inp),nx=same[ix+(ev.key==='ArrowUp'?-1:1)];
   if(nx){ev.preventDefault();nx.focus();}
+}
+
+// ── ORÇADO × REALIZADO ──
+function orcDelta(o,r,sinal){var d=r-o;var pct=o?d/Math.abs(o)*100:null;return {d:d,pct:pct,fav:sinal*d>0?1:(d===0?0:-1)};}
+function orcCelDelta(o,r,sinal){
+  var x=orcDelta(o,r,sinal);var cls=x.fav>0?'orc-pos':(x.fav<0?'orc-neg':'');
+  return '<td class="'+cls+'">'+(x.d?((x.d>0?'+':'-')+Math.abs(Math.round(x.d)).toLocaleString('pt-BR')):'\u2014')+'</td><td class="'+cls+'">'+(x.pct===null||!x.d?'\u2014':(x.pct>0?'+':'')+x.pct.toFixed(1).replace('.',',')+'%')+'</td>';
+}
+function orcDesenharComp(){
+  var O=orcCalc(ORC.v),Rr=orcCalc(ORC.r),el=document.getElementById('orc-tbl');
+  var per=ORC.view==='dia'?ORC_M[ORC.mes-1]+'/'+ORC.ano:'Ano '+ORC.ano;
+  function lin(id,lbl,cls,sinal,sg){var o=O[id+'_t'],r=Rr[id+'_t'];var f=sg?orcFmtS:function(v){return v?Math.round(v).toLocaleString('pt-BR'):'\u2014';};return'<tr class="'+cls+'"><td class="orc-lbl'+(cls==='orc-it'?' orc-sub':'')+'">'+lbl+'</td><td>'+f(o)+'</td><td>'+f(r)+'</td>'+orcCelDelta(o,r,sinal)+'</tr>';}
+  var h='<thead><tr><th class="orc-lbl">'+per+'</th><th>Orçado</th><th>Realizado</th><th>Δ R$</th><th>Δ %</th></tr></thead><tbody>';
+  h+=lin('ini','Caixa inicial','orc-ini',1,1);
+  ORC_PLANO.forEach(function(a){
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="5">'+a.n+'</td></tr>';
+    a.grupos.forEach(function(g){
+      var sg=orcSinal(g.c),fechado=ORC.fechados[g.c];
+      h+='<tr class="orc-g"><td class="orc-lbl" onclick="orcToggle(\''+g.c+'\')" style="cursor:pointer"><span class="orc-car">'+(fechado?'▸':'▾')+'</span> '+g.n+'</td><td>'+orcFmtS(O[g.c+'_t'])+'</td><td>'+orcFmtS(Rr[g.c+'_t'])+'</td>'+orcCelDelta(O[g.c+'_t'],Rr[g.c+'_t'],sg)+'</tr>';
+      if(!fechado)g.i.forEach(function(it){h+=lin(it[0],it[1],'orc-it',sg,1);});
+    });
+    h+=lin('fc_'+a.k,'= '+a.fc,'dfc-sub',1,1);
+  });
+  h+=lin('liq','= Variação líquida de caixa','dfc-tot',1,1)+lin('sal','Saldo final do caixa','orc-saldo',1,1)+'</tbody>';
+  el.innerHTML=h;
+  var cd=function(l,o,r,sg){var x=orcDelta(o,r,sg);return'<div class="dfc-card'+(x.fav<0?' neg':'')+'"><div class="dfc-card-label">'+l+'</div><div class="dfc-card-value">'+fmtD(r)+'</div><div class="dfc-card-sub">orçado '+fmtD(o)+' · '+(x.d>0?'+':'')+fmtD(x.d)+(x.pct===null?'':' ('+x.pct.toFixed(1).replace('.',',')+'%)')+'</div></div>';};
+  var eo=0,er=0,so=0,sr=0;
+  ORC_PLANO.forEach(function(a){a.grupos.forEach(function(g){if(orcSinal(g.c)>0){eo+=O[g.c+'_t'];er+=Rr[g.c+'_t'];}else{so+=O[g.c+'_t'];sr+=Rr[g.c+'_t'];}});});
+  document.getElementById('orc-cards').innerHTML=cd('Entradas',eo,er,1)+cd('Saídas',so,sr,-1)+cd('Variação líquida',O.liq_t,Rr.liq_t,1)+cd('Saldo final',O.sal_t,Rr.sal_t,1);
+  // gráfico: saldo orçado x realizado
+  var cols=orcCols(),labels=cols.map(function(c){return ORC.view==='dia'?String(c):ORC_M[c-1];});
+  if(ORC.chart){ORC.chart.destroy();ORC.chart=null;}
+  var cv=document.getElementById('orc-chart');
+  if(cv&&window.Chart){
+    ORC.chart=new Chart(cv,{type:'line',data:{labels:labels,datasets:[
+      {label:'Saldo orçado',data:O.sal,borderColor:'#C8B89A',backgroundColor:'#C8B89A',borderWidth:2,pointRadius:2,tension:.2},
+      {label:'Saldo realizado',data:Rr.sal,borderColor:'#00D4DA',backgroundColor:'#00D4DA',borderWidth:2,pointRadius:2,tension:.2}]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#8BA0B0',boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA'}},y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtD(v);}}}}}});
+  }
 }
 
 </script>
