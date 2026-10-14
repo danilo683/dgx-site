@@ -4983,11 +4983,22 @@ var META_TIPOS=[
  ['franqueador','Meta do franqueador (GB)','#C8B89A','Meta que a GB/Truss define para a franquia. Fica fixa: só o Danilo altera.'],
  ['franqueado','Meta do franqueado (Hawks)','#5FA8FF','Meta que a própria Hawks assume. É a "meta considerada" hoje na planilha do franqueador.'],
  ['realista','Meta realista','#6FD39A','O que a DGX e a Hawks realmente esperam. Opcional: se estiver vazia, vale a meta do franqueado (e, sem ela, a do franqueador).'],
- ['realizado','Realizado','#00D4DA','O que de fato aconteceu. Hoje vem da planilha do franqueador; depois será importado automaticamente.']
+ ['realizado','Realizado','#00D4DA','O que de fato aconteceu. No sell-through vem direto das vendas do dash (a planilha do franqueador fica só para conferência); no sell-in ainda vem da planilha.']
 ];
 var META={ano:2026,ind:'st',v:{},carregado:false,erro:'',chart:null};
 function metaKey(i,t,a,m){return i+'|'+t+'|'+a+'|'+m;}
-function metaGet(i,t,a,m){var x=META.v[metaKey(i,t,a,m)];return x===undefined?null:x;}
+function metaGetRaw(i,t,a,m){var x=META.v[metaKey(i,t,a,m)];return x===undefined?null:x;}
+// Sell-through realizado = vendas do dash (fato_vendas, tipo 'venda', valor líquido) — mesma base da tela Vendas
+function metaFvMapa(){
+  if(META._fvN===FV_HAWKS.length&&META._fvMap)return META._fvMap;
+  var mp={};FV_HAWKS.forEach(function(r){if(r.tipo_operacao!=='venda'||!r.competencia)return;var k=r.competencia.slice(0,7);mp[k]=(mp[k]||0)+(parseFloat(r.valor_liquido)||0);});
+  META._fvMap=mp;META._fvN=FV_HAWKS.length;return mp;
+}
+function metaFv(a,m){var v=metaFvMapa()[a+'-'+String(m).padStart(2,'0')];return v===undefined?null:v;}
+function metaGet(i,t,a,m){
+  if(i==='st'&&t==='realizado'){var f=metaFv(a,m);if(f!==null)return f;}
+  return metaGetRaw(i,t,a,m);
+}
 function metaConsiderada(i,a,m){
   var o=['realista','franqueado','franqueador'];
   for(var k=0;k<o.length;k++){var v=metaGet(i,o[k],a,m);if(v)return {v:v,fonte:o[k]};}
@@ -5028,10 +5039,19 @@ function metasDesenhar(){
       var v=metaGet(i,t[0],a,m),flag='';
       if(t[0]==='franqueado'&&v){var ant=metaGet(i,'franqueador',a-1,m);if(ant&&Math.round(ant)===Math.round(v))flag=' meta-flag';}
       var ph='';if(t[0]==='realista'){var f=metaGet(i,'franqueado',a,m)||metaGet(i,'franqueador',a,m);if(f)ph=metaFmt(f);}
-      h+='<td><input class="orc-in'+flag+'" data-t="'+t[0]+'" data-m="'+m+'" value="'+metaFmt(v)+'" placeholder="'+ph+'" onfocus="this.select()" onchange="metaEdit(this)"'+(flag?' title="Igual à meta do franqueador de '+ORC_M[m-1]+'/'+(a-1)+' — possível cópia"':'')+'></td>';
+      var auto=(i==='st'&&t[0]==='realizado'&&metaFv(a,m)!==null);
+      h+='<td><input class="orc-in'+flag+'" data-t="'+t[0]+'" data-m="'+m+'" value="'+metaFmt(v)+'" placeholder="'+ph+'" onfocus="this.select()" onchange="metaEdit(this)"'+(auto?' disabled title="Vem das vendas do dash (fato_vendas)"':'')+(flag?' title="Igual à meta do franqueador de '+ORC_M[m-1]+'/'+(a-1)+' — possível cópia"':'')+'></td>';
     });
     var tot=0;ms.forEach(function(m){tot+=metaGet(i,t[0],a,m)||0;});
     h+='<td class="orc-tot">'+(tot?Math.round(tot).toLocaleString('pt-BR'):'—')+'</td></tr>';
+    if(i==='st'&&t[0]==='realizado'){
+      h+='<tr class="meta-pct"><td class="orc-lbl orc-sub" title="Valor que consta na planilha do franqueador, para conferência">Realizado na planilha do franqueador</td>';var tp=0;
+      ms.forEach(function(m){var x=metaGetRaw('st','realizado',a,m);tp+=x||0;h+='<td>'+(x?Math.round(x).toLocaleString('pt-BR'):'—')+'</td>';});
+      h+='<td class="orc-tot">'+(tp?Math.round(tp).toLocaleString('pt-BR'):'—')+'</td></tr>';
+      h+='<tr class="meta-pct"><td class="orc-lbl orc-sub" title="Vendas do dash menos o valor da planilha">Diferença (dash − planilha)</td>';
+      ms.forEach(function(m){var f=metaFv(a,m),x=metaGetRaw('st','realizado',a,m);if(f!==null&&x){var d=f-x;h+='<td class="'+(Math.abs(d/x)<0.005?'orc-pos':'orc-neg')+'" title="'+(d/x*100).toFixed(2)+'%">'+(d>0?'+':'')+Math.round(d).toLocaleString('pt-BR')+'</td>';}else h+='<td>—</td>';});
+      h+='<td class="orc-tot"></td></tr>';
+    }
   });
   // considerada
   h+='<tr class="dfc-sub"><td class="orc-lbl">= Meta considerada no orçamento</td>';var tc=0;
