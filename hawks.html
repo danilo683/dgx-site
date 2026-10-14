@@ -455,6 +455,20 @@ select.prem-in{text-align:left}
 .orc-in.meta-flag{outline:1px solid #E0A84B;border-radius:3px}
 .orc-in::placeholder{color:#5d7388}
 .meta-pct td{font-size:11px}
+.imp-bg{position:fixed;inset:0;background:rgba(5,12,22,.78);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:4vh 1rem;overflow:auto}
+.imp-box{background:#0F1923;border:1px solid #1F3044;border-radius:12px;width:min(980px,100%);color:#E2EAF4}
+.imp-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #1F3044;font-size:14px}
+.imp-x{background:none;border:0;color:#8BA0B0;font-size:22px;cursor:pointer;line-height:1}
+.imp-b{padding:16px 18px}
+.imp-p{font-size:12px;color:#9FB4C6;line-height:1.55}
+.imp-in{font-size:12px;color:#E2EAF4;margin-top:.5rem}
+.imp-ta{width:100%;min-height:110px;background:#162230;border:1px solid #1F3044;border-radius:8px;color:#E2EAF4;font-size:11px;font-family:ui-monospace,monospace;padding:8px;resize:vertical}
+.imp-ok{font-size:12.5px;margin:1rem 0 .6rem;color:#E2EAF4}
+.imp-err{font-size:12.5px;margin-top:1rem;color:#F1948A;background:rgba(231,76,60,.09);border:1px solid rgba(231,76,60,.35);border-radius:8px;padding:10px 12px}
+.imp-warn{font-size:12px;margin-top:.6rem;color:#F5C16C;background:rgba(243,156,18,.09);border:1px solid rgba(243,156,18,.35);border-radius:8px;padding:10px 12px}
+.imp-tbl{width:100%;font-size:11.5px}.imp-tbl td,.imp-tbl th{padding:5px 10px;text-align:right}
+.imp-go{background:#00B4D8!important;color:#fff!important}
+.orc-imp{background:#162230;border:0.5px solid #00B4D8;color:#00D4DA;border-radius:8px;font-size:12px;padding:7px 14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -4588,7 +4602,7 @@ function orcHTML(){
   var anos=[];var y=(new Date()).getFullYear();for(var a=y-1;a<=y+3;a++)anos.push(a);
   return '<div class="orc-tabs" id="orc-tabs"><button data-m="orcado" onclick="orcSetModo(\'orcado\')">Orçado</button><button data-m="realizado" onclick="orcSetModo(\'realizado\')">Realizado</button><button data-m="comp" onclick="orcSetModo(\'comp\')">Orçado × Realizado</button></div><div class="orc-head"><div class="orc-sel"><label>Ano</label><select id="orc-ano" onchange="orcSetAno(this.value)">'+anos.map(function(a){return'<option value="'+a+'"'+(a===ORC.ano?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'
    +'<div class="orc-seg" id="orc-view"><button data-v="dia" onclick="orcSetView(\'dia\')">Dia a dia</button><button data-v="mes" onclick="orcSetView(\'mes\')">Mês a mês</button></div>'
-   +'<div class="orc-status" id="orc-status"></div></div>'
+   +'<button class="orc-imp" id="orc-imp-btn" style="display:none" onclick="impAbrir()">⬆ Importar lançamentos</button><div class="orc-status" id="orc-status"></div></div>'
    +'<div class="orc-meses" id="orc-meses"></div><div class="dfc-cards" id="orc-cards" style="grid-template-columns:repeat(4,1fr)"></div><div class="orc-chartbox" id="orc-chartbox" style="display:none"><canvas id="orc-chart"></canvas></div>'
    +'<div class="orc-hint" id="orc-hint">Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.</div>'
    +'<div class="orc-outer"><table class="dfc-tbl orc-tbl" id="orc-tbl"></table></div>';
@@ -4666,6 +4680,7 @@ function orcDesenhar(){
   var el=document.getElementById('orc-tbl');if(!el)return;
   var tb=document.querySelectorAll('#orc-tabs button');for(var q=0;q<tb.length;q++)tb[q].classList.toggle('active',tb[q].getAttribute('data-m')===ORC.modo);
   var cb=document.getElementById('orc-chartbox');cb.style.display=ORC.modo==='comp'?'block':'none';
+  var ib=document.getElementById('orc-imp-btn');if(ib)ib.style.display=ORC.modo==='realizado'?'inline-block':'none';
   if(ORC.modo!=='comp'&&ORC.chart){ORC.chart.destroy();ORC.chart=null;}
   document.getElementById('orc-hint').innerHTML=ORC.modo==='comp'?'Δ = realizado − orçado. <span class="orc-pos">Verde</span> = favorável (entrou mais ou saiu menos), <span class="orc-neg">vermelho</span> = desfavorável.':(ORC.modo==='realizado'?'<b>Realizado:</b> ':'')+'Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.';
   var vb=document.querySelectorAll('#orc-view button');for(var i=0;i<vb.length;i++)vb[i].classList.toggle('active',vb[i].getAttribute('data-v')===ORC.view);
@@ -5084,6 +5099,129 @@ async function metaEdit(inp){
   st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
 }
 function metaNav(el){setPage('metas',el);document.getElementById('topbarTitle').textContent='Orçamento — Metas';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+
+// ══════════════════════════════════════════════
+// IMPORTAÇÃO DO REALIZADO — aba "Lançamentos" do DFC do franqueado
+// Colunas usadas: Data da movimentação, Valor, Cód. (plano de contas). Aceita .xlsx/.xls/.csv ou texto colado.
+// ══════════════════════════════════════════════
+var IMP={res:null};
+function impNorm(s){return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();}
+function impCodigosValidos(){var m={};ORC_PLANO.forEach(function(a){a.grupos.forEach(function(g){g.i.forEach(function(it){m[it[0]]=it[1];});});});return m;}
+function impData(v){
+  if(v instanceof Date&&!isNaN(v))return {a:v.getFullYear(),m:v.getMonth()+1,d:v.getDate()};
+  if(typeof v==='number'&&v>30000&&v<80000){var dt=new Date(Math.round((v-25569)*86400000));return {a:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};}
+  var s=String(v==null?'':v).trim(),x;
+  if((x=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)))return {a:+x[3],m:+x[2],d:+x[1]};
+  if((x=s.match(/^(\d{4})-(\d{2})-(\d{2})/)))return {a:+x[1],m:+x[2],d:+x[3]};
+  return null;
+}
+function impValor(v){
+  if(typeof v==='number')return v;
+  var s=String(v==null?'':v).replace(/[R$\s]/g,'');if(!s)return null;
+  if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');
+  else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
+  var x=parseFloat(s);return isNaN(x)?null:x;
+}
+function impInterpretar(aoa){
+  var hi=-1,cols={};
+  for(var i=0;i<Math.min(aoa.length,30);i++){
+    var r=aoa[i].map(impNorm),d=-1,v=-1,c=-1;
+    r.forEach(function(x,j){if(d<0&&x.indexOf('data')===0)d=j;if(v<0&&x==='valor')v=j;if(c<0&&(x.indexOf('cod')===0))c=j;});
+    if(d>=0&&v>=0&&c>=0){hi=i;cols={d:d,v:v,c:c};break;}
+  }
+  if(hi<0)return {erro:'Não encontrei o cabeçalho com as colunas "Data da movimentação", "Valor" e "Cód.". Confira se a primeira linha do arquivo/texto traz os nomes das colunas.'};
+  var validos=impCodigosValidos(),agg={},ign={},nLin=0,nOk=0,semData=0;
+  for(var k=hi+1;k<aoa.length;k++){
+    var row=aoa[k];if(!row||row.every(function(x){return x===''||x==null;}))continue;
+    var dt=impData(row[cols.d]),val=impValor(row[cols.v]),cod=String(row[cols.c]==null?'':row[cols.c]).trim();
+    if(!dt&&val===null&&!cod)continue;
+    nLin++;
+    if(!dt){semData++;continue;}
+    if(val===null||val===0)continue;
+    if(!validos[cod]){var kk=cod||'(sem código)';ign[kk]=ign[kk]||{n:0,v:0};ign[kk].n++;ign[kk].v+=val;continue;}
+    var sinal=cod.charAt(0)==='2'?1:-1;
+    var key=dt.a+'|'+dt.m+'|'+dt.d+'|'+cod;
+    agg[key]=(agg[key]||0)+sinal*val;nOk++;
+  }
+  var linhas=Object.keys(agg).map(function(k){var p=k.split('|');return {ano:+p[0],mes:+p[1],dia:+p[2],cod:p[3],valor:Math.round(agg[k]*100)/100};}).filter(function(x){return x.valor!==0;});
+  var meses={};
+  linhas.forEach(function(x){var mk=x.ano+'-'+String(x.mes).padStart(2,'0');var o=meses[mk]=meses[mk]||{ano:x.ano,mes:x.mes,ent:0,sai:0,rec:0,truss:0,n:0};o.n++;if(x.cod.charAt(0)==='2')o.ent+=x.valor;else o.sai+=x.valor;if(x.cod.indexOf('2.1.1.')===0)o.rec+=x.valor;if(x.cod==='3.1.1.1'||x.cod==='3.1.1.2')o.truss+=x.valor;});
+  return {linhas:linhas,meses:meses,ign:ign,nLin:nLin,nOk:nOk,semData:semData};
+}
+function impAbrir(){
+  var m=document.getElementById('imp-modal');if(m)m.remove();
+  var d=document.createElement('div');d.id='imp-modal';d.className='imp-bg';
+  d.innerHTML='<div class="imp-box"><div class="imp-h"><b>Importar lançamentos do realizado</b><button class="imp-x" onclick="impFechar()">×</button></div>'
+   +'<div class="imp-b"><p class="imp-p">Use a aba <b>Lançamentos</b> do DFC do franqueado: escolha o arquivo (.xlsx ou .csv) <b>ou</b> copie as linhas na planilha (com o cabeçalho) e cole abaixo. Eu leio as colunas <b>Data da movimentação</b>, <b>Valor</b> e <b>Cód.</b>; entradas e saídas ficam positivas, o sinal vem do plano de contas.</p>'
+   +'<input type="file" id="imp-file" accept=".xlsx,.xls,.csv,.txt" onchange="impArquivo(this)" class="imp-in"><div class="imp-p" style="margin:.5rem 0 .25rem">ou cole aqui:</div>'
+   +'<textarea id="imp-txt" class="imp-ta" placeholder="Data da movimentação&#9;Descrição&#9;Valor&#9;Observações&#9;Tipo&#9;Classificação no Plano de Contas&#9;Cód.&#10;01/10/2025&#9;Contas a Receber Truss&#9;1.935.331,00&#9;&#9;Entrada&#9;...&#9;2.1.1.1"></textarea>'
+   +'<div style="margin-top:.5rem"><button class="adm-btn" onclick="impLerTexto()">Ler texto colado</button></div><div id="imp-prev"></div></div></div>';
+  document.body.appendChild(d);
+}
+function impFechar(){var m=document.getElementById('imp-modal');if(m)m.remove();IMP.res=null;}
+function impArquivo(inp){
+  var f=inp.files&&inp.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(e){
+    try{
+      if(typeof XLSX==='undefined'){impMostrar({erro:'A biblioteca de planilha não carregou neste navegador. Cole o texto no campo abaixo.'});return;}
+      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      var nome=wb.SheetNames.filter(function(n){return /lan[cç]amento/i.test(n);})[0]||wb.SheetNames[0];
+      var aoa=XLSX.utils.sheet_to_json(wb.Sheets[nome],{header:1,raw:true,defval:''});
+      var r=impInterpretar(aoa);r.arquivo=f.name+' ('+nome+')';impMostrar(r);
+    }catch(err){console.error(err);impMostrar({erro:'Não consegui ler o arquivo: '+(err.message||err)});}
+  };
+  rd.readAsArrayBuffer(f);
+}
+function impLerTexto(){
+  var t=document.getElementById('imp-txt').value;if(!t.trim()){impMostrar({erro:'Cole as linhas da aba Lançamentos primeiro.'});return;}
+  var linhas=t.split(/\r?\n/),sep=(linhas[0].indexOf('\t')>=0)?'\t':(linhas[0].indexOf(';')>=0?';':',');
+  var aoa=linhas.map(function(l){return l.split(sep).map(function(c){return c.replace(/^"|"$/g,'');});});
+  var r=impInterpretar(aoa);r.arquivo='texto colado';impMostrar(r);
+}
+function impMostrar(r){
+  IMP.res=r.erro?null:r;
+  var el=document.getElementById('imp-prev');
+  if(r.erro){el.innerHTML='<div class="imp-err">'+r.erro+'</div>';return;}
+  var ks=Object.keys(r.meses).sort(),f=function(v){return Math.round(v).toLocaleString('pt-BR');};
+  var h='<div class="imp-ok">Lidas <b>'+r.nLin+'</b> linhas de <b>'+r.arquivo+'</b>: <b>'+r.nOk+'</b> reconhecidas, viraram <b>'+r.linhas.length+'</b> lançamentos por dia e código.'+(r.semData?' <span style="color:#E0A84B">'+r.semData+' linhas sem data válida foram puladas.</span>':'')+'</div>';
+  h+='<table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Mês</th><th>Lançamentos</th><th>Entradas</th><th>Saídas</th><th>Variação</th><th>Recebimentos (2.1.1.x) × DFC</th><th>Pgto Truss × DFC</th></tr></thead><tbody>';
+  ks.forEach(function(k){
+    var o=r.meses[k],dfc=(typeof DFC_DADOS!=='undefined')?DFC_DADOS[k]:null,c1='—',c2='—';
+    if(dfc){var d1=o.rec-Math.abs(dfc.recVendas||0),d2=-o.truss-Math.abs(dfc.pgtoTruss||0);
+      c1='<span class="'+(Math.abs(d1)<=Math.max(1,Math.abs(o.rec)*0.005)?'orc-pos':'orc-neg')+'">'+(d1===0?'confere':(d1>0?'+':'')+f(d1))+'</span>';
+      c2='<span class="'+(Math.abs(d2)<=Math.max(1,Math.abs(o.truss)*0.005)?'orc-pos':'orc-neg')+'">'+(Math.abs(d2)<1?'confere':(d2>0?'+':'')+f(d2))+'</span>';}
+    h+='<tr><td style="text-align:left">'+ORC_M[o.mes-1]+'/'+o.ano+'</td><td>'+o.n+'</td><td>'+f(o.ent)+'</td><td>'+f(o.sai)+'</td><td>'+f(o.ent-o.sai)+'</td><td>'+c1+'</td><td>'+c2+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  var ig=Object.keys(r.ign);
+  if(ig.length)h+='<div class="imp-warn"><b>Códigos não reconhecidos (não serão importados):</b> '+ig.map(function(k){return k+' ('+r.ign[k].n+' lanç., '+f(r.ign[k].v)+')';}).join(' · ')+'</div>';
+  h+='<div class="imp-p" style="margin-top:.6rem">Ao importar, o realizado <b>dos meses acima</b> é substituído pelo conteúdo do arquivo (meses que não estão no arquivo não mudam; o caixa inicial digitado é preservado). Reimportar o mesmo arquivo dá o mesmo resultado.</div>'
+    +'<div style="margin-top:.6rem"><button class="adm-btn imp-go" onclick="impConfirmar()">Importar '+r.linhas.length+' lançamentos</button></div>';
+  el.innerHTML=h;
+}
+async function impConfirmar(){
+  var r=IMP.res;if(!r)return;
+  var el=document.getElementById('imp-prev'),cid=clienteIdAtual(),err=null;
+  el.insertAdjacentHTML('beforeend','<div class="imp-p" id="imp-prog">Importando…</div>');
+  var porAno={};Object.keys(r.meses).forEach(function(k){var o=r.meses[k];(porAno[o.ano]=porAno[o.ano]||[]).push(o.mes);});
+  for(var a in porAno){
+    var d=await sb.from('orcamento_dfc').delete().eq('cliente_id',cid).eq('tipo','realizado').eq('ano',parseInt(a)).in('mes',porAno[a]).neq('codigo','1.1');
+    if(d.error){err=d.error;break;}
+  }
+  if(!err){
+    var rows=r.linhas.map(function(x){return {cliente_id:cid,tipo:'realizado',ano:x.ano,mes:x.mes,dia:x.dia,codigo:x.cod,valor:x.valor};});
+    for(var i=0;i<rows.length&&!err;i+=500){
+      var u=await sb.from('orcamento_dfc').upsert(rows.slice(i,i+500),{onConflict:'cliente_id,tipo,ano,mes,dia,codigo'});
+      if(u.error)err=u.error;
+    }
+  }
+  var pg=document.getElementById('imp-prog');
+  if(err){console.error(err);if(pg)pg.innerHTML='<span style="color:#E88">Erro ao importar: '+(err.message||err)+'</span>';return;}
+  if(pg)pg.innerHTML='<span style="color:#6FD39A">✓ Importado. Atualizando a tela…</span>';
+  await orcCarregar();orcDesenhar();
+  setTimeout(impFechar,900);
+}
 
 </script>
 </body>
