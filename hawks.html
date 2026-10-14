@@ -5126,7 +5126,7 @@ function impInterpretar(aoa){
   var hi=-1,cols={};
   for(var i=0;i<Math.min(aoa.length,30);i++){
     var r=aoa[i].map(impNorm),d=-1,v=-1,c=-1;
-    r.forEach(function(x,j){if(d<0&&x.indexOf('data')===0)d=j;if(v<0&&x==='valor')v=j;if(c<0&&(x.indexOf('cod')===0))c=j;});
+    r.forEach(function(x,j){if(d<0&&x.indexOf('data')===0)d=j;if(v<0&&x==='valor')v=j;if(c<0&&/^c.{0,2}d\.?$/.test(x))c=j;});
     if(d>=0&&v>=0&&c>=0){hi=i;cols={d:d,v:v,c:c};break;}
   }
   if(hi<0)return {erro:'Não encontrei o cabeçalho com as colunas "Data da movimentação", "Valor" e "Cód.". Confira se a primeira linha do arquivo/texto traz os nomes das colunas.'};
@@ -5159,8 +5159,24 @@ function impAbrir(){
   document.body.appendChild(d);
 }
 function impFechar(){var m=document.getElementById('imp-modal');if(m)m.remove();IMP.res=null;}
+function impCsv(t){
+  if(t.charCodeAt(0)===0xFEFF)t=t.slice(1);
+  var sep=';',l1=t.split(/\r?\n/).slice(0,5).join('\n');
+  var nv=(l1.match(/;/g)||[]).length,nc=(l1.match(/,/g)||[]).length,nt=(l1.match(/\t/g)||[]).length;
+  sep=nt>=nv&&nt>=nc&&nt>0?'\t':(nc>=nv?',':';');
+  var out=[],row=[],cur='',q=false;
+  for(var i=0;i<t.length;i++){var ch=t.charAt(i);
+    if(q){if(ch==='"'){if(t.charAt(i+1)==='"'){cur+='"';i++;}else q=false;}else cur+=ch;}
+    else if(ch==='"')q=true;
+    else if(ch===sep){row.push(cur);cur='';}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t.charAt(i+1)==='\n')i++;row.push(cur);out.push(row);row=[];cur='';}
+    else cur+=ch;}
+  if(cur!==''||row.length){row.push(cur);out.push(row);}
+  return out;
+}
 function impArquivo(inp){
   var f=inp.files&&inp.files[0];if(!f)return;
+  if(/\.(csv|txt)$/i.test(f.name)){var rt=new FileReader();rt.onload=function(e){var r=impInterpretar(impCsv(String(e.target.result)));r.arquivo=f.name;impMostrar(r);};rt.readAsText(f,'UTF-8');return;}
   var rd=new FileReader();
   rd.onload=function(e){
     try{
