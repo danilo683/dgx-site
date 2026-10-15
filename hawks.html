@@ -4871,7 +4871,7 @@ var PREM_ALAV=[
  {k:'rq',n:'Ruptura de produtos: queda de vendas na janela',t:'pct',v:[0,0.1,0,0],st:'p',o:'Sugestão inicial (Conservador): 10% em Nov–Dez/26.'},
  {k:'ri',n:'Ruptura: mês inicial',t:'mes',v:['2026-11','2026-11','2026-11','2026-11'],st:'p',o:''},
  {k:'rf',n:'Ruptura: mês final',t:'mes',v:['2026-12','2026-12','2026-12','2026-12'],st:'p',o:''},
- {k:'inad',n:'Inadimplência de boletos',t:'pct',v:[0.075,0.1,0.05,0.075],st:'c',o:'Base = média Mar–Ago/26 das premissas do franqueador. O modelo do franqueador usa 5%.'},
+ {k:'inad',n:'Inadimplência de boletos',t:'pct',v:[0.15,0.2,0.05,0.15],st:'c',o:'Base = 15%, calibrado no backtest (Mar–Set/26: o realizado recebeu ~6% menos que o modelo com 7,5%). Otimista = 5% (premissa do franqueador). Veja o painel Backtest abaixo.'},
  {k:'shift',n:'Atraso de recebimento: % do a prazo deslocado +1 mês',t:'pct',v:[0,0.25,0,0],st:'p',o:'Alonga o prazo médio de recebimento. Sugestão inicial no Conservador.'},
  {k:'modo',n:'Base de compras (1 = meta sell-in do franqueado; 2 = % histórico das vendas)',t:'modo',v:[1,2,1,1],st:'v',o:'Base parte da meta de sell-in. Conservador usa o % histórico (mais caro).'},
  {k:'cf',n:'Compras vs. meta sell-in (só modo 1)',t:'pct',v:[1,1,1,1],st:'v',o:''},
@@ -4945,7 +4945,7 @@ function premInput(t,c,k,def){
   return '<input class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+premFmt(t,v)+'" onfocus="this.select()" onchange="premEdit(this)">';
 }
 function premHTML(){
-  return '<div class="prem-intro"><b>Premissas do Orçamento</b> — as mesmas premissas e cenários (Base, Conservador, Otimista e Livre) do modelo de projeção do DFC. Por enquanto servem de documentação e <b>não geram o Orçado automaticamente</b>. Valores em azul foram alterados por você; passe o mouse no valor para ver o padrão.</div>'
+  return '<div class="prem-intro"><b>Premissas do Orçamento</b> — as mesmas premissas e cenários (Base, Conservador, Otimista e Livre) do modelo de projeção do DFC. Alimentam o botão <b>Gerar orçado</b> (Orçamento → Orçado). O painel <b>Backtest</b>, no fim da página, compara o recebimento modelado com o realizado. Valores em azul foram alterados por você; passe o mouse no valor para ver o padrão.</div>'
   +'<div class="orc-status" id="prem-status" style="margin:0 0 .75rem"></div><div id="prem-corpo"></div>';
 }
 async function initPremOrc(){
@@ -4977,8 +4977,8 @@ function premDesenhar(){
     var key=g.itens[0].soma;
     if(key){var ok=Math.abs(somas[key]-1)<0.0005;h+='<tr class="prem-chk"><td class="orc-lbl orc-sub">Conferência (deve somar 100%)</td><td style="color:'+(ok?'#6FD39A':'#E58B8B')+'">'+premFmt('pct',somas[key])+'</td><td colspan="2" style="text-align:left;color:'+(ok?'#6FD39A':'#E58B8B')+'">'+(ok?'✓ fecha em 100%':'Não fecha em 100% — ajuste os valores')+'</td></tr>';}
   });
-  h+='</tbody></table></div>';
-  el.innerHTML=h;
+  h+='</tbody></table></div><div id="prem-bt"></div>';
+  el.innerHTML=h;premBtDesenhar();
 }
 async function premEdit(inp){
   var c=inp.getAttribute('data-c'),k=inp.getAttribute('data-k'),t=inp.getAttribute('data-t'),def=inp.getAttribute('data-def');
@@ -5530,6 +5530,58 @@ async function dispMapaOrcado(host){
     var c=Chart.getChart('dispChartSaldo');if(c)c.destroy();var cv=document.getElementById('dispChartSaldo');if(!cv)return;
     new Chart(cv,{type:'line',data:{labels:['Início'].concat(meses.map(function(m,i){return labels[i];})),datasets:[{data:pontos,borderColor:CYAN,backgroundColor:'rgba(0,212,218,0.08)',fill:true,tension:0.3,pointRadius:5,pointBackgroundColor:CYAN,borderWidth:2.5,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC,callback:function(v){return fmtD(v);}}}}}});
   },50);
+}
+
+// ══════════════════════════════════════════════
+// BACKTEST DAS PREMISSAS DE RECEBIMENTO — recebimento modelado × realizado (por mês)
+// Aplica a curva de prazo/mix/inadimplência do cenário sobre o sell-through REALIZADO dos meses anteriores
+// e compara com o que de fato entrou no caixa (Realizado, contas 2.1.1.x).
+// ══════════════════════════════════════════════
+var PREMBT={dados:null,erro:'',cen:'base',carregando:false};
+function genCoefs(cen){
+  var L=function(k){return genLever(cen,k);},G=genGeral;
+  var inad=L('inad'),shift=L('shift'),bol=G('mix_bol'),cp=G('mix_cp'),pix=G('mix_pix'),cav=G('mix_cav');
+  var rec=[G('rec0'),G('rec1'),G('rec2'),G('rec3'),G('rec4'),0,0],A=[];
+  for(var d=0;d<7;d++)A[d]=rec[d]*(1-shift)+shift*(d>0?rec[d-1]:0);
+  var pz=(bol*(1-inad)+cp);
+  return [pix+pz*A[0],cav+pz*A[1],pz*A[2],pz*A[3],pz*A[4],pz*A[5],pz*A[6]];
+}
+async function premBtCarregar(){
+  if(PREMBT.carregando)return;PREMBT.carregando=true;PREMBT.erro='';
+  try{
+    if(!META.carregado)await initMetas();
+    var cid=clienteIdAtual(),rows=[],from=0,ps=1000;
+    while(true){
+      var r=await sb.from('orcamento_dfc').select('ano,mes,codigo,valor').eq('cliente_id',cid).eq('tipo','realizado').in('ano',[2025,2026,2027]).in('codigo',['2.1.1.1','2.1.1.2','2.1.1.3']).range(from,from+ps-1);
+      if(r.error){PREMBT.erro='Não foi possível ler o realizado (rode o SQL 03 e importe os lançamentos).';break;}
+      rows=rows.concat(r.data||[]);if((r.data||[]).length<ps)break;from+=ps;
+    }
+    var rec={};rows.forEach(function(x){var k=x.ano*12+(x.mes-1);rec[k]=(rec[k]||0)+parseFloat(x.valor);});
+    PREMBT.dados=rec;
+  }catch(e){console.error(e);PREMBT.erro='Erro ao montar o backtest.';}
+  PREMBT.carregando=false;premBtDesenhar();
+}
+function premBtDesenhar(){
+  var el=document.getElementById('prem-bt');if(!el)return;
+  var h='<div class="dfc-section-label" style="margin-top:1.5rem">Backtest — recebimento modelado × realizado</div>'
+   +'<div class="prem-intro" style="margin-bottom:.6rem">Para cada mês, aplico a curva de recebimento do cenário (mix, prazo e inadimplência) sobre as <b>vendas realizadas</b> dos meses anteriores e comparo com o que <b>entrou de fato</b> no caixa. Se o modelado fica sempre acima do realizado, a premissa está otimista. Escolha o cenário: <select id="prem-bt-cen" class="prem-in" style="width:auto" onchange="PREMBT.cen=this.value;premBtDesenhar()">'+PREM_CEN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===PREMBT.cen?' selected':'')+'>'+c[1]+'</option>';}).join('')+'</select></div>';
+  if(PREMBT.erro){el.innerHTML=h+'<div class="imp-err">'+PREMBT.erro+'</div>';return;}
+  if(!PREMBT.dados){el.innerHTML=h+'<div class="imp-p">Carregando…</div>';if(!PREMBT.carregando)premBtCarregar();return;}
+  var C=genCoefs(PREMBT.cen),f=function(v){return Math.round(v).toLocaleString('pt-BR');},lin='',n=0,se=0,sr=0,sm=0;
+  for(var mk=2025*12+9;mk<=2026*12+11;mk++){
+    var d=genDe(mk),real=PREMBT.dados[mk];if(!real)continue;
+    var s=0,ok=true,stm=metaGet('st','realizado',d.a,d.m);
+    for(var l=0;l<C.length;l++){var x=genDe(mk-l),v=metaGet('st','realizado',x.a,x.m);if(!v){if(C[l]>0.0001)ok=false;continue;}s+=C[l]*v;}
+    if(!ok)continue;
+    var dif=real-s,pct=dif/real*100;n++;se+=Math.abs(pct);sr+=real;sm+=s;
+    lin+='<tr><td style="text-align:left">'+ORC_M[d.m-1]+'/'+String(d.a).slice(2)+'</td><td>'+f(stm||0)+'</td><td>'+f(real)+'</td><td>'+f(s)+'</td><td class="'+(dif>=0?'orc-pos':'orc-neg')+'">'+(dif>=0?'+':'-')+f(Math.abs(dif))+'</td><td class="'+(dif>=0?'orc-pos':'orc-neg')+'">'+(pct>0?'+':'')+pct.toFixed(1).replace('.',',')+'%</td></tr>';
+  }
+  if(!n){el.innerHTML=h+'<div class="imp-p">Ainda não há meses com vendas e recebimentos realizados suficientes (precisa de ~5 meses de histórico de vendas). Importe o realizado e confira as Metas (sell-through realizado).</div>';return;}
+  var vies=(sr-sm)/sr*100;
+  h+='<div class="orc-outer" style="max-height:none"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Mês</th><th>Vendas (ST realizado)</th><th>Recebido (realizado)</th><th>Modelado</th><th>Realizado − modelado</th><th>Diferença %</th></tr></thead><tbody>'+lin
+   +'<tr class="dfc-sub"><td style="text-align:left"><b>Total</b></td><td></td><td><b>'+f(sr)+'</b></td><td><b>'+f(sm)+'</b></td><td class="'+(sr>=sm?'orc-pos':'orc-neg')+'"><b>'+(sr>=sm?'+':'-')+f(Math.abs(sr-sm))+'</b></td><td class="'+(sr>=sm?'orc-pos':'orc-neg')+'"><b>'+(vies>0?'+':'')+vies.toFixed(1).replace('.',',')+'%</b></td></tr></tbody></table></div>'
+   +'<div class="imp-p" style="margin-top:.5rem"><b>Leitura:</b> erro médio de <b>'+(se/n).toFixed(1).replace('.',',')+'%</b> por mês em '+n+' meses. '+(vies<-2?'O modelo está <b>otimista</b>: recebe '+Math.abs(vies).toFixed(1).replace('.',',')+'% a mais do que de fato entrou. Considere subir a inadimplência ou o atraso.':(vies>2?'O modelo está <b>conservador</b>: recebe '+vies.toFixed(1).replace('.',',')+'% a menos do que entrou.':'O total modelado está próximo do realizado.'))+' O erro mês a mês é natural: o recebimento depende do calendário de vencimentos, não só do volume vendido.</div>';
+  el.innerHTML=h;
 }
 
 </script>
