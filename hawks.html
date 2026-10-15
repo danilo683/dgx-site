@@ -470,6 +470,7 @@ select.prem-in{text-align:left}
 .imp-go{background:#00B4D8!important;color:#fff!important}
 .orc-imp{background:#162230;border:0.5px solid #00B4D8;color:#00D4DA;border-radius:8px;font-size:12px;padding:7px 14px;cursor:pointer}
 .orc-fc{color:#B48AFF}.orc-tbl td.orc-fc{font-weight:600}
+.orc-per{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.2rem 0 .8rem;font-size:12px;color:#8BA0B0}.orc-per select{background:#162230;border:1px solid #1F3044;color:#E2EAF4;border-radius:6px;padding:4px 8px;font-size:12px}.orc-per button{background:#162230;border:1px solid #1F3044;color:#9FB4C6;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}.orc-per-note{font-size:11px;color:#6B8BAA}
 </style>
 </head>
 <body>
@@ -4603,9 +4604,9 @@ function orcKey(m,d,c){return m+'|'+d+'|'+c;}
 function orcHTML(){
   var anos=[];var y=(new Date()).getFullYear();for(var a=y-1;a<=y+3;a++)anos.push(a);
   return '<div class="orc-tabs" id="orc-tabs"><button data-m="orcado" onclick="orcSetModo(\'orcado\')">Orçado</button><button data-m="realizado" onclick="orcSetModo(\'realizado\')">Realizado</button><button data-m="comp" onclick="orcSetModo(\'comp\')">Orçado × Realizado</button></div><div class="orc-head"><div class="orc-sel"><label>Ano</label><select id="orc-ano" onchange="orcSetAno(this.value)">'+anos.map(function(a){return'<option value="'+a+'"'+(a===ORC.ano?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'
-   +'<div class="orc-seg" id="orc-view"><button data-v="dia" onclick="orcSetView(\'dia\')">Dia a dia</button><button data-v="mes" onclick="orcSetView(\'mes\')">Mês a mês</button></div>'
+   +'<div class="orc-seg" id="orc-view"><button data-v="mes" onclick="orcSetView(\'mes\')">Mês a mês</button><button data-v="dia" onclick="orcSetView(\'dia\')">Dia a dia</button></div>'
    +'<button class="orc-imp" id="orc-imp-btn" style="display:none" onclick="impAbrir()">⬆ Importar lançamentos</button><button class="orc-imp" id="orc-gen-btn" style="display:none" onclick="genAbrir()">⚙ Gerar orçado (Metas + Premissas)</button><div class="orc-status" id="orc-status"></div></div>'
-   +'<div class="orc-meses" id="orc-meses"></div><div class="dfc-cards" id="orc-cards" style="grid-template-columns:repeat(4,1fr)"></div><div class="orc-chartbox" id="orc-chartbox" style="display:none"><canvas id="orc-chart"></canvas></div>'
+   +'<div class="orc-meses" id="orc-meses"></div><div class="orc-per" id="orc-per" style="display:none"></div><div class="dfc-cards" id="orc-cards" style="grid-template-columns:repeat(4,1fr)"></div><div class="orc-chartbox" id="orc-chartbox" style="display:none"><canvas id="orc-chart"></canvas></div>'
    +'<div class="orc-hint" id="orc-hint">Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.</div>'
    +'<div class="orc-outer"><table class="dfc-tbl orc-tbl" id="orc-tbl"></table></div>';
 }
@@ -4687,7 +4688,7 @@ function orcDesenhar(){
   document.getElementById('orc-hint').innerHTML=ORC.modo==='comp'?'Forecast = meses fechados com o realizado + meses restantes com o orçado (calculado na hora, não é gravado). Δ = realizado − orçado. <span class="orc-pos">Verde</span> = favorável (entrou mais ou saiu menos), <span class="orc-neg">vermelho</span> = desfavorável.':(ORC.modo==='realizado'?'<b>Realizado:</b> ':'')+'Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.';
   var vb=document.querySelectorAll('#orc-view button');for(var i=0;i<vb.length;i++)vb[i].classList.toggle('active',vb[i].getAttribute('data-v')===ORC.view);
   var mh=document.getElementById('orc-meses');
-  mh.style.display=ORC.view==='dia'?'flex':'none';
+  mh.style.display=ORC.view==='dia'?'flex':'none';var pu=document.getElementById('orc-per');if(pu&&ORC.modo!=='comp')pu.style.display='none';
   if(ORC.modo==='comp'){orcDesenharComp();return;}
   mh.innerHTML=ORC_M.map(function(n,i){return'<button class="'+((i+1)===ORC.mes?'active':'')+'" onclick="orcSetMes('+(i+1)+')">'+n+'</button>';}).join('');
   var st=document.getElementById('orc-status');
@@ -4819,9 +4820,33 @@ function orcForecastStore(){
   Object.keys(ORC.v).forEach(function(k){if(!fechado[k.split('|')[0]])F[k]=ORC.v[k];});
   return {F:F,fechado:fechado};
 }
+function orcPerSetup(){
+  var n=ORC.view==='dia'?orcDias(ORC.ano,ORC.mes):12,sig=ORC.view+'|'+ORC.mes+'|'+ORC.ano;
+  if(ORC.pSig!==sig){ORC.pSig=sig;ORC.pDe=1;ORC.pAte=n;}
+  if(!ORC.pDe||ORC.pDe>n)ORC.pDe=1;if(!ORC.pAte||ORC.pAte>n)ORC.pAte=n;if(ORC.pDe>ORC.pAte)ORC.pAte=ORC.pDe;
+  return n;
+}
+function orcSetPer(de,ate){ORC.pDe=parseInt(de);ORC.pAte=parseInt(ate);if(ORC.pDe>ORC.pAte){ORC.pAte=ORC.pDe;}orcDesenhar();}
+function orcPerAll(){ORC.pDe=1;ORC.pAte=(ORC.view==='dia'?orcDias(ORC.ano,ORC.mes):12);orcDesenhar();}
+function orcPerUI(n){
+  var el=document.getElementById('orc-per');if(!el)return;el.style.display='flex';
+  var lab=function(i){return ORC.view==='dia'?(i+'/'+String(ORC.mes).padStart(2,'0')):ORC_M[i-1];};
+  var opt=function(sel){var s='';for(var i=1;i<=n;i++)s+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+lab(i)+'</option>';return s;};
+  el.innerHTML='<label>Período: de</label><select id="orc-pde" onchange="orcSetPer(this.value,document.getElementById(\'orc-pate\').value)">'+opt(ORC.pDe)+'</select><label>até</label><select id="orc-pate" onchange="orcSetPer(document.getElementById(\'orc-pde\').value,this.value)">'+opt(ORC.pAte)+'</select><button onclick="orcPerAll()">'+(ORC.view==='dia'?'Mês todo':'Ano todo')+'</button><span class="orc-per-note">Os totais, o caixa inicial e o saldo final da tabela e dos cards valem para o período escolhido.</span>';
+}
+function orcApplyPer(R,c0,c1){
+  Object.keys(R).forEach(function(k){
+    if(k.slice(-2)==='_t')return;var a=R[k];if(!Array.isArray(a))return;
+    if(k==='ini')R[k+'_t']=a[c0];else if(k==='sal')R[k+'_t']=a[c1];
+    else R[k+'_t']=a.slice(c0,c1+1).reduce(function(x,y){return x+y;},0);
+  });
+}
 function orcDesenharComp(){
+  var n=orcPerSetup(),c0=ORC.pDe-1,c1=ORC.pAte-1;orcPerUI(n);
   var FS=orcForecastStore(),O=orcCalc(ORC.v),Rr=orcCalc(ORC.r),Fc=orcCalc(FS.F),el=document.getElementById('orc-tbl');
-  var per=ORC.view==='dia'?ORC_M[ORC.mes-1]+'/'+ORC.ano:'Ano '+ORC.ano;
+  orcApplyPer(O,c0,c1);orcApplyPer(Rr,c0,c1);orcApplyPer(Fc,c0,c1);
+  var full=(ORC.pDe===1&&ORC.pAte===n);
+  var per=ORC.view==='dia'?(full?ORC_M[ORC.mes-1]+'/'+ORC.ano:ORC.pDe+'–'+ORC.pAte+' '+ORC_M[ORC.mes-1]+'/'+ORC.ano):(full?'Ano '+ORC.ano:(ORC.pDe===ORC.pAte?ORC_M[ORC.pDe-1]+'/'+ORC.ano:ORC_M[ORC.pDe-1]+'–'+ORC_M[ORC.pAte-1]+'/'+ORC.ano));
   function lin(id,lbl,cls,sinal,sg){var o=O[id+'_t'],r=Rr[id+'_t'];var fc=Fc[id+'_t'];var f=sg?orcFmtS:function(v){return v?Math.round(v).toLocaleString('pt-BR'):'\u2014';};return'<tr class="'+cls+'"><td class="orc-lbl'+(cls==='orc-it'?' orc-sub':'')+'">'+lbl+'</td><td>'+f(o)+'</td><td>'+f(r)+'</td>'+orcCelDelta(o,r,sinal)+'<td class="orc-fc">'+f(fc)+'</td>'+orcCelDelta(o,fc,sinal)+'</tr>';}
   var h='<thead><tr><th class="orc-lbl">'+per+'</th><th>Orçado</th><th>Realizado</th><th>Δ R$</th><th>Δ %</th><th class="orc-fc">Forecast</th><th>Δ Fcst R$</th><th>Δ Fcst %</th></tr></thead><tbody>';
   h+=lin('ini','Caixa inicial','orc-ini',1,1);
@@ -4857,7 +4882,7 @@ function orcDesenharComp(){
 
 var ORC_TITULOS={orcado:'Orçamento \u2014 Orçado',realizado:'Orçamento \u2014 Realizado',comp:'Orçamento \u2014 Orçado × Realizado'};
 function orcToggleMenu(){var s=document.getElementById('orc-sub'),p=document.getElementById('nav-orcamento');var o=!s.classList.contains('open');s.classList.toggle('open',o);p.classList.toggle('open',o);}
-function orcNav(modo,el){ORC.modo=modo;setPage('orcamento',el);document.getElementById('topbarTitle').textContent=ORC_TITULOS[modo];document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+function orcNav(modo,el){ORC.modo=modo;if(modo==='comp')ORC.view='mes';setPage('orcamento',el);document.getElementById('topbarTitle').textContent=ORC_TITULOS[modo];document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
 // ══════════════════════════════════════════════
 // PREMISSAS ORÇAMENTO — mesmas premissas/cenários da planilha de projeção do DFC
 // Tabela Supabase: orcamento_premissas (cliente_id, cenario, chave, valor_num, valor_txt)
@@ -4893,9 +4918,11 @@ var PREM_GERAL=[
   {k:'rec2',n:'Defasagem 2 meses',t:'pct',v:0.295357,st:'c',o:'',soma:'rec'},
   {k:'rec3',n:'Defasagem 3 meses',t:'pct',v:0.222262,st:'c',o:'',soma:'rec'},
   {k:'rec4',n:'Defasagem 4 meses',t:'pct',v:0.108929,st:'c',o:'',soma:'rec'}]},
- {g:'Pagamento a fornecedores Truss por defasagem após a compra',itens:[
-  {k:'trs3',n:'Pago 3 meses após a compra',t:'pct',v:0.4,st:'p',o:'A VALIDAR com a condição real de pagamento da Truss. A conciliação do contas a pagar mostra prazo de ~3,4–4,0 meses (PMP 107–121 dias).',soma:'trs'},
-  {k:'trs4',n:'Pago 4 meses após a compra',t:'pct',v:0.6,st:'p',o:'Prazo médio resultante ≈ 108 dias. Variar ±1 mês muda o aporte necessário de forma relevante.',soma:'trs'},
+ {g:'Pagamento a fornecedores Truss por quinzena do pedido (4 parcelas iguais)',itens:[
+  {k:'trq1',n:'% dos pedidos na 1ª quinzena (dias 1 a 15)',t:'pct',v:0.6,st:'p',o:'Regra do franqueador: 60% dos pedidos na 1ª quinzena × 40% na 2ª. Na planilha do franqueador o realizado varia muito de mês a mês.',soma:'trs'},
+  {k:'trq2',n:'% dos pedidos na 2ª quinzena (dia 16 em diante)',t:'pct',v:0.4,st:'p',o:'',soma:'trs'},
+  {k:'trp1',n:'Prazos da 1ª quinzena (dias após o pedido; 4 parcelas iguais)',t:'txt',v:'45/75/105/135',st:'v',o:'Regra Truss informada: 45/75/105/135 dias. Separe os dias por "/".'},
+  {k:'trp2',n:'Prazos da 2ª quinzena (dias após o pedido; 4 parcelas iguais)',t:'txt',v:'30/60/90/120',st:'v',o:'Regra Truss informada: 30/60/90/120 dias.'},
   {k:'ap0',n:'Contas a pagar em aberto no início (fim de Ago/26)',t:'brl',v:4020000,st:'c',o:'≈ R$ 4,02 mi, da aba Premissas do franqueador (AP realizado).'}]},
  {g:'Despesas fixas (média Mar–Ago/26, corrigidas pela inflação)',itens:[
   {k:'f_pessoal',n:'Pessoal',t:'brl',v:37608,st:'c',o:'Base Mar–Ago/26 explícita.'},
@@ -4924,6 +4951,7 @@ function premKey(c,k){return c+'|'+k;}
 function premGet(c,k,def){var x=PREM.over[premKey(c,k)];return x===undefined?def:x;}
 function premFmt(t,v){
   if(v===null||v===undefined||v==='')return '';
+  if(t==='txt')return String(v);
   if(t==='pct')return (v*100).toFixed(3).replace(/\.?0+$/,'').replace('.',',')+'%';
   if(t==='brl')return Math.round(v).toLocaleString('pt-BR');
   if(t==='mes'){var p=String(v).split('-');return ORC_M[parseInt(p[1])-1]+'/'+p[0].slice(2);}
@@ -4931,6 +4959,7 @@ function premFmt(t,v){
 }
 function premParse(t,s){
   s=String(s||'').trim();if(!s)return null;
+  if(t==='txt'){s=s.replace(/\s+/g,'').replace(/[;,\-]/g,'/');return /^\d+(\/\d+)*$/.test(s)?s:null;}
   if(t==='mes'){return /^\d{4}-\d{2}$/.test(s)?s:null;}
   var x=parseFloat(s.replace(/[^0-9,\-]/g,'').replace(',','.'));if(isNaN(x))return null;
   if(t==='pct')return x/100;
@@ -4940,6 +4969,7 @@ function premParse(t,s){
 function premInput(t,c,k,def){
   var v=premGet(c,k,def),mod=PREM.over[premKey(c,k)]!==undefined;
   var id=' data-c="'+c+'" data-k="'+k+'" data-t="'+t+'" data-def="'+(def===undefined?'':def)+'"';
+  if(t==='txt')return '<input class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+v+'" onfocus="this.select()" onchange="premEdit(this)">';
   if(t==='mes')return '<input type="month" class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+v+'" onchange="premEdit(this)">';
   if(t==='modo')return '<select class="prem-in'+(mod?' prem-mod':'')+'"'+id+' onchange="premEdit(this)"><option value="1"'+(v==1?' selected':'')+'>1 · meta sell-in</option><option value="2"'+(v==2?' selected':'')+'>2 · % histórico</option></select>';
   return '<input class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+premFmt(t,v)+'" onfocus="this.select()" onchange="premEdit(this)">';
@@ -4983,7 +5013,7 @@ function premDesenhar(){
 async function premEdit(inp){
   var c=inp.getAttribute('data-c'),k=inp.getAttribute('data-k'),t=inp.getAttribute('data-t'),def=inp.getAttribute('data-def');
   var val=(t==='modo')?parseInt(inp.value):premParse(t,inp.value);
-  var defN=(t==='mes')?def:parseFloat(def);
+  var defN=(t==='mes'||t==='txt')?def:parseFloat(def);
   var key=premKey(c,k);
   var cid=clienteIdAtual(),st=document.getElementById('prem-status'),err=null;
   if(val===null||val===defN){
@@ -4991,7 +5021,7 @@ async function premEdit(inp){
     var r=await sb.from('orcamento_premissas').delete().eq('cliente_id',cid).eq('cenario',c).eq('chave',k);err=r&&r.error;
   }else{
     PREM.over[key]=val;
-    var row={cliente_id:cid,cenario:c,chave:k,valor_num:(t==='mes'?null:val),valor_txt:(t==='mes'?val:null)};
+    var row={cliente_id:cid,cenario:c,chave:k,valor_num:((t==='mes'||t==='txt')?null:val),valor_txt:((t==='mes'||t==='txt')?val:null)};
     var r2=await sb.from('orcamento_premissas').upsert(row,{onConflict:'cliente_id,cenario,chave'});err=r2&&r2.error;
   }
   premDesenhar();
@@ -5259,6 +5289,17 @@ function genMk(a,m){return a*12+(m-1);}
 function genDe(mk){return {a:Math.floor(mk/12),m:(mk%12)+1};}
 function genLever(cen,k){var ix=0;PREM_CEN.forEach(function(c,i){if(c[0]===cen)ix=i;});var d=PREM_ALAV.filter(function(x){return x.k===k;})[0];return premGet(cen,k,d.v[ix]);}
 function genGeral(k){var def;PREM_GERAL.forEach(function(g){g.itens.forEach(function(it){if(it.k===k)def=it.v;});});return premGet('todos',k,def);}
+var GEN_TC={};
+// Fração do valor de um pedido (feito no mês a/m) paga em cada mês de defasagem: 1ª quinzena (dias 1–15) e 2ª (16 em diante), parcelas iguais em N dias
+function genTrussCoefs(a,m){
+  var key=a*12+m+'|'+genGeral('trq1')+'|'+genGeral('trq2')+'|'+genGeral('trp1')+'|'+genGeral('trp2');if(GEN_TC[key])return GEN_TC[key];
+  var q1=genGeral('trq1'),q2=genGeral('trq2'),p1=String(genGeral('trp1')).split('/').map(Number),p2=String(genGeral('trp2')).split('/').map(Number),nd=new Date(a,m,0).getDate(),C=[0,0,0,0,0,0,0,0,0];
+  for(var day=1;day<=nd;day++){
+    var q=day<=15,share=q?q1/15:q2/Math.max(1,nd-15),P=q?p1:p2;
+    P.forEach(function(d){var dt=new Date(a,m-1,day+d),lag=(dt.getFullYear()*12+dt.getMonth())-(a*12+m-1);if(lag>=0&&lag<C.length)C[lag]+=share/P.length;});
+  }
+  return GEN_TC[key]=C;
+}
 function genCalcular(cen,deMk,ateMk,tit){
   // tit = {mensal:{mk:valor}, baseMk} — títulos reais em aberto (contas a receber) por mês de vencimento
   tit=tit&&tit.baseMk?tit:null;
@@ -5303,7 +5344,7 @@ function genCalcular(cen,deMk,ateMk,tit){
     o.L['2.1.1.1']=sp.real-(antPrev-dprev);o.L['2.1.1.2']=sp.prev-dprev;
     o.L['2.1.2.2']=G('jm')*recT;
     var tr=0,trR=0,trP=0;
-    [[3,G('trs3')],[4,G('trs4')]].forEach(function(p){var x=genDe(mk-p[0]),s=si(x.a,x.m);var v=p[1]*s.v;if(s.f==='realizado')trR+=v;else trP+=v;});
+    for(var kk=0;kk<8;kk++){var xs=genDe(mk-kk),ss=si(xs.a,xs.m),cf2=genTrussCoefs(xs.a,xs.m)[kk]||0;if(!cf2||!ss.v)continue;var vv=cf2*ss.v;if(ss.f==='realizado')trR+=vv;else trP+=vv;}
     o.L['3.1.1.1']=trR;o.L['3.1.1.2']=trP;
     var inf=Math.pow(1+ipca,Math.max(0,a-2026));
     o.L['3.1.1.3']=G('f_ntruss')*inf;o.L['3.1.3.1']=G('f_pessoal')*inf;o.L['3.1.3.2']=G('f_prolab')*inf;
@@ -5552,12 +5593,12 @@ async function premBtCarregar(){
     if(!META.carregado)await initMetas();
     var cid=clienteIdAtual(),rows=[],from=0,ps=1000;
     while(true){
-      var r=await sb.from('orcamento_dfc').select('ano,mes,codigo,valor').eq('cliente_id',cid).eq('tipo','realizado').in('ano',[2025,2026,2027]).in('codigo',['2.1.1.1','2.1.1.2','2.1.1.3']).range(from,from+ps-1);
+      var r=await sb.from('orcamento_dfc').select('ano,mes,codigo,valor').eq('cliente_id',cid).eq('tipo','realizado').in('ano',[2025,2026,2027]).in('codigo',['2.1.1.1','2.1.1.2','2.1.1.3','3.1.1.1','3.1.1.2']).range(from,from+ps-1);
       if(r.error){PREMBT.erro='Não foi possível ler o realizado (rode o SQL 03 e importe os lançamentos).';break;}
       rows=rows.concat(r.data||[]);if((r.data||[]).length<ps)break;from+=ps;
     }
-    var rec={};rows.forEach(function(x){var k=x.ano*12+(x.mes-1);rec[k]=(rec[k]||0)+parseFloat(x.valor);});
-    PREMBT.dados=rec;
+    var rec={},pag={};rows.forEach(function(x){var k=x.ano*12+(x.mes-1),v=parseFloat(x.valor);if(x.codigo.charAt(0)==='2')rec[k]=(rec[k]||0)+v;else pag[k]=(pag[k]||0)+v;});
+    PREMBT.dados=rec;PREMBT.pag=pag;
   }catch(e){console.error(e);PREMBT.erro='Erro ao montar o backtest.';}
   PREMBT.carregando=false;premBtDesenhar();
 }
@@ -5581,6 +5622,19 @@ function premBtDesenhar(){
   h+='<div class="orc-outer" style="max-height:none"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Mês</th><th>Vendas (ST realizado)</th><th>Recebido (realizado)</th><th>Modelado</th><th>Realizado − modelado</th><th>Diferença %</th></tr></thead><tbody>'+lin
    +'<tr class="dfc-sub"><td style="text-align:left"><b>Total</b></td><td></td><td><b>'+f(sr)+'</b></td><td><b>'+f(sm)+'</b></td><td class="'+(sr>=sm?'orc-pos':'orc-neg')+'"><b>'+(sr>=sm?'+':'-')+f(Math.abs(sr-sm))+'</b></td><td class="'+(sr>=sm?'orc-pos':'orc-neg')+'"><b>'+(vies>0?'+':'')+vies.toFixed(1).replace('.',',')+'%</b></td></tr></tbody></table></div>'
    +'<div class="imp-p" style="margin-top:.5rem"><b>Leitura:</b> erro médio de <b>'+(se/n).toFixed(1).replace('.',',')+'%</b> por mês em '+n+' meses. '+(vies<-2?'O modelo está <b>otimista</b>: recebe '+Math.abs(vies).toFixed(1).replace('.',',')+'% a mais do que de fato entrou. Considere subir a inadimplência ou o atraso.':(vies>2?'O modelo está <b>conservador</b>: recebe '+vies.toFixed(1).replace('.',',')+'% a menos do que entrou.':'O total modelado está próximo do realizado.'))+' O erro mês a mês é natural: o recebimento depende do calendário de vencimentos, não só do volume vendido.</div>';
+  // — Pagamento Truss —
+  var th='<div class="dfc-section-label" style="margin-top:1.2rem">Backtest — pagamento Truss modelado × realizado</div><div class="imp-p" style="margin-bottom:.5rem">Aplico a regra por quinzena (prazos e % de pedidos nas Premissas) sobre as <b>compras realizadas</b> (sell-in) e comparo com o que foi pago à Truss (contas 3.1.1.1 e 3.1.1.2 do Realizado).</div>',tl='',tn=0,te=0,tr=0,tm=0;
+  for(var mk2=2025*12+9;mk2<=2026*12+11;mk2++){
+    var d2=genDe(mk2),real2=PREMBT.pag?PREMBT.pag[mk2]:0;if(!real2)continue;
+    var s2=0,ok2=true;
+    for(var l2=0;l2<9;l2++){var x2=genDe(mk2-l2),cf=genTrussCoefs(x2.a,x2.m)[l2]||0;if(cf<0.0001)continue;var v2=metaGetRaw('si','realizado',x2.a,x2.m);if(!v2){ok2=false;break;}s2+=cf*v2;}
+    if(!ok2)continue;
+    var df2=real2-s2,pc2=df2/real2*100;tn++;te+=Math.abs(pc2);tr+=real2;tm+=s2;
+    tl+='<tr><td style="text-align:left">'+ORC_M[d2.m-1]+'/'+String(d2.a).slice(2)+'</td><td>'+f(metaGetRaw('si','realizado',d2.a,d2.m)||0)+'</td><td>'+f(real2)+'</td><td>'+f(s2)+'</td><td class="'+(df2>=0?'orc-neg':'orc-pos')+'">'+(df2>=0?'+':'-')+f(Math.abs(df2))+'</td><td class="'+(df2>=0?'orc-neg':'orc-pos')+'">'+(pc2>0?'+':'')+pc2.toFixed(1).replace('.',',')+'%</td></tr>';
+  }
+  if(!tn)th+='<div class="imp-p">Ainda não há meses com compras e pagamentos realizados suficientes (a regra tem parcelas de até ~5 meses, então precisa de pelo menos 6 meses de compras realizadas nas Metas).</div>';
+  else{var vt=(tr-tm)/tr*100;th+='<div class="orc-outer" style="max-height:none"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Mês</th><th>Compras (SI realizado)</th><th>Pago (realizado)</th><th>Modelado</th><th>Realizado − modelado</th><th>Diferença %</th></tr></thead><tbody>'+tl+'<tr class="dfc-sub"><td style="text-align:left"><b>Total</b></td><td></td><td><b>'+f(tr)+'</b></td><td><b>'+f(tm)+'</b></td><td><b>'+(tr>=tm?'+':'-')+f(Math.abs(tr-tm))+'</b></td><td><b>'+(vt>0?'+':'')+vt.toFixed(1).replace('.',',')+'%</b></td></tr></tbody></table></div><div class="imp-p" style="margin-top:.5rem"><b>Leitura:</b> erro médio de <b>'+(te/tn).toFixed(1).replace('.',',')+'%</b> em '+tn+' meses. '+(vt>2?'A Truss foi <b>paga '+vt.toFixed(1).replace('.',',')+'% a mais</b> do que a regra prevê (a regra subestima a saída de caixa).':(vt<-2?'A Truss foi <b>paga '+Math.abs(vt).toFixed(1).replace('.',',')+'% a menos</b> do que a regra prevê (a regra superestima a saída).':'O total pago está próximo do que a regra prevê.'))+' Prazos reais mais longos que os da regra aparecem como pagamento menor no período.</div>';}
+  h+=th;
   el.innerHTML=h;
 }
 
