@@ -469,6 +469,7 @@ select.prem-in{text-align:left}
 .imp-tbl{width:100%;font-size:11.5px}.imp-tbl td,.imp-tbl th{padding:5px 10px;text-align:right}
 .imp-go{background:#00B4D8!important;color:#fff!important}
 .orc-imp{background:#162230;border:0.5px solid #00B4D8;color:#00D4DA;border-radius:8px;font-size:12px;padding:7px 14px;cursor:pointer}
+.orc-fc{color:#B48AFF}.orc-tbl td.orc-fc{font-weight:600}
 </style>
 </head>
 <body>
@@ -4683,7 +4684,7 @@ function orcDesenhar(){
   var cb=document.getElementById('orc-chartbox');cb.style.display=ORC.modo==='comp'?'block':'none';
   var ib=document.getElementById('orc-imp-btn');if(ib)ib.style.display=ORC.modo==='realizado'?'inline-block':'none';var gb=document.getElementById('orc-gen-btn');if(gb)gb.style.display=ORC.modo==='orcado'?'inline-block':'none';
   if(ORC.modo!=='comp'&&ORC.chart){ORC.chart.destroy();ORC.chart=null;}
-  document.getElementById('orc-hint').innerHTML=ORC.modo==='comp'?'Δ = realizado − orçado. <span class="orc-pos">Verde</span> = favorável (entrou mais ou saiu menos), <span class="orc-neg">vermelho</span> = desfavorável.':(ORC.modo==='realizado'?'<b>Realizado:</b> ':'')+'Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.';
+  document.getElementById('orc-hint').innerHTML=ORC.modo==='comp'?'Forecast = meses fechados com o realizado + meses restantes com o orçado (calculado na hora, não é gravado). Δ = realizado − orçado. <span class="orc-pos">Verde</span> = favorável (entrou mais ou saiu menos), <span class="orc-neg">vermelho</span> = desfavorável.':(ORC.modo==='realizado'?'<b>Realizado:</b> ':'')+'Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.';
   var vb=document.querySelectorAll('#orc-view button');for(var i=0;i<vb.length;i++)vb[i].classList.toggle('active',vb[i].getAttribute('data-v')===ORC.view);
   var mh=document.getElementById('orc-meses');
   mh.style.display=ORC.view==='dia'?'flex':'none';
@@ -4811,17 +4812,24 @@ function orcCelDelta(o,r,sinal){
   var x=orcDelta(o,r,sinal);var cls=x.fav>0?'orc-pos':(x.fav<0?'orc-neg':'');
   return '<td class="'+cls+'">'+(x.d?((x.d>0?'+':'-')+Math.abs(Math.round(x.d)).toLocaleString('pt-BR')):'\u2014')+'</td><td class="'+cls+'">'+(x.pct===null||!x.d?'\u2014':(x.pct>0?'+':'')+x.pct.toFixed(1).replace('.',',')+'%')+'</td>';
 }
+function orcForecastStore(){
+  var fechado={},F={};
+  Object.keys(ORC.r).forEach(function(k){var p=k.split('|');if(p[2]!=='1.1')fechado[p[0]]=true;});
+  Object.keys(ORC.r).forEach(function(k){if(fechado[k.split('|')[0]])F[k]=ORC.r[k];});
+  Object.keys(ORC.v).forEach(function(k){if(!fechado[k.split('|')[0]])F[k]=ORC.v[k];});
+  return {F:F,fechado:fechado};
+}
 function orcDesenharComp(){
-  var O=orcCalc(ORC.v),Rr=orcCalc(ORC.r),el=document.getElementById('orc-tbl');
+  var FS=orcForecastStore(),O=orcCalc(ORC.v),Rr=orcCalc(ORC.r),Fc=orcCalc(FS.F),el=document.getElementById('orc-tbl');
   var per=ORC.view==='dia'?ORC_M[ORC.mes-1]+'/'+ORC.ano:'Ano '+ORC.ano;
-  function lin(id,lbl,cls,sinal,sg){var o=O[id+'_t'],r=Rr[id+'_t'];var f=sg?orcFmtS:function(v){return v?Math.round(v).toLocaleString('pt-BR'):'\u2014';};return'<tr class="'+cls+'"><td class="orc-lbl'+(cls==='orc-it'?' orc-sub':'')+'">'+lbl+'</td><td>'+f(o)+'</td><td>'+f(r)+'</td>'+orcCelDelta(o,r,sinal)+'</tr>';}
-  var h='<thead><tr><th class="orc-lbl">'+per+'</th><th>Orçado</th><th>Realizado</th><th>Δ R$</th><th>Δ %</th></tr></thead><tbody>';
+  function lin(id,lbl,cls,sinal,sg){var o=O[id+'_t'],r=Rr[id+'_t'];var fc=Fc[id+'_t'];var f=sg?orcFmtS:function(v){return v?Math.round(v).toLocaleString('pt-BR'):'\u2014';};return'<tr class="'+cls+'"><td class="orc-lbl'+(cls==='orc-it'?' orc-sub':'')+'">'+lbl+'</td><td>'+f(o)+'</td><td>'+f(r)+'</td>'+orcCelDelta(o,r,sinal)+'<td class="orc-fc">'+f(fc)+'</td>'+orcCelDelta(o,fc,sinal)+'</tr>';}
+  var h='<thead><tr><th class="orc-lbl">'+per+'</th><th>Orçado</th><th>Realizado</th><th>Δ R$</th><th>Δ %</th><th class="orc-fc">Forecast</th><th>Δ Fcst R$</th><th>Δ Fcst %</th></tr></thead><tbody>';
   h+=lin('ini','Caixa inicial','orc-ini',1,1);
   ORC_PLANO.forEach(function(a){
-    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="5">'+a.n+'</td></tr>';
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="8">'+a.n+'</td></tr>';
     a.grupos.forEach(function(g){
       var sg=orcSinal(g.c),fechado=ORC.fechados[g.c];
-      h+='<tr class="orc-g"><td class="orc-lbl" onclick="orcToggle(\''+g.c+'\')" style="cursor:pointer"><span class="orc-car">'+(fechado?'▸':'▾')+'</span> '+g.n+'</td><td>'+orcFmtS(O[g.c+'_t'])+'</td><td>'+orcFmtS(Rr[g.c+'_t'])+'</td>'+orcCelDelta(O[g.c+'_t'],Rr[g.c+'_t'],sg)+'</tr>';
+      h+='<tr class="orc-g"><td class="orc-lbl" onclick="orcToggle(\''+g.c+'\')" style="cursor:pointer"><span class="orc-car">'+(fechado?'▸':'▾')+'</span> '+g.n+'</td><td>'+orcFmtS(O[g.c+'_t'])+'</td><td>'+orcFmtS(Rr[g.c+'_t'])+'</td>'+orcCelDelta(O[g.c+'_t'],Rr[g.c+'_t'],sg)+'<td class="orc-fc">'+orcFmtS(Fc[g.c+'_t'])+'</td>'+orcCelDelta(O[g.c+'_t'],Fc[g.c+'_t'],sg)+'</tr>';
       if(!fechado)g.i.forEach(function(it){h+=lin(it[0],it[1],'orc-it',sg,1);});
     });
     h+=lin('fc_'+a.k,'= '+a.fc,'dfc-sub',1,1);
@@ -4830,8 +4838,8 @@ function orcDesenharComp(){
   el.innerHTML=h;
   var cd=function(l,o,r,sg){var x=orcDelta(o,r,sg);return'<div class="dfc-card'+(x.fav<0?' neg':'')+'"><div class="dfc-card-label">'+l+'</div><div class="dfc-card-value">'+fmtD(r)+'</div><div class="dfc-card-sub">orçado '+fmtD(o)+' · '+(x.d>0?'+':'')+fmtD(x.d)+(x.pct===null?'':' ('+x.pct.toFixed(1).replace('.',',')+'%)')+'</div></div>';};
   var eo=0,er=0,so=0,sr=0;
-  ORC_PLANO.forEach(function(a){a.grupos.forEach(function(g){if(orcSinal(g.c)>0){eo+=O[g.c+'_t'];er+=Rr[g.c+'_t'];}else{so+=O[g.c+'_t'];sr+=Rr[g.c+'_t'];}});});
-  document.getElementById('orc-cards').innerHTML=cd('Entradas',eo,er,1)+cd('Saídas',so,sr,-1)+cd('Variação líquida',O.liq_t,Rr.liq_t,1)+cd('Saldo final',O.sal_t,Rr.sal_t,1);
+  ORC_PLANO.forEach(function(a){a.grupos.forEach(function(g){if(orcSinal(g.c)>0){eo+=O[g.c+'_t'];er+=Fc[g.c+'_t'];}else{so+=O[g.c+'_t'];sr+=Fc[g.c+'_t'];}});});
+  document.getElementById('orc-cards').innerHTML=cd('Entradas (forecast)',eo,er,1)+cd('Saídas (forecast)',so,sr,-1)+cd('Variação líquida (forecast)',O.liq_t,Fc.liq_t,1)+cd('Saldo final (forecast)',O.sal_t,Fc.sal_t,1);
   // gráfico: saldo orçado x realizado
   var cols=orcCols(),labels=cols.map(function(c){return ORC.view==='dia'?String(c):ORC_M[c-1];});
   if(ORC.chart){ORC.chart.destroy();ORC.chart=null;}
@@ -4839,7 +4847,8 @@ function orcDesenharComp(){
   if(cv&&window.Chart){
     ORC.chart=new Chart(cv,{type:'line',data:{labels:labels,datasets:[
       {label:'Saldo orçado',data:O.sal,borderColor:'#C8B89A',backgroundColor:'#C8B89A',borderWidth:2,pointRadius:2,tension:.2},
-      {label:'Saldo realizado',data:Rr.sal,borderColor:'#00D4DA',backgroundColor:'#00D4DA',borderWidth:2,pointRadius:2,tension:.2}]},
+      {label:'Saldo realizado',data:Rr.sal.map(function(v,i){return ORC.view==='mes'&&!FS.fechado[i+1]?null:v;}),borderColor:'#00D4DA',backgroundColor:'#00D4DA',borderWidth:2,pointRadius:2,tension:.2},
+      {label:'Saldo forecast (realizado + orçado)',data:Fc.sal,borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2,borderDash:[6,4],pointRadius:2,tension:.2}]},
       options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#8BA0B0',boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA'}},y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtD(v);}}}}}});
   }
 }
