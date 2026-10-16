@@ -4869,8 +4869,11 @@ function orcDesenharComp(){
   var cols=orcCols(),labels=cols.map(function(c){return ORC.view==='dia'?String(c):ORC_M[c-1];});
   if(ORC.chart){ORC.chart.destroy();ORC.chart=null;}
   var cv=document.getElementById('orc-chart');
+  var apo=(O['2.2.1.3']||[]).slice(),semApo=[],acA=0;apo.forEach(function(v,i){acA+=v||0;semApo[i]=O.sal[i]-acA;});
   if(cv&&window.Chart){
     ORC.chart=new Chart(cv,{type:'line',data:{labels:labels,datasets:[
+      {type:'bar',label:'Aporte do orçado (barras)',data:apo,backgroundColor:'rgba(232,160,90,.45)',borderColor:'rgba(232,160,90,.9)',borderWidth:1,order:5},
+      {label:'Saldo orçado sem aporte',data:semApo,borderColor:'#E8A05A',backgroundColor:'#E8A05A',borderWidth:2,borderDash:[2,3],pointRadius:2,tension:.2},
       {label:'Saldo orçado',data:O.sal,borderColor:'#C8B89A',backgroundColor:'#C8B89A',borderWidth:2,pointRadius:2,tension:.2},
       {label:'Saldo realizado',data:Rr.sal.map(function(v,i){return ORC.view==='mes'&&!FS.fechado[i+1]?null:v;}),borderColor:'#00D4DA',backgroundColor:'#00D4DA',borderWidth:2,pointRadius:2,tension:.2},
       {label:'Saldo forecast (realizado + orçado)',data:Fc.sal,borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2,borderDash:[6,4],pointRadius:2,tension:.2}]},
