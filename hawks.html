@@ -4942,6 +4942,7 @@ var PREM_GERAL=[
  {g:'Investimento, dívida e caixa',itens:[
   {k:'capex',n:'CAPEX mensal',t:'brl',v:0,st:'v',o:'Barracão quitado.'},
   {k:'divida',n:'Serviço da dívida bancária (por mês)',t:'brl',v:7400,st:'p',o:'Placeholder, aguardando o contrato de financiamento.'},
+  {k:'divida27',n:'Serviço da dívida bancária a partir de 2027 (por mês)',t:'brl',v:0,st:'v',o:'Sem dívida e sem capex em 2027 (definição do Danilo). Altere aqui se mudar.'},
   {k:'cx0',n:'Caixa inicial de Set/26',t:'brl',v:198932,st:'p',o:'Saldo bancário de Ago/26; trocar pelo fechamento de Set/26.'},
   {k:'cv_hist',n:'Compras ÷ vendas histórico (modo 2)',t:'pct',v:0.7819,st:'c',o:'Sell-in ÷ sell-through, Out/25–Ago/26.'}]}
 ];
@@ -5300,7 +5301,7 @@ function genTrussCoefs(a,m){
   }
   return GEN_TC[key]=C;
 }
-function genCalcular(cen,deMk,ateMk,tit){
+function genCalcular(cen,deMk,ateMk,tit,cxAnt){
   // tit = {mensal:{mk:valor}, baseMk} — títulos reais em aberto (contas a receber) por mês de vencimento
   tit=tit&&tit.baseMk?tit:null;
   var L=function(k){return genLever(cen,k);},G=genGeral,aviso=[];
@@ -5352,12 +5353,13 @@ function genCalcular(cen,deMk,ateMk,tit){
     o.L['3.1.3.3']=G('v_mkt')*recT;o.L['3.1.3.4']=G('v_comis')*recT;o.L['3.1.3.5']=G('v_log')*recT;
     var imp=G('imp_m')*recT;if(m%3===1)imp+=G('imp_t')*(recebM(mk-1)+recebM(mk-2)+recebM(mk-3));
     o.L['3.1.4.1']=imp;
-    o.L['3.3.1.1']=G('capex');o.L['3.2.1.1']=G('divida');
+    o.L['3.3.1.1']=G('capex');o.L['3.2.1.1']=(a>=2027?G('divida27'):G('divida'));
     // caixa
     var ini;
     if(cx===null){
       var rin=ORC.r[orcKey(m,1,'1.1')];
       if(rin!==undefined)ini=rin;
+      else if(cxAnt!=null&&mk===deMk){ini=cxAnt;o.iniFonte='saldo final de Dez/'+(a-1)+' (realizado + orçado)';}
       else if(k==='2026-09')ini=G('cx0');
       else{ini=0;aviso.push('Sem caixa inicial para '+ORC_M[m-1]+'/'+a+' (o saldo parte de zero). Importe o realizado ou digite o caixa inicial.');}
       o.ini=ini;o.iniManual=true;
@@ -5395,13 +5397,32 @@ function genAbrir(){
 }
 function genFechar(){var m=document.getElementById('gen-modal');if(m)m.remove();GEN.res=null;}
 var GEN_LIN=[['2.1.1.1','Recebimentos de vendas concluídas (títulos reais ou ST realizado)',1],['2.1.1.2','Recebimentos de vendas previstas (ST projetado)',1],['2.1.2.2','Juros e multas da inadimplência',1],['3.1.1.1','Pagamento Truss — compras concluídas',-1],['3.1.1.2','Pagamento Truss — compras previstas',-1],['3.1.1.3','Fornecedores não Truss',-1],['3.1.3.1','Pessoal',-1],['3.1.3.2','Pró-labore',-1],['3.1.3.3','Marketing',-1],['3.1.3.4','Comissões',-1],['3.1.3.5','Logística',-1],['3.1.3.6','Taxa de ocupação',-1],['3.1.3.7','Despesas gerais',-1],['3.1.3.8','Serviços de terceiros',-1],['3.1.4.1','Impostos',-1],['3.3.1.1','Capex',-1],['3.2.1.1','Dívida bancária',-1],['2.2.1.2','Antecipação de recebíveis',1],['3.2.1.2','Encargos da antecipação',-1],['2.2.1.3','Aporte necessário (resultado do modelo)',1]];
+async function genCaixaAnterior(){
+  // saldo final de Dez do ano anterior: meses fechados = realizado, demais = orçado (mesma regra do Forecast)
+  var cid=clienteIdAtual(),a=ORC.ano-1,R={},V={},from=0,ps=1000;
+  while(true){
+    var q=await sb.from('orcamento_dfc').select('tipo,mes,dia,codigo,valor').eq('cliente_id',cid).eq('ano',a).order('tipo').order('mes').order('dia').range(from,from+ps-1);
+    if(q.error)return null;
+    (q.data||[]).forEach(function(x){(x.tipo==='realizado'?R:V)[orcKey(x.mes,x.dia,x.codigo)]=parseFloat(x.valor);});
+    if((q.data||[]).length<ps)break;from+=ps;
+  }
+  if(!Object.keys(R).length&&!Object.keys(V).length)return null;
+  var fech={},F={};
+  Object.keys(R).forEach(function(k){var p=k.split('|');if(p[2]!=='1.1')fech[p[0]]=true;});
+  Object.keys(R).forEach(function(k){if(fech[k.split('|')[0]])F[k]=R[k];});
+  Object.keys(V).forEach(function(k){if(!fech[k.split('|')[0]])F[k]=V[k];});
+  var an=ORC.ano;ORC.ano=a;var fin;try{fin=orcIniciais(F).fin[12];}finally{ORC.ano=an;}
+  return fin;
+}
 async function genPrevia(){
   var el=document.getElementById('gen-prev');el.innerHTML='<div class="imp-p">Carregando metas e premissas…</div>';
   if(!PREM.carregado)await initPremOrc();
   if(!META.carregado)await initMetas();
   GEN.cen=document.getElementById('gen-cen').value;var de=parseInt(document.getElementById('gen-de').value);
   if(GEN.titulos===undefined)await genCarregarTitulos();
-  var r=genCalcular(GEN.cen,genMk(ORC.ano,de),genMk(ORC.ano,12),GEN.titulos);GEN.res=r;
+  var cxAnt=null;
+  if(ORC.ano>2026&&ORC.r[orcKey(de,1,'1.1')]===undefined){cxAnt=await genCaixaAnterior();if(cxAnt!==null)cxAnt=Math.round(cxAnt*100)/100;}
+  var r=genCalcular(GEN.cen,genMk(ORC.ano,de),genMk(ORC.ano,12),GEN.titulos,cxAnt);GEN.res=r;
   var f=function(v){return v?Math.round(v).toLocaleString('pt-BR'):'—';};
   var h='';r.aviso.forEach(function(a){h+='<div class="imp-warn" style="margin-bottom:.4rem">'+a+'</div>';});
   var existe=0;Object.keys(ORC.v).forEach(function(k){var mm=parseInt(k.split('|')[0]);if(mm>=de&&k.split('|')[2]!=='1.1')existe++;});
@@ -5409,7 +5430,7 @@ async function genPrevia(){
   h+='<div style="overflow:auto"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Linha</th>'+r.meses.map(function(x){return '<th>'+ORC_M[x.m-1]+'</th>';}).join('')+'</tr></thead><tbody>';
   h+='<tr><td style="text-align:left;color:#8BA0B0">Sell-through (vendas) · fonte</td>'+r.meses.map(function(x){return '<td>'+f(x.st)+'<br><span style="font-size:9px;color:#8BA0B0">'+(x.fonte.st||'sem meta')+'</span></td>';}).join('')+'</tr>';
   h+='<tr><td style="text-align:left;color:#8BA0B0">Sell-in (compras) · fonte</td>'+r.meses.map(function(x){return '<td>'+f(x.si)+'<br><span style="font-size:9px;color:#8BA0B0">'+(x.fonte.si||'sem meta')+'</span></td>';}).join('')+'</tr>';
-  h+='<tr><td style="text-align:left"><b>Caixa inicial</b></td>'+r.meses.map(function(x,i){return '<td>'+(i===0?f(x.ini):f(r.meses[i-1].fim))+'</td>';}).join('')+'</tr>';
+  h+='<tr><td style="text-align:left"><b>Caixa inicial</b>'+(r.meses[0].iniFonte?'<br><span style="font-size:9px;color:#8BA0B0">1º mês: '+r.meses[0].iniFonte+'</span>':'')+'</td>'+r.meses.map(function(x,i){return '<td>'+(i===0?f(x.ini):f(r.meses[i-1].fim))+'</td>';}).join('')+'</tr>';
   GEN_LIN.forEach(function(l){var tem=r.meses.some(function(x){return x.L[l[0]];});if(!tem)return;
     h+='<tr><td style="text-align:left">'+l[1]+'</td>'+r.meses.map(function(x){var v=x.L[l[0]];return '<td class="'+(l[2]>0?'orc-pos':'')+'">'+(v?(l[2]<0?'-':'')+f(v):'—')+'</td>';}).join('')+'</tr>';});
   h+='<tr><td style="text-align:left"><b>Saldo final do caixa</b></td>'+r.meses.map(function(x){return '<td><b>'+f(x.fim)+'</b></td>';}).join('')+'</tr></tbody></table></div>';
