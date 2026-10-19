@@ -905,6 +905,12 @@ button.primary:hover { background: #8d70f5; }
 .rd-col-label { font-size: 11px; color: var(--text2); margin-top: 8px; }
 .rd-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--text2); }
 .rd-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 5px; }
+.rd-tfilters { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+.rd-tfilters label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; }
+.rd-tfilters select { font-family: var(--body); font-size: 13px; text-transform: none; letter-spacing: 0; background: var(--bg2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; min-width: 112px; max-width: 170px; color-scheme: dark; }
+.rd-tfilters select.on { border-color: var(--accent); }
+.rd-clear { font-family: var(--body); font-size: 12.5px; background: none; color: var(--text2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.rd-clear:hover { color: var(--text); border-color: var(--border2); }
 .rd-table { font-size: 13.5px; }
 .rd-row { display: grid; grid-template-columns: 92px minmax(110px,1.3fr) 90px 110px 64px 74px 90px 80px 96px 92px; gap: 8px; align-items: center; padding: 7px 10px; border-bottom: 1px solid var(--border); }
 .rd-row.rd-head { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border2); }
@@ -1406,7 +1412,6 @@ function sairPersonal() {
         <div class="rd-tools">
           <input type="text" id="rd-search" placeholder="Buscar ativo…">
           <label class="rd-check"><input type="checkbox" id="rd-prev" checked> mostrar previsto</label>
-          <label class="rd-check"><input type="checkbox" id="rd-warn"> só com aviso ⚠</label>
           <label class="rd-fx">US$ 1 = R$ <input type="number" step="0.01" min="0" id="rd-fx"></label>
         </div>
       </div>
@@ -1422,6 +1427,15 @@ function sairPersonal() {
       <div class="area-summary-head" style="margin-top:32px;">
         <h3>Lançamentos de proventos</h3>
         <span class="hint" id="rd-table-hint"></span>
+      </div>
+      <div class="rd-tfilters">
+        <label>Ano<select id="rd-f-ano"></select></label>
+        <label>Mês<select id="rd-f-mes"></select></label>
+        <label>Ativo<select id="rd-f-ativo"></select></label>
+        <label>Classe<select id="rd-f-classe"></select></label>
+        <label>Tipo<select id="rd-f-tipo"></select></label>
+        <label>Status<select id="rd-f-status"></select></label>
+        <button type="button" class="rd-clear" id="rd-f-clear">Limpar filtros</button>
       </div>
       <div class="rd-table">
         <div class="rd-row rd-head">
@@ -3495,7 +3509,7 @@ function sairPersonal() {
     id: i, ativo: r[0], tipo: r[1], classe: r[2], data: r[3], dataOrig: r[4], qtd: r[5], valor: r[6],
     brutoRaw: r[7], impostoRaw: r[8], liqRaw: r[9], usd: r[2] === 'Stocks', marca: r[11],
   }));
-  const rd = { year: 'todos', classes: new Set(RD_CLASSES), q: '', prev: true, warn: false, sortCol: 'data', sortDir: -1, limit: 150 };
+  const rd = { year: 'todos', classes: new Set(RD_CLASSES), q: '', prev: true, mes: '', ativo: '', tipo: '', status: '', sortCol: 'data', sortDir: -1, limit: 150 };
 
   const rdFx = () => (state.fxUsd > 0 ? state.fxUsd : 5);
   const rdTodayIso = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
@@ -3513,7 +3527,6 @@ function sairPersonal() {
       rd.classes.has(r.classe) &&
       (ignoreYear || rd.year === 'todos' || r.data.slice(0, 4) === rd.year) &&
       (rd.prev || !rdPrev(r)) &&
-      (!rd.warn || r.dataOrig) &&
       (!q || r.ativo.toLowerCase().includes(q) || r.tipo.toLowerCase().includes(q))
     );
   }
@@ -3605,8 +3618,37 @@ function sairPersonal() {
       .map(c => `<span><i style="background:${CAT_META[c].color}"></i>${CAT_META[c].label}</span>`).join('');
   }
 
+  function rdTableRows() {
+    return rdFiltered(false).filter(r =>
+      (!rd.mes || r.data.slice(5, 7) === rd.mes) &&
+      (!rd.ativo || r.ativo === rd.ativo) &&
+      (!rd.tipo || r.tipo === rd.tipo) &&
+      (!rd.status ||
+        (rd.status === 'recebido' && !rdPrev(r)) ||
+        (rd.status === 'previsto' && rdPrev(r)) ||
+        (rd.status === 'aviso' && r.dataOrig))
+    );
+  }
+
+  function renderRdTFilters() {
+    const fill = (id, opts, cur) => {
+      const el = document.getElementById(id);
+      el.innerHTML = opts.map(([v, l]) => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(l)}</option>`).join('');
+      el.classList.toggle('on', cur !== '');
+    };
+    const base = RD_ROWS;
+    fill('rd-f-ano', [['todos', 'Todos'], ...rdYears().map(y => [y, y])], rd.year === 'todos' ? 'todos' : rd.year);
+    document.getElementById('rd-f-ano').classList.toggle('on', rd.year !== 'todos');
+    fill('rd-f-mes', [['', 'Todos'], ...MESES_PT.map((m, i) => [String(i + 1).padStart(2, '0'), m])], rd.mes);
+    fill('rd-f-ativo', [['', 'Todos'], ...[...new Set(base.map(r => r.ativo))].sort((a, b) => a.localeCompare(b, 'pt-BR')).map(a => [a, a])], rd.ativo);
+    const clsCur = rd.classes.size === 1 ? [...rd.classes][0] : '';
+    fill('rd-f-classe', [['', 'Todas'], ...RD_CLASSES.map(c => [c, CAT_META[c].label])], clsCur);
+    fill('rd-f-tipo', [['', 'Todos'], ...[...new Set(base.map(r => r.tipo))].sort().map(t => [t, t])], rd.tipo);
+    fill('rd-f-status', [['', 'Todos'], ['recebido', 'Recebido'], ['previsto', 'Previsto'], ['aviso', 'Com aviso ⚠']], rd.status);
+  }
+
   function renderRdTable() {
-    let rows = rdFiltered(false);
+    let rows = rdTableRows();
     const col = rd.sortCol, dir = rd.sortDir;
     const val = (r) => col === 'liq' ? rdLiq(r) : col === 'bruto' ? rdBruto(r) : col === 'imposto' ? rdImposto(r) : r[col];
     rows = rows.slice().sort((a, b) => {
@@ -3654,7 +3696,7 @@ function sairPersonal() {
   }
 
   function renderRendimentos() {
-    renderRdFilters(); renderRdCards(); renderRdChart(); renderRdTable();
+    renderRdFilters(); renderRdTFilters(); renderRdCards(); renderRdChart(); renderRdTable();
     const fx = document.getElementById('rd-fx');
     if (fx && document.activeElement !== fx) fx.value = rdFx();
   }
@@ -3668,7 +3710,18 @@ function sairPersonal() {
   });
   document.getElementById('rd-search').addEventListener('input', (ev) => { rd.q = ev.target.value; rd.limit = 150; renderRdCards(); renderRdChart(); renderRdTable(); });
   document.getElementById('rd-prev').addEventListener('change', (ev) => { rd.prev = ev.target.checked; rd.limit = 150; renderRendimentos(); });
-  document.getElementById('rd-warn').addEventListener('change', (ev) => { rd.warn = ev.target.checked; rd.limit = 150; renderRendimentos(); });
+    const rdOn = (id, fn) => document.getElementById(id).addEventListener('change', (ev) => { fn(ev.target.value); rd.limit = 150; renderRendimentos(); });
+  rdOn('rd-f-ano', v => { rd.year = v; });
+  rdOn('rd-f-mes', v => { rd.mes = v; });
+  rdOn('rd-f-ativo', v => { rd.ativo = v; });
+  rdOn('rd-f-classe', v => { rd.classes = new Set(v ? [v] : RD_CLASSES); });
+  rdOn('rd-f-tipo', v => { rd.tipo = v; });
+  rdOn('rd-f-status', v => { rd.status = v; });
+  document.getElementById('rd-f-clear').addEventListener('click', () => {
+    rd.year = 'todos'; rd.mes = ''; rd.ativo = ''; rd.tipo = ''; rd.status = ''; rd.q = ''; rd.classes = new Set(RD_CLASSES); rd.limit = 150;
+    document.getElementById('rd-search').value = '';
+    renderRendimentos();
+  });
   document.getElementById('rd-more').addEventListener('click', () => { rd.limit += 150; renderRdTable(); });
   document.getElementById('rd-fx').addEventListener('change', (ev) => {
     const v = parseFloat(ev.target.value);
