@@ -699,6 +699,8 @@ function gerarFatoVendasFicticio(){
       // Preço de tabela (GB) ligeiramente acima do valor líquido praticado —
       // alimenta o Bridge de Reconciliação e o Simulador de Categorias.
       var valorGb = valor * (1.04 + rnd()*0.08);
+      // 1 em cada 3 produtos é vendido acima do preço de tabela GB (margem do produto acima da Margem GB)
+      if (i % 3 === 0) valorGb = valorGb - valor*0.13;
       // Perfis de demanda por produto: X (estável), Y (oscila) e Z (intermitente)
       var perfilSku = i % 8, mult = 1;
       if (perfilSku===5 || perfilSku===6) mult = rndPerfil()<0.5 ? 0.3 : 1.9;
