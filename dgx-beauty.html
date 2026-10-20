@@ -306,6 +306,80 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ped-tbl.ped-sem-proj .cproj{display:none}
 .ped-inp-f{width:62px!important}
 .ped-tbl td[onclick]:hover{text-decoration:underline}
+.pj-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:1rem}
+.pj-head h2{font-size:18px;font-weight:600;color:#E2EAF4;margin-bottom:2px}
+.pj-head p{font-size:12px;color:#8BA0B0}
+.pj-scen{display:flex;gap:6px;flex-wrap:wrap}
+.pj-pill{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;border:1px solid #1F3044;background:#162230;color:#8BA0B0;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none}
+.pj-pill:hover{color:#E2EAF4;border-color:#2c4661}
+.pj-pill .pj-dot{width:9px;height:9px;border-radius:50%}
+.pj-pill.active{background:#0F1923;color:#E2EAF4;border-color:var(--pj-c,#00B4D8);box-shadow:0 0 0 1px var(--pj-c,#00B4D8) inset}
+.pj-banner{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;margin-bottom:1.1rem;font-size:13px;line-height:1.5;border:1px solid}
+.pj-banner .pj-b-ico{font-size:18px;line-height:1.2}
+.pj-banner.warn{background:rgba(243,156,18,.09);border-color:rgba(243,156,18,.35);color:#F5C16C}
+.pj-banner.bad{background:rgba(231,76,60,.09);border-color:rgba(231,76,60,.35);color:#F1948A}
+.pj-banner.ok{background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.3);color:#82E0AA}
+.pj-banner b{color:#fff}
+.pj-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.1rem}
+.pj-kpi{background:#111f35;border-radius:8px;padding:14px 16px;border:1px solid rgba(0,174,239,0.12);border-left:3px solid var(--k,#00B4D8)}
+.pj-kpi .l{font-size:11px;color:#8BA0B0;margin-bottom:6px}
+.pj-kpi .v{font-size:21px;font-weight:600;color:#E2EAF4;font-variant-numeric:tabular-nums}
+.pj-kpi .s{font-size:11px;color:#8BA0B0;margin-top:3px}
+.pj-kpi.neg .v{color:#F1948A}.pj-kpi.pos .v{color:#82E0AA}
+.pj-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pj-note{font-size:11px;color:#6B8BAA;line-height:1.55}
+.pj-note b{color:#8BA0B0}
+.pj-chart-h{height:330px}.pj-chart-m{height:260px}
+.pj-subhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.pj-toggle{display:flex;gap:3px;background:#0D1B2E;border:1px solid #1F3044;border-radius:8px;padding:3px}
+.pj-toggle button{padding:5px 14px;font-size:12px;border:none;background:none;color:#6B8BAA;border-radius:6px;cursor:pointer}
+.pj-toggle button.active{background:#162230;color:#E2EAF4}
+.pj-tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid rgba(0,174,239,0.12)}
+.pj-tbl{border-collapse:separate;border-spacing:0;font-size:12px;color:#E2EAF4;min-width:100%}
+.pj-tbl th,.pj-tbl td{padding:8px 12px;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid rgba(255,255,255,0.05)}
+.pj-tbl th{background:#0D1B2E;color:#8BA0B0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0}
+.pj-tbl th:first-child,.pj-tbl td:first-child{text-align:left;position:sticky;left:0;background:#111f35;z-index:2;min-width:260px;border-right:1px solid rgba(255,255,255,0.06)}
+.pj-tbl th:first-child{background:#0D1B2E;z-index:3}
+.pj-tbl tr.pj-sub td{background:rgba(0,180,216,0.06);font-weight:500}
+.pj-tbl tr.pj-sub td:first-child{background:#12253c}
+.pj-tbl tr.pj-tot td{background:#0D1B2E;font-weight:600}
+.pj-tbl tr.pj-tot td:first-child{background:#0D1B2E}
+.pj-tbl tr.pj-hi td{background:rgba(0,180,216,0.15);color:#00B4D8;font-weight:700}
+.pj-tbl tr.pj-hi td:first-child{background:#123047}
+.pj-tbl tr.pj-apo td{background:rgba(243,156,18,0.10);color:#F5C16C;font-weight:600}
+.pj-tbl tr.pj-apo td:first-child{background:#2a2a30}
+.pj-tbl tr.pj-child td{color:#8BA0B0}
+.pj-tbl tr.pj-child td:first-child{padding-left:30px}
+.pj-tbl tr.pj-memo td{color:#6B8BAA;font-size:11px}
+.pj-tbl td.neg{color:#F1948A}.pj-tbl td.zero{color:rgba(255,255,255,.22)}
+.pj-tbl td.pj-real,.pj-tbl th.pj-real{background:rgba(255,255,255,.035)}
+.pj-tbl td.pj-flag{box-shadow:inset 0 -2px 0 #F39C12}
+.pj-tbl tr.pj-grp{cursor:pointer}.pj-tbl tr.pj-grp:hover td{background:rgba(255,255,255,.04)}
+.pj-tbl tr.pj-grp:hover td:first-child{background:#16283f}
+.pj-caret{display:inline-block;margin-right:6px;font-size:10px;opacity:.55;transition:transform .15s}
+.pj-caret.open{transform:rotate(90deg)}
+.pj-tagreal{font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.08);color:#8BA0B0;margin-left:6px;text-transform:none;letter-spacing:0}
+.pj-prem-grp td{padding:14px 12px 5px!important;font-size:10px!important;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6B8BAA;background:#0D1B2E!important}
+.pj-tbl.pj-prem td:nth-child(2),.pj-tbl.pj-prem th:nth-child(2){text-align:left}
+.pj-tbl.pj-prem td:nth-child(3){white-space:normal;text-align:left;color:#8BA0B0;min-width:320px;max-width:520px}
+.pj-tbl.pj-prem th:nth-child(3){text-align:left}
+.pj-tbl.pj-prem td:nth-child(2){font-weight:600}
+.pj-diff{color:#F5C16C!important}
+.pj-tag-ph{font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(243,156,18,.15);color:#F5C16C;margin-left:6px}
+.pj-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:.6rem 0 1.1rem}
+.pj-step{background:#111f35;border:1px solid rgba(0,174,239,0.12);border-radius:10px;padding:12px 14px;font-size:12px;color:#8BA0B0;line-height:1.5;position:relative}
+.pj-step b{display:block;color:#E2EAF4;font-size:12px;margin-bottom:3px}
+.pj-step .n{position:absolute;top:-8px;left:12px;background:#00B4D8;color:#04131f;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.pj-list{margin:.4rem 0 0 1.1rem;font-size:12px;color:#8BA0B0;line-height:1.7}
+.pj-loading{display:flex;align-items:center;justify-content:center;height:40vh;color:#8BA0B0;font-size:13px}
+.pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:50vh;text-align:center;color:#8BA0B0;gap:8px}
+.pj-empty .i{font-size:44px;opacity:.35}
+.pj-empty h3{font-size:17px;color:#E2EAF4;font-weight:500}
+.pj-empty p{max-width:420px;font-size:13px;line-height:1.55}
+.pj-sect{font-size:10px;font-weight:700;color:#6B8BAA;text-transform:uppercase;letter-spacing:.08em;margin:1.2rem 0 .6rem;display:flex;align-items:center;gap:10px}
+.pj-sect:after{content:'';flex:1;height:1px;background:#1F3044}
+@media (max-width:1200px){.pj-kpis{grid-template-columns:repeat(3,1fr)}.pj-grid2{grid-template-columns:1fr}.pj-steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){.pj-kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -609,6 +683,7 @@ function gerarFatoVendasFicticio(){
     ? ['Fernanda Rocha','Gustavo Melo','Helena Prado','Igor Nunes']
     : ['Ana Souza','Bruno Lima','Carla Dias','Diego Alves'];
   var rows = [];
+  var rndPerfil = seededRandom(FILIAL==='fl' ? 977 : 313); // oscilação dos SKUs de demanda irregular (curvas Y e Z)
   var baseInicial = FILIAL==='fl' ? 128000 : 180000; // FL menor porte que NY neste exemplo
   MESES_ATIVOS.forEach(function(mi){
     var comp = '2026-'+String(mi+1).padStart(2,'0')+'-15';
@@ -624,6 +699,12 @@ function gerarFatoVendasFicticio(){
       // Preço de tabela (GB) ligeiramente acima do valor líquido praticado —
       // alimenta o Bridge de Reconciliação e o Simulador de Categorias.
       var valorGb = valor * (1.04 + rnd()*0.08);
+      // Perfis de demanda por produto: X (estável), Y (oscila) e Z (intermitente)
+      var perfilSku = i % 8, mult = 1;
+      if (perfilSku===5 || perfilSku===6) mult = rndPerfil()<0.5 ? 0.3 : 1.9;
+      else if (perfilSku===7) { if ((mi+i)%3!==0) continue; mult = 2.8; }
+      valor *= mult; cmv *= mult; reembolso *= mult; valorGb *= mult;
+      qtd = Math.max(1, Math.round(valor/85));
       rows.push({
         competencia: comp, tipo_operacao:'venda', tipologia:canal, grupo:grupo,
         vendedor:vendedor, sku:'SKU-'+(1000+i), produto:'Produto Demo '+(i+1),
@@ -766,7 +847,7 @@ function doLogout(){sessionStorage.removeItem('dgxBeautyDemoOk');window.location
 var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',produtos:''};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',estoque:'Estoque e Sugest\u00e3o de Pedido',produtos:'An\u00e1lise de Produtos'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',estoque:'Estoque e Sugest\u00e3o de Pedido',projecao:'Proje\u00e7\u00e3o DFC',produtos:'An\u00e1lise de Produtos'};
   if(window.bxTitulos){Object.keys(window.bxTitulos).forEach(function(k){titles[k]=window.bxTitulos[k];});}
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
@@ -777,6 +858,7 @@ function renderPage(page){
   else if(page==='dfc'){c.innerHTML=dfcHTML();dfcShowView('anual');}
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
   else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
+  else if(page==='projecao'){c.innerHTML=projecaoHTML();initProjecao();}
   else if(page==='produtos'){c.innerHTML=produtosHTML();setTimeout(initProdutos,80);}
   else if(window.bxRender && window.bxRender(page)){}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
@@ -2029,6 +2111,34 @@ function agregarProdutos(mesKey, categoriaKey){
   return { produtos: lista, margemGBCategoria: margemGBCategoria, totalReceita: totReceitaCategoria };
 }
 
+var quadrantBgPlugin = {
+  id: 'quadrantBg',
+  beforeDraw: function(chart){
+    var opts = chart.config.options.plugins && chart.config.options.plugins.quadrantBg;
+    if (!opts || !opts.show) return;
+    var ctx = chart.ctx, xScale = chart.scales.x, yScale = chart.scales.y;
+    if (!xScale || !yScale) return;
+    var left=xScale.left, right=xScale.right, top=yScale.top, bottom=yScale.bottom;
+    var xPix = Math.max(left, Math.min(right, xScale.getPixelForValue(opts.xSplit)));
+    var yPix = Math.max(top, Math.min(bottom, yScale.getPixelForValue(opts.ySplit)));
+    ctx.save();
+    ctx.fillStyle = 'rgba(46,204,113,0.10)';  ctx.fillRect(xPix, top, right-xPix, yPix-top);      // cima-direita: Destaques
+    ctx.fillStyle = 'rgba(192,57,43,0.10)';   ctx.fillRect(left, top, xPix-left, yPix-top);        // cima-esquerda: Atenção
+    ctx.fillStyle = 'rgba(0,180,216,0.08)';   ctx.fillRect(xPix, yPix, right-xPix, bottom-yPix);   // baixo-direita: Nicho rentável
+    ctx.fillStyle = 'rgba(107,139,170,0.08)'; ctx.fillRect(left, yPix, xPix-left, bottom-yPix);    // baixo-esquerda: Baixa prioridade
+    ctx.strokeStyle = 'rgba(226,234,244,0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xPix, top); ctx.lineTo(xPix, bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left, yPix); ctx.lineTo(right, yPix); ctx.stroke();
+    ctx.restore();
+  }
+};
+function quadLegendItemHTML(cor,titulo,desc){
+  return '<div style="display:flex;gap:8px;align-items:flex-start">'
+    +'<span style="width:13px;height:13px;border-radius:3px;background:'+cor+';flex-shrink:0;margin-top:2px"></span>'
+    +'<span style="font-size:11px;color:#8BA0B0;line-height:1.4"><b style="color:#E2EAF4;font-size:11.5px">'+titulo+'</b><br>'+desc+'</span>'
+    +'</div>';
+}
+
 function produtosHTML(){
   var meses = mesesDisponiveisFV();
   if (!meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
@@ -2050,8 +2160,16 @@ function produtosHTML(){
     +'</div>'
     +'<div class="chart-card">'
     +'<div class="chart-title">Faturamento \u00d7 Varia\u00e7\u00e3o de Margem vs. GB</div>'
-    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.) \u00b7 Eixo Y: % do faturamento da categoria \u00b7 Tamanho da bolha: faturamento em R$</div>'
-    +'<div style="height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
+    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.), dividido em 0 \u00b7 Eixo Y: % do faturamento da categoria, dividido na metade \u00b7 Tamanho da bolha: faturamento em R$</div>'
+    +'<div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">'
+    +'<div style="flex:1;min-width:280px;height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
+    +'<div style="width:190px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;justify-content:center">'
+    +quadLegendItemHTML('#2ECC71','Destaques','Alto faturamento, acima da Margem GB')
+    +quadLegendItemHTML('#c0392b','Aten\u00e7\u00e3o','Alto faturamento, abaixo da Margem GB')
+    +quadLegendItemHTML('#00B4D8','Nicho rent\u00e1vel','Baixo faturamento, acima da Margem GB')
+    +quadLegendItemHTML('#6B8BAA','Baixa prioridade','Baixo faturamento, abaixo da Margem GB')
+    +'</div>'
+    +'</div>'
     +'</div>'
     +'<div class="chart-sub" style="margin-top:-4px">Mostrando os '+produtosState.top+' produtos de maior faturamento na categoria/m\u00eas selecionados \u00b7 Filial '+nomeFilial()+'.</div>'
     +'<div class="confidential">© 2026 DGX Consulting · Dashboard de demonstra\u00e7\u00e3o (DGX Beauty) \u00b7 Dados fict\u00edcios</div>';
@@ -2119,8 +2237,12 @@ function renderProdutosCharts(){
     var pontos = top.filter(function(p){ return p.variacaoPP !== null; }).map(function(p){
       return { x:p.variacaoPP, y:p.pctFaturamento, r:raio(p.receita), _p:p };
     });
+    var yMaxObs = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return p.y; })) : 0;
+    var yHalf = yMaxObs / 2;
+    var xAbsMax = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return Math.abs(p.x); })) : 0;
     new Chart(document.getElementById('chartProdutosScatter'),{
       type:'bubble',
+      plugins:[quadrantBgPlugin],
       data:{ datasets:[{
         label:'Produtos',
         data:pontos,
@@ -2129,14 +2251,14 @@ function renderProdutosCharts(){
         borderWidth:1
       }] },
       options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false},
+        plugins:{ legend:{display:false}, quadrantBg:{ show:true, xSplit:0, ySplit:yHalf },
           tooltip:{ callbacks:{ label:function(c){
             var p = c.raw._p;
             return [p.produto, 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
           } } } },
         scales:{
-          x:{ title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
-          y:{ title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+          x:{ min:xAbsMax?-xAbsMax*1.15:-1, max:xAbsMax?xAbsMax*1.15:1, title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
+          y:{ min:0, max:yMaxObs?yMaxObs*1.08:1, title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
         } }
     });
   }
@@ -2552,6 +2674,7 @@ function dispSalvarAjustes(){
 }
 </script>
 <script src="dgx-beauty-estoque.js"></script>
+<script src="dgx-beauty-projecao.js"></script>
 <script src="dgx-beauty-extra.js"></script>
 </body>
 </html>
