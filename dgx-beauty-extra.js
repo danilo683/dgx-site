@@ -56,7 +56,7 @@ document.head.appendChild(st);
 
 /* ───────── Navegação ───────── */
 window.orcToggleMenu=function(){var s=$('orc-sub'),p=$('nav-orcamento');var o=!s.classList.contains('open');s.classList.toggle('open',o);p.classList.toggle('open',o);};
-var TITULOS={'orc-metas':'Orçamento — Metas','orc-prem':'Orçamento — Premissas','orc-orcado':'Orçamento — Orçado','orc-realizado':'Orçamento — Realizado','orc-comp':'Orçamento — Orçado × Realizado',projecao:'Projeção DFC',estoque:'Estoque e Sugestão de Pedido'};
+var TITULOS={'orc-metas':'Orçamento — Metas','orc-prem':'Orçamento — Premissas','orc-orcado':'Orçamento — Orçado','orc-realizado':'Orçamento — Realizado','orc-comp':'Orçamento — Orçado × Realizado',projecao:'Projeção DFC'};
 window.bxTitulos=TITULOS;
 
 /* ───────── DFC base ───────── */
@@ -322,130 +322,6 @@ window.bxCen=function(c){BX.pjCen=c;paginaProj();};
 window.bxPjAplicar=function(){var P=BX.pj;P.cresc=(parseFloat($('pj-g').value)||0)/100;P.ajFix=(parseFloat($('pj-f').value)||0)/100;P.caixaMin=parseFloat($('pj-c').value)||0;paginaProj();};
 window.bxPjReset=function(){BX.pj={cresc:null,ajFix:0,caixaMin:null};BX.pjCen='base';paginaProj();};
 
-/* ───────── Estoque / Sugestão de pedido (fictício) ───────── */
-var EST={par:{lead:21,doh:45,servico:0.95},edit:{},filtro:{status:'',curva:'',cat:'',q:''},itens:null,base:null};
-var ZSV={0.90:1.28,0.95:1.645,0.98:2.054};
-function estBase(){
-  if(EST.base)return EST.base;
-  var rnd=seededRandom(FILIAL==='fl'?311:211),by={},ordem=[];
-  FV_HAWKS.forEach(function(r){
-    var s=by[r.sku];
-    if(!s){s=by[r.sku]={sku:r.sku,produto:r.produto,cat:r.grupo,q:{},rec:{},cmv:{}};ordem.push(r.sku);}
-    var k=r.competencia.slice(0,7);
-    s.q[k]=(s.q[k]||0)+r.qtd;s.rec[k]=(s.rec[k]||0)+r.valor_liquido;s.cmv[k]=(s.cmv[k]||0)+r.cmv_total;
-  });
-  var meses=[];FV_HAWKS.forEach(function(r){var k=r.competencia.slice(0,7);if(meses.indexOf(k)<0)meses.push(k);});
-  meses.sort();
-  var forn=['Truss — fábrica A','Truss — fábrica B'];
-  var itens=ordem.map(function(sku,i){
-    var s=by[sku],arr=meses.map(function(k){return s.q[k]||0;}),u=arr.slice(-6);
-    var dem=u.reduce(function(a,b){return a+b;},0)/u.length;
-    var sd=Math.sqrt(u.reduce(function(a,b){return a+(b-dem)*(b-dem);},0)/Math.max(1,u.length-1));
-    var rec6=0,cmv6=0,q6=0;meses.slice(-6).forEach(function(k){rec6+=s.rec[k]||0;cmv6+=s.cmv[k]||0;q6+=s.q[k]||0;});
-    var perfil=rnd(),fat=perfil<0.15?0.25:(perfil<0.35?0.85:(perfil<0.8?1.4:3.4)); // ruptura / saudável / excesso
-    return {sku:sku,produto:s.produto,cat:s.cat,forn:forn[i%2],serie:arr,dem:dem,sd:sd,rec6:rec6,
-      custo:q6?cmv6/q6:50,preco:q6?rec6/q6:85,estoque:Math.round(dem*fat*(0.8+rnd()*0.4)),transito:rnd()<0.22?Math.round(dem*0.7):0};
-  });
-  var tot=0;itens.forEach(function(x){tot+=x.rec6;});
-  itens.slice().sort(function(a,b){return b.rec6-a.rec6;}).reduce(function(ac,x){ac+=x.rec6;x.curva=(ac-x.rec6)/tot<0.8?'A':((ac-x.rec6)/tot<0.95?'B':'C');return ac;},0);
-  EST.meses=meses;EST.base=itens;return itens;
-}
-function estCalc(){
-  var P=EST.par,z=ZSV[P.servico]||1.645;
-  return estBase().map(function(x){
-    var dd=x.dem/30,ss=z*(x.sd/Math.sqrt(30))*Math.sqrt(P.lead),pp=dd*P.lead+ss;
-    var alvo=dd*(P.lead+P.doh)+ss,disp=x.estoque+x.transito;
-    var doh=dd>0?x.estoque/dd:999,sug=Math.max(0,Math.ceil(alvo-disp));
-    var status=doh<P.lead?'rup':(disp<pp?'rep':(doh>P.doh*2?'exc':'ok'));
-    var o={};Object.keys(x).forEach(function(k){o[k]=x[k];});
-    o.dd=dd;o.min=Math.ceil(pp);o.doh=doh;o.sug=sug;o.status=status;return o;
-  });
-}
-var STROT={rup:'Ruptura',rep:'Repor',ok:'Saudável',exc:'Excesso'};
-function qtdFinal(x){return EST.edit[x.sku]!==undefined?EST.edit[x.sku]:x.sug;}
-function dataBR(d){return pad(d.getDate())+'/'+pad(d.getMonth()+1);}
-function addDias(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
-function ultUtil(d){while(d.getDay()===0||d.getDay()===6)d=addDias(d,-1);return d;}
-function janelaHTML(total){
-  var hj=new Date(),q=hj.getDate()<=15?1:2;
-  var fimQ=q===1?new Date(hj.getFullYear(),hj.getMonth(),15):new Date(hj.getFullYear(),hj.getMonth()+1,0);
-  var melhor=ultUtil(fimQ),T={1:[45,75,105,135],2:[30,60,90,120]};
-  function bloco(tit,dt,qz){
-    var pr=T[qz],pmp=pr.reduce(function(a,b){return a+b;},0)/4,dif=Math.round((dt-new Date(hj.getFullYear(),hj.getMonth(),hj.getDate()))/864e5);
-    var pg=pr.map(function(p){return addDias(dt,p);});
-    return '<div class="bx-field"><label>'+tit+'</label><div style="font-size:13px;color:#E2EAF4;margin-bottom:6px">Pedido em <b>'+dataBR(dt)+'</b> · '+qz+'ª quinzena · prazo médio '+pmp+' dias</div>'
-      +'<div style="font-size:12px;color:#8BA0B0;line-height:1.7">'+pg.map(function(d,i){return 'Parcela '+(i+1)+' — '+dataBR(d)+'/'+String(d.getFullYear()).slice(2)+' · '+fmtR(total/4);}).join('<br>')+'</div>'
-      +'<small>Pagamento médio em '+(dif+pmp)+' dias a partir de hoje</small></div>';
-  }
-  return '<div class="chart-title" style="margin-bottom:8px">Janela de compra — prazo de pagamento por quinzena</div><div class="bx-banner">Prazo contado a partir do faturamento, em 4 parcelas iguais. Pedidos da 1ª quinzena pagam 45-75-105-135 dias; da 2ª, 30-60-90-120 dias. Pedir no último dia útil da quinzena empurra os pagamentos para mais tarde. Regras fictícias para demonstração.</div>'
-   +'<div class="bx-grid bx-grid3" style="grid-template-columns:1fr 1fr">'+bloco('Pedir hoje',new Date(hj.getFullYear(),hj.getMonth(),hj.getDate()),q)+bloco('Pedir no último dia útil da quinzena',melhor,q)+'</div>';
-}
-function paginaEstoque(){
-  var P=EST.par,L=estCalc();EST.itens=L;
-  var cats=[];L.forEach(function(x){if(cats.indexOf(x.cat)<0)cats.push(x.cat);});
-  var vEst=0,vSug=0,dSum=0,dN=0,cnt={rup:0,rep:0,ok:0,exc:0},vExc=0;
-  L.forEach(function(x){vEst+=x.estoque*x.custo;cnt[x.status]++;if(x.dd>0){dSum+=Math.min(x.doh,365);dN++;}vSug+=qtdFinal(x)*x.custo;if(x.status==='exc')vExc+=Math.max(0,x.estoque-x.dd*P.doh*1.0)*x.custo;});
-  var h=cabecalho()
-   +'<div class="bx-grid"><div class="bx-field"><label>Lead time (dias)</label><input type="number" id="es-lead" value="'+P.lead+'"><small>Do pedido à chegada</small></div>'
-   +'<div class="bx-field"><label>DOH alvo (dias)</label><input type="number" id="es-doh" value="'+P.doh+'"><small>Cobertura desejada após a chegada</small></div>'
-   +'<div class="bx-field"><label>Nível de serviço</label><select id="es-sv">'+[0.90,0.95,0.98].map(function(v){return '<option value="'+v+'"'+(v===P.servico?' selected':'')+'>'+Math.round(v*100)+'%</option>';}).join('')+'</select><small>Define o estoque de segurança</small></div>'
-   +'<div class="bx-field" style="display:flex;align-items:flex-end"><button class="bx-btn" style="width:100%" onclick="bxEstAplicar()">Recalcular</button></div></div>'
-   +cardsHTML([['Produtos ativos',String(L.length),'NY/FL separados por filial: '+nomeFilial()],['Estoque a custo',fmtR(vEst),'Disponível hoje'],['DOH médio',Math.round(dN?dSum/dN:0)+' dias','Meta: '+P.doh+' dias'],['Pedido sugerido',fmtR(vSug),L.filter(function(x){return qtdFinal(x)>0;}).length+' produtos']])
-   +cardsHTML([['Ruptura',String(cnt.rup),'DOH menor que o lead time'],['Repor',String(cnt.rep),'Abaixo do ponto de pedido'],['Saudável',String(cnt.ok),'Dentro da faixa'],['Excesso',String(cnt.exc),'DOH acima de 2× o alvo · ~'+fmtR(vExc)+' parados']])
-   +'<div class="bx-2col"><div class="bx-chartcard"><div class="chart-title">Demanda × cobertura (DOH) por produto</div><div class="bx-chartbox"><canvas id="es-c1"></canvas></div></div>'
-   +'<div class="bx-chartcard"><div class="chart-title">Demanda mensal — unidades vendidas</div><div class="bx-chartbox"><canvas id="es-c2"></canvas></div></div></div>'
-   +'<div class="bx-2col"><div class="bx-chartcard"><div class="chart-title">Pedido sugerido por categoria (R$ a custo)</div><div class="bx-chartbox"><canvas id="es-c3"></canvas></div></div>'
-   +'<div class="bx-chartcard"><div class="chart-title">Estoque por curva ABC (R$ a custo)</div><div class="bx-chartbox"><canvas id="es-c4"></canvas></div></div></div>'
-   +janelaHTML(vSug)
-   +'<div class="chart-title" style="margin:1rem 0 8px">Sugestão de pedido por produto</div>'
-   +'<div class="bx-row"><select class="bx-sel" style="width:auto" id="es-fs" onchange="bxEstFiltro()"><option value="">Todos os status</option>'+['rup','rep','ok','exc'].map(function(s){return '<option value="'+s+'">'+STROT[s]+'</option>';}).join('')+'</select>'
-   +'<select class="bx-sel" style="width:auto" id="es-fc" onchange="bxEstFiltro()"><option value="">Todas as curvas</option><option>A</option><option>B</option><option>C</option></select>'
-   +'<select class="bx-sel" style="width:auto" id="es-fg" onchange="bxEstFiltro()"><option value="">Todas as categorias</option>'+cats.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</select>'
-   +'<input class="bx-search" style="width:200px" id="es-fq" placeholder="Buscar produto ou SKU" oninput="bxEstFiltro()">'
-   +'<button class="bx-btn sec" onclick="bxEstCSV()">Exportar CSV</button><span id="es-tot" style="font-size:12px;color:#8BA0B0"></span></div>'
-   +'<div class="bx-outer"><table class="dfc-tbl" id="es-tbl"></table></div>'
-   +'<div class="confidential">© 2026 DGX Consulting · Demonstração · Dados fictícios</div>';
-  $('content').innerHTML=h;
-  estTabela();
-  setTimeout(estGraficos,50);
-}
-function estFiltrada(){
-  var f=EST.filtro,q=f.q.toLowerCase();
-  return EST.itens.filter(function(x){return (!f.status||x.status===f.status)&&(!f.curva||x.curva===f.curva)&&(!f.cat||x.cat===f.cat)&&(!q||(x.sku+' '+x.produto).toLowerCase().indexOf(q)>=0);});
-}
-function estTabela(){
-  var L=estFiltrada(),t=0,q=0;
-  var h='<thead><tr><th style="min-width:200px">Produto</th><th>Categoria</th><th>Curva</th><th>Demanda/mês</th><th>Estoque</th><th>Em trânsito</th><th>DOH</th><th>Ponto de pedido</th><th>Custo unit.</th><th>Status</th><th>Pedido (un.)</th><th>Valor</th></tr></thead><tbody>';
-  L.sort(function(a,b){return b.sug*b.custo-a.sug*a.custo;}).forEach(function(x){
-    var qt=qtdFinal(x);t+=qt*x.custo;q+=qt;
-    h+='<tr><td>'+esc(x.produto)+' <span style="color:#4A6580">'+esc(x.sku)+'</span></td><td style="text-align:left">'+esc(x.cat)+'</td><td>'+x.curva+'</td><td>'+fmt(x.dem)+'</td><td>'+fmt(x.estoque)+'</td><td>'+fmt(x.transito)+'</td><td>'+(x.doh>=999?'—':fmt(x.doh))+'</td><td>'+fmt(x.min)+'</td><td>'+fmtR(x.custo)+'</td>'
-     +'<td><span class="bx-tag '+x.status+'">'+STROT[x.status]+'</span></td><td><input class="bx-qty" type="number" min="0" value="'+qt+'" onchange="bxEstEditar(\''+x.sku+'\',this.value)"></td><td>'+fmtR(qt*x.custo)+'</td></tr>';
-  });
-  $('es-tbl').innerHTML=h+'</tbody>';
-  $('es-tot').textContent=L.length+' produtos · '+fmt(q)+' un. · '+fmtR(t);
-}
-function estGraficos(){
-  var L=EST.itens,P=EST.par;
-  var cor={rup:VERM,rep:AMAR,ok:VERDE,exc:AZUL};
-  mkChart('e1','es-c1',{type:'scatter',data:{datasets:['rup','rep','ok','exc'].map(function(s){return {label:STROT[s],backgroundColor:cor[s],data:L.filter(function(x){return x.status===s&&x.doh<400;}).map(function(x){return {x:x.dem,y:x.doh,n:x.produto};})};})},
-    options:opts({plugins:{legend:{labels:{color:TXT,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:function(c){var p=c.raw;return p.n+': '+Math.round(p.x)+' un./mês, DOH '+Math.round(p.y);}}}},scales:{x:{title:{display:true,text:'Demanda mensal (un.)',color:TXT},ticks:{color:TXT},grid:{color:GRID}},y:{title:{display:true,text:'DOH (dias)',color:TXT},ticks:{color:TXT},grid:{color:GRID}}}})});
-  var meses=EST.meses,tot=meses.map(function(k,i){var s=0;L.forEach(function(x){s+=x.serie[i];});return s;});
-  mkChart('e2','es-c2',{type:'bar',data:{labels:meses.map(function(k){return ML[+k.slice(5,7)-1]+'/'+k.slice(2,4);}),datasets:[{label:'Unidades',data:tot,backgroundColor:'rgba(0,180,216,.75)'}]},options:opts()});
-  var cats={},ab={A:0,B:0,C:0};
-  L.forEach(function(x){cats[x.cat]=(cats[x.cat]||0)+qtdFinal(x)*x.custo;ab[x.curva]+=x.estoque*x.custo;});
-  mkChart('e3','es-c3',{type:'bar',data:{labels:Object.keys(cats),datasets:[{label:'Pedido sugerido (R$)',data:Object.keys(cats).map(function(c){return Math.round(cats[c]);}),backgroundColor:'rgba(242,201,76,.75)'}]},options:opts()});
-  mkChart('e4','es-c4',{type:'bar',data:{labels:['Curva A','Curva B','Curva C'],datasets:[{label:'Estoque (R$)',data:[Math.round(ab.A),Math.round(ab.B),Math.round(ab.C)],backgroundColor:['rgba(0,180,216,.8)','rgba(91,141,239,.7)','rgba(139,160,176,.6)']}]},options:opts()});
-}
-window.bxEstAplicar=function(){var P=EST.par;P.lead=Math.max(1,parseInt($('es-lead').value)||21);P.doh=Math.max(1,parseInt($('es-doh').value)||45);P.servico=parseFloat($('es-sv').value)||0.95;EST.edit={};paginaEstoque();};
-window.bxEstFiltro=function(){EST.filtro={status:$('es-fs').value,curva:$('es-fc').value,cat:$('es-fg').value,q:$('es-fq').value};estTabela();};
-window.bxEstEditar=function(sku,v){EST.edit[sku]=Math.max(0,parseInt(v)||0);estTabela();};
-window.bxEstCSV=function(){
-  var rows=[['SKU','Produto','Categoria','Curva','Demanda mensal','Estoque','Em transito','DOH','Ponto de pedido','Custo unitario','Status','Pedido (un.)','Valor']];
-  estFiltrada().forEach(function(x){rows.push([x.sku,x.produto,x.cat,x.curva,Math.round(x.dem),x.estoque,x.transito,Math.round(x.doh),x.min,x.custo.toFixed(2).replace('.',','),STROT[x.status],qtdFinal(x),(qtdFinal(x)*x.custo).toFixed(2).replace('.',',')]);});
-  var csv=rows.map(function(r){return r.join(';');}).join('\n');
-  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));a.download='sugestao-pedido-dgx-beauty-'+FILIAL+'.csv';a.click();
-};
-
 /* ───────── Roteador ───────── */
 window.bxRender=function(page){
   if(!TITULOS[page])return false;
@@ -459,7 +335,6 @@ window.bxRender=function(page){
   else if(page==='orc-realizado')paginaOrcSerie(page,serieReal(),'Realizado 2026','Realizado fictício: vem do mesmo conjunto de dados do menu DFC, de janeiro ao último mês fechado.');
   else if(page==='orc-comp')paginaComp();
   else if(page==='projecao')paginaProj();
-  else if(page==='estoque')paginaEstoque();
   return true;
 };
 })();
