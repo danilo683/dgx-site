@@ -306,12 +306,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sidebar-section">Financeiro</div>
     <div class="nav-item" id="nav-dre" onclick="setPage('dre',this)"><span class="nav-icon">📋</span>DRE</div>
     <div class="nav-item" id="nav-dfc" onclick="setPage('dfc',this)"><span class="nav-icon">💰</span>DFC</div>
+    <div class="nav-item nav-parent" id="nav-orcamento" onclick="orcToggleMenu()"><span class="nav-icon">🗓️</span>Orçamento<span class="nav-caret">▾</span></div>
+    <div id="orc-sub">
+      <div class="nav-item nav-sub" id="nav-orc-metas" onclick="setPage('orc-metas',this)">Metas</div>
+      <div class="nav-item nav-sub" id="nav-orc-prem" onclick="setPage('orc-prem',this)">Premissas</div>
+      <div class="nav-item nav-sub" id="nav-orc-orcado" onclick="setPage('orc-orcado',this)">Orçado</div>
+      <div class="nav-item nav-sub" id="nav-orc-realizado" onclick="setPage('orc-realizado',this)">Realizado</div>
+      <div class="nav-item nav-sub" id="nav-orc-comp" onclick="setPage('orc-comp',this)">Orçado × Realizado</div>
+    </div>
+    <div class="nav-item" id="nav-projecao" onclick="setPage('projecao',this)"><span class="nav-icon">🔮</span>Projeção DFC</div>
     <div class="nav-item disabled"><span class="nav-icon">🏦</span>Endividamento<span class="nav-badge">Em breve</span></div>
     <div class="sidebar-section">Comercial</div>
     <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
     <div class="nav-item" id="nav-produtos" onclick="setPage('produtos',this)"><span class="nav-icon">📦</span>Produtos</div>
-    <div class="nav-item disabled"><span class="nav-icon">🏭</span>Estoque<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item" id="nav-estoque" onclick="setPage('estoque',this)"><span class="nav-icon">🏭</span>Estoque</div>
     <div class="sidebar-section">Ferramentas</div>
     <div class="nav-item" id="nav-simulador" onclick="setPage('simulador',this)"><span class="nav-icon">🧮</span>Simulador</div>
     <div class="sidebar-footer">
@@ -560,7 +569,7 @@ function seededRandom(seed){
 }
 function gerarFatoVendasFicticio(){
   var rnd = seededRandom(FILIAL==='fl' ? 88 : 42);
-  var MESES_ATIVOS = [0,1,2,3,4,5,6,7]; // Jan a Ago/2026
+  var MESES_ATIVOS = [0,1,2,3,4,5,6,7,8]; // Jan a Set/2026
   var canais = ['SALAO','LOJA','FUNCIONARIO'];
   var grupos = ['HOME CARE','PROFISSIONAL','COLORACAO','QUIMICA'];
   var vendedores = FILIAL==='fl'
@@ -620,7 +629,7 @@ function gerarDFCFicticio(){
   var chaves = [];
   var caixa = FILIAL==='fl' ? 58000 : 85000;
   var recBase = FILIAL==='fl' ? 124000 : 175000;
-  for (var mi=0; mi<8; mi++){
+  for (var mi=0; mi<9; mi++){
     var chave = '2026-'+String(mi+1).padStart(2,'0');
     chaves.push(chave);
     var recVendas = recBase + mi*(recBase*0.048) + rnd()*10000;
@@ -725,6 +734,7 @@ var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',df
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
   var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',simulador:'Simulador',produtos:'An\u00e1lise de Produtos'};
+  if(window.bxTitulos){Object.keys(window.bxTitulos).forEach(function(k){titles[k]=window.bxTitulos[k];});}
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -735,6 +745,7 @@ function renderPage(page){
   else if(page==='margem'){c.innerHTML=margemHTML();initMargem();}
   else if(page==='simulador'){c.innerHTML=simuladorHTML();initSimulador();}
   else if(page==='produtos'){c.innerHTML=produtosHTML();setTimeout(initProdutos,80);}
+  else if(window.bxRender && window.bxRender(page)){}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -2408,7 +2419,7 @@ function gerarDFCFicticioPara(fil){
   var dados = {}, chaves = [];
   var caixa = fil==='fl' ? 58000 : 85000;
   var recBase = fil==='fl' ? 124000 : 175000;
-  for (var mi=0; mi<8; mi++){
+  for (var mi=0; mi<9; mi++){
     var chave = '2026-'+String(mi+1).padStart(2,'0');
     chaves.push(chave);
     var recVendas = recBase + mi*(recBase*0.048) + rnd()*10000;
@@ -2650,5 +2661,6 @@ function dispSalvarAjustes(){
   dispRenderConteudo();
 }
 </script>
+<script src="dgx-beauty-extra.js"></script>
 </body>
 </html>
