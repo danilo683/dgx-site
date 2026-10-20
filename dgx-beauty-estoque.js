@@ -1455,9 +1455,11 @@ function pedFakeEstoque(){
     var s = by[sku], arr = ks.map(function(k){ return s.q[k]||0; });
     var dem = arr.reduce(function(a,b){return a+b;},0)/Math.max(1,arr.length), p = rnd();
     var fat = p<0.07 ? 0 : (p<0.20 ? 0.12 : (p<0.34 ? 0.6 : (p<0.80 ? 1.5 : (p<0.93 ? 3.8 : 8))));
+    var irregular = (parseInt(String(sku).replace(/\D/g,''),10)-1000)%8 >= 5;   // perfis Y e Z: nunca zerados
+    if (irregular && fat===0) fat = 0.12;
     var fora = (i%13===12);
     return { sku:sku, codigo_produto:sku, codigo_fornecedor:'F'+(9000+i), produto:s.produto, categoria:cat[String(s.grupo).toUpperCase()]||s.grupo,
-      qtd:Math.round(dem*fat*(0.85+rnd()*0.3)), qtd_transito:(!fora && rnd()<0.22) ? Math.round(dem*0.7) : 0,
+      qtd:Math.max(irregular?Math.max(3,Math.round(dem*0.2)):0, Math.round(dem*fat*(0.85+rnd()*0.3))), qtd_transito:(!fora && rnd()<0.22) ? Math.round(dem*0.7) : 0,
       fornecedor: fora ? 'DISTRIBUIDORA OUTRAS MARCAS' : (i%2 ? 'CALAMO' : 'VEGAN DO BRASIL'), status:'A' };
   });
 }
