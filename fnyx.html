@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Fnyx Cosmetics | Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -337,6 +338,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dfc-card-value{font-size:22px;font-weight:500;color:#00D4DA}
 .dfc-card-value.beige{color:#C8B89A}
 .dfc-card-sub{font-size:10px;color:#4A6580;margin-top:4px}
+.ped-tbl tr.ped-ftruss td{background:rgba(179,157,219,.06)}
 /* ═══ FIM ESTOQUE + ORÇAMENTO ═══ */
 </style>
 </head>
@@ -1387,34 +1389,6 @@ function agregarProdutos(mesKey, categoriaKey){
   return { produtos: lista, margemGBCategoria: margemGBCategoria, totalReceita: totalReceitaCategoria };
 }
 
-var quadrantBgPlugin = {
-  id: 'quadrantBg',
-  beforeDraw: function(chart){
-    var opts = chart.config.options.plugins && chart.config.options.plugins.quadrantBg;
-    if (!opts || !opts.show) return;
-    var ctx = chart.ctx, xScale = chart.scales.x, yScale = chart.scales.y;
-    if (!xScale || !yScale) return;
-    var left=xScale.left, right=xScale.right, top=yScale.top, bottom=yScale.bottom;
-    var xPix = Math.max(left, Math.min(right, xScale.getPixelForValue(opts.xSplit)));
-    var yPix = Math.max(top, Math.min(bottom, yScale.getPixelForValue(opts.ySplit)));
-    ctx.save();
-    ctx.fillStyle = 'rgba(46,204,113,0.10)';  ctx.fillRect(xPix, top, right-xPix, yPix-top);      // cima-direita: Destaques
-    ctx.fillStyle = 'rgba(192,57,43,0.10)';   ctx.fillRect(left, top, xPix-left, yPix-top);        // cima-esquerda: Atenção
-    ctx.fillStyle = 'rgba(0,180,216,0.08)';   ctx.fillRect(xPix, yPix, right-xPix, bottom-yPix);   // baixo-direita: Nicho rentável
-    ctx.fillStyle = 'rgba(107,139,170,0.08)'; ctx.fillRect(left, yPix, xPix-left, bottom-yPix);    // baixo-esquerda: Baixa prioridade
-    ctx.strokeStyle = 'rgba(226,234,244,0.25)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(xPix, top); ctx.lineTo(xPix, bottom); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(left, yPix); ctx.lineTo(right, yPix); ctx.stroke();
-    ctx.restore();
-  }
-};
-function quadLegendItemHTML(cor,titulo,desc){
-  return '<div style="display:flex;gap:8px;align-items:flex-start">'
-    +'<span style="width:13px;height:13px;border-radius:3px;background:'+cor+';flex-shrink:0;margin-top:2px"></span>'
-    +'<span style="font-size:11px;color:#8BA0B0;line-height:1.4"><b style="color:#E2EAF4;font-size:11.5px">'+titulo+'</b><br>'+desc+'</span>'
-    +'</div>';
-}
-
 function produtosHTML(){
   var meses = mesesDisponiveisFV();
   if (!meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
@@ -1436,16 +1410,8 @@ function produtosHTML(){
     +'</div>'
     +'<div class="chart-card">'
     +'<div class="chart-title">Faturamento \u00d7 Varia\u00e7\u00e3o de Margem vs. GB</div>'
-    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.), dividido em 0 \u00b7 Eixo Y: % do faturamento da categoria, dividido na metade \u00b7 Tamanho da bolha: faturamento em R$</div>'
-    +'<div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">'
-    +'<div style="flex:1;min-width:280px;height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
-    +'<div style="width:190px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;justify-content:center">'
-    +quadLegendItemHTML('#2ECC71','Destaques','Alto faturamento, acima da Margem GB')
-    +quadLegendItemHTML('#c0392b','Aten\u00e7\u00e3o','Alto faturamento, abaixo da Margem GB')
-    +quadLegendItemHTML('#00B4D8','Nicho rent\u00e1vel','Baixo faturamento, acima da Margem GB')
-    +quadLegendItemHTML('#6B8BAA','Baixa prioridade','Baixo faturamento, abaixo da Margem GB')
-    +'</div>'
-    +'</div>'
+    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.) \u00b7 Eixo Y: % do faturamento da categoria \u00b7 Tamanho da bolha: faturamento em R$</div>'
+    +'<div style="height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
     +'</div>'
     +'<div class="chart-sub" style="margin-top:-4px">Mostrando os '+produtosState.top+' produtos de maior faturamento na categoria/m\u00eas selecionados.</div>'
     +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
@@ -1513,12 +1479,8 @@ function renderProdutosCharts(){
     var pontos = top.filter(function(p){ return p.variacaoPP !== null; }).map(function(p){
       return { x:p.variacaoPP, y:p.pctFaturamento, r:raio(p.receita), _p:p };
     });
-    var yMaxObs = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return p.y; })) : 0;
-    var yHalf = yMaxObs / 2;
-    var xAbsMax = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return Math.abs(p.x); })) : 0;
     new Chart(document.getElementById('chartProdutosScatter'),{
       type:'bubble',
-      plugins:[quadrantBgPlugin],
       data:{ datasets:[{
         label:'Produtos',
         data:pontos,
@@ -1527,14 +1489,14 @@ function renderProdutosCharts(){
         borderWidth:1
       }] },
       options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false}, quadrantBg:{ show:true, xSplit:0, ySplit:yHalf },
+        plugins:{ legend:{display:false},
           tooltip:{ callbacks:{ label:function(c){
             var p = c.raw._p;
             return [p.produto, '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
           } } } },
         scales:{
-          x:{ min:xAbsMax?-xAbsMax*1.15:-1, max:xAbsMax?xAbsMax*1.15:1, title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
-          y:{ min:0, max:yMaxObs?yMaxObs*1.08:1, title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+          x:{ title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
+          y:{ title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
         } }
     });
   }
@@ -1889,7 +1851,7 @@ var PED_PARAM_PADRAO = {
   lote_minimo: 1,            // múltiplo de arredondamento (pendente: lote/caixa por fornecedor)
   usar_sazonalidade: 0,      // 1 = aplica índice sazonal por SKU (suavizado)
   estoque_ausente_zero: 0,   // SKU com venda sem posição no estoque: 0 = não sugere (revisar de-para); 1 = trata como estoque 0
-  fornecedores_truss: 'VEGAN,CALAMO',  // só estes fornecedores entram no pedido (fábrica antiga e nova da TRUSS)
+  fornecedores_truss: 'TRUSS,VEGAN,CALAMO',  // só estes fornecedores entram no pedido (a validar com a Fnyx). No relatório do Syngular não há fornecedor: produto ligado às vendas ou com TRUSS no nome entra como 'TRUSS'
   limite_risco: 10,          // % de risco de ruptura até a chegada do pedido a partir do qual a tabela destaca o SKU
   campanha_base: 1,          // 1 = a demanda de base ignora os meses de campanha importados (precisa de 3+ meses sem campanha)
   lift_10: 1, lift_15: 1, lift_20: 1,   // efeito padrão da campanha por desconto (1 = neutro). O histórico calibra por SKU quando há 2+ meses de campanha
@@ -2162,7 +2124,7 @@ function pedCalcular(fvRows, estRows, P, hoje, alias, camp, fatores){
     function sugerir(D){
       var fS = P.usar_sazonalidade ? pedFatorSazonal(m.seas, pedAddDias(sit.hoje,D), P.lead_time+P.doh_alvo) : 1;
       var alvo = demAcum(D, D+P.lead_time+P.doh_alvo)*fS + x.ss;
-      var posProj = Math.max(0, (pos||0) - demAcum(0,D));
+      var posProj = (pos||0) < 0 ? pos : Math.max(0, (pos||0) - demAcum(0,D));   /* Fnyx: estoque negativo = pré-venda (vendido, ainda não recebido); a sugestão cobre essa quantidade */
       var q = Math.max(0, alvo - posProj);
       if (m.novo && q < P.qtd_minima_novo) q = P.qtd_minima_novo;
       var lote = Math.max(1,P.lote_minimo); q = Math.ceil(q/lote)*lote;
@@ -2260,7 +2222,7 @@ function pedSimularEstoque(x, P, sit, fer, opt){
       if (q>0) { trans.push({ c:t+LT, q:q }); ordens.push({ t:t, data:pedAddDias(hoje,t), qtd:q, cheg:t+LT, chegData:pedAddDias(hoje,t+LT) }); }
     }
     ser.push(est); sem.push(Math.max(0, pos0 - consSem));
-    var d = dDia*fDia(t); est = Math.max(0, est - d); consSem += d;
+    var d = dDia*fDia(t); est = est < 0 ? est : Math.max(0, est - d); consSem += d;
   }
   var zera = null; for (var z=1; z<sem.length; z++){ if (sem[z]<=0){ zera = z; break; } }
   var minDia = -1, minVal = Infinity; for (var u=1; u<ser.length; u++){ if (ser[u]<minVal){ minVal = ser[u]; minDia = u; } }
@@ -2330,6 +2292,76 @@ function pedInterpretarEstoque(rows, map){
     vistos[k] = it; linhas.push(it);
   }
   return { linhas:linhas, ignoradas:ign, duplicadas:dup };
+}
+
+
+/* ── Relatório de estoque do Syngular (Fnyx): planilha .xls/.xlsx, uma linha por produto ──
+   Colunas usadas: Data, Produto, EAN, NCM, Custo, Qtd final, Lote. Não traz SKU, fornecedor nem status.
+   O produto é ligado ao SKU de venda pelo EAN (tabela ped_sku_ean, montada a partir do fato_vendas). */
+function pedEhPlanilha(buf){
+  var u = new Uint8Array(buf.slice ? buf.slice(0,4) : buf);
+  return (u[0]===0xD0 && u[1]===0xCF && u[2]===0x11 && u[3]===0xE0) || (u[0]===0x50 && u[1]===0x4B);
+}
+function pedLerPlanilha(buf){
+  if (typeof XLSX==='undefined') return { erro:'Biblioteca de planilha n\u00e3o carregou. Recarregue a p\u00e1gina.' };
+  try { var wb = XLSX.read(new Uint8Array(buf), { type:'array' }); var ws = wb.Sheets[wb.SheetNames[0]];
+    return { aoa:XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:'' }), aba:wb.SheetNames[0] };
+  } catch(e){ return { erro:'N\u00e3o consegui ler a planilha: '+e.message }; }
+}
+function pedEanTxt(v){
+  if (v===null || v===undefined || v==='') return '';
+  if (typeof v==='number') return isFinite(v) ? String(Math.round(v)) : '';
+  var t = String(v).trim(); return /^\d+\.0+$/.test(t) ? t.replace(/\.0+$/,'') : t;
+}
+function pedEanNorm(e){ var d = String(e||'').replace(/\D/g,''); return d.replace(/^0+/,''); }
+function pedSerialParaYMD(v){
+  if (typeof v==='number' && isFinite(v) && v>20000 && v<80000) { var d = new Date(Date.UTC(1899,11,30) + Math.floor(v)*86400000); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+  var m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(String(v||'')); return m ? m[3]+'-'+m[2]+'-'+m[1] : '';
+}
+function pedAcharCabecalhoSyngular(aoa){
+  for (var i=0;i<Math.min(aoa.length,15);i++){
+    var h = aoa[i].map(function(c){ return pedSemAcento(c); });
+    if (h.indexOf('EAN')>=0 && h.indexOf('QTD FINAL')>=0 && h.indexOf('PRODUTO')>=0) return { i:i, ix:{ data:h.indexOf('DATA'), prod:h.indexOf('PRODUTO'), ean:h.indexOf('EAN'), ncm:h.indexOf('NCM'), custo:h.indexOf('CUSTO'), qtd:h.indexOf('QTD FINAL'), lote:h.indexOf('LOTE') } };
+  }
+  return null;
+}
+/* mapaEan: { eanNormalizado: skuDeVenda }. Estoque negativo é mantido (pré-venda). */
+function pedInterpretarSyngular(aoa, cab, mapaEan){
+  var ix = cab.ix, linhas = [], ign = [], vistos = {}, dup = 0, lig = 0, semMatch = 0, semEan = 0, data = '';
+  function resolver(ean){ var n = pedEanNorm(ean); if (!n) return ''; if (mapaEan[n]) return mapaEan[n]; if (n.length===14 && mapaEan[n.slice(1)]) return mapaEan[n.slice(1)]; return ''; }
+  for (var i=cab.i+1;i<aoa.length;i++){
+    var r = aoa[i], prod = String(r[ix.prod]==null?'':r[ix.prod]).trim(), ean = pedEanTxt(r[ix.ean]);
+    if (!data && ix.data>=0) data = pedSerialParaYMD(r[ix.data]);
+    if (!prod && !ean) continue;
+    if (!prod) { ign.push({ linha:i+1, motivo:'sem descri\u00e7\u00e3o (EAN '+ean+')' }); continue; }
+    var qtd = (typeof r[ix.qtd]==='number') ? r[ix.qtd] : pedNumPT(r[ix.qtd]);
+    var skuVenda = resolver(ean), key = skuVenda || ean || ('N:'+pedSemAcento(prod).slice(0,60));
+    if (skuVenda) lig++; else if (ean) semMatch++; else semEan++;
+    var it = { sku:String(key), codigo_produto:ean, codigo_fornecedor:'', produto:prod, categoria:'',
+      fornecedor:(skuVenda || pedSemAcento(prod).indexOf('TRUSS')>=0) ? 'TRUSS' : '', status:'A', tipo:'', ean:ean,
+      fisico:qtd, reservado:0, consignado:0, qtd:qtd, qtd_transito:0 };
+    var kn = pedNormSku(it.sku);
+    if (vistos[kn]) { dup++; vistos[kn].qtd += qtd; vistos[kn].fisico += qtd; continue; }
+    vistos[kn] = it; linhas.push(it);
+  }
+  return { linhas:linhas, ignoradas:ign, duplicadas:dup, data:data, ligadosEan:lig, semMatchEan:semMatch, semEan:semEan };
+}
+function pedTextoSyngular(aoa, cab){
+  var ix = cab.ix, cols = ['data','prod','ean','ncm','custo','qtd','lote'], nomes = ['Data','Produto','EAN','NCM','Custo','Qtd final','Lote'];
+  var out = [nomes.join(';')];
+  for (var i=cab.i+1;i<aoa.length;i++){ var r = aoa[i]; if (!r.some(function(c){ return c!==''&&c!=null; })) continue;
+    out.push(cols.map(function(c){ var v = ix[c]>=0 ? r[ix[c]] : ''; return String(v==null?'':v).replace(/[;\r\n]+/g,' '); }).join(';')); }
+  return out.join('\n');
+}
+async function pedCarregarMapaEan(){
+  var mapa = {}, total = 0, from = 0, ps = 1000, cid = clienteIdAtual();
+  for (;;){
+    var r = await sb.from('ped_sku_ean').select('sku,ean').eq('cliente_id',cid).order('ean').range(from, from+ps-1);
+    if (r.error) return { mapa:mapa, total:total, erro:r.error.message };
+    (r.data||[]).forEach(function(x){ var n = pedEanNorm(x.ean); if (n && !mapa[n]) { mapa[n] = String(x.sku); total++; } });
+    if (!r.data || r.data.length<ps) break; from += ps;
+  }
+  return { mapa:mapa, total:total, erro:'' };
 }
 
 /* ── comparação de nomes ── */
@@ -2513,7 +2545,7 @@ var PED_PARAM_CAMPOS = [
     ['sem_giro_dias','Sem giro: dias sem venda','1',''],
     ['meses_ativo','Inativo: meses sem venda e sem estoque','1',''],
     ['estoque_ausente_zero','SKU vendido sem posição no estoque (0 = não sugerir, 1 = tratar como 0)','1','Revise o de-para antes de usar 1'],
-    ['fornecedores_truss','Fornecedores TRUSS (partes do nome, separadas por vírgula)','text','Vegan (fábrica antiga) e Calamo (nova): só eles entram no pedido'],
+    ['fornecedores_truss','Fornecedores TRUSS (partes do nome, separadas por vírgula)','text','Só estes entram no pedido (a validar com a Fnyx; o relatório do Syngular não traz fornecedor)'],
     ['dias_faturamento','Dias entre pedido e faturamento','1','Exemplo informado (5); a validar'],
     ['mes_ref','Último mês fechado (AAAA-MM; vazio = auto)','text',''],
     ['feriados_extra','Feriados extras (AAAA-MM-DD, separados por vírgula)','text','Estaduais/municipais'] ]],
@@ -2736,11 +2768,11 @@ function pedRenderTabela(){
     var st = PED_STATUS[x.status], q = pedQtdFinal(x), edit = !!PED_EDICOES[x.sku], orden = x.truss && !x.inativo;
     var pr = x.prioridade==='agora' ? '<span class="ped-tag" style="background:rgba(192,57,43,.18);color:#e74c3c">Comprar agora</span>'
       : (x.prioridade==='janela' ? '<span class="ped-tag" style="background:rgba(0,180,216,.15);color:#00B4D8">Pedir em '+pedFmtBRc(x.quandoPedir)+'</span>' : '<span style="opacity:.35">\u2014</span>');
-    var tags = (x.m.novo?' <span class="ped-tag" style="background:rgba(0,180,216,.15);color:#00B4D8">novo</span>':'')+(!x.truss?' <span class="ped-tag" style="background:rgba(139,160,176,.18);color:#8BA0B0">fora da TRUSS</span>':'')+(x.semVenda?' <span class="ped-tag" style="background:rgba(200,184,154,.18);color:#C8B89A">sem venda</span>':'');
+    var tags = (x.m.novo?' <span class="ped-tag" style="background:rgba(0,180,216,.15);color:#00B4D8">novo</span>':'')+(!x.truss?' <span class="ped-tag" style="background:rgba(179,157,219,.20);color:#B39DDB" title="Fora da lista de fornecedores TRUSS: n\u00e3o entra na sugest\u00e3o de pedido">fora da TRUSS</span>':'')+(x.est!==null && x.est<0?' <span class="ped-tag" style="background:rgba(255,138,61,.18);color:#ff8a3d" title="Estoque negativo = vendido e ainda n\u00e3o recebido. A sugest\u00e3o cobre essa quantidade.">pr\u00e9-venda '+pedFmtN(-x.est)+'</span>':'')+(x.semVenda?' <span class="ped-tag" style="background:rgba(200,184,154,.18);color:#C8B89A">sem venda</span>':'');
     var risco = (x.risco===null || !orden) ? '\u2014' : pedFmtN(x.risco*100,0)+'%', riscoAlto = x.risco!==null && orden && x.qtdSugerida>0 && x.risco*100>=lim;
     var camp = x.campProx ? '<span class="ped-tag" title="Campanha de '+pedMesLabel(x.campProx.mes)+': '+escapeHtml(x.campProx.pacote)+'. '+(x.campProx.pedirAte<R.sit.hoje ? 'O prazo para chegar antes do in\u00edcio j\u00e1 passou: pe\u00e7a agora' : 'Para chegar antes do in\u00edcio, pe\u00e7a at\u00e9 '+pedFmtBRc(x.campProx.pedirAte))+'." style="background:rgba(255,138,61,.16);color:#ff8a3d">'+Math.round(x.campProx.desc*100)+'% \u00b7 '+pedMesLabel(x.campProx.mes)+'</span>' : '\u2014';
     var pedido = x.qtdSugerida>0 || q>0;
-    h += '<tr data-k="'+escapeHtml(x.sku)+'" class="'+(x.prioridade==='agora'?'ped-urg':'')+(x.sku===PED_SEL?' ped-sel':'')+'">'
+    h += '<tr data-k="'+escapeHtml(x.sku)+'" class="'+(x.prioridade==='agora'?'ped-urg':'')+(!x.truss?' ped-ftruss':'')+(x.sku===PED_SEL?' ped-sel':'')+'">'
       +'<td style="text-align:left;cursor:pointer" title="Clique para ver a curva do produto" onclick="pedPainelSelecionar('+i+',true)">'+escapeHtml(x.skuOrig)+' \u00b7 '+escapeHtml(x.produto).slice(0,44)+tags+'</td>'
       +'<td>'+escapeHtml(x.categoria)+'</td><td>'+x.curva+x.xyz+'</td><td>'+pedFmtN(x.dDia,2)+'</td><td>'+(x.est===null?'\u2014':pedFmtN(x.est))+'</td><td>'+(x.cobertura===null?'\u2014':pedFmtN(x.cobertura))+'</td>'
       +'<td class="cproj">'+(x.dDia>0 && orden ? pedFmtN(x.ss)+' \u00b7 '+pedFmtN(x.ssDias,0)+' d' : '\u2014')+'</td>'
@@ -2948,16 +2980,17 @@ function pedImpDataDoNome(nome){
 function pedImpHTML(){
   if (!PED_PODE_IMPORTAR) return '';
   var aberto = PED_IMP || !PED_ESTOQUE.length;
-  return '<details class="chart-card ped-imp" id="pedImp"'+(aberto?' open':'')+'><summary class="chart-title" style="cursor:pointer">Importar estoque <span class="ped-sub" style="font-weight:400">\u2014 arquivo do sistema, do jeito que sai (CSV)</span></summary>'
-    +'<div class="chart-sub" style="margin-top:6px">O portal l\u00ea o arquivo bruto, liga os c\u00f3digos de venda aos produtos do estoque e mostra uma pr\u00e9via antes de gravar. Filial desta p\u00e1gina: <strong>'+nomeFilial()+'</strong>.</div>'
-    +'<div class="bi-filters"><input type="file" id="pedImpFile" accept=".csv,.txt,text/csv" onchange="pedImpArquivo(this)" class="disp-input" style="width:auto;text-align:left"></div>'
+  return '<details class="chart-card ped-imp" id="pedImp"'+(aberto?' open':'')+'><summary class="chart-title" style="cursor:pointer">Importar estoque <span class="ped-sub" style="font-weight:400">\u2014 relat\u00f3rio de estoque do Syngular (.xls) ou CSV, do jeito que sai</span></summary>'
+    +'<div class="chart-sub" style="margin-top:6px">O portal l\u00ea o arquivo bruto, liga os c\u00f3digos de venda aos produtos do estoque e mostra uma pr\u00e9via antes de gravar. Cliente: <strong>'+nomeFilial()+'</strong>. Estoque negativo \u00e9 tratado como pr\u00e9-venda (a sugest\u00e3o cobre essa quantidade).</div>'
+    +'<div class="bi-filters"><input type="file" id="pedImpFile" accept=".csv,.txt,.xls,.xlsx,text/csv" onchange="pedImpArquivo(this)" class="disp-input" style="width:auto;text-align:left"></div>'
     +'<div id="pedImpPrev">'+(PED_IMP?pedImpPrevHTML():'')+'</div></details>';
 }
 function pedImpArquivo(inp){
   var f = inp.files && inp.files[0]; if (!f) return;
   var rd = new FileReader(); rd.onload = function(){ pedImpProcessar(rd.result, f.name); }; rd.readAsArrayBuffer(f);
 }
-function pedImpProcessar(buf, nome){
+async function pedImpProcessar(buf, nome){
+  if (pedEhPlanilha(buf)) return pedImpProcessarPlanilha(buf, nome);
   var d = pedDecodificar(buf), p = pedParseCSV(d.texto), m = pedMapearColunas(p.rows[0]||[]);
   var imp = { nome:nome, texto:d.texto, codificacao:d.codificacao, filialNome:pedImpFilialDoNome(nome), data:(pedImpDataDoNome(nome)||pedYMD(new Date())), erro:'', override:false, dec:{}, delim:p.delim };
   if (m.faltando.length || p.rows.length<2) {
@@ -2965,6 +2998,29 @@ function pedImpProcessar(buf, nome){
     PED_IMP = imp; pedImpRender(); return imp;
   }
   var it = pedInterpretarEstoque(p.rows, m.map); imp.itens = it.linhas; imp.ign = it.ignoradas; imp.dup = it.duplicadas;
+  imp.byKey = {}; imp.itens.forEach(function(x){ imp.byKey[pedNormSku(x.sku)] = x; });
+  imp.info = pedMontarAlias(pedProdutosVenda(FV_FNYX), imp.itens, PED_DEPARA);
+  imp.info.pendentes.forEach(function(x){ if (x.sugerido) imp.dec[x.p.sku] = x.sugerido; });
+  PED_IMP = imp; pedImpRender(); return imp;
+}
+
+async function pedImpProcessarPlanilha(buf, nome){
+  var imp = { nome:nome, texto:'', codificacao:'planilha', filialNome:'', data:pedYMD(new Date()), erro:'', override:false, dec:{}, delim:'', origem:'syngular' };
+  var pl = pedLerPlanilha(buf);
+  if (pl.erro) { imp.erro = pl.erro; PED_IMP = imp; pedImpRender(); return imp; }
+  var cab = pedAcharCabecalhoSyngular(pl.aoa), it, mapaInfo = { total:0, erro:'' };
+  if (cab) {
+    mapaInfo = await pedCarregarMapaEan();
+    it = pedInterpretarSyngular(pl.aoa, cab, mapaInfo.mapa);
+    imp.texto = pedTextoSyngular(pl.aoa, cab); imp.delim = 'planilha Syngular';
+    if (it.data) imp.data = it.data;
+    imp.eanInfo = { ligados:it.ligadosEan, semMatch:it.semMatchEan, semEan:it.semEan, tabela:mapaInfo.total, erro:mapaInfo.erro };
+  } else {
+    var m = pedMapearColunas(pl.aoa[0]||[]);
+    if (m.faltando.length || pl.aoa.length<2) { imp.erro = 'N\u00e3o reconheci o formato da planilha (esperava as colunas Produto, EAN e Qtd final do Syngular). Colunas encontradas: '+(pl.aoa[0]||[]).join(' | '); PED_IMP = imp; pedImpRender(); return imp; }
+    it = pedInterpretarEstoque(pl.aoa, m.map); imp.texto = pl.aoa.map(function(r){ return r.join(';'); }).join('\n'); imp.delim = 'planilha';
+  }
+  imp.itens = it.linhas; imp.ign = it.ignoradas; imp.dup = it.duplicadas;
   imp.byKey = {}; imp.itens.forEach(function(x){ imp.byKey[pedNormSku(x.sku)] = x; });
   imp.info = pedMontarAlias(pedProdutosVenda(FV_FNYX), imp.itens, PED_DEPARA);
   imp.info.pendentes.forEach(function(x){ if (x.sugerido) imp.dec[x.p.sku] = x.sugerido; });
@@ -2992,15 +3048,21 @@ function pedImpPrevHTML(){
   I.itens.forEach(function(x){ uni += x.qtd; var t = pedEhTruss(x.fornecedor, x.produto, tl);
     if (t) truss++; else outros++; if (x.status!=='A') { inat++; if (x.qtd>0) inatEst++; } else { ativos++; if (x.qtd===0) zero++; } if (x.qtd<0) neg++; });
   function c(l,v,s){ return '<div class="kpi"><div class="kpi-label">'+l+'</div><div class="kpi-value" style="font-size:18px">'+v+'</div><div class="kpi-sub">'+(s||'')+'</div></div>'; }
-  var h = '<div class="ped-sub" style="margin:8px 0">Arquivo <strong>'+escapeHtml(I.nome)+'</strong> \u00b7 '+I.codificacao+' \u00b7 separador \u201c'+(I.delim==='\t'?'tab':I.delim)+'\u201d</div>';
+  var h = '<div class="ped-sub" style="margin:8px 0">Arquivo <strong>'+escapeHtml(I.nome)+'</strong> \u00b7 '+(I.origem==='syngular' ? 'relat\u00f3rio de estoque (planilha)' : I.codificacao+' \u00b7 separador \u201c'+(I.delim==='\t'?'tab':I.delim)+'\u201d')+'</div>';
   h += '<div class="bi-filters"><label>Data da posi\u00e7\u00e3o</label><input type="date" id="pedImpData" class="disp-input" style="width:auto" value="'+I.data+'" onchange="PED_IMP.data=this.value">';
   if (I.filialNome && I.filialNome!==FILIAL) h += '<span class="ped-banner err" style="margin:0">O nome do arquivo indica <strong>'+I.filialNome.toUpperCase()+'</strong>, mas esta p\u00e1gina \u00e9 <strong>'+nomeFilial()+'</strong>. <label style="color:#e74c3c;text-transform:none"><input type="checkbox" onchange="PED_IMP.override=this.checked"> importar mesmo assim</label></span>';
   h += '</div><div class="kpi-grid">'
     + c('Produtos lidos', pedFmtN(n), pedFmtN(I.ign.length)+' linha(s) ignorada(s)'+(I.dup?' \u00b7 '+I.dup+' duplicada(s) somada(s)':''))
     + c('Unidades dispon\u00edveis', pedFmtN(uni), 'f\u00edsico menos reservado e consignado')
     + c('TRUSS / outros', pedFmtN(truss)+' / '+pedFmtN(outros), 'fornecedores: '+escapeHtml(pedParams().fornecedores_truss))
-    + c('Inativos', pedFmtN(inat), pedFmtN(inatEst)+' com estoque \u00b7 '+pedFmtN(zero)+' ativos zerados'+(neg?' \u00b7 '+neg+' negativo(s)':''))
+    + c('Inativos', pedFmtN(inat), pedFmtN(inatEst)+' com estoque \u00b7 '+pedFmtN(zero)+' ativos zerados'+(neg?' \u00b7 '+neg+' pr\u00e9-venda (negativo)':''))
     + '</div>';
+  if (I.eanInfo) {
+    var E = I.eanInfo;
+    if (E.erro) h += '<div class="ped-banner err">N\u00e3o consegui ler a tabela de EAN (ped_sku_ean): '+escapeHtml(E.erro)+'. Rode o script sql/fnyx_ped_sku_ean.sql no Supabase. Sem ela, a liga\u00e7\u00e3o com as vendas usa s\u00f3 o nome do produto.</div>';
+    else if (!E.tabela) h += '<div class="ped-banner err">A tabela de EAN (ped_sku_ean) est\u00e1 vazia. Rode o script sql/fnyx_ped_sku_ean.sql no Supabase.</div>';
+    else h += '<div class="ped-sub" style="margin:8px 0">Liga\u00e7\u00e3o por EAN: <strong>'+pedFmtN(E.ligados)+'</strong> produtos do relat\u00f3rio ligados a um SKU de venda \u00b7 '+pedFmtN(E.semMatch)+' com EAN sem v\u00ednculo (promo\u00e7\u00f5es, brindes, itens sem venda) \u00b7 '+pedFmtN(E.semEan)+' sem EAN.</div>';
+  }
   var cb = A.cobertura, cor = cb.pct>=0.98 ? '#2ECC71' : (cb.pct>=0.9 ? '#C8B89A' : '#e74c3c');
   h += '<div class="disp-section-label">De-para de c\u00f3digos (vendas \u2192 estoque)</div><div class="ped-sub" style="font-size:12px;margin-bottom:8px">'
     + '<strong style="color:'+cor+'">'+pedFmtN(cb.skusLigados)+' de '+pedFmtN(cb.skus)+'</strong> produtos vendidos nos \u00faltimos 12 meses ligados ao estoque (<strong style="color:'+cor+'">'+(cb.pct*100).toFixed(1).replace('.',',')+'%</strong> das unidades). '
