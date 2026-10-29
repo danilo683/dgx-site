@@ -298,6 +298,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .orc-tbl tr.dfc-tot td.orc-lbl{background:#00D4DA}
 .orc-dn{font-size:12px;color:#E2EAF4;font-weight:600}.orc-ds{font-size:9px;color:#6B8BAA;letter-spacing:.05em}
 .orc-tbl th.orc-we,.orc-tbl td.orc-we{background:rgba(255,255,255,0.025)}
+.orc-tbl.orc-mes th:not(.orc-lbl):not(.orc-tot),.orc-tbl.orc-mes td:not(.orc-lbl):not(.orc-tot){border-left:1px solid rgba(255,255,255,.10)}
+.orc-tbl.orc-mes th:nth-child(odd):not(.orc-lbl):not(.orc-tot),.orc-tbl.orc-mes td:nth-child(odd):not(.orc-lbl):not(.orc-tot){box-shadow:inset 0 0 0 9999px rgba(255,255,255,.035)}
 .orc-tbl td.orc-tot,.orc-tbl th.orc-tot{font-weight:700;background:#0F1923;min-width:96px;position:sticky;right:0;z-index:2}
 .orc-tbl tr.dfc-tot td.orc-tot{background:#00D4DA}
 .orc-tbl tr.orc-g td{font-weight:600;color:#E2EAF4;background:#13202e}
@@ -3544,7 +3546,7 @@ function orcCalc(S){
   return R;
 }
 function orcDesenhar(){
-  var el=document.getElementById('orc-tbl');if(!el)return;
+  var el=document.getElementById('orc-tbl');if(!el)return;el.classList.toggle('orc-mes',ORC.view==='mes'&&ORC.modo!=='comp');
   var tb=document.querySelectorAll('#orc-tabs button');for(var q=0;q<tb.length;q++)tb[q].classList.toggle('active',tb[q].getAttribute('data-m')===ORC.modo);
   var cb=document.getElementById('orc-chartbox');cb.style.display=ORC.modo==='comp'?'block':'none';
   var ib=document.getElementById('orc-imp-btn');if(ib)ib.style.display=ORC.modo==='realizado'?'inline-block':'none';var gb=document.getElementById('orc-gen-btn');if(gb)gb.style.display='none'; /* gerador de orçado: pendente na Fnyx (precisa de Metas/Premissas) */
@@ -3707,7 +3709,7 @@ function orcApplyPer(R,c0,c1){
 }
 function orcDesenharComp(){
   var n=orcPerSetup(),c0=ORC.pDe-1,c1=ORC.pAte-1;orcPerUI(n);
-  var FS=orcForecastStore(),O=orcCalc(ORC.v),Rr=orcCalc(ORC.r),Fc=orcCalc(FS.F),el=document.getElementById('orc-tbl');
+  var FS=orcForecastStore(),O=orcCalc(ORC.v),Rr=orcCalc(ORC.r),Fc=orcCalc(FS.F),el=document.getElementById('orc-tbl');el.classList.remove('orc-mes');
   orcApplyPer(O,c0,c1);orcApplyPer(Rr,c0,c1);orcApplyPer(Fc,c0,c1);
   var full=(ORC.pDe===1&&ORC.pAte===n);
   var per=ORC.view==='dia'?(full?ORC_M[ORC.mes-1]+'/'+ORC.ano:ORC.pDe+'–'+ORC.pAte+' '+ORC_M[ORC.mes-1]+'/'+ORC.ano):(full?'Ano '+ORC.ano:(ORC.pDe===ORC.pAte?ORC_M[ORC.pDe-1]+'/'+ORC.ano:ORC_M[ORC.pDe-1]+'–'+ORC_M[ORC.pAte-1]+'/'+ORC.ano));
