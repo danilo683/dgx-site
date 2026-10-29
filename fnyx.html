@@ -326,6 +326,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .orc-tabs{display:none}
 .orc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
+.prem-intro{font-size:12.5px;color:#9FB4C6;background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:12px 16px;margin-bottom:1rem;line-height:1.55}
+.prem-intro b{color:#E2EAF4}
+.meta-tbl{width:100%!important;min-width:0!important;table-layout:fixed}
+.meta-tbl th.orc-lbl,.meta-tbl td.orc-lbl{width:250px;min-width:250px;max-width:250px;position:static}
+.meta-tbl th.orc-tot,.meta-tbl td.orc-tot{width:104px;min-width:104px;position:static}
+.meta-tbl th{min-width:0}.meta-tbl .orc-in{min-width:0;font-size:11px}
+.meta-tbl td{padding:5px 4px}
+.orc-in.meta-flag{outline:1px solid #E0A84B;border-radius:3px}
+.orc-in::placeholder{color:#5d7388}
+.meta-pct td{font-size:11px}
 .orc-in.meta-flag{outline:1px solid #E0A84B;border-radius:3px}
 .orc-in::placeholder{color:#5d7388}
 .imp-bg{position:fixed;inset:0;background:rgba(5,12,22,.78);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:4vh 1rem;overflow:auto}
@@ -387,6 +397,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="nav-item nav-sub" id="nav-orc-orcado" onclick="orcNav('orcado',this)">Orçado</div>
       <div class="nav-item nav-sub" id="nav-orc-realizado" onclick="orcNav('realizado',this)">Realizado</div>
       <div class="nav-item nav-sub" id="nav-orc-comp" onclick="orcNav('comp',this)">Orçado × Realizado</div>
+      <div class="nav-item nav-sub" id="nav-orc-metas" onclick="metaNav(this)">Metas</div>
     </div>
     <div class="nav-item disabled"><span class="nav-icon">🏦</span>Endividamento<span class="nav-badge">Em breve</span></div>
     <div class="sidebar-section">Comercial</div>
@@ -625,7 +636,7 @@ document.addEventListener('DOMContentLoaded',async function(){
 });
 function doLogout(){sb.auth.signOut().then(function(){window.location.href='/clientes';});}
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});if(el)el.classList.add('active');renderPage(page);}
-var periods={inicio:'',vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Mar 2026',dfc:'Jan – Abr 2026',produtos:'',estoque:'',orcamento:'2026'};
+var periods={inicio:'',vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Mar 2026',dfc:'Jan – Abr 2026',produtos:'',estoque:'',orcamento:'2026',metas:'2026'};
 function renderPage(page){
   var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE — Resultado do Exercício',dfc:'DFC — Fluxo de Caixa',produtos:'An\u00e1lise de Produtos',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',orcamento:'Or\u00e7amento'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
@@ -639,6 +650,7 @@ function renderPage(page){
   else if(page==='produtos'){c.innerHTML=produtosHTML();setTimeout(initProdutos,80);}
   else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
   else if(page==='orcamento'){c.innerHTML=orcHTML();initOrcamento();}
+  else if(page==='metas'){c.innerHTML=metasHTML();initMetas();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">🔒</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -3754,6 +3766,116 @@ function orcDesenharComp(){
 var ORC_TITULOS={orcado:'Orçamento \u2014 Orçado',realizado:'Orçamento \u2014 Realizado',comp:'Orçamento \u2014 Orçado × Realizado'};
 function orcToggleMenu(){var s=document.getElementById('orc-sub'),p=document.getElementById('nav-orcamento');var o=!s.classList.contains('open');s.classList.toggle('open',o);p.classList.toggle('open',o);}
 function orcNav(modo,el){ORC.modo=modo;if(modo==='comp')ORC.view='mes';setPage('orcamento',el);document.getElementById('topbarTitle').textContent=ORC_TITULOS[modo];document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+
+// ══════════════════════════════════════════════
+// METAS — franqueador × franqueado × realista × realizado (sell-through e sell-in)
+// Tabela Supabase: orcamento_metas (cliente_id, indicador st|si, tipo, ano, mes, valor)
+// ══════════════════════════════════════════════
+var META_IND=[['st','Sell-through (vendas do franqueado ao consumidor)'],['si','Sell-in (compras da Truss/GB)']];
+var META_TIPOS=[
+ ['franqueador','Meta do franqueador (GB)','#C8B89A','Meta que a GB/Truss define para a franquia. Fica fixa: só o Danilo altera.'],
+ ['franqueado','Meta do franqueado (Fnyx)','#5FA8FF','Meta que a própria Fnyx assume.'],
+ ['realista','Meta realista','#6FD39A','O que a DGX e a Fnyx realmente esperam. Opcional: se estiver vazia, vale a meta do franqueado (e, sem ela, a do franqueador).'],
+ ['realizado','Realizado','#00D4DA','O que de fato aconteceu. No sell-through vem direto das vendas do dash; no sell-in vem dos pagamentos a fornecedores Truss do DFC (quando o mês não está no DFC, vale o valor digitado).']
+];
+var META={ano:2026,ind:'st',v:{},carregado:false,erro:'',chart:null};
+function metaKey(i,t,a,m){return i+'|'+t+'|'+a+'|'+m;}
+function metaGetRaw(i,t,a,m){var x=META.v[metaKey(i,t,a,m)];return x===undefined?null:x;}
+// Sell-through realizado = vendas do dash (fato_vendas, tipo 'venda', valor líquido) — mesma base da tela Vendas
+function metaFvMapa(){
+  if(META._fvN===FV_FNYX.length&&META._fvMap)return META._fvMap;
+  var mp={};FV_FNYX.forEach(function(r){if(r.tipo_operacao!=='venda'||!r.competencia)return;var k=r.competencia.slice(0,7);mp[k]=(mp[k]||0)+(parseFloat(r.valor_liquido)||0);});
+  META._fvMap=mp;META._fvN=FV_FNYX.length;return mp;
+}
+function metaFv(a,m){var v=metaFvMapa()[a+'-'+String(m).padStart(2,'0')];return v===undefined?null:v;}
+// Sell-in realizado = pagamentos a fornecedores Truss do DFC (dash_dfc → DD.pgtoTruss), em valor positivo
+function metaDfcSi(a,m){
+  var ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],alvo=ML[m-1]+'/'+String(a).slice(2);
+  var ix=DD.meses.indexOf(alvo);if(ix<0)return null;
+  var v=Math.abs(DD.pgtoTruss[ix]||0);return v?v:null;
+}
+function metaGet(i,t,a,m){
+  if(i==='st'&&t==='realizado'){var f=metaFv(a,m);if(f!==null)return f;}
+  if(i==='si'&&t==='realizado'){var d=metaDfcSi(a,m);if(d!==null)return d;}
+  return metaGetRaw(i,t,a,m);
+}
+function metaConsiderada(i,a,m){
+  var o=['realista','franqueado','franqueador'];
+  for(var k=0;k<o.length;k++){var v=metaGet(i,o[k],a,m);if(v)return {v:v,fonte:o[k]};}
+  return {v:0,fonte:null};
+}
+function metaFmt(v){return (v===null||v===undefined)?'':Math.round(v).toLocaleString('pt-BR');}
+function metaMesesDoAno(a){var r=[];for(var m=1;m<=12;m++){if(a===2025&&m<10)continue;r.push(m);}return r;}
+function metasHTML(){
+  var h='<div class="prem-intro"><b>Metas</b> — aqui ficam lado a lado as quatro "réguas" de cada indicador, para a conversa ficar clara:<br>'
+   +'<b style="color:#C8B89A">Franqueador (GB)</b>: a meta imposta pela Truss/GB. &nbsp;·&nbsp; <b style="color:#5FA8FF">Franqueado (Fnyx)</b>: a meta que a Fnyx assumiu. &nbsp;·&nbsp; <b style="color:#6FD39A">Realista</b>: a expectativa de fato. &nbsp;·&nbsp; <b style="color:#00D4DA">Realizado</b>: o que aconteceu.<br>'
+   +'A <b>meta considerada</b> (a que alimenta o orçamento) é a primeira disponível nesta ordem: realista → franqueado → franqueador. Células com contorno âmbar indicam meta do franqueado igual à do franqueador do mesmo mês do ano anterior (possível cópia a revisar).</div>'
+   +'<div class="orc-head"><div class="orc-meses" id="meta-anos" style="margin:0"></div><div class="orc-seg" id="meta-ind"></div><div class="orc-status" id="meta-status"></div></div>'
+   +'<div class="orc-chartbox" style="height:260px"><canvas id="meta-chart"></canvas></div>'
+   +'<div id="meta-corpo"></div>';
+  return h;
+}
+async function initMetas(){
+  META.carregado=false;metasDesenhar();
+  META.v={};META.erro='';
+  var cid=clienteIdAtual(),r=await sb.from('orcamento_metas').select('indicador,tipo,ano,mes,valor').eq('cliente_id',cid).range(0,4999);
+  if(r.error){META.erro='Não foi possível carregar as metas (rode o SQL 05_orcamento_metas.sql no Supabase).';console.error(r.error);}
+  else(r.data||[]).forEach(function(x){META.v[metaKey(x.indicador,x.tipo,x.ano,x.mes)]=parseFloat(x.valor);});
+  META.carregado=true;metasDesenhar();
+}
+function metaSetAno(a){META.ano=a;metasDesenhar();}
+function metaSetInd(i){META.ind=i;metasDesenhar();}
+function metasDesenhar(){
+  var el=document.getElementById('meta-corpo');if(!el)return;
+  document.getElementById('meta-anos').innerHTML=[2025,2026,2027,2028,2029].map(function(a){return'<button class="'+(a===META.ano?'active':'')+'" onclick="metaSetAno('+a+')">'+(a===2025?'Out–Dez/25':a)+'</button>';}).join('');
+  document.getElementById('meta-ind').innerHTML=META_IND.map(function(x){return'<button class="'+(x[0]===META.ind?'active':'')+'" onclick="metaSetInd(\''+x[0]+'\')">'+(x[0]==='st'?'Sell-through (vendas)':'Sell-in (compras)')+'</button>';}).join('');
+  var st=document.getElementById('meta-status');st.innerHTML=META.erro?'<span style="color:#E88">'+META.erro+'</span>':(META.carregado?'':'Carregando…');
+  var ms=metaMesesDoAno(META.ano),a=META.ano,i=META.ind;
+  var nome=META_IND.filter(function(x){return x[0]===i;})[0][1];
+  var h='<div class="dfc-section-label">'+nome+' — '+(a===2025?'Out–Dez/2025':a)+'</div><div class="orc-outer" style="max-height:none"><table class="dfc-tbl orc-tbl meta-tbl"><thead><tr><th class="orc-lbl">R$</th>'+ms.map(function(m){return'<th>'+ORC_M[m-1].toUpperCase()+'</th>';}).join('')+'<th class="orc-tot">Total</th></tr></thead><tbody>';
+  META_TIPOS.forEach(function(t){
+    h+='<tr><td class="orc-lbl" title="'+t[3]+'" style="white-space:normal"><span class="orc-dot" style="background:'+t[2]+'"></span>'+t[1]+'</td>';
+    ms.forEach(function(m){
+      var v=metaGet(i,t[0],a,m),flag='';
+      if(t[0]==='franqueado'&&v){var ant=metaGet(i,'franqueador',a-1,m);if(ant&&Math.round(ant)===Math.round(v))flag=' meta-flag';}
+      var ph='';if(t[0]==='realista'){var f=metaGet(i,'franqueado',a,m)||metaGet(i,'franqueador',a,m);if(f)ph=metaFmt(f);}
+      var auto=(t[0]==='realizado'&&((i==='st'&&metaFv(a,m)!==null)||(i==='si'&&metaDfcSi(a,m)!==null)));
+      h+='<td><input class="orc-in'+flag+'" data-t="'+t[0]+'" data-m="'+m+'" value="'+metaFmt(v)+'" placeholder="'+ph+'" onfocus="this.select()" onchange="metaEdit(this)"'+(auto?' disabled title="'+(i==='st'?'Vem das vendas do dash (fato_vendas)':'Vem dos pagamentos Truss do DFC')+'"':'')+(flag?' title="Igual à meta do franqueador de '+ORC_M[m-1]+'/'+(a-1)+' — possível cópia"':'')+'></td>';
+    });
+    var tot=0;ms.forEach(function(m){tot+=metaGet(i,t[0],a,m)||0;});
+    h+='<td class="orc-tot">'+(tot?Math.round(tot).toLocaleString('pt-BR'):'—')+'</td></tr>';
+  });
+  // considerada
+  h+='<tr class="dfc-sub"><td class="orc-lbl">= Meta considerada no orçamento</td>';var tc=0;
+  ms.forEach(function(m){var c=metaConsiderada(i,a,m);tc+=c.v;var fonte=c.fonte?{realista:'realista',franqueado:'franqueado',franqueador:'franqueador'}[c.fonte]:'sem meta';h+='<td title="Fonte: '+fonte+'">'+(c.v?Math.round(c.v).toLocaleString('pt-BR'):'—')+'</td>';});
+  h+='<td class="orc-tot">'+(tc?Math.round(tc).toLocaleString('pt-BR'):'—')+'</td></tr>';
+  // atingimento
+  [['franqueador','Realizado ÷ meta do franqueador'],['franqueado','Realizado ÷ meta do franqueado'],['realista','Realizado ÷ meta realista']].forEach(function(p){
+    h+='<tr class="meta-pct"><td class="orc-lbl orc-sub">'+p[1]+'</td>';var sr=0,sm=0;
+    ms.forEach(function(m){var r=metaGet(i,'realizado',a,m),mt=metaGet(i,p[0],a,m);if(r&&mt){sr+=r;sm+=mt;h+='<td class="'+(r>=mt?'orc-pos':'orc-neg')+'">'+(r/mt*100).toFixed(1).replace('.',',')+'%</td>';}else h+='<td>—</td>';});
+    h+='<td class="orc-tot">'+(sm?(sr/sm*100).toFixed(1).replace('.',',')+'%':'—')+'</td></tr>';
+  });
+  h+='</tbody></table></div><div class="orc-hint" style="margin-top:.6rem">Valores em R$. Na meta realista, o número em cinza é o que vale enquanto você não preencher. Passe o mouse no nome da linha para ver o que cada uma significa.</div>';
+  el.innerHTML=h;
+  metasGrafico(ms);
+}
+function metasGrafico(ms){
+  if(META.chart){META.chart.destroy();META.chart=null;}
+  var cv=document.getElementById('meta-chart');if(!cv||!window.Chart)return;
+  var a=META.ano,i=META.ind;
+  var ds=META_TIPOS.map(function(t){return {label:t[1],data:ms.map(function(m){return metaGet(i,t[0],a,m);}),borderColor:t[2],backgroundColor:t[2],borderWidth:t[0]==='realizado'?3:2,pointRadius:2,tension:.2,spanGaps:false};});
+  ds.push({label:'Meta considerada',data:ms.map(function(m){return metaConsiderada(i,a,m).v||null;}),borderColor:'#fff',borderDash:[5,4],borderWidth:1.5,pointRadius:0,tension:.2});
+  META.chart=new Chart(cv,{type:'line',data:{labels:ms.map(function(m){return ORC_M[m-1];}),datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#8BA0B0',boxWidth:12}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': R$ '+Math.round(c.parsed.y||0).toLocaleString('pt-BR');}}}},scales:{x:{grid:{display:false},ticks:{color:'#6B8BAA'}},y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{color:'#6B8BAA',callback:function(v){return fmtD(v);}}}}}});
+}
+async function metaEdit(inp){
+  var t=inp.getAttribute('data-t'),m=parseInt(inp.getAttribute('data-m')),val=orcParse(inp.value),a=META.ano,i=META.ind,k=metaKey(i,t,a,m),cid=clienteIdAtual(),err=null;
+  var st=document.getElementById('meta-status');
+  if(val===null||val===0){delete META.v[k];var r=await sb.from('orcamento_metas').delete().eq('cliente_id',cid).eq('indicador',i).eq('tipo',t).eq('ano',a).eq('mes',m);err=r&&r.error;}
+  else{val=Math.abs(val);META.v[k]=val;var r2=await sb.from('orcamento_metas').upsert({cliente_id:cid,indicador:i,tipo:t,ano:a,mes:m,valor:val},{onConflict:'cliente_id,indicador,tipo,ano,mes'});err=r2&&r2.error;}
+  metasDesenhar();
+  st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
+}
+function metaNav(el){setPage('metas',el);document.getElementById('topbarTitle').textContent='Orçamento — Metas';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
 
 // ══════════════════════════════════════════════
 // IMPORTAÇÃO DO REALIZADO — aba "Lançamentos" do DFC do franqueado
