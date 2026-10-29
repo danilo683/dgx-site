@@ -3547,7 +3547,7 @@ function orcCalc(S){
   return R;
 }
 function orcDesenhar(){
-  var el=document.getElementById('orc-tbl');if(!el)return;el.classList.toggle('orc-mes',ORC.view==='mes'&&ORC.modo!=='comp');
+  var el=document.getElementById('orc-tbl');if(!el)return;el.classList.toggle('orc-mes',ORC.modo!=='comp');
   var tb=document.querySelectorAll('#orc-tabs button');for(var q=0;q<tb.length;q++)tb[q].classList.toggle('active',tb[q].getAttribute('data-m')===ORC.modo);
   var cb=document.getElementById('orc-chartbox');cb.style.display=ORC.modo==='comp'?'block':'none';
   var ib=document.getElementById('orc-imp-btn');if(ib)ib.style.display=ORC.modo==='realizado'?'inline-block':'none';var gb=document.getElementById('orc-gen-btn');if(gb)gb.style.display='none'; /* gerador de orçado: pendente na Fnyx (precisa de Metas/Premissas) */
@@ -3632,8 +3632,9 @@ async function orcPersist(ops){
   ops.forEach(function(o){if(o.valor===null)dels.push(o);else ups.push({cliente_id:cid,tipo:(ORC.modo==='realizado'?'realizado':'orcado'),ano:ORC.ano,mes:o.mes,dia:o.dia,codigo:o.cod,valor:o.valor});});
   orcStatus('Salvando…');
   var err=null;
-  if(ups.length){var r=await sb.from('orcamento_dfc').upsert(ups,{onConflict:'cliente_id,tipo,ano,mes,dia,codigo'});if(r.error)err=r.error;}
+  // apaga primeiro e grava depois (na visão mensal o apagar do mês não pode levar o valor recém-gravado no dia 1)
   for(var i=0;i<dels.length&&!err;i++){var o=dels[i];var q=sb.from('orcamento_dfc').delete().eq('cliente_id',cid).eq('tipo',ORC.modo==='realizado'?'realizado':'orcado').eq('ano',ORC.ano).eq('mes',o.mes).eq('codigo',o.cod);if(o.dia!==null&&o.dia!==undefined)q=q.eq('dia',o.dia);var r2=await q;if(r2.error)err=r2.error;}
+  if(ups.length&&!err){var r=await sb.from('orcamento_dfc').upsert(ups,{onConflict:'cliente_id,tipo,ano,mes,dia,codigo'});if(r.error)err=r.error;}
   if(err){console.error(err);orcStatus('Erro ao salvar: '+(err.message||err),true);}else orcStatus('✓ Salvo');
 }
 function orcSetLocal(m,d,c,val){var k=orcKey(m,d,c),S=orcS();if(val===null||val===0)delete S[k];else S[k]=val;}
