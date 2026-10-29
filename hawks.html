@@ -542,15 +542,24 @@ select.prem-in{text-align:left}
 <script>
 var sb=supabase.createClient('https://mixsehmmwvrbpndavvhp.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1peHNlaG1td3ZyYnBuZGF2dmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDU4NzEsImV4cCI6MjA5NzA4MTg3MX0.h03aDgCiHpH975ZEC0j8A0BnSNdVANoru6ii4rjVjJw');
 
-// ── FILIAL (MT / MG) — controla qual cliente_id é usado nas queries ──
+// ── FILIAL (MT / MG / RJ / ES) — controla qual cliente_id é usado nas queries ──
+// Para adicionar uma nova filial basta incluí-la nesta lista (cliente_id = 'hawks_' + chave).
+var FILIAIS = [
+  {k:'mt', nome:'MT'},
+  {k:'mg', nome:'MG'},
+  {k:'rj', nome:'RJ'},
+  {k:'es', nome:'ES'}
+];
+function filialKeys(){ return FILIAIS.map(function(f){return f.k;}); }
+function filialNomeDe(k){ var f=FILIAIS.filter(function(x){return x.k===k;})[0]; return f?f.nome:String(k).toUpperCase(); }
 function getFilialFromURL(){
   var p = new URLSearchParams(window.location.search);
   var f = (p.get('filial')||'mt').toLowerCase();
-  return (f==='mg') ? 'mg' : 'mt';
+  return filialKeys().indexOf(f)>=0 ? f : 'mt';
 }
 var FILIAL = getFilialFromURL();
 function clienteIdAtual(){ return 'hawks_' + FILIAL; }
-function nomeFilial(){ return FILIAL==='mg' ? 'MG' : 'MT'; }
+function nomeFilial(){ return filialNomeDe(FILIAL); }
 function trocarFilial(f){
   var p = new URLSearchParams(window.location.search);
   p.set('filial', f);
@@ -559,9 +568,9 @@ function trocarFilial(f){
 function renderFilialSwitch(){
   var el = document.getElementById('filialSwitch');
   if(!el) return;
-  el.innerHTML =
-    '<button class="filial-btn'+(FILIAL==='mt'?' active':'')+'" onclick="trocarFilial(\'mt\')">MT</button>'+
-    '<button class="filial-btn'+(FILIAL==='mg'?' active':'')+'" onclick="trocarFilial(\'mg\')">MG</button>';
+  el.innerHTML = FILIAIS.map(function(f){
+    return '<button class="filial-btn'+(FILIAL===f.k?' active':'')+'" onclick="trocarFilial(\''+f.k+'\')">'+f.nome+'</button>';
+  }).join('');
 }
 
 // ── DADOS (serão populados do Supabase) ──────────────────────
@@ -2515,12 +2524,18 @@ function buildTabelaMensal(d,c,temDados,mesLabel){function rowM(lbl,val,cls){cls
 // base, projetada para os 3 próximos meses de competência (rótulo
 // "30/60/90 dias" — como o DFC é mensal, não há vencimento diário aqui).
 // ══════════════════════════════════════════════
-var DISP_DADOS = {mt:{}, mg:{}};
-var DISP_MESES = {mt:[], mg:[]};
-var AJUSTES = {mt:{}, mg:{}};
+function dispObjVazio(){var o={};filialKeys().forEach(function(k){o[k]={};});return o;}
+function dispArrVazio(){var o={};filialKeys().forEach(function(k){o[k]=[];});return o;}
+var DISP_DADOS = dispObjVazio();
+var DISP_MESES = dispArrVazio();
+var AJUSTES = dispObjVazio();
 var DISP_CARREGADO = false;
 var DISP_VIEW = 'mapa';
 var DISP_FIL = FILIAL;
+// Filiais incluídas no Consolidado (mínimo 2). Por padrão, todas.
+var DISP_CONS = filialKeys().slice();
+function dispConsLabel(fils){return (fils||DISP_CONS).map(filialNomeDe).join(' + ');}
+function dispFilDoCliente(cid){var k=String(cid||'').replace(/^hawks_/,'');return filialKeys().indexOf(k)>=0?k:null;}
 var DISP_PROJ_ATUAL = null;
 
 function dispParseComp(dateStr){var p=String(dateStr).split('-');return{ano:parseInt(p[0],10),mes:parseInt(p[1],10)-1};}
@@ -2531,14 +2546,15 @@ async function carregarDisponibilidades(){
     +'pgto_truss,pgto_nao_truss,pgto_pessoal,pgto_mkt,pgto_comissoes,pgto_logistica,'
     +'pgto_ocupacao,pgto_gerais,pgto_terceiros,pgto_impostos,ent_invest,sai_invest,'
     +'emprestimos,pgto_financ';
+  var cids=filialKeys().map(function(k){return 'hawks_'+k;});
   var resultados=await Promise.all([
-    sb.from('dash_dfc').select(cols).in('cliente_id',['hawks_mt','hawks_mg']).order('competencia',{ascending:true}),
-    sb.from('dfc_projecoes_ajustes').select('*').in('cliente_id',['hawks_mt','hawks_mg'])
+    sb.from('dash_dfc').select(cols).in('cliente_id',cids).order('competencia',{ascending:true}),
+    sb.from('dfc_projecoes_ajustes').select('*').in('cliente_id',cids)
   ]);
   var dfcRes=resultados[0], ajRes=resultados[1];
-  DISP_DADOS={mt:{},mg:{}}; DISP_MESES={mt:[],mg:[]};
+  DISP_DADOS=dispObjVazio(); DISP_MESES=dispArrVazio();
   (dfcRes.data||[]).forEach(function(r){
-    var fil=r.cliente_id==='hawks_mg'?'mg':'mt';
+    var fil=dispFilDoCliente(r.cliente_id); if(!fil) return;
     var c=dispParseComp(r.competencia);
     var chave=c.ano+'-'+String(c.mes+1).padStart(2,'0');
     DISP_MESES[fil].push(chave);
@@ -2555,12 +2571,12 @@ async function carregarDisponibilidades(){
       emprestimos:n(r.emprestimos)||0, pgtoFinanc:n(r.pgto_financ)||0
     };
   });
-  ['mt','mg'].forEach(function(f){
+  filialKeys().forEach(function(f){
     DISP_MESES[f].sort(function(a,b){var da=DISP_DADOS[f][a],db=DISP_DADOS[f][b];return(da.ano-db.ano)||(da.mes-db.mes);});
   });
-  AJUSTES={mt:{},mg:{}};
+  AJUSTES=dispObjVazio();
   (ajRes.data||[]).forEach(function(r){
-    var fil=r.cliente_id==='hawks_mg'?'mg':'mt';
+    var fil=dispFilDoCliente(r.cliente_id); if(!fil) return;
     var c=dispParseComp(r.competencia);
     var chave=c.ano+'-'+String(c.mes+1).padStart(2,'0');
     AJUSTES[fil][chave]={entradas:n(r.ajuste_entradas)||0, saidas:n(r.ajuste_saidas)||0, obs:r.observacao||''};
@@ -2604,21 +2620,22 @@ function projetarFilial(fil,qtdMeses){
   });
   return {baseChave:atual.chave, baseSaldo:atual.saldo, mediaEntradas:media.entradas, mediaSaidas:media.saidas, mediaLiquido:media.liquido, meses:resultado};
 }
-function projetarConsolidado(qtdMeses){
-  var mt=projetarFilial('mt',qtdMeses), mg=projetarFilial('mg',qtdMeses);
-  var qtd=Math.max(mt.meses.length,mg.meses.length);
+function projetarConsolidado(qtdMeses,fils){
+  fils=fils||DISP_CONS;
+  var ps=fils.map(function(f){return projetarFilial(f,qtdMeses);});
+  var qtd=Math.max.apply(null,ps.map(function(p){return p.meses.length;}).concat([0]));
   var meses=[];
   for(var i=0;i<qtd;i++){
-    var m1=mt.meses[i],m2=mg.meses[i];
-    meses.push({
-      chave:(m1&&m1.chave)||(m2&&m2.chave),
-      entradas:(m1?m1.entradas:0)+(m2?m2.entradas:0),
-      saidas:(m1?m1.saidas:0)+(m2?m2.saidas:0),
-      liquido:(m1?m1.liquido:0)+(m2?m2.liquido:0),
-      saldo:(m1?m1.saldo:0)+(m2?m2.saldo:0)
+    var m={chave:null,entradas:0,saidas:0,liquido:0,saldo:0};
+    ps.forEach(function(p){
+      var x=p.meses[i]; if(!x) return;
+      m.chave=m.chave||x.chave; m.entradas+=x.entradas; m.saidas+=x.saidas; m.liquido+=x.liquido; m.saldo+=x.saldo;
     });
+    meses.push(m);
   }
-  return {baseChave:mt.baseChave||mg.baseChave, baseSaldo:(mt.baseSaldo||0)+(mg.baseSaldo||0), mediaEntradas:(mt.mediaEntradas||0)+(mg.mediaEntradas||0), mediaSaidas:(mt.mediaSaidas||0)+(mg.mediaSaidas||0), mediaLiquido:(mt.mediaLiquido||0)+(mg.mediaLiquido||0), meses:meses};
+  var soma=function(k){return ps.reduce(function(a,p){return a+(p[k]||0);},0);};
+  var base=null; ps.forEach(function(p){if(p.baseChave&&(!base||p.baseChave>base))base=p.baseChave;});
+  return {baseChave:base, baseSaldo:soma('baseSaldo'), mediaEntradas:soma('mediaEntradas'), mediaSaidas:soma('mediaSaidas'), mediaLiquido:soma('mediaLiquido'), meses:meses};
 }
 
 function renderDFCDisponibilidades(){
@@ -2636,15 +2653,38 @@ function dispHTML(){
     +'<button class="dfc-nav-btn'+(DISP_VIEW==='mapa'?' active':'')+'" onclick="dispShowView(\'mapa\',this)">Mapa 30/60/90</button>'
     +'<button class="dfc-nav-btn'+(DISP_VIEW==='projecoes'?' active':'')+'" onclick="dispShowView(\'projecoes\',this)">Proje\u00e7\u00f5es</button>'
     +'</div><div class="filial-switch" id="dispFilialSwitch">'
-    +'<button class="filial-btn'+(DISP_FIL==='mt'?' active':'')+'" onclick="dispSetFilial(\'mt\',this)">MT</button>'
-    +'<button class="filial-btn'+(DISP_FIL==='mg'?' active':'')+'" onclick="dispSetFilial(\'mg\',this)">MG</button>'
+    +FILIAIS.map(function(f){return '<button class="filial-btn'+(DISP_FIL===f.k?' active':'')+'" onclick="dispSetFilial(\''+f.k+'\',this)">'+f.nome+'</button>';}).join('')
     +'<button class="filial-btn'+(DISP_FIL==='cons'?' active':'')+'" onclick="dispSetFilial(\'cons\',this)">Consolidado</button>'
-    +'</div></div><div id="disp-conteudo"></div>';
+    +'</div></div><div id="dispConsSel"></div><div id="disp-conteudo"></div>';
+}
+// Seletor das filiais que entram no Consolidado (mínimo 2 marcadas).
+function dispRenderConsSel(){
+  var el=document.getElementById('dispConsSel'); if(!el) return;
+  if(DISP_FIL!=='cons'){el.innerHTML='';return;}
+  el.innerHTML='<div class="disp-cons-sel" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 1rem;font-size:12px;color:#8BA0B0">'
+    +'<span>Filiais no consolidado:</span>'
+    +FILIAIS.map(function(f){
+      var on=DISP_CONS.indexOf(f.k)>=0;
+      return '<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:'+(on?'#E8EEF2':'#8BA0B0')+'"><input type="checkbox" '+(on?'checked ':'')+'onchange="dispToggleCons(\''+f.k+'\',this.checked)">'+f.nome+'</label>';
+    }).join('')
+    +'<span style="opacity:.7">(mínimo 2)</span></div>';
+}
+function dispToggleCons(k,on){
+  var s=DISP_CONS.slice(), i=s.indexOf(k);
+  if(on&&i<0)s.push(k);
+  if(!on&&i>=0){
+    if(s.length<=2){dispRenderConsSel();return;}
+    s.splice(i,1);
+  }
+  DISP_CONS=filialKeys().filter(function(x){return s.indexOf(x)>=0;});
+  dispRenderConsSel();
+  dispRenderConteudo();
 }
 function dispShowView(v,el){DISP_VIEW=v;document.querySelectorAll('#disp-sub-nav .dfc-nav-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');dispRenderConteudo();}
-function dispSetFilial(f,el){DISP_FIL=f;document.querySelectorAll('#dispFilialSwitch .filial-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');dispRenderConteudo();}
+function dispSetFilial(f,el){DISP_FIL=f;document.querySelectorAll('#dispFilialSwitch .filial-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');dispRenderConsSel();dispRenderConteudo();}
 
 function dispRenderConteudo(){
+  dispRenderConsSel();
   if(DISP_VIEW==='mapa'){dispMapaOrcado(document.getElementById('disp-conteudo'));return;}
   var proj=DISP_FIL==='cons'?projetarConsolidado(3):projetarFilial(DISP_FIL,3);
   DISP_PROJ_ATUAL=proj;
@@ -2704,7 +2744,7 @@ function dispMiniSpark(valores,minG,maxG,cor){
 }
 function dispMapaHTML(proj){
   var labels=['30 dias','60 dias','90 dias'];
-  var catsBase = DISP_FIL==='cons' ? dispSomarCategorias(dispMediaCategorias('mt'),dispMediaCategorias('mg')) : dispMediaCategorias(DISP_FIL);
+  var catsBase = DISP_FIL==='cons' ? DISP_CONS.reduce(function(a,f){return dispSomarCategorias(a,dispMediaCategorias(f));},{}) : dispMediaCategorias(DISP_FIL);
   var pontos=[proj.baseSaldo].concat(proj.meses.map(function(m){return m.saldo;}));
   var minG=Math.min.apply(null,pontos), maxG=Math.max.apply(null,pontos);
   var cardsHtml=proj.meses.map(function(m,i){
@@ -2729,7 +2769,7 @@ function dispMapaHTML(proj){
   return '<div class="disp-section-label">Mapa 30/60/90 \u2014 compromissos e disponibilidade de caixa</div>'
     +'<div class="disp-atual-line">Saldo atual de caixa: <strong>'+fmtD(proj.baseSaldo)+'</strong>'+(proj.baseChave?(' \u00b7 posi\u00e7\u00e3o ao final de '+rotuloMesChave(proj.baseChave)):'')+'</div>'
     +'<div class="disp-cards-row">'+cardsHtml+'</div>'
-    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Trajet\u00f3ria do dispon\u00edvel projetado</div><div class="dfc-chart-sub">Saldo de hoje at\u00e9 +90 dias (m\u00e9dia m\u00f3vel de 3 meses'+(DISP_FIL==='cons'?', MT + MG':'')+', com ajustes manuais quando lan\u00e7ados)</div><div style="height:200px;position:relative"><canvas id="dispChartSaldo"></canvas></div></div>'
+    +'<div class="dfc-chart-card"><div class="dfc-chart-title">Trajet\u00f3ria do dispon\u00edvel projetado</div><div class="dfc-chart-sub">Saldo de hoje at\u00e9 +90 dias (m\u00e9dia m\u00f3vel de 3 meses'+(DISP_FIL==='cons'?', '+dispConsLabel():'')+', com ajustes manuais quando lan\u00e7ados)</div><div style="height:200px;position:relative"><canvas id="dispChartSaldo"></canvas></div></div>'
     +'<div class="disp-note">* O DFC \u00e9 mensal; \u201830/60/90 dias\u2019 corresponde aos 3 pr\u00f3ximos meses de compet\u00eancia ap\u00f3s '+(proj.baseChave?rotuloMesChave(proj.baseChave):'o \u00faltimo m\u00eas realizado')+', n\u00e3o a um c\u00e1lculo di\u00e1rio por vencimento de t\u00edtulo. Os itens de cada card usam a m\u00e9dia dos \u00faltimos 3 meses por categoria; a press\u00e3o projetada compara sa\u00eddas e entradas esperadas do per\u00edodo.</div>';
 }
 function dispRenderChartMapa(proj){
@@ -2742,7 +2782,7 @@ function dispRenderChartMapa(proj){
 function dispProjecoesHTML(proj){
   if(DISP_FIL==='cons'){
     return '<div class="dfc-section-label">Ajustes manuais s\u00e3o definidos por filial</div>'
-      +'<div style="font-size:12px;color:#8BA0B0;margin-bottom:1rem">Selecione MT ou MG acima para editar as premissas de entradas/sa\u00eddas esperadas. Abaixo, a proje\u00e7\u00e3o consolidada resultante (MT + MG).</div>'
+      +'<div style="font-size:12px;color:#8BA0B0;margin-bottom:1rem">Selecione uma filial acima ('+FILIAIS.map(function(f){return f.nome;}).join(', ')+') para editar as premissas de entradas/sa\u00eddas esperadas. Abaixo, a proje\u00e7\u00e3o consolidada resultante ('+dispConsLabel()+').</div>'
       +dispMapaHTML(proj);
   }
   var linhas=proj.meses.map(function(m,i){
@@ -2753,7 +2793,7 @@ function dispProjecoesHTML(proj){
       +'<td>'+fmtD(m.saldo)+'</td>'
       +'<td><input type="text" class="disp-input disp-input-obs" id="disp-aj-obs-'+i+'" value="'+escapeHtml(m.obs||'')+'" placeholder="Observa\u00e7\u00e3o (opcional)"></td></tr>';
   }).join('');
-  return '<div class="dfc-section-label">Premissas de proje\u00e7\u00e3o \u2014 '+(DISP_FIL==='mg'?'MG':'MT')+'</div>'
+  return '<div class="dfc-section-label">Premissas de proje\u00e7\u00e3o \u2014 '+filialNomeDe(DISP_FIL)+'</div>'
     +'<div style="font-size:12px;color:#8BA0B0;margin-bottom:1rem">Base: m\u00e9dia m\u00f3vel dos \u00faltimos 3 meses realizados. Use os ajustes para somar ou descontar valores esperados (ex.: um investimento previsto, um pagamento extraordin\u00e1rio) sem alterar o hist\u00f3rico do DFC.</div>'
     +'<div class="dfc-outer"><table class="dfc-tbl"><thead><tr><th style="text-align:left">M\u00eas</th><th>Entradas m\u00e9dia</th><th>Sa\u00eddas m\u00e9dia</th><th>Ajuste entradas (R$)</th><th>Ajuste sa\u00eddas (R$)</th><th>Saldo projetado</th><th>Observa\u00e7\u00e3o</th></tr></thead><tbody>'+linhas+'</tbody></table></div>'
     +'<div style="display:flex;justify-content:flex-end;margin-top:.75rem"><button class="disp-save-btn" onclick="dispSalvarAjustes()">Salvar ajustes</button></div>';
@@ -3850,7 +3890,7 @@ function pedRefresh(){
    ped_upload_bruto (cópia do arquivo original).
 ══════════════════════════════════════════════════════════════════════ */
 var PED_IMP = null, PED_PODE_IMPORTAR = false, PED_FRANQUEADO_IMPORTA = false, PED_AVISO_OK = '', PED_DEC_PAG = {};
-function pedImpFilialDoNome(nome){ var m = /^(mg|mt)/i.exec(String(nome||'').trim()); return m ? m[1].toLowerCase() : ''; }
+function pedImpFilialDoNome(nome){ var m = new RegExp('^('+filialKeys().join('|')+')','i').exec(String(nome||'').trim()); return m ? m[1].toLowerCase() : ''; }
 function pedImpDataDoNome(nome){
   var m = /(\d{2})(\d{2})(\d{4}|\d{2})?(?=\D|$)/.exec(String(nome||'')); if (!m) return '';
   var d = +m[1], mo = +m[2], a = m[3] ? (m[3].length===2 ? 2000+(+m[3]) : +m[3]) : new Date().getFullYear();
@@ -5549,10 +5589,18 @@ async function dispOrcFil(fil){
 }
 async function dispMapaOrcado(host){
   host.innerHTML='<div class="dfc-section-label">Carregando o orçado…</div>';
-  var fils=DISP_FIL==='cons'?['mt','mg']:[DISP_FIL],dados=[];
+  var fils=DISP_FIL==='cons'?DISP_CONS.slice():[DISP_FIL],dados=[];
   for(var i=0;i<fils.length;i++)dados.push(await dispOrcFil(fils[i]));
   var erro=dados.filter(function(d){return d.erro;})[0];
   if(erro){host.innerHTML='<div class="dfc-section-label">'+erro.erro+'</div>';return;}
+  // No consolidado, filiais ainda sem nenhum orçado (ex.: operações novas) não zeram os meses das demais:
+  // ficam de fora da soma e são listadas no rodapé.
+  var filsVazias=[];
+  if(DISP_FIL==='cons'){
+    var comDados=[],dadosOk=[];
+    fils.forEach(function(f,i){if(Object.keys(dados[i].orc).length){comDados.push(f);dadosOk.push(dados[i]);}else filsVazias.push(f);});
+    if(comDados.length){fils=comDados;dados=dadosOk;}else filsVazias=[];
+  }
   var lastReal=Math.max.apply(null,dados.map(function(d){return d.lastReal;}));
   if(!lastReal){var h=new Date();lastReal=h.getFullYear()*12+h.getMonth();}
   var meses=[1,2,3].map(function(k){var mk=lastReal+k;return {mk:mk,chave:Math.floor(mk/12)+'-'+String((mk%12)+1).padStart(2,'0')};});
@@ -5590,8 +5638,8 @@ async function dispMapaOrcado(host){
   host.innerHTML='<div class="disp-section-label">Mapa 30/60/90 — vem do Orçado</div>'
    +'<div class="disp-atual-line">Caixa inicial do período: <strong>'+(iniOk?fmtD(saldoHoje):'sem caixa inicial')+'</strong> · meses após o último realizado ('+(lastReal?rotuloMesChave(ult):'—')+')</div>'
    +'<div class="disp-cards-row">'+cards+'</div>'
-   +'<div class="dfc-chart-card"><div class="dfc-chart-title">Trajetória do disponível projetado</div><div class="dfc-chart-sub">Caixa inicial + orçado de cada mês'+(DISP_FIL==='cons'?' (MT + MG)':'')+'. Meses sem orçado ficam em branco.</div><div style="height:200px;position:relative"><canvas id="dispChartSaldo"></canvas></div></div>'
-   +'<div class="disp-note">* Os valores vêm do <b>Orçado</b> (Orçamento → Orçado), calculado a partir das Metas e Premissas e editável por você. Nada aqui usa média histórica. O DFC é mensal: "30/60/90 dias" são os 3 meses seguintes ao último realizado; o fluxo por vencimento de título (semanal) depende do contas a pagar.</div>';
+   +'<div class="dfc-chart-card"><div class="dfc-chart-title">Trajetória do disponível projetado</div><div class="dfc-chart-sub">Caixa inicial + orçado de cada mês'+(DISP_FIL==='cons'?' ('+dispConsLabel(fils)+')':'')+'. Meses sem orçado ficam em branco.</div><div style="height:200px;position:relative"><canvas id="dispChartSaldo"></canvas></div></div>'
+   +'<div class="disp-note">* Os valores vêm do <b>Orçado</b> (Orçamento → Orçado), calculado a partir das Metas e Premissas e editável por você. Nada aqui usa média histórica. O DFC é mensal: "30/60/90 dias" são os 3 meses seguintes ao último realizado; o fluxo por vencimento de título (semanal) depende do contas a pagar.'+(filsVazias.length?' <b>Sem orçado ainda (fora da soma):</b> '+dispConsLabel(filsVazias)+'.':'')+'</div>';
   setTimeout(function(){
     var c=Chart.getChart('dispChartSaldo');if(c)c.destroy();var cv=document.getElementById('dispChartSaldo');if(!cv)return;
     new Chart(cv,{type:'line',data:{labels:['Início'].concat(meses.map(function(m,i){return labels[i];})),datasets:[{data:pontos,borderColor:CYAN,backgroundColor:'rgba(0,212,218,0.08)',fill:true,tension:0.3,pointRadius:5,pointBackgroundColor:CYAN,borderWidth:2.5,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC,callback:function(v){return fmtD(v);}}}}}});
