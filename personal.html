@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="/wolves-financeiro.js"></script>
+<script src="/prospects.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1035,7 +1036,7 @@ function sairPersonal() {
       <a class="sb-link" href="#compras" data-page="compras"><span class="ico">🛒</span>Lista de Compras</a>
       <a class="sb-link" href="#investimentos" data-page="investimentos"><span class="ico">📈</span>Investimentos</a>
       <a class="sb-link" href="#wolves" data-page="wolves"><span class="ico">🐺</span>Wolves</a>
-      <a class="sb-link disabled" href="#" onclick="return false;" aria-disabled="true" title="Em breve"><span class="ico">🧲</span>Prospects<span class="sb-soon">em breve</span></a>
+      <a class="sb-link" href="#prospects" data-page="prospects"><span class="ico">🧲</span>Prospects</a>
     </nav>
     <div class="sb-foot">
       <a class="sb-link sair" href="#" onclick="sairPersonal(); return false;"><span class="ico">⏻</span>Sair</a>
@@ -1534,6 +1535,15 @@ function sairPersonal() {
       <p>Saldo em caixa, inadimplência e itens pendentes de conciliação, direto da planilha do time.</p>
     </div>
     <div id="wolves-financeiro-container"></div>
+  </section>
+
+  <section id="prospects" class="page">
+    <div class="page-head">
+      <div class="eyebrow">Comercial</div>
+      <h1>🧲 Prospects</h1>
+      <p>Funil de novos clientes da DGX: do primeiro contato ao contrato. Arraste os cartões entre as etapas.</p>
+    </div>
+    <div id="prospects-container"></div>
   </section>
 
     </main>
@@ -3962,7 +3972,7 @@ function sairPersonal() {
   }
 
   // ── Navegação entre páginas ──
-  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos', wolves: 'Wolves' };
+  const PAGES = { inicio: 'Início', visoes: 'Visões de Futuro', metas: 'Metas & Tarefas', atividades: 'Atividades', habitos: 'Hábitos', diario: 'Diário', frases: 'Frases', sonhos: 'Quadro dos Sonhos', compras: 'Lista de Compras', investimentos: 'Investimentos', wolves: 'Wolves', prospects: 'Prospects' };
   function showPage(id) {
     if (!PAGES[id]) id = 'inicio';
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
@@ -3973,6 +3983,9 @@ function sairPersonal() {
     if (id === 'inicio') renderInicio();
     if (id === 'wolves' && typeof window.renderWolvesFinanceiro === 'function') {
       window.renderWolvesFinanceiro(document.getElementById('wolves-financeiro-container'));
+    }
+    if (id === 'prospects' && typeof window.renderProspects === 'function') {
+      window.renderProspects(document.getElementById('prospects-container'));
     }
   }
   window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
