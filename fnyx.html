@@ -448,19 +448,32 @@ function normGrupo(g){
   return 'outros';
 }
 
+var FV_COLS = 'competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,desconto,cmv_total,reembolso_total,margem,margem_gb';
+var FV_INCOMPLETO = false;
+function avisoVendasIncompletas(n){
+  var el = document.getElementById('fv-aviso');
+  if (!el) { el = document.createElement('div'); el.id = 'fv-aviso'; el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a2a2a;color:#fff;font-size:13px;padding:8px 14px;text-align:center'; document.body.appendChild(el); }
+  el.innerHTML = 'Aten\u00e7\u00e3o: n\u00e3o foi poss\u00edvel carregar todas as vendas (' + n.toLocaleString('pt-BR') + ' linhas lidas). Os n\u00fameros podem estar incompletos \u2014 recarregue a p\u00e1gina. <a href="#" style="color:#fff;margin-left:10px" onclick="location.reload();return false">Recarregar</a>';
+}
+// Lê as vendas ordenadas por id, sempre a partir do último id lido (sem "pular" linhas por posição).
+// Isso evita a leitura lenta/cortada por tempo limite do banco. Tenta de novo se uma página falhar e
+// avisa na tela se, mesmo assim, ficar faltando dado.
 async function fetchFatoVendas(clienteId){
-  var all = [], from = 0, pageSize = 1000;
+  var all = [], last = null, pageSize = 1000;
+  FV_INCOMPLETO = false;
   while (true) {
-    var res = await sb.from('fato_vendas')
-      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,desconto,cmv_total,reembolso_total,margem,margem_gb')
-      .eq('cliente_id', clienteId)
-      .range(from, from + pageSize - 1);
-    if (res.error) { console.error('fetchFatoVendas', res.error); break; }
-    var data = res.data;
-    if (!data || !data.length) break;
+    var data = null, erro = null;
+    for (var tent = 0; tent < 3 && data === null; tent++) {
+      var q = sb.from('fato_vendas').select('id,' + FV_COLS).eq('cliente_id', clienteId).order('id').limit(pageSize);
+      if (last !== null) q = q.gt('id', last);
+      var res = await q;
+      if (res.error || !res.data) { erro = res.error; console.warn('fetchFatoVendas: tentativa ' + (tent + 1) + ' falhou', erro); await new Promise(function(r){ setTimeout(r, 800 * (tent + 1)); }); }
+      else data = res.data;
+    }
+    if (data === null) { console.error('fetchFatoVendas', erro); FV_INCOMPLETO = true; avisoVendasIncompletas(all.length); break; }
     all = all.concat(data);
     if (data.length < pageSize) break;
-    from += pageSize;
+    last = data[data.length - 1].id;
   }
   return all;
 }
