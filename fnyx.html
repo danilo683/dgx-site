@@ -448,11 +448,34 @@ function normGrupo(g){
   return 'outros';
 }
 
+var FV_COLS = 'competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,desconto,cmv_total,reembolso_total,margem,margem_gb';
+// Lê as vendas em páginas de 1.000 linhas, várias ao mesmo tempo (antes era uma página por vez).
+// Se não conseguir contar as linhas ou alguma página falhar, volta ao modo sequencial original.
 async function fetchFatoVendas(clienteId){
-  var all = [], from = 0, pageSize = 1000;
+  var pageSize = 1000, simultaneas = 6;
+  try {
+    var cnt = await sb.from('fato_vendas').select('sku', { count:'exact', head:true }).eq('cliente_id', clienteId);
+    if (!cnt.error && typeof cnt.count === 'number') {
+      if (cnt.count === 0) return [];
+      var nPag = Math.ceil(cnt.count / pageSize), paginas = new Array(nPag), falhou = false;
+      for (var ini = 0; ini < nPag && !falhou; ini += simultaneas) {
+        var lote = [];
+        for (var p = ini; p < Math.min(ini + simultaneas, nPag); p++) {
+          lote.push((function(pg){
+            return sb.from('fato_vendas').select(FV_COLS).eq('cliente_id', clienteId).range(pg*pageSize, pg*pageSize + pageSize - 1)
+              .then(function(res){ if (res.error || !res.data) { falhou = true; return; } paginas[pg] = res.data; });
+          })(p));
+        }
+        await Promise.all(lote);
+      }
+      if (!falhou) return [].concat.apply([], paginas);
+      console.warn('fetchFatoVendas: leitura paralela falhou, usando modo sequencial');
+    }
+  } catch (e) { console.warn('fetchFatoVendas: leitura paralela indisponível, usando modo sequencial', e); }
+  var all = [], from = 0;
   while (true) {
     var res = await sb.from('fato_vendas')
-      .select('competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,desconto,cmv_total,reembolso_total,margem,margem_gb')
+      .select(FV_COLS)
       .eq('cliente_id', clienteId)
       .range(from, from + pageSize - 1);
     if (res.error) { console.error('fetchFatoVendas', res.error); break; }
