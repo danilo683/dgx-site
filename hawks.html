@@ -217,6 +217,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ini-fil-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:12px;color:#8BA0B0;flex-wrap:wrap}
 .ini-fil-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:12px;color:#8BA0B0;margin:2px 0 6px}
 .ini-fil-pick label{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.ini-ord{display:flex;align-items:center;gap:8px;font-size:11px;color:#8BA0B0;margin:0 0 10px}
+.ini-ord select{background:rgba(255,255,255,0.06);color:#E8EEF2;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:3px 8px;font-size:11px}
+.ini-ord button{background:rgba(255,255,255,0.06);color:#E8EEF2;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer}
 .plano-item-desc{font-size:12px;color:#8BA0B0;margin-top:4px;line-height:1.5}
 .plano-item-data{font-size:11px;color:#00B4D8;margin-top:5px}
 .plano-progresso-bar-wrap{margin-top:8px;display:flex;align-items:center;gap:10px}
@@ -1040,6 +1043,66 @@ function hwIniFiltroHTML(){
     +FILIAIS.map(function(f){return '<button class="filial-btn'+(hwIniFiltro===f.k?' active':'')+'" onclick="hwIniSetFiltro(\''+f.k+'\')">'+f.nome+'</button>';}).join('')
     +'</div><span style="opacity:.7">itens marcados para a filial escolhida + os de "Todas"</span>';
 }
+// ── ORDENAÇÃO (Plano de Ação e Cronograma) ──
+var HW_ORD_OPCOES = {
+  plano:[['criacao','Criação'],['prazo','Prazo'],['filial','Operação'],['tipo','Tipo'],['situacao','Situação']],
+  crono:[['data','Data'],['filial','Operação']]
+};
+var hwOrd = {plano:{c:'criacao',d:1}, crono:{c:'data',d:1}}; // d: 1 = crescente, -1 = decrescente
+try{
+  var _o=JSON.parse(localStorage.getItem('hw_ini_ord')||'null');
+  ['plano','crono'].forEach(function(w){
+    if(_o&&_o[w]&&HW_ORD_OPCOES[w].some(function(x){return x[0]===_o[w].c;})&&(_o[w].d===1||_o[w].d===-1)) hwOrd[w]={c:_o[w].c,d:_o[w].d};
+  });
+}catch(e){}
+function hwOrdSalvar(){ try{localStorage.setItem('hw_ini_ord',JSON.stringify(hwOrd));}catch(e){} }
+function hwOrdHTML(w){
+  var o=hwOrd[w];
+  return '<span>Ordenar por</span><select onchange="hwOrdSetCampo(\''+w+'\',this.value)">'
+    +HW_ORD_OPCOES[w].map(function(x){return '<option value="'+x[0]+'"'+(o.c===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')
+    +'</select><button onclick="hwOrdInverter(\''+w+'\')" title="Inverter a ordem">'+(o.d===1?'↑ crescente':'↓ decrescente')+'</button>';
+}
+function hwOrdRender(){
+  ['plano','crono'].forEach(function(w){var el=document.getElementById(w+'-ord'); if(el) el.innerHTML=hwOrdHTML(w);});
+}
+function hwOrdAplicar(w){ hwOrdRender(); hwOrdSalvar(); if(w==='plano') hwPlanoRender(); else hwCronoRenderListas(); }
+function hwOrdSetCampo(w,c){ hwOrd[w].c=c; hwOrdAplicar(w); }
+function hwOrdInverter(w){ hwOrd[w].d=-hwOrd[w].d; hwOrdAplicar(w); }
+// Operação = filial. "Todas" vem primeiro; itens com várias filiais entram pela primeira delas (ordem MT, MG, RJ, ES).
+function hwFilialChave(item){
+  var f=hwFiliaisDe(item); if(f.indexOf('todas')>=0) return -1;
+  var ks=filialKeys();
+  return Math.min.apply(null,f.map(function(k){var i=ks.indexOf(k);return i<0?99:i;}));
+}
+function hwCmp(a,b){ return a<b?-1:(a>b?1:0); }
+function hwPlanoOrdenar(lista){
+  var c=hwOrd.plano.c, d=hwOrd.plano.d;
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var rank=function(i){ if(i.concluido) return 2; return (i.data_alvo && new Date(i.data_alvo+'T00:00:00')<hoje)?0:1; };
+  var arr=lista.map(function(x,i){return {x:x,i:i};});
+  arr.sort(function(A,B){
+    var a=A.x,b=B.x,r=0;
+    if(c==='prazo'){
+      if(!a.data_alvo&&!b.data_alvo) r=0; else if(!a.data_alvo) return 1; else if(!b.data_alvo) return -1;
+      else r=hwCmp(a.data_alvo,b.data_alvo)*d;
+    }
+    else if(c==='filial') r=hwCmp(hwFilialChave(a),hwFilialChave(b))*d;
+    else if(c==='tipo') r=hwCmp(a.tipo,b.tipo)*d;
+    else if(c==='situacao') r=hwCmp(rank(a),rank(b))*d;
+    else return (A.i-B.i)*d; // criação
+    if(r) return r;
+    if(a.data_alvo||b.data_alvo){ if(!a.data_alvo) return 1; if(!b.data_alvo) return -1; var t=hwCmp(a.data_alvo,b.data_alvo); if(t) return t; }
+    return A.i-B.i;
+  });
+  return arr.map(function(o){return o.x;});
+}
+function hwCronoOrdenar(lista){
+  var c=hwOrd.crono.c, d=hwOrd.crono.d;
+  var porData=function(a,b){ return hwCmp(a.data,b.data)||hwCmp(String(a.hora||''),String(b.hora||'')); };
+  if(c==='data'){ var prox=lista.slice().sort(porData).slice(0,5); return d===1?prox:prox.reverse(); } // próximos 5 por data
+  // por operação: mostra todos os futuros (sem o corte de 5)
+  return lista.slice().sort(function(a,b){ return (hwCmp(hwFilialChave(a),hwFilialChave(b))*d)||porData(a,b); });
+}
 function hwIniSetFiltro(k){
   hwIniFiltro=k;
   var el=document.getElementById('ini-fil-filtro'); if(el) el.innerHTML=hwIniFiltroHTML();
@@ -1055,6 +1118,7 @@ function inicioHTML(){
           <h3>Plano de Ação <span class="plano-progresso-resumo" id="plano-progresso-resumo"></span></h3>
           <button class="ini-add-btn" onclick="hwPlanoFormToggle()">+ Novo item</button>
         </div>
+        <div class="ini-ord" id="plano-ord"></div>
         <div class="ini-mini-form" id="plano-form">
           <select id="plano-form-tipo">
             <option value="acao">Ação</option>
@@ -1083,6 +1147,7 @@ function inicioHTML(){
           <h3>Cronograma</h3>
           <button class="ini-add-btn" onclick="hwCronoFormToggle()">+ Novo evento</button>
         </div>
+        <div class="ini-ord" id="crono-ord"></div>
         <div class="ini-mini-form" id="crono-form">
           <div class="ini-mini-form-row">
             <select id="crono-form-tipo">
@@ -1132,6 +1197,7 @@ function inicioHTML(){
 }
 
 function initInicio(){
+  hwOrdRender();
   hwPlanoCarregar();
   hwCronoCarregar();
 }
@@ -1163,7 +1229,7 @@ async function hwPlanoCarregar(){
 
 function hwPlanoRender(){
   var vazio=document.getElementById('plano-vazio'), resumo=document.getElementById('plano-progresso-resumo');
-  var data = hwPlanoDados.filter(hwFiliaisVisivel);
+  var data = hwPlanoOrdenar(hwPlanoDados.filter(hwFiliaisVisivel));
 
   if(!data.length){
     vazio.style.display='block'; vazio.textContent=hwPlanoDados.length?'Nenhum item do plano de ação para esta filial.':'Nenhum item no plano de ação ainda.';
@@ -1383,8 +1449,8 @@ function hwCronoRenderListas(){
     return d >= hoje;
   });
 
-  var encontros = futuros.filter(function(e){return e.tipo==='encontro';}).slice(0,5);
-  var entregas = futuros.filter(function(e){return e.tipo==='entrega';}).slice(0,5);
+  var encontros = hwCronoOrdenar(futuros.filter(function(e){return e.tipo==='encontro';}));
+  var entregas = hwCronoOrdenar(futuros.filter(function(e){return e.tipo==='entrega';}));
 
   function renderLista(lista){
     return lista.map(function(e){
