@@ -1389,6 +1389,42 @@ function agregarProdutos(mesKey, categoriaKey){
   return { produtos: lista, margemGBCategoria: margemGBCategoria, totalReceita: totalReceitaCategoria };
 }
 
+var quadrantBgPlugin = {
+  id: 'quadrantBg',
+  beforeDraw: function(chart){
+    var opts = chart.config.options.plugins && chart.config.options.plugins.quadrantBg;
+    if (!opts || !opts.show) return;
+    var ctx = chart.ctx, xScale = chart.scales.x, yScale = chart.scales.y;
+    if (!xScale || !yScale) return;
+    var left=xScale.left, right=xScale.right, top=yScale.top, bottom=yScale.bottom;
+    var xPix = Math.max(left, Math.min(right, xScale.getPixelForValue(opts.xSplit)));
+    var yPix = Math.max(top, Math.min(bottom, yScale.getPixelForValue(opts.ySplit)));
+    ctx.save();
+    ctx.fillStyle = 'rgba(46,204,113,0.10)';  ctx.fillRect(xPix, top, right-xPix, yPix-top);      // cima-direita: Destaques
+    ctx.fillStyle = 'rgba(192,57,43,0.10)';   ctx.fillRect(left, top, xPix-left, yPix-top);        // cima-esquerda: Atenção
+    ctx.fillStyle = 'rgba(0,180,216,0.08)';   ctx.fillRect(xPix, yPix, right-xPix, bottom-yPix);   // baixo-direita: Nicho rentável
+    ctx.fillStyle = 'rgba(107,139,170,0.08)'; ctx.fillRect(left, yPix, xPix-left, bottom-yPix);    // baixo-esquerda: Baixa prioridade
+    ctx.strokeStyle = 'rgba(226,234,244,0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xPix, top); ctx.lineTo(xPix, bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left, yPix); ctx.lineTo(right, yPix); ctx.stroke();
+    ctx.restore();
+  }
+};
+function quadLegendItemHTML(cor,titulo,desc){
+  return '<div style="display:flex;gap:8px;align-items:flex-start">'
+    +'<span style="width:13px;height:13px;border-radius:3px;background:'+cor+';flex-shrink:0;margin-top:2px"></span>'
+    +'<span style="font-size:11px;color:#8BA0B0;line-height:1.4"><b style="color:#E2EAF4;font-size:11.5px">'+titulo+'</b><br>'+desc+'</span>'
+    +'</div>';
+}
+
+// Cor da bolha = cor do quadrante da legenda (Destaques, Aten\u00e7\u00e3o, Nicho rent\u00e1vel, Baixa prioridade)
+function quadCor(pt, yHalf){
+  var alto = pt.y > yHalf, acima = pt.x >= 0;
+  if (alto && acima)  return { borda:'#2ECC71', bg:'rgba(46,204,113,0.65)' };
+  if (alto && !acima) return { borda:'#c0392b', bg:'rgba(192,57,43,0.65)' };
+  if (!alto && acima) return { borda:'#00B4D8', bg:'rgba(0,180,216,0.65)' };
+  return { borda:'#6B8BAA', bg:'rgba(107,139,170,0.65)' };
+}
 function produtosHTML(){
   var meses = mesesDisponiveisFV();
   if (!meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda.</div>';
@@ -1410,8 +1446,16 @@ function produtosHTML(){
     +'</div>'
     +'<div class="chart-card">'
     +'<div class="chart-title">Faturamento \u00d7 Varia\u00e7\u00e3o de Margem vs. GB</div>'
-    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.) \u00b7 Eixo Y: % do faturamento da categoria \u00b7 Tamanho da bolha: faturamento em R$</div>'
-    +'<div style="height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
+    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.), dividido em 0 \u00b7 Eixo Y: % do faturamento da categoria, dividido na metade \u00b7 Tamanho da bolha: faturamento em R$</div>'
+    +'<div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">'
+    +'<div style="flex:1;min-width:280px;height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
+    +'<div style="width:190px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;justify-content:center">'
+    +quadLegendItemHTML('#2ECC71','Destaques','Alto faturamento, acima da Margem GB')
+    +quadLegendItemHTML('#c0392b','Aten\u00e7\u00e3o','Alto faturamento, abaixo da Margem GB')
+    +quadLegendItemHTML('#00B4D8','Nicho rent\u00e1vel','Baixo faturamento, acima da Margem GB')
+    +quadLegendItemHTML('#6B8BAA','Baixa prioridade','Baixo faturamento, abaixo da Margem GB')
+    +'</div>'
+    +'</div>'
     +'</div>'
     +'<div class="chart-sub" style="margin-top:-4px">Mostrando os '+produtosState.top+' produtos de maior faturamento na categoria/m\u00eas selecionados.</div>'
     +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · N\u00e3o compartilhar</div>';
@@ -1479,24 +1523,28 @@ function renderProdutosCharts(){
     var pontos = top.filter(function(p){ return p.variacaoPP !== null; }).map(function(p){
       return { x:p.variacaoPP, y:p.pctFaturamento, r:raio(p.receita), _p:p };
     });
+    var yMaxObs = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return p.y; })) : 0;
+    var yHalf = yMaxObs / 2;
+    var xAbsMax = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return Math.abs(p.x); })) : 0;
     new Chart(document.getElementById('chartProdutosScatter'),{
       type:'bubble',
+      plugins:[quadrantBgPlugin],
       data:{ datasets:[{
         label:'Produtos',
         data:pontos,
-        backgroundColor:pontos.map(function(pt){ return pt.x>=0 ? 'rgba(46,204,113,0.65)' : 'rgba(192,57,43,0.65)'; }),
-        borderColor:pontos.map(function(pt){ return pt.x>=0 ? '#2ECC71' : '#c0392b'; }),
+        backgroundColor:pontos.map(function(pt){ var q=quadCor(pt,yHalf); return q.bg; }),
+        borderColor:pontos.map(function(pt){ return quadCor(pt,yHalf).borda; }),
         borderWidth:1
       }] },
       options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false},
+        plugins:{ legend:{display:false}, quadrantBg:{ show:true, xSplit:0, ySplit:yHalf },
           tooltip:{ callbacks:{ label:function(c){
             var p = c.raw._p;
-            return [p.produto, '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
+            return [p.produto, 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
           } } } },
         scales:{
-          x:{ title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
-          y:{ title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+          x:{ min:xAbsMax?-Math.ceil(xAbsMax*1.15):-1, max:xAbsMax?Math.ceil(xAbsMax*1.15):1, title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
+          y:{ min:0, max:yMaxObs?Math.ceil(yMaxObs*1.08):1, title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
         } }
     });
   }
