@@ -538,7 +538,7 @@ select.prem-in{text-align:left}
     <div class="sidebar-section">Comercial</div>
     <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
-    <div class="nav-item disabled"><span class="nav-icon">📦</span>Produtos<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item" id="nav-produtos" onclick="setPage('produtos',this)"><span class="nav-icon">📦</span>Produtos</div>
     <div class="nav-item" id="nav-estoque" onclick="setPage('estoque',this)"><span class="nav-icon">🏭</span>Estoque</div>
     <div class="sidebar-section">Ferramentas</div>
     <div class="nav-item" id="nav-simulador" onclick="setPage('simulador',this)"><span class="nav-icon">🧮</span>Simulador</div>
@@ -684,7 +684,7 @@ async function fetchPaginado(tabela, colunas, clienteId, pageSize){
 
 function fetchFatoVendas(clienteId){
   return fetchPaginado('fato_vendas',
-    'competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem,valor_gb,valor_total',
+    'competencia,tipo_operacao,tipologia,grupo,vendedor,sku,produto,qtd,valor_liquido,cmv_total,reembolso_total,margem,margem_gb,valor_gb,valor_total',
     clienteId);
 }
 
@@ -983,7 +983,7 @@ function doLogout(){sb.auth.signOut().then(function(){window.location.href='/cli
 var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',estoque:'',simulador:'Simula\u00e7\u00e3o',projecao:'Set/26 \u2013 Dez/29',orcamento:'Planejamento di\u00e1rio e mensal',premorc:'Cen\u00e1rios e premissas',metas:'Franqueador, franqueado, realista e realizado'};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',projecao:'Proje\u00e7\u00e3o DFC \u2014 3 anos',orcamento:'Or\u00e7amento',premorc:'Or\u00e7amento \u2014 Premissas',metas:'Or\u00e7amento \u2014 Metas',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',simulador:'Simulador'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',projecao:'Proje\u00e7\u00e3o DFC \u2014 3 anos',orcamento:'Or\u00e7amento',premorc:'Or\u00e7amento \u2014 Premissas',metas:'Or\u00e7amento \u2014 Metas',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',produtos:'An\u00e1lise de Produtos',simulador:'Simulador'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -998,6 +998,7 @@ function renderPage(page){
   else if(page==='orcamento'){c.innerHTML=orcHTML();initOrcamento();}
   else if(page==='projecao'){c.innerHTML=projecaoHTML();initProjecao();}
   else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
+  else if(page==='produtos'){c.innerHTML=produtosHTML();document.getElementById('topbarPeriod').textContent=periods.produtos||'';setTimeout(initProdutos,80);}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">\uD83D\uDD12</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -2535,6 +2536,217 @@ function fmtD(v){var a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).to
 function fv(v){return(!v&&v!==0)||v===0?'\u2014':fmtD(v);}
 function tcClass(v){return(!v&&v!==0)||v===0?'':v>0?' class="dfc-pos"':' class="dfc-neg"';}
 function destroyChart(id){var c=Chart.getChart(id);if(c)c.destroy();}
+
+var produtosState = { mes:null, categoria:'hc', top:25 };
+
+function produtosCategoriasDisponiveis(){
+  return ['hc','pr','co','qu','outros'];
+}
+
+function agregarProdutos(mesKey, categoriaKey){
+  var porProduto = {}; // sku -> {produto, receita, wMargem, wMargemGB}
+  var totalReceitaCategoria = 0, totalWMargemGB = 0;
+
+  FV_HAWKS.forEach(function(r){
+    if (r.tipo_operacao !== 'venda') return;
+    if (!r.competencia || r.competencia.slice(0,7) !== mesKey) return;
+    if (normGrupo(r.grupo) !== categoriaKey) return;
+    var val = parseFloat(r.valor_liquido) || 0;
+    var margem = r.margem !== null && r.margem !== undefined ? parseFloat(r.margem) : null;
+    var margemGB = r.margem_gb !== null && r.margem_gb !== undefined ? parseFloat(r.margem_gb) : null;
+    if (margemGB === null) { // sem margem_gb gravada: margem se vendesse ao preço GB = (valor GB − CMV) / valor GB
+      var vgb = parseFloat(r.valor_gb) || 0, cmvT = parseFloat(r.cmv_total) || 0;
+      if (vgb > 0) margemGB = (vgb - cmvT) / vgb;
+    }
+    var sku = r.sku || '(sem SKU)';
+    if (!porProduto[sku]) porProduto[sku] = { produto: r.produto || sku, receita:0, wMargem:0, wMargemGB:0, temMargemGB:false };
+    var p = porProduto[sku];
+    p.receita += val;
+    if (margem !== null) p.wMargem += val * margem;
+    if (margemGB !== null) { p.wMargemGB += val * margemGB; p.temMargemGB = true; }
+    totalReceitaCategoria += val;
+    if (margemGB !== null) totalWMargemGB += val * margemGB;
+  });
+
+  var margemGBCategoria = totalReceitaCategoria ? (totalWMargemGB / totalReceitaCategoria) : null;
+
+  var lista = Object.keys(porProduto).map(function(sku){
+    var p = porProduto[sku];
+    var margemMedia = p.receita ? p.wMargem / p.receita : 0;
+    var margemGBMedia = (p.receita && p.temMargemGB) ? p.wMargemGB / p.receita : margemGBCategoria;
+    return {
+      sku: sku, produto: p.produto, receita: p.receita,
+      margem: margemMedia, margemGB: margemGBMedia,
+      variacaoPP: (margemGBMedia !== null) ? (margemMedia - margemGBMedia) * 100 : null,
+      pctFaturamento: totalReceitaCategoria ? (p.receita / totalReceitaCategoria * 100) : 0
+    };
+  }).filter(function(p){ return p.receita > 0; })
+    .sort(function(a,b){ return b.receita - a.receita; });
+
+  return { produtos: lista, margemGBCategoria: margemGBCategoria, totalReceita: totalReceitaCategoria };
+}
+
+var quadrantBgPlugin = {
+  id: 'quadrantBg',
+  beforeDraw: function(chart){
+    var opts = chart.config.options.plugins && chart.config.options.plugins.quadrantBg;
+    if (!opts || !opts.show) return;
+    var ctx = chart.ctx, xScale = chart.scales.x, yScale = chart.scales.y;
+    if (!xScale || !yScale) return;
+    var left=xScale.left, right=xScale.right, top=yScale.top, bottom=yScale.bottom;
+    var xPix = Math.max(left, Math.min(right, xScale.getPixelForValue(opts.xSplit)));
+    var yPix = Math.max(top, Math.min(bottom, yScale.getPixelForValue(opts.ySplit)));
+    ctx.save();
+    ctx.fillStyle = 'rgba(46,204,113,0.10)';  ctx.fillRect(xPix, top, right-xPix, yPix-top);      // cima-direita: Destaques
+    ctx.fillStyle = 'rgba(192,57,43,0.10)';   ctx.fillRect(left, top, xPix-left, yPix-top);        // cima-esquerda: Atenção
+    ctx.fillStyle = 'rgba(0,180,216,0.08)';   ctx.fillRect(xPix, yPix, right-xPix, bottom-yPix);   // baixo-direita: Nicho rentável
+    ctx.fillStyle = 'rgba(107,139,170,0.08)'; ctx.fillRect(left, yPix, xPix-left, bottom-yPix);    // baixo-esquerda: Baixa prioridade
+    ctx.strokeStyle = 'rgba(226,234,244,0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xPix, top); ctx.lineTo(xPix, bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left, yPix); ctx.lineTo(right, yPix); ctx.stroke();
+    ctx.restore();
+  }
+};
+function quadLegendItemHTML(cor,titulo,desc){
+  return '<div style="display:flex;gap:8px;align-items:flex-start">'
+    +'<span style="width:13px;height:13px;border-radius:3px;background:'+cor+';flex-shrink:0;margin-top:2px"></span>'
+    +'<span style="font-size:11px;color:#8BA0B0;line-height:1.4"><b style="color:#E2EAF4;font-size:11.5px">'+titulo+'</b><br>'+desc+'</span>'
+    +'</div>';
+}
+
+// Cor da bolha = cor do quadrante da legenda (Destaques, Aten\u00e7\u00e3o, Nicho rent\u00e1vel, Baixa prioridade)
+function quadCor(pt, yHalf){
+  var alto = pt.y > yHalf, acima = pt.x >= 0;
+  if (alto && acima)  return { borda:'#2ECC71', bg:'rgba(46,204,113,0.65)' };
+  if (alto && !acima) return { borda:'#c0392b', bg:'rgba(192,57,43,0.65)' };
+  if (!alto && acima) return { borda:'#00B4D8', bg:'rgba(0,180,216,0.65)' };
+  return { borda:'#6B8BAA', bg:'rgba(107,139,170,0.65)' };
+}
+function produtosHTML(){
+  var meses = mesesDisponiveisFV();
+  if (!meses.length) return '<div style="padding:2rem;color:#8BA0B0;text-align:center">Nenhum dado de vendas importado ainda para a filial '+nomeFilial()+'.</div>';
+  if (!produtosState.mes || meses.indexOf(produtosState.mes) === -1) produtosState.mes = meses[meses.length-1];
+  var CAT_ORDEM = produtosCategoriasDisponiveis();
+  var opMes = meses.map(function(k){ return '<option value="'+k+'"'+(k===produtosState.mes?' selected':'')+'>'+labelMesChave(k)+'</option>'; }).join('');
+  var opCat = CAT_ORDEM.map(function(g){ return '<option value="'+g+'"'+(g===produtosState.categoria?' selected':'')+'>'+GRUPO_LABELS[g]+'</option>'; }).join('');
+  periods.produtos = labelMesChave(produtosState.mes);
+
+  return '<div class="bi-filters">'
+    +'<label>Categoria</label><select id="prod-sel-cat" onchange="produtosMudou()">'+opCat+'</select>'
+    +'<label>M\u00eas</label><select id="prod-sel-mes" onchange="produtosMudou()">'+opMes+'</select>'
+    +'</div>'
+    +'<div class="chart-card">'
+    +'<div class="chart-title">Margem por produto \u2014 <span id="prod-cat-label"></span></div>'
+    +'<div class="chart-sub">Barras: % margem m\u00e9dia do produto no m\u00eas \u00b7 Linha pontilhada: % Margem GB da categoria (m\u00e9dia ponderada)</div>'
+    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#2ECC71"></span>Acima da Margem GB</span><span class="leg"><span class="leg-dot" style="background:#c0392b"></span>Abaixo da Margem GB</span><span class="leg"><span class="leg-line" style="background:#E2EAF4;border-top:2px dashed #E2EAF4"></span>Margem GB da categoria</span></div>'
+    +'<div style="height:340px;position:relative"><canvas id="chartProdutosMargem"></canvas></div>'
+    +'</div>'
+    +'<div class="chart-card">'
+    +'<div class="chart-title">Faturamento \u00d7 Varia\u00e7\u00e3o de Margem vs. GB</div>'
+    +'<div class="chart-sub">Eixo X: margem do produto \u2212 Margem GB (p.p.), dividido em 0 \u00b7 Eixo Y: % do faturamento da categoria, dividido na metade \u00b7 Tamanho da bolha: faturamento em R$</div>'
+    +'<div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">'
+    +'<div style="flex:1;min-width:280px;height:380px;position:relative"><canvas id="chartProdutosScatter"></canvas></div>'
+    +'<div style="width:190px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;justify-content:center">'
+    +quadLegendItemHTML('#2ECC71','Destaques','Alto faturamento, acima da Margem GB')
+    +quadLegendItemHTML('#c0392b','Aten\u00e7\u00e3o','Alto faturamento, abaixo da Margem GB')
+    +quadLegendItemHTML('#00B4D8','Nicho rent\u00e1vel','Baixo faturamento, acima da Margem GB')
+    +quadLegendItemHTML('#6B8BAA','Baixa prioridade','Baixo faturamento, abaixo da Margem GB')
+    +'</div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="chart-sub" style="margin-top:-4px">Mostrando os '+produtosState.top+' produtos de maior faturamento na categoria/m\u00eas selecionados.</div>'
+    +'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
+}
+
+function produtosMudou(){
+  produtosState.categoria = document.getElementById('prod-sel-cat').value;
+  produtosState.mes = document.getElementById('prod-sel-mes').value;
+  periods.produtos = labelMesChave(produtosState.mes);
+  document.getElementById('topbarPeriod').textContent = periods.produtos;
+  renderProdutosCharts();
+}
+
+function initProdutos(){
+  if (!document.getElementById('chartProdutosMargem')) return;
+  renderProdutosCharts();
+}
+
+function fmtPct1(v){ return (v===null||v===undefined) ? '\u2014' : v.toFixed(1)+'%'; }
+
+function renderProdutosCharts(){
+  var res = agregarProdutos(produtosState.mes, produtosState.categoria);
+  var labelEl = document.getElementById('prod-cat-label');
+  if (labelEl) labelEl.textContent = GRUPO_LABELS[produtosState.categoria] + ' \u2014 ' + labelMesChave(produtosState.mes);
+
+  var top = res.produtos.slice(0, produtosState.top);
+  var margemGBCategoriaPct = res.margemGBCategoria !== null ? res.margemGBCategoria*100 : null;
+
+  // ── Gráfico 1: barras (margem do produto) + linha pontilhada (Margem GB da categoria) ──
+  destroyChart('chartProdutosMargem');
+  if (top.length && margemGBCategoriaPct !== null) {
+    var labels = top.map(function(p){ return p.produto.length>28 ? p.produto.slice(0,26)+'\u2026' : p.produto; });
+    var margens = top.map(function(p){ return p.margem*100; });
+    var cores = margens.map(function(m){ return m>=margemGBCategoriaPct ? '#2ECC71' : '#c0392b'; });
+    new Chart(document.getElementById('chartProdutosMargem'),{
+      type:'bar',
+      data:{ labels:labels, datasets:[
+        { label:'% Margem do produto', data:margens, backgroundColor:cores, borderRadius:4, order:2 },
+        { label:'% Margem GB (categoria)', data:labels.map(function(){ return margemGBCategoriaPct; }), type:'line', borderColor:'#E2EAF4', borderDash:[6,4], borderWidth:2, pointRadius:0, fill:false, order:1 }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ label:function(c){
+            if (c.datasetIndex===1) return 'Margem GB da categoria: '+fmtPct1(margemGBCategoriaPct);
+            var p = top[c.dataIndex];
+            return ['% Margem: '+fmtPct1(p.margem*100), 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
+          } } } },
+        scales:{
+          x:{ grid:{display:false}, ticks:{ color:'#6B8BAA', font:{size:10}, maxRotation:60, minRotation:40 } },
+          y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+        } }
+    });
+  }
+
+  // ── Gráfico 2: dispersão (bolha) ──
+  destroyChart('chartProdutosScatter');
+  if (top.length) {
+    var receitas = top.map(function(p){ return p.receita; });
+    var rMin = Math.min.apply(null, receitas), rMax = Math.max.apply(null, receitas);
+    function raio(v){
+      if (rMax === rMin) return 14;
+      var t = (v - rMin) / (rMax - rMin);
+      return 6 + t * 28; // 6px a 34px
+    }
+    var pontos = top.filter(function(p){ return p.variacaoPP !== null; }).map(function(p){
+      return { x:p.variacaoPP, y:p.pctFaturamento, r:raio(p.receita), _p:p };
+    });
+    var yMaxObs = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return p.y; })) : 0;
+    var yHalf = yMaxObs / 2;
+    var xAbsMax = pontos.length ? Math.max.apply(null, pontos.map(function(p){ return Math.abs(p.x); })) : 0;
+    new Chart(document.getElementById('chartProdutosScatter'),{
+      type:'bubble',
+      plugins:[quadrantBgPlugin],
+      data:{ datasets:[{
+        label:'Produtos',
+        data:pontos,
+        backgroundColor:pontos.map(function(pt){ var q=quadCor(pt,yHalf); return q.bg; }),
+        borderColor:pontos.map(function(pt){ return quadCor(pt,yHalf).borda; }),
+        borderWidth:1
+      }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, quadrantBg:{ show:true, xSplit:0, ySplit:yHalf },
+          tooltip:{ callbacks:{ label:function(c){
+            var p = c.raw._p;
+            return [p.produto, 'Varia\u00e7\u00e3o vs GB: '+(p.variacaoPP>=0?'+':'')+p.variacaoPP.toFixed(1)+' p.p.', '% Faturamento: '+fmtPct1(p.pctFaturamento), 'Faturamento: R$ '+Math.round(p.receita).toLocaleString('pt-BR')];
+          } } } },
+        scales:{
+          x:{ min:xAbsMax?-Math.ceil(xAbsMax*1.15):-1, max:xAbsMax?Math.ceil(xAbsMax*1.15):1, title:{display:true,text:'Varia\u00e7\u00e3o de margem vs GB (p.p.)',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'pp'; } } },
+          y:{ min:0, max:yMaxObs?Math.ceil(yMaxObs*1.08):1, title:{display:true,text:'% do faturamento da categoria',color:'#6B8BAA',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{ color:'#6B8BAA', callback:function(v){ return v+'%'; } } }
+        } }
+    });
+  }
+}
+
 
 // Rótulo de exibição "Nov/25" a partir da chave "YYYY-MM"
 function rotuloMes(chave){
