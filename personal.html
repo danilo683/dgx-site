@@ -664,6 +664,18 @@ button.primary:hover { background: #8d70f5; }
   background: var(--bg3); border: 1px solid var(--border); border-radius: 7px;
   padding: 5px 8px; flex: none; max-width: 160px;
 }
+.activity-sort { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 12.5px; color: var(--text2); }
+.activity-sort select {
+  font-family: var(--body); font-size: 12.5px; color: var(--text);
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 7px; padding: 5px 8px;
+}
+.activity-sort .sort-dir {
+  font-family: var(--body); font-size: 13px; color: var(--text);
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 7px;
+  padding: 4px 10px; cursor: pointer;
+}
+.activity-sort .sort-dir:hover { border-color: var(--border2); }
+.activity-list-nomanual .act-handle { opacity: .25; cursor: not-allowed; }
 .activity-item.dragging { opacity: .4; }
 .activity-item.drag-over { box-shadow: inset 0 2px 0 var(--accent); }
 .task-add { display: flex; gap: 8px; margin-top: 8px; }
@@ -1207,6 +1219,15 @@ function sairPersonal() {
       <button class="view-tab active" data-view="pendentes">Pendentes</button>
       <button class="view-tab" data-view="concluidas">Concluídas</button>
       <button class="view-tab" data-view="todas">Todas</button>
+    </div>
+    <div class="activity-sort" id="activity-sort">
+      <label for="activity-sort-by">Ordenar por</label>
+      <select id="activity-sort-by">
+        <option value="manual">Manual (arrastar)</option>
+        <option value="data">Data</option>
+        <option value="meta">Meta</option>
+      </select>
+      <button type="button" class="sort-dir" id="activity-sort-dir" title="Inverter ordem" style="display:none">↑</button>
     </div>
     <div class="activity-add">
       <input type="text" id="activity-name" placeholder="＋ Nova atividade… (Enter para adicionar)">
@@ -2414,9 +2435,57 @@ function sairPersonal() {
     renderActivities();
   });
 
+  // Ordenação das atividades: manual (arrastar), por data ou por meta
+  let activitySort = 'manual', activitySortDesc = false;
+  try {
+    activitySort = localStorage.getItem('personal.activitySort') || 'manual';
+    activitySortDesc = localStorage.getItem('personal.activitySortDesc') === '1';
+  } catch (e) {}
+  if (!['manual', 'data', 'meta'].includes(activitySort)) activitySort = 'manual';
+  const sortBySel = document.getElementById('activity-sort-by');
+  const sortDirBtn = document.getElementById('activity-sort-dir');
+  function syncSortUI() {
+    sortBySel.value = activitySort;
+    sortDirBtn.style.display = activitySort === 'manual' ? 'none' : '';
+    sortDirBtn.textContent = activitySortDesc ? '↓' : '↑';
+    activityList.classList.toggle('activity-list-nomanual', activitySort !== 'manual');
+  }
+  function saveSortPref() {
+    try {
+      localStorage.setItem('personal.activitySort', activitySort);
+      localStorage.setItem('personal.activitySortDesc', activitySortDesc ? '1' : '0');
+    } catch (e) {}
+  }
+  sortBySel.addEventListener('change', () => {
+    activitySort = sortBySel.value; saveSortPref(); syncSortUI(); renderActivities();
+  });
+  sortDirBtn.addEventListener('click', () => {
+    activitySortDesc = !activitySortDesc; saveSortPref(); syncSortUI(); renderActivities();
+  });
+
+  // Atividade vinculada: guarda goalId + taskId (a tarefa correspondente dentro da meta)
+  function linkedOf(x) {
+    const g = x.goalId ? gById(x.goalId) : null;
+    const t = g ? g.tasks.find(t => t.id === x.taskId) : null;
+    return { g, t };
+  }
+  // Sincroniza com a meta: se a meta/tarefa sumiu, desvincula; senão a tarefa da meta é a fonte de verdade
+  function syncActivitiesWithGoals() {
+    (state.activities || []).forEach(x => {
+      if (!x.goalId) return;
+      const { g, t } = linkedOf(x);
+      if (!g || !t) { x.goalId = ''; x.taskId = ''; return; }
+      x.done = !!t.done; x.due = t.due || ''; x.name = t.name;
+    });
+  }
+  function goalNameOf(x) {
+    const g = x.goalId ? gById(x.goalId) : null;
+    return g ? (g.name || '(sem nome)') : '';
+  }
+
   function checklistGoalOptions(selectedId) {
     const opts = ['<option value="">Vincular a uma meta…</option>'];
-    state.goals.filter(g => g.kind === 'checklist' && !g.done).forEach(g => {
+    state.goals.filter(g => g.kind === 'checklist' && (!g.done || g.id === selectedId)).forEach(g => {
       opts.push(`<option value="${g.id}" ${selectedId === g.id ? 'selected' : ''}>${esc(g.name || '(sem nome)')}</option>`);
     });
     return opts.join('');
@@ -2424,9 +2493,29 @@ function sairPersonal() {
 
   function renderActivities() {
     activityList.innerHTML = '';
-    let list = state.activities || [];
+    syncActivitiesWithGoals();
+    let list = (state.activities || []).slice();
     if (activityView === 'pendentes') list = list.filter(x => !x.done);
     else if (activityView === 'concluidas') list = list.filter(x => x.done);
+    if (activitySort !== 'manual') {
+      const idx = new Map((state.activities || []).map((x, i) => [x.id, i]));
+      const dir = activitySortDesc ? -1 : 1;
+      list.sort((a, b) => {
+        let c = 0;
+        if (activitySort === 'data') {
+          // sem data primeiro; depois da mais próxima para a mais distante
+          c = (a.due || '').localeCompare(b.due || '');
+        } else {
+          const na = goalNameOf(a), nb = goalNameOf(b);
+          // sem meta por último (no sentido crescente)
+          if (!na && nb) c = 1;
+          else if (na && !nb) c = -1;
+          else c = na.localeCompare(nb, 'pt-BR', { sensitivity: 'base' });
+          if (c === 0) c = (a.due || '9999-99-99').localeCompare(b.due || '9999-99-99');
+        }
+        return c * dir || (idx.get(a.id) - idx.get(b.id));
+      });
+    }
     activityEmpty.style.display = list.length ? 'none' : 'block';
 
     list.forEach(x => {
@@ -2435,11 +2524,11 @@ function sairPersonal() {
       row.className = 'activity-item' + (x.done ? ' done' : '') + (overdue ? ' overdue' : '');
       row.dataset.aid = x.id;
       row.innerHTML = `
-        <span class="act-handle" draggable="true" title="Arrastar para reordenar">⠿</span>
+        <span class="act-handle" draggable="${activitySort === 'manual'}" title="${activitySort === 'manual' ? 'Arrastar para reordenar' : 'Para reordenar manualmente, escolha Ordenar por: Manual'}">⠿</span>
         <input type="checkbox" ${x.done ? 'checked' : ''}>
         <span class="act-name" contenteditable="true"></span>
         <input type="date" class="act-due" title="Data prevista" value="${x.due || ''}">
-        <select class="act-link">${checklistGoalOptions('')}</select>
+        <select class="act-link">${checklistGoalOptions(x.goalId || '')}</select>
         <button class="x-remove act-remove" type="button">×</button>`;
       row.querySelector('.act-name').textContent = x.name;
       activityList.appendChild(row);
@@ -2466,8 +2555,13 @@ function sairPersonal() {
     const remove = ev.target.closest('.act-remove');
     if (remove) {
       const id = remove.closest('.activity-item').dataset.aid;
+      const ax = aById(id);
+      if (ax && ax.goalId) {
+        const { g, t } = linkedOf(ax);
+        if (g && t) g.tasks = g.tasks.filter(k => k.id !== t.id);
+      }
       state.activities = state.activities.filter(x => x.id !== id);
-      save(); renderActivities();
+      save(); renderActivities(); renderGoals();
     }
   });
 
@@ -2475,7 +2569,12 @@ function sairPersonal() {
     const cb = ev.target.closest('.activity-item input[type="checkbox"]');
     if (cb) {
       const x = aById(cb.closest('.activity-item').dataset.aid);
-      if (x) { x.done = cb.checked; save(); renderActivities(); }
+      if (x) {
+        x.done = cb.checked;
+        const { t } = linkedOf(x);
+        if (t) t.done = x.done;
+        save(); renderActivities(); renderGoals();
+      }
       return;
     }
     const dueEl = ev.target.closest('.act-due');
@@ -2484,21 +2583,31 @@ function sairPersonal() {
       const x = aById(item.dataset.aid);
       if (x) {
         x.due = dueEl.value;
+        const { t } = linkedOf(x);
+        if (t) t.due = x.due;
         save();
         item.classList.toggle('overdue', !x.done && !!x.due && x.due < todayISO());
+        if (activitySort === 'data') renderActivities();
+        if (t) renderGoals();
       }
       return;
     }
     const linkEl = ev.target.closest('.act-link');
     if (linkEl) {
       const goalId = linkEl.value;
-      if (!goalId) return;
       const item = linkEl.closest('.activity-item');
       const x = aById(item.dataset.aid);
-      const g = gById(goalId);
-      if (!x || !g) return;
-      g.tasks.push({ id: 't' + Date.now(), name: x.name, done: x.done, due: x.due || '' });
-      state.activities = state.activities.filter(a => a.id !== x.id);
+      if (!x) return;
+      // remove a tarefa da meta anterior (se havia vínculo)
+      const prev = linkedOf(x);
+      if (prev.g && prev.t) prev.g.tasks = prev.g.tasks.filter(k => k.id !== prev.t.id);
+      x.goalId = ''; x.taskId = '';
+      const g = goalId ? gById(goalId) : null;
+      if (g) {
+        const taskId = 't' + Date.now();
+        g.tasks.push({ id: taskId, name: x.name, done: x.done, due: x.due || '' });
+        x.goalId = g.id; x.taskId = taskId;
+      }
       save(); renderActivities(); renderGoals();
     }
   });
@@ -2507,14 +2616,20 @@ function sairPersonal() {
     const el = ev.target.closest('.act-name');
     if (!el) return;
     const x = aById(el.closest('.activity-item').dataset.aid);
-    if (x) { x.name = el.innerText.trim(); save(); }
+    if (x) {
+      x.name = el.innerText.trim();
+      const { t } = linkedOf(x);
+      if (t) { t.name = x.name; renderGoals(); }
+      save();
+    }
   }, true);
 
-  // Arrastar e soltar pra reordenar atividades
+  // Arrastar e soltar pra reordenar atividades (só no modo Manual)
   let dragAid = null;
   activityList.addEventListener('dragstart', (ev) => {
     const item = ev.target.closest('.activity-item');
     if (!item) return;
+    if (activitySort !== 'manual') { ev.preventDefault(); return; }
     dragAid = item.dataset.aid;
     item.classList.add('dragging');
     ev.dataTransfer.effectAllowed = 'move';
@@ -2538,7 +2653,7 @@ function sairPersonal() {
   });
   activityList.addEventListener('drop', (ev) => {
     const target = ev.target.closest('.activity-item');
-    if (!target || !dragAid || target.dataset.aid === dragAid) return;
+    if (activitySort !== 'manual' || !target || !dragAid || target.dataset.aid === dragAid) return;
     ev.preventDefault();
     target.classList.remove('drag-over');
     const fromIdx = state.activities.findIndex(x => x.id === dragAid);
@@ -3795,7 +3910,7 @@ function sairPersonal() {
     }
 
     const upcomingAct = (state.activities || [])
-      .filter(x => !x.done && x.due)
+      .filter(x => !x.done && x.due && !x.goalId) // vinculadas já aparecem como tarefa da meta
       .sort((a, b) => a.due.localeCompare(b.due))
       .slice(0, 6);
 
@@ -3996,6 +4111,7 @@ function sairPersonal() {
   // ── Render inicial ──
   renderLadder();
   renderGoals();
+  syncSortUI();
   renderActivities();
   renderHabits();
   renderDiary();
