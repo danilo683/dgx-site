@@ -475,6 +475,7 @@ select.prem-in{text-align:left}
 .meta-tbl th{min-width:0}.meta-tbl .orc-in{min-width:0;font-size:11px}
 .meta-tbl td{padding:5px 4px}
 .orc-in.meta-flag{outline:1px solid #E0A84B;border-radius:3px}
+.orc-in.meta-flag-trx{color:#5FB4FF;border-color:#2c5a85}
 .orc-in::placeholder{color:#5d7388}
 .meta-pct td{font-size:11px}
 .imp-bg{position:fixed;inset:0;background:rgba(5,12,22,.78);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:4vh 1rem;overflow:auto}
@@ -5321,7 +5322,7 @@ var PREM_GERAL=[
   {k:'rec2',n:'Defasagem 2 meses',t:'pct',v:0.295357,st:'c',o:'',soma:'rec'},
   {k:'rec3',n:'Defasagem 3 meses',t:'pct',v:0.222262,st:'c',o:'',soma:'rec'},
   {k:'rec4',n:'Defasagem 4 meses',t:'pct',v:0.108929,st:'c',o:'',soma:'rec'}]},
- {g:'Pagamento a fornecedores Truss por quinzena do pedido (4 parcelas iguais)',itens:[
+ {g:'Pagamento a fornecedores Truss por quinzena do pedido (padrão — exceções por mês em Metas → Sell-in)',itens:[
   {k:'trq1',n:'% dos pedidos na 1ª quinzena (dias 1 a 15)',t:'pct',v:0.6,st:'p',o:'Regra do franqueador: 60% dos pedidos na 1ª quinzena × 40% na 2ª. Na planilha do franqueador o realizado varia muito de mês a mês.',soma:'trs'},
   {k:'trq2',n:'% dos pedidos na 2ª quinzena (dia 16 em diante)',t:'pct',v:0.4,st:'p',o:'',soma:'trs'},
   {k:'trp1',n:'Prazos da 1ª quinzena (dias após o pedido; 4 parcelas iguais)',t:'txt',v:'45/75/105/135',st:'v',o:'Regra Truss informada: 45/75/105/135 dias. Separe os dias por "/".'},
@@ -5468,7 +5469,7 @@ function metaMesesDoAno(a){var r=[];for(var m=1;m<=12;m++){if(a===2025&&m<10)con
 function metasHTML(){
   var h='<div class="prem-intro"><b>Metas</b> — aqui ficam lado a lado as quatro "réguas" de cada indicador, para a conversa ficar clara:<br>'
    +'<b style="color:#C8B89A">Franqueador (GB)</b>: a meta imposta pela Truss/GB. &nbsp;·&nbsp; <b style="color:#5FA8FF">Franqueado (Hawks)</b>: a meta que a Hawks assumiu. &nbsp;·&nbsp; <b style="color:#6FD39A">Realista</b>: a expectativa de fato. &nbsp;·&nbsp; <b style="color:#00D4DA">Realizado</b>: o que aconteceu.<br>'
-   +'A <b>meta considerada</b> (a que alimenta o orçamento) é a primeira disponível nesta ordem: realista → franqueado → franqueador. Células com contorno âmbar indicam meta do franqueado igual à do franqueador do mesmo mês do ano anterior (possível cópia a revisar).</div>'
+   +'A <b>meta considerada</b> (a que alimenta o orçamento) é a primeira disponível nesta ordem: realista → franqueado → franqueador. Células com contorno âmbar indicam meta do franqueado igual à do franqueador do mesmo mês do ano anterior (possível cópia a revisar). No <b>Sell-in</b>, abaixo da tabela, ficam as exceções de prazo de pagamento à Truss por quinzena, mês a mês.</div>'
    +'<div class="orc-head"><div class="orc-meses" id="meta-anos" style="margin:0"></div><div class="orc-seg" id="meta-ind"></div><div class="orc-status" id="meta-status"></div></div>'
    +'<div class="orc-chartbox" style="height:260px"><canvas id="meta-chart"></canvas></div>'
    +'<div id="meta-corpo"></div>';
@@ -5480,6 +5481,7 @@ async function initMetas(){
   var cid=clienteIdAtual(),r=await sb.from('orcamento_metas').select('indicador,tipo,ano,mes,valor').eq('cliente_id',cid).range(0,4999);
   if(r.error){META.erro='Não foi possível carregar as metas (rode o SQL 05_orcamento_metas.sql no Supabase).';console.error(r.error);}
   else(r.data||[]).forEach(function(x){META.v[metaKey(x.indicador,x.tipo,x.ano,x.mes)]=parseFloat(x.valor);});
+  if(!PREM.carregado)await initPremOrc(); // padrão e exceções de prazo Truss (Sell-in) ficam em orcamento_premissas
   META.carregado=true;metasDesenhar();
 }
 function metaSetAno(a){META.ano=a;metasDesenhar();}
@@ -5522,7 +5524,23 @@ function metasDesenhar(){
     ms.forEach(function(m){var r=metaGet(i,'realizado',a,m),mt=metaGet(i,p[0],a,m);if(r&&mt){sr+=r;sm+=mt;h+='<td class="'+(r>=mt?'orc-pos':'orc-neg')+'">'+(r/mt*100).toFixed(1).replace('.',',')+'%</td>';}else h+='<td>—</td>';});
     h+='<td class="orc-tot">'+(sm?(sr/sm*100).toFixed(1).replace('.',',')+'%':'—')+'</td></tr>';
   });
-  h+='</tbody></table></div><div class="orc-hint" style="margin-top:.6rem">Valores em R$. Na meta realista, o número em cinza é o que vale enquanto você não preencher. Passe o mouse no nome da linha para ver o que cada uma significa.</div>';
+  // exceções de prazo Truss por mês do pedido (só no Sell-in)
+  if(i==='si'){
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="'+(ms.length+2)+'">Pagamento à Truss por quinzena do pedido — exceções ao padrão (em branco = vale o padrão das Premissas)</td></tr>';
+    [['q1','% dos pedidos na 1ª quinzena (dias 1 a 15)','pct','trxq1_'],['q2','% dos pedidos na 2ª quinzena (dia 16 em diante)','pct','trxq2_'],['p1','Prazos da 1ª quinzena (dias após o pedido)','txt','trxp1_'],['p2','Prazos da 2ª quinzena (dias após o pedido)','txt','trxp2_']].forEach(function(f){
+      h+='<tr><td class="orc-lbl orc-sub" style="white-space:normal" title="Dias separados por /. Cada dia é uma parcela igual (ex.: 60/90/120 = 3 parcelas). Máximo de 210 dias.">'+f[1]+'</td>';
+      ms.forEach(function(m){
+        var mk=a+'-'+String(m).padStart(2,'0'),ov=premGet('todos',f[3]+mk),real=!!metaGetRaw('si','realizado',a,m),R=genTrussPrazos(a,m);
+        var ph=premFmt(f[2],R[f[0]]);
+        h+='<td><input class="orc-in'+(ov!==undefined?' meta-flag-trx':'')+'" data-trx="'+f[0]+'" data-m="'+m+'" data-t="'+f[2]+'" value="'+(ov!==undefined&&!real?premFmt(f[2],ov):'')+'" placeholder="'+ph+'" onfocus="this.select()" onchange="metaPrazoEdit(this)"'+(real?' disabled title="Mês realizado: vale o padrão"':'')+'></td>';
+      });
+      h+='<td class="orc-tot"></td></tr>';
+    });
+    h+='<tr class="meta-pct"><td class="orc-lbl orc-sub">Conferência (1ª + 2ª quinzena deve somar 100%)</td>';
+    ms.forEach(function(m){var R=genTrussPrazos(a,m),s=R.q1+R.q2,ok=Math.abs(s-1)<0.0005;h+='<td class="'+(ok?'orc-pos':'orc-neg')+'">'+premFmt('pct',s)+'</td>';});
+    h+='<td class="orc-tot"></td></tr>';
+  }
+  h+='</tbody></table></div><div class="orc-hint" style="margin-top:.6rem">Valores em R$. Na meta realista, o número em cinza é o que vale enquanto você não preencher. Passe o mouse no nome da linha para ver o que cada uma significa.'+(i==='si'?'<br>Prazos por quinzena: o número em cinza é o padrão das Premissas. Preencha só os meses com prazo especial (azul = exceção). Cada dia vira uma parcela igual, e meses com sell-in realizado usam sempre o padrão.':'')+'</div>';
   el.innerHTML=h;
   metasGrafico(ms);
 }
@@ -5539,6 +5557,23 @@ async function metaEdit(inp){
   var st=document.getElementById('meta-status');
   if(val===null||val===0){delete META.v[k];var r=await sb.from('orcamento_metas').delete().eq('cliente_id',cid).eq('indicador',i).eq('tipo',t).eq('ano',a).eq('mes',m);err=r&&r.error;}
   else{val=Math.abs(val);META.v[k]=val;var r2=await sb.from('orcamento_metas').upsert({cliente_id:cid,indicador:i,tipo:t,ano:a,mes:m,valor:val},{onConflict:'cliente_id,indicador,tipo,ano,mes'});err=r2&&r2.error;}
+  metasDesenhar();
+  st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
+}
+async function metaPrazoEdit(inp){
+  var f=inp.getAttribute('data-trx'),t=inp.getAttribute('data-t'),m=parseInt(inp.getAttribute('data-m')),a=META.ano;
+  var key='trx'+f+'_'+a+'-'+String(m).padStart(2,'0'),k=premKey('todos',key),cid=clienteIdAtual(),st=document.getElementById('meta-status'),err=null;
+  var raw=String(inp.value||'').trim(),val=premParse(t,raw);
+  if(raw&&val===null){if(st)st.innerHTML='<span style="color:#E88">Valor inválido. Use dias separados por "/" (ex.: 60/90/120) ou um percentual (ex.: 50).</span>';metasDesenhar();return;}
+  if(t==='txt'&&val&&val.split('/').some(function(d){return +d>210;})){if(st)st.innerHTML='<span style="color:#E88">Prazo máximo de 210 dias por parcela.</span>';metasDesenhar();return;}
+  if(t==='pct'&&val!==null&&(val<0||val>1)){if(st)st.innerHTML='<span style="color:#E88">O percentual deve estar entre 0% e 100%.</span>';metasDesenhar();return;}
+  if(val===null){
+    delete PREM.over[k];
+    var r=await sb.from('orcamento_premissas').delete().eq('cliente_id',cid).eq('cenario','todos').eq('chave',key);err=r&&r.error;
+  }else{
+    PREM.over[k]=val;
+    var r2=await sb.from('orcamento_premissas').upsert({cliente_id:cid,cenario:'todos',chave:key,valor_num:(t==='txt'?null:val),valor_txt:(t==='txt'?val:null)},{onConflict:'cliente_id,cenario,chave'});err=r2&&r2.error;
+  }
   metasDesenhar();
   st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
 }
@@ -5694,10 +5729,24 @@ function genDe(mk){return {a:Math.floor(mk/12),m:(mk%12)+1};}
 function genLever(cen,k){var ix=0;PREM_CEN.forEach(function(c,i){if(c[0]===cen)ix=i;});var d=PREM_ALAV.filter(function(x){return x.k===k;})[0];return premGet(cen,k,d.v[ix]);}
 function genGeral(k){var def;PREM_GERAL.forEach(function(g){g.itens.forEach(function(it){if(it.k===k)def=it.v;});});return premGet('todos',k,def);}
 var GEN_TC={};
+// Regra de pagamento Truss do pedido do mês a/m: padrão das Premissas, com exceção por mês cadastrada em Metas → Sell-in
+// (chaves trxq1_/trxq2_/trxp1_/trxp2_ + 'AAAA-MM' em orcamento_premissas, cenário 'todos'). Mês com sell-in realizado usa sempre o padrão.
+function genTrussPrazos(a,m){
+  var d={q1:genGeral('trq1'),q2:genGeral('trq2'),p1:genGeral('trp1'),p2:genGeral('trp2')};
+  if(metaGetRaw('si','realizado',a,m))return d;
+  var mk=a+'-'+String(m).padStart(2,'0'),x1=premGet('todos','trxq1_'+mk),x2=premGet('todos','trxq2_'+mk),y1=premGet('todos','trxp1_'+mk),y2=premGet('todos','trxp2_'+mk);
+  if(x1!==undefined&&x2!==undefined){d.q1=x1;d.q2=x2;}
+  else if(x1!==undefined){d.q1=x1;d.q2=1-x1;}
+  else if(x2!==undefined){d.q2=x2;d.q1=1-x2;}
+  if(y1!==undefined)d.p1=y1;
+  if(y2!==undefined)d.p2=y2;
+  return d;
+}
 // Fração do valor de um pedido (feito no mês a/m) paga em cada mês de defasagem: 1ª quinzena (dias 1–15) e 2ª (16 em diante), parcelas iguais em N dias
 function genTrussCoefs(a,m){
-  var key=a*12+m+'|'+genGeral('trq1')+'|'+genGeral('trq2')+'|'+genGeral('trp1')+'|'+genGeral('trp2');if(GEN_TC[key])return GEN_TC[key];
-  var q1=genGeral('trq1'),q2=genGeral('trq2'),p1=String(genGeral('trp1')).split('/').map(Number),p2=String(genGeral('trp2')).split('/').map(Number),nd=new Date(a,m,0).getDate(),C=[0,0,0,0,0,0,0,0,0];
+  var R=genTrussPrazos(a,m);
+  var key=a*12+m+'|'+R.q1+'|'+R.q2+'|'+R.p1+'|'+R.p2;if(GEN_TC[key])return GEN_TC[key];
+  var q1=R.q1,q2=R.q2,p1=String(R.p1).split('/').map(Number),p2=String(R.p2).split('/').map(Number),nd=new Date(a,m,0).getDate(),C=[0,0,0,0,0,0,0,0,0];
   for(var day=1;day<=nd;day++){
     var q=day<=15,share=q?q1/15:q2/Math.max(1,nd-15),P=q?p1:p2;
     P.forEach(function(d){var dt=new Date(a,m-1,day+d),lag=(dt.getFullYear()*12+dt.getMonth())-(a*12+m-1);if(lag>=0&&lag<C.length)C[lag]+=share/P.length;});
