@@ -328,6 +328,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .orc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
 .prem-intro{font-size:12.5px;color:#9FB4C6;background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:12px 16px;margin-bottom:1rem;line-height:1.55}
 .prem-intro b{color:#E2EAF4}
+.end-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.end-kpi{background:#111f35;border-radius:10px;padding:14px 16px;border:1px solid rgba(0,174,239,0.12);border-left:3px solid #00B4D8}
+.end-kpi .l{font-size:11px;color:#8BA0B0;margin-bottom:6px;font-weight:500}
+.end-kpi .v{font-size:20px;font-weight:700;color:#E2EAF4}
+.end-kpi .s{font-size:11px;color:#8BA0B0;margin-top:4px}
+.end-sec{background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:1rem 1.25rem;margin-bottom:14px}
+.end-sec h4{font-size:13px;font-weight:600;color:#E2EAF4;margin:0 0 4px}
+.end-sec .sub{font-size:11.5px;color:#8BA0B0;margin-bottom:10px}
+.end-ana{width:100%;border-collapse:collapse;font-size:12px}
+.end-ana th{color:#8BA0B0;font-weight:600;font-size:11px;text-align:right;padding:6px 8px;border-bottom:1px solid #2A4058}
+.end-ana td{padding:6px 8px;border-bottom:1px solid #1F3044;color:#E2EAF4;text-align:right}
+.end-ana th:first-child,.end-ana td:first-child{text-align:left}
+.end-ana tr.tot td{font-weight:700;border-top:1px solid #2A4058}
+.end-warn{color:#E8B04B}
+.end-alerts{margin:0;padding:0;list-style:none;font-size:12.5px;color:#C5D2DE;line-height:1.6}
+.end-alerts li{padding:5px 0 5px 18px;position:relative}
+.end-alerts li:before{content:'\25CF';position:absolute;left:0;color:#00B4D8;font-size:10px;top:8px}
+.end-alerts li.w:before{color:#E8B04B}
+.end-grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media(max-width:900px){.end-grid2{grid-template-columns:1fr}}
 .end-tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
 .end-tbl th{background:#1F3044;color:#E2EAF4;font-weight:600;font-size:11px;padding:9px 6px;text-align:center;border-bottom:1px solid #2A4058}
 .end-tbl td{padding:4px 5px;border-bottom:1px solid #1F3044;vertical-align:middle}
@@ -3938,6 +3958,63 @@ function endParse(tipo,txt){
   if(tipo==='i')x=Math.round(x);
   return {ok:true,v:x};
 }
+
+// ── Análises do endividamento (a partir das dívidas cadastradas) ──
+// Parcelas restantes = saldo devedor ÷ valor da parcela (estimativa: em contrato pós-fixado a parcela real pode ser maior).
+function endRm(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR');}
+function endMesLabel(i){var ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],d=new Date();var t=d.getFullYear()*12+d.getMonth()+i;return ML[t%12]+'/'+String(Math.floor(t/12)).slice(2);}
+function endCalc(){
+  var L=[];
+  END.rows.forEach(function(r){
+    var saldo=parseFloat(r.saldo_devedor)||0,parc=parseFloat(r.valor_parcela)||0;
+    if(!saldo&&!parc)return;
+    var rest=parc>0?Math.round(saldo/parc):0;
+    var cad=(r.total_parcelas!=null&&r.parcelas_pagas!=null)?(r.total_parcelas-r.parcelas_pagas):null;
+    L.push({nome:((r.instituicao||'')+' '+(r.contrato||'')).trim()||'(sem nome)',inst:(r.instituicao||'Sem instituição').trim(),saldo:saldo,parc:parc,taxa:parseFloat(r.taxa_am)||0,rest:rest,cad:cad,dif:(cad!==null&&Math.abs(cad-rest)>1)});
+  });
+  var tot=0,parcHoje=0,txp=0,prz=0;
+  L.forEach(function(x){tot+=x.saldo;if(x.rest>0)parcHoje+=x.parc;txp+=x.taxa*x.saldo;prz+=x.rest*x.saldo;});
+  var maxR=0;L.forEach(function(x){if(x.rest>maxR)maxR=x.rest;});
+  var serie=[];for(var m=1;m<=maxR;m++){var s=0;L.forEach(function(x){if(m<=x.rest)s+=x.parc;});serie.push(s);}
+  return {L:L,tot:tot,parcHoje:parcHoje,taxa:tot?txp/tot:0,prazo:tot?prz/tot:0,serie:serie};
+}
+function endAnaliseHTML(){
+  var C=endCalc();if(!C.L.length)return '';
+  var h='<div class="end-kpis">';
+  var sub='';
+  try{if(typeof DD!=='undefined'&&DD&&DD.recVendas&&DD.recVendas.length){var rs=0;DD.recVendas.forEach(function(v){rs+=Math.abs(v||0);});var med=rs/DD.recVendas.length;if(med>0)sub='≈ '+(C.parcHoje/med*100).toFixed(1).replace('.',',')+'% do recebimento médio de vendas (DFC)';}}catch(e){}
+  h+='<div class="end-kpi"><div class="l">Saldo devedor total</div><div class="v">'+endRm(C.tot)+'</div><div class="s">'+C.L.length+' contrato'+(C.L.length>1?'s':'')+'</div></div>';
+  h+='<div class="end-kpi"><div class="l">Parcela mensal hoje</div><div class="v">'+endRm(C.parcHoje)+'</div><div class="s">'+(sub||'soma das parcelas dos contratos em aberto')+'</div></div>';
+  h+='<div class="end-kpi"><div class="l">Taxa média ponderada</div><div class="v">'+C.taxa.toFixed(2).replace('.',',')+'% a.m.</div><div class="s">ponderada pelo saldo devedor</div></div>';
+  h+='<div class="end-kpi"><div class="l">Prazo médio restante</div><div class="v">'+Math.round(C.prazo)+' meses</div><div class="s">ponderado pelo saldo devedor</div></div></div>';
+  // saldo e custo por contrato
+  var Ls=C.L.slice().sort(function(a,b){return b.saldo-a.saldo;});
+  h+='<div class="end-sec"><h4>Saldo e custo por contrato</h4><div class="sub">Parcelas restantes estimadas pelo saldo ÷ parcela.</div><table class="end-ana"><thead><tr><th>Contrato</th><th>Saldo devedor</th><th>% do saldo</th><th>Taxa a.m.</th><th>Parcela</th><th>Parcelas restantes</th></tr></thead><tbody>';
+  Ls.forEach(function(x){h+='<tr><td>'+endEsc(x.nome)+'</td><td>'+endRm(x.saldo)+'</td><td>'+(C.tot?(x.saldo/C.tot*100).toFixed(0):0)+'%</td><td>'+x.taxa.toFixed(2).replace('.',',')+'%</td><td>'+endRm(x.parc)+'</td><td'+(x.dif?' class="end-warn" title="No cadastro: total menos pagas = '+x.cad+'"':'')+'>'+x.rest+(x.dif?' ⚠':'')+'</td></tr>';});
+  h+='<tr class="tot"><td>Total</td><td>'+endRm(C.tot)+'</td><td>100%</td><td>'+C.taxa.toFixed(2).replace('.',',')+'%</td><td>'+endRm(C.parcHoje)+'</td><td></td></tr></tbody></table></div>';
+  // por instituição + cronograma
+  var I={};C.L.forEach(function(x){I[x.inst]=(I[x.inst]||0)+x.saldo;});
+  var hi='<table class="end-ana"><thead><tr><th>Instituição</th><th>Saldo</th><th>%</th></tr></thead><tbody>';
+  Object.keys(I).sort(function(a,b){return I[b]-I[a];}).forEach(function(k){hi+='<tr><td>'+endEsc(k)+'</td><td>'+endRm(I[k])+'</td><td>'+(C.tot?(I[k]/C.tot*100).toFixed(0):0)+'%</td></tr>';});hi+='</tbody></table>';
+  h+='<div class="end-grid2"><div class="end-sec"><h4>Cronograma de parcelas</h4><div class="sub">Total de parcelas a pagar por mês, a partir do mês atual.</div><div style="height:240px"><canvas id="end-chart"></canvas></div></div><div class="end-sec"><h4>Saldo por instituição</h4><div class="sub">&nbsp;</div>'+hi+'</div></div>';
+  // alertas
+  var A=[];
+  C.L.forEach(function(x){if(x.dif)A.push('<li class="w"><b>'+endEsc(x.nome)+'</b>: o saldo ÷ parcela indica '+x.rest+' parcelas restantes, mas o cadastro (total menos pagas) indica '+x.cad+'. Confira com o banco.</li>');});
+  var maxTx=null;C.L.forEach(function(x){if(!maxTx||x.taxa>maxTx.taxa)maxTx=x;});
+  if(maxTx&&C.tot)A.push('<li>Maior taxa: <b>'+endEsc(maxTx.nome)+'</b> ('+maxTx.taxa.toFixed(2).replace('.',',')+'% a.m.), com '+(maxTx.saldo/C.tot*100).toFixed(0)+'% do saldo.</li>');
+  var ds={};C.L.forEach(function(x){if(x.rest>0)(ds[x.rest]=ds[x.rest]||[]).push(x.nome);});
+  var ks=Object.keys(ds).map(Number).sort(function(a,b){return a-b;});
+  ks.forEach(function(k){if(k>=C.serie.length)return;var antes=C.serie[k-1],depois=C.serie[k];A.push('<li>Em <b>'+endMesLabel(k)+'</b> a parcela mensal cai de '+endRm(antes)+' para '+endRm(depois)+' (fim de '+ds[k].map(endEsc).join(', ')+').</li>');});
+  if(A.length)h+='<div class="end-sec"><h4>Alertas e observações</h4><ul class="end-alerts">'+A.join('')+'</ul></div>';
+  return h;
+}
+function endGrafico(){
+  var cv=document.getElementById('end-chart');if(!cv||typeof Chart==='undefined')return;
+  try{var o=Chart.getChart(cv);if(o)o.destroy();}catch(e){}
+  var C=endCalc(),lab=C.serie.map(function(_,i){return endMesLabel(i);});
+  new Chart(cv,{type:'bar',data:{labels:lab,datasets:[{label:'Parcelas do mês',data:C.serie,backgroundColor:'#00B4D8',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return endRm(c.parsed.y);}}}},scales:{x:{ticks:{color:'#8BA0B0',maxTicksLimit:12,font:{size:10}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#8BA0B0',font:{size:10},callback:function(v){return Math.round(v/1000)+'k';}},grid:{color:'rgba(255,255,255,.06)'}}}}});
+}
+function endAtualizaAnalise(){var el=document.getElementById('end-analise');if(!el)return;el.innerHTML=endAnaliseHTML();endGrafico();}
 function endHTML(){
   return '<div class="prem-intro"><b>Endividamento bancário</b> — cadastro dos contratos de empréstimo e financiamento. Edite qualquer campo direto na tabela (salva ao sair do campo). Datas no formato dd/mm/aaaa; valores em reais; taxa em % ao mês.</div>'
    +'<div class="orc-head"><div class="orc-status" id="end-status"></div></div>'
@@ -3954,7 +4031,7 @@ function endDesenhar(){
   var el=document.getElementById('end-corpo');if(!el)return;
   if(!END.carregado){el.innerHTML='<div class="prem-intro">Carregando…</div>';return;}
   if(END.erro){el.innerHTML='<div class="prem-intro" style="color:#E88">'+END.erro+'</div>';return;}
-  var h='<div class="end-wrap"><table class="end-tbl"><thead><tr>';
+  var h='<div id="end-analise">'+endAnaliseHTML()+'</div><div class="end-wrap"><table class="end-tbl"><thead><tr>';
   END_COLS.forEach(function(c){h+='<th style="width:'+c[3]+'px">'+c[1]+'</th>';});
   h+='<th style="width:34px"></th></tr></thead><tbody>';
   if(!END.rows.length)h+='<tr><td colspan="'+(END_COLS.length+1)+'" style="text-align:center;color:#8BA0B0;padding:18px">Nenhuma dívida cadastrada. Use o botão abaixo para adicionar.</td></tr>';
@@ -3966,7 +4043,7 @@ function endDesenhar(){
     h+='<td><button class="end-del" title="Excluir esta dívida" onclick="endExcluir('+r.id+')">✕</button></td></tr>';
   });
   h+='</tbody></table></div><button class="end-add" onclick="endAdd()">+ Adicionar dívida</button>';
-  el.innerHTML=h;
+  el.innerHTML=h;endGrafico();
 }
 function endStatus(msg,err){var s=document.getElementById('end-status');if(s)s.innerHTML=err?'<span style="color:#E88">'+msg+'</span>':msg;}
 async function endSalvar(inp){
@@ -3977,7 +4054,7 @@ async function endSalvar(inp){
   var upd={};upd[f]=p.v;upd.updated_at=new Date().toISOString();
   var r=await sb.from('endividamento').update(upd).eq('id',id).eq('cliente_id',clienteIdAtual());
   if(r.error){endStatus('Erro ao salvar: '+(r.error.message||r.error),true);return;}
-  row[f]=p.v;inp.value=endFmt(k,p.v);endStatus('✓ Salvo');
+  row[f]=p.v;inp.value=endFmt(k,p.v);endStatus('✓ Salvo');endAtualizaAnalise();
 }
 async function endAdd(){
   var r=await sb.from('endividamento').insert({cliente_id:clienteIdAtual()}).select();
