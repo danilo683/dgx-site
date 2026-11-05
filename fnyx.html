@@ -3789,7 +3789,7 @@ var META_TIPOS=[
  ['franqueador','Meta do franqueador (GB)','#C8B89A','Meta que a GB/Truss define para a franquia. Fica fixa: só o Danilo altera.'],
  ['franqueado','Meta do franqueado (Fnyx)','#5FA8FF','Meta que a própria Fnyx assume.'],
  ['realista','Meta realista','#6FD39A','O que a DGX e a Fnyx realmente esperam. Opcional: se estiver vazia, vale a meta do franqueado (e, sem ela, a do franqueador).'],
- ['realizado','Realizado','#00D4DA','O que de fato aconteceu. No sell-through vem direto das vendas do dash; no sell-in vem dos pagamentos a fornecedores Truss do DFC (quando o mês não está no DFC, vale o valor digitado).']
+ ['realizado','Realizado','#00D4DA','O que de fato aconteceu. No sell-through vem direto das vendas do dash; no sell-in vale o valor lançado (compras, da planilha de fluxo de caixa); sem valor lançado, usa os pagamentos a fornecedores Truss do DFC.']
 ];
 var META={ano:2026,ind:'st',v:{},carregado:false,erro:'',chart:null};
 function metaKey(i,t,a,m){return i+'|'+t+'|'+a+'|'+m;}
@@ -3809,7 +3809,7 @@ function metaDfcSi(a,m){
 }
 function metaGet(i,t,a,m){
   if(i==='st'&&t==='realizado'){var f=metaFv(a,m);if(f!==null)return f;}
-  if(i==='si'&&t==='realizado'){var d=metaDfcSi(a,m);if(d!==null)return d;}
+  if(i==='si'&&t==='realizado'){var dg=metaGetRaw(i,t,a,m);if(dg!==null)return dg;var d=metaDfcSi(a,m);if(d!==null)return d;} // sell-in: valor lançado (compras) vale mais que o proxy do DFC
   return metaGetRaw(i,t,a,m);
 }
 function metaConsiderada(i,a,m){
@@ -3852,8 +3852,8 @@ function metasDesenhar(){
       var v=metaGet(i,t[0],a,m),flag='';
       if(t[0]==='franqueado'&&v){var ant=metaGet(i,'franqueador',a-1,m);if(ant&&Math.round(ant)===Math.round(v))flag=' meta-flag';}
       var ph='';if(t[0]==='realista'){var f=metaGet(i,'franqueado',a,m)||metaGet(i,'franqueador',a,m);if(f)ph=metaFmt(f);}
-      var auto=(t[0]==='realizado'&&((i==='st'&&metaFv(a,m)!==null)||(i==='si'&&metaDfcSi(a,m)!==null)));
-      h+='<td><input class="orc-in'+flag+'" data-t="'+t[0]+'" data-m="'+m+'" value="'+metaFmt(v)+'" placeholder="'+ph+'" onfocus="this.select()" onchange="metaEdit(this)"'+(auto?' disabled title="'+(i==='st'?'Vem das vendas do dash (fato_vendas)':'Vem dos pagamentos Truss do DFC')+'"':'')+(flag?' title="Igual à meta do franqueador de '+ORC_M[m-1]+'/'+(a-1)+' — possível cópia"':'')+'></td>';
+      var auto=(t[0]==='realizado'&&((i==='st'&&metaFv(a,m)!==null)||(i==='si'&&metaGetRaw(i,t[0],a,m)===null&&metaDfcSi(a,m)!==null)));
+      h+='<td><input class="orc-in'+flag+'" data-t="'+t[0]+'" data-m="'+m+'" value="'+metaFmt(v)+'" placeholder="'+ph+'" onfocus="this.select()" onchange="metaEdit(this)"'+(auto?' disabled title="'+(i==='st'?'Vem das vendas do dash (fato_vendas)':'Vem dos pagamentos Truss do DFC (sem valor lançado)')+'"':'')+(flag?' title="Igual à meta do franqueador de '+ORC_M[m-1]+'/'+(a-1)+' — possível cópia"':'')+'></td>';
     });
     var tot=0;ms.forEach(function(m){tot+=metaGet(i,t[0],a,m)||0;});
     h+='<td class="orc-tot">'+(tot?Math.round(tot).toLocaleString('pt-BR'):'—')+'</td></tr>';
