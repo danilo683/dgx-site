@@ -4614,9 +4614,10 @@ function pedPainelSVG(x, sim, snaps, Wd){
 }
 /* ═══ FIM MÓDULO ESTOQUE ═══ */
 // ══════════════════════════════════════════════════════════════
-// PROJEÇÃO DFC (3 anos) — Hawks MG
-// Fonte: tabelas Supabase proj_dfc + proj_premissas (cenários base/conservador/otimista/livre).
-// O motor de cálculo vive na planilha "Projecao_DFC_Hawks_MG"; o dash apenas exibe os resultados.
+// PROJEÇÃO DFC (3 anos) — Hawks (filial selecionada)
+// Calculada na hora com o MESMO motor do "Gerar orçado" (genCalcular): Metas + Premissas + exceções por mês,
+// nos cenários base/conservador/otimista/livre. Meses realizados vêm do DFC realizado importado (orcamento_dfc).
+// Nada é gravado: a Projeção sempre reflete o que está preenchido em Orçamento → Metas e Premissas.
 // Todas as funções deste bloco usam o prefixo "pj" para não colidir com o restante do dash.
 // ══════════════════════════════════════════════════════════════
 var PJ={carregado:false,carregando:false,erro:null,dados:{},prem:{},cen:'base',view:'geral',tbl:'anual',open:{},charts:[],versao:''};
@@ -4646,27 +4647,104 @@ function pjEsc(s){return(typeof escapeHtml==='function')?escapeHtml(s):String(s=
 function pjCenInfo(k){return PJ_CEN.filter(function(c){return c.k===k;})[0]||PJ_CEN[0];}
 
 // ---------- carga ----------
+// Converte um mapa {código do plano de contas: valor positivo} nas colunas da Projeção (saídas negativas).
+function pjLinha(L){
+  var g=function(){var t=0;for(var i=0;i<arguments.length;i++)t+=L[arguments[i]]||0;return t;},o={};
+  o.ent_clientes=g('2.1.1.1','2.1.1.2','2.1.1.3');
+  o.juros_multas=g('2.1.2.1','2.1.2.2','2.1.3.1','2.1.3.2','2.1.3.3');
+  o.pgto_truss=-g('3.1.1.1','3.1.1.2');
+  o.pgto_nao_truss=-g('3.1.1.3','3.1.1.4','3.1.1.5');
+  o.pgto_pessoal=-g('3.1.3.1');o.pgto_prolabore=-g('3.1.3.2');o.pgto_mkt=-g('3.1.3.3');o.pgto_comissoes=-g('3.1.3.4');
+  o.pgto_logistica=-g('3.1.3.5');o.pgto_ocupacao=-g('3.1.3.6');
+  o.pgto_gerais=-g('3.1.3.7','3.1.3.9','3.1.2.1','3.1.5.1');
+  o.pgto_terceiros=-g('3.1.3.8');o.pgto_impostos=-g('3.1.4.1');
+  o.sai_invest=g('2.3.1.1','2.3.1.2','2.3.1.3')-g('3.3.1.1','3.3.1.2','3.3.1.3');
+  o.pgto_financ=-g('3.2.1.1','3.2.2.1','3.2.2.2');
+  o.antecipacao=g('2.2.1.2');o.encargos_antec=-g('3.2.1.2');o.aporte=g('2.2.1.3');o.outros_financ=g('2.2.1.1','2.2.1.4');
+  o.caixa_operacional=o.ent_clientes+o.juros_multas+o.pgto_truss+o.pgto_nao_truss+o.pgto_pessoal+o.pgto_prolabore+o.pgto_mkt+o.pgto_comissoes+o.pgto_logistica+o.pgto_ocupacao+o.pgto_gerais+o.pgto_terceiros+o.pgto_impostos;
+  return o;
+}
+function pjMontaRow(cen,mkn,realizado,vendas,compras,L,ini,fim){
+  var d=genDe(mkn),c=pjLinha(L),o={cen:cen,mk:d.a+'-'+String(d.m).padStart(2,'0'),realizado:realizado,caixa_pre:null};
+  PJ_NUM.forEach(function(f){o[f]=pjN(c[f]);});
+  o.vendas=pjN(vendas);o.compras=pjN(compras);o.caixa_inicial=ini;o.caixa_final=fim;
+  o.lbl=pjLbl(o.mk);o.ano=d.a;
+  o.desp=PJ_DESP.reduce(function(a,f){return a+o[f];},0);
+  o.antec_liq=o.antecipacao+o.encargos_antec;
+  return o;
+}
+// DFC realizado (orcamento_dfc, tipo 'realizado') de Out/25 em diante, com o saldo de caixa mês a mês
+async function pjRealizado(){
+  var cid=clienteIdAtual(),R={},from=0,ps=1000;
+  while(true){
+    var q=await sb.from('orcamento_dfc').select('ano,mes,codigo,valor').eq('cliente_id',cid).eq('tipo','realizado').in('ano',[2025,2026]).range(from,from+ps-1);
+    if(q.error)throw q.error;
+    (q.data||[]).forEach(function(x){var k=genMk(x.ano,x.mes),o=R[k]=R[k]||{};o[x.codigo]=(o[x.codigo]||0)+parseFloat(x.valor);});
+    if((q.data||[]).length<ps)break;from+=ps;
+  }
+  var meses=Object.keys(R).map(Number).filter(function(k){return k>=genMk(2025,10)&&Object.keys(R[k]).some(function(c){return c.charAt(0)==='3';});}).sort(function(x,y){return x-y;});
+  var rows=[],fim=null;
+  meses.forEach(function(k,i){
+    var L=R[k],c=pjLinha(L),ini=L['1.1']!==undefined?L['1.1']:(fim===null?0:fim),d=genDe(k);
+    fim=ini+c.caixa_operacional+c.sai_invest+c.pgto_financ+c.antecipacao+c.encargos_antec+c.aporte+c.outros_financ;
+    rows.push({mkn:k,L:L,ini:ini,fim:fim,vendas:metaGet('st','realizado',d.a,d.m)||0,compras:metaGetRaw('si','realizado',d.a,d.m)||0});
+  });
+  var ultimo=meses.length?meses[meses.length-1]:null,de=ultimo===null?genMk(2026,9):ultimo+1;
+  var ini1=R[de]&&R[de]['1.1']!==undefined?R[de]['1.1']:fim;
+  return {rows:rows,de:de,cxAnt:ini1};
+}
+function pjFmtVal(t,v){if(t==='modo')return v==1?'1 \u00b7 meta sell-in':'2 \u00b7 % hist\u00f3rico';return premFmt(t,v);}
+function pjPremItem(grupo,k,n,t,v,st,o,ordem,cen){
+  var it={cenario:cen,grupo:grupo,chave:k,rotulo:n,valor_num:null,valor_txt:null,formato:'',fonte:(st==='p'?'PLACEHOLDER: ':'')+(o||''),ordem:ordem};
+  if(t==='pct')it.formato=(grupo==='Alavancas do cen\u00e1rio')?'pct':'pct2';
+  if(t==='brl')it.formato='brl';
+  if(t==='mes'||t==='modo'||t==='txt')it.valor_txt=pjFmtVal(t,v);else it.valor_num=v;
+  return it;
+}
+var PJ_EXC_ROT={trxq1_:'Truss \u2014 % 1\u00aa quinzena',trxq2_:'Truss \u2014 % 2\u00aa quinzena',trxp1_:'Truss \u2014 prazos 1\u00aa quinzena',trxp2_:'Truss \u2014 prazos 2\u00aa quinzena',rxmb_:'Mix \u2014 boleto',rxmc_:'Mix \u2014 cart\u00e3o parcelado',rxmp_:'Mix \u2014 pix',rxma_:'Mix \u2014 cart\u00e3o \u00e0 vista',rxdi_:'Recebimento \u2014 condi\u00e7\u00e3o em dias',rxd0_:'Recebimento \u2014 defasagem 0',rxd1_:'Recebimento \u2014 defasagem 1',rxd2_:'Recebimento \u2014 defasagem 2',rxd3_:'Recebimento \u2014 defasagem 3',rxd4_:'Recebimento \u2014 defasagem 4'};
+function pjExcecoes(){
+  var por={};
+  Object.keys(PREM.over).forEach(function(k){
+    var m=/^todos\|(trx[qp][12]_|rxm[bcpa]_|rxdi_|rxd[0-4]_)(\d{4}-\d{2})$/.exec(k);if(!m)return;
+    var v=PREM.over[k],txt=/^(trxp|rxdi)/.test(m[1])?String(v):premFmt('pct',v);
+    (por[m[2]]=por[m[2]]||[]).push(PJ_EXC_ROT[m[1]]+': '+txt);
+  });
+  return Object.keys(por).sort().map(function(mk){return {mk:mk,txt:por[mk].join(' \u00b7 ')};});
+}
+function pjMontaPrem(cen){
+  var out=[],o=0;
+  PREM_ALAV.forEach(function(d){out.push(pjPremItem('Alavancas do cen\u00e1rio',d.k,d.n,d.t,genLever(cen,d.k),d.st,d.o,o++,cen));});
+  PREM_GERAL.forEach(function(g){g.itens.forEach(function(it){out.push(pjPremItem(g.g,it.k,it.n,it.t,genGeral(it.k),it.st,it.o,o++,cen));});});
+  pjExcecoes().forEach(function(e){out.push({cenario:cen,grupo:'Exce\u00e7\u00f5es por m\u00eas (Metas)',chave:'exc_'+e.mk,rotulo:pjLbl(e.mk),valor_num:null,valor_txt:e.txt,formato:'',fonte:'Cadastradas em Or\u00e7amento \u2192 Metas (Sell-in e Sell-through)',ordem:o++});});
+  return out;
+}
 async function pjCarregar(){
   if(PJ.carregado||PJ.carregando)return;
   PJ.carregando=true;PJ.erro=null;
   try{
-    var res=await Promise.all([
-      sb.from('proj_dfc').select('*').eq('cliente_id','hawks_mg').order('competencia',{ascending:true}),
-      sb.from('proj_premissas').select('*').eq('cliente_id','hawks_mg').order('ordem',{ascending:true})
-    ]);
-    if(res[0].error)throw res[0].error;
-    if(res[1].error)throw res[1].error;
-    PJ.dados={};PJ.prem={};
-    (res[0].data||[]).forEach(function(r){
-      var o={cen:r.cenario,mk:String(r.competencia).slice(0,7),realizado:(r.realizado===true||r.realizado===1||r.realizado==='true'),caixa_pre:(r.caixa_pre===null||r.caixa_pre===undefined)?null:pjN(r.caixa_pre)};
-      PJ_NUM.forEach(function(f){o[f]=pjN(r[f]);});
-      o.lbl=pjLbl(o.mk);o.ano=parseInt(o.mk.slice(0,4),10);
-      o.desp=PJ_DESP.reduce(function(a,f){return a+o[f];},0);
-      o.antec_liq=o.antecipacao+o.encargos_antec;
-      if(r.versao)PJ.versao=r.versao;
-      (PJ.dados[r.cenario]=PJ.dados[r.cenario]||[]).push(o);
+    if(!PREM.carregado)await initPremOrc();
+    if(!META.carregado)await initMetas();
+    if(GEN.titulos===undefined)await genCarregarTitulos();
+    var re=await pjRealizado();
+    PJ.dados={};PJ.prem={};PJ.avisos={};PJ.vazio=false;
+    PJ_HIST_RAZAO=genGeral('cv_hist');
+    var ateMk=genMk(2029,12),temProj=false;
+    PJ_CEN.forEach(function(c){
+      var cen=c.k,rows=[];
+      re.rows.forEach(function(x){rows.push(pjMontaRow(cen,x.mkn,true,x.vendas,x.compras,x.L,x.ini,x.fim));});
+      // o motor lê o caixa inicial do Orçamento aberto (ORC.r); aqui o saldo vem do realizado, então esvazio ORC.r só durante o cálculo
+      var sv=ORC.r,res;ORC.r={};
+      try{res=genCalcular(cen,re.de,ateMk,GEN.titulos,re.cxAnt!==null&&re.cxAnt!==undefined?Math.round(re.cxAnt*100)/100:null);}finally{ORC.r=sv;}
+      res.meses.forEach(function(o,i){
+        var ini=i===0?o.ini:res.meses[i-1].fim;
+        var r=pjMontaRow(cen,o.mk,false,o.st,o.si,o.L,ini,o.fim);r.caixa_pre=o.antes;
+        if(o.st||o.si)temProj=true;
+        rows.push(r);
+      });
+      PJ.dados[cen]=rows;PJ.avisos[cen]=res.aviso;PJ.prem[cen]=pjMontaPrem(cen);
     });
-    (res[1].data||[]).forEach(function(r){(PJ.prem[r.cenario]=PJ.prem[r.cenario]||[]).push(r);});
+    PJ.vazio=!temProj&&!re.rows.length;
+    PJ.versao='calculada com as Metas e Premissas atuais';
     PJ.carregado=true;
   }catch(e){console.error(e);PJ.erro=(e&&e.message)?e.message:String(e);}
   PJ.carregando=false;
@@ -4707,10 +4785,7 @@ function projecaoHTML(){
     +'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
 }
 async function initProjecao(){
-  if(FILIAL!=='mg'){
-    document.getElementById('content').innerHTML='<div class="pj-empty"><div class="i">\uD83D\uDD2E</div><h3>Proje\u00e7\u00e3o de DFC \u2014 Hawks '+nomeFilial()+'</h3><p>A proje\u00e7\u00e3o de 3 anos da '+nomeFilial()+' est\u00e1 em constru\u00e7\u00e3o. O piloto j\u00e1 est\u00e1 dispon\u00edvel na filial MG.</p></div>';
-    return;
-  }
+  PJ.carregado=false;PJ.carregando=false;PJ.erro=null; // recalcula a cada abertura, para refletir Metas e Premissas
   pjRenderShell();
   await pjCarregar();
   pjRenderShell();
@@ -4720,7 +4795,8 @@ function pjRenderShell(){
   if(sc){sc.innerHTML=PJ_CEN.map(function(c){return'<div class="pj-pill'+(c.k===PJ.cen?' active':'')+'" style="--pj-c:'+c.c+'" onclick="pjSetCen(\''+c.k+'\')"><span class="pj-dot" style="background:'+c.c+'"></span>'+c.n+'</div>';}).join('');}
   document.querySelectorAll('#pj-nav .dfc-nav-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-v')===PJ.view);});
   var sub=document.getElementById('pj-sub');
-  if(sub)sub.textContent=PJ.carregado?('Hawks MG \u00b7 Set/26 a Dez/29 \u00b7 '+(PJ.versao||'')):'Hawks MG';
+  var pr0=PJ.carregado?pjProj(PJ.cen):[];
+  if(sub)sub.textContent=PJ.carregado?('Hawks '+nomeFilial()+(pr0.length?' \u00b7 '+pr0[0].lbl+' a '+pr0[pr0.length-1].lbl:'')+' \u00b7 '+(PJ.versao||'')):'Hawks '+nomeFilial();
   pjRenderBody();
 }
 function pjSetCen(k){PJ.cen=k;pjRenderShell();}
@@ -4730,12 +4806,14 @@ function pjRenderBody(){
   var b=document.getElementById('pj-body');if(!b)return;
   pjKill();
   if(PJ.carregando||(!PJ.carregado&&!PJ.erro)){b.innerHTML='<div class="pj-loading">Carregando proje\u00e7\u00e3o\u2026</div>';return;}
-  if(PJ.erro){b.innerHTML='<div class="pj-empty"><div class="i">\u26A0\uFE0F</div><h3>N\u00e3o foi poss\u00edvel carregar a proje\u00e7\u00e3o</h3><p>'+pjEsc(PJ.erro)+'<br>Confira se as tabelas <b>proj_dfc</b> e <b>proj_premissas</b> foram criadas e se a policy de leitura permite este perfil.</p></div>';return;}
-  if(!pjRows(PJ.cen).length){b.innerHTML='<div class="pj-empty"><div class="i">\uD83D\uDCED</div><h3>Sem dados para este cen\u00e1rio</h3><p>Rode o script de dados da proje\u00e7\u00e3o no Supabase para carregar o cen\u00e1rio \u201c'+pjCenInfo(PJ.cen).n+'\u201d.</p></div>';return;}
-  if(PJ.view==='geral'){b.innerHTML=pjGeralHTML();pjGeralCharts();}
-  else if(PJ.view==='dfc'){b.innerHTML=pjDfcHTML();pjDfcInit();}
-  else if(PJ.view==='cenarios'){b.innerHTML=pjCenariosHTML();pjCenariosCharts();}
-  else{b.innerHTML=pjPremissasHTML();}
+  if(PJ.erro){b.innerHTML='<div class="pj-empty"><div class="i">\u26A0\uFE0F</div><h3>N\u00e3o foi poss\u00edvel carregar a proje\u00e7\u00e3o</h3><p>'+pjEsc(PJ.erro)+'<br>Confira se o realizado, as metas e as premissas desta filial foram importados em Or\u00e7amento.</p></div>';return;}
+  if(PJ.vazio){b.innerHTML='<div class="pj-empty"><div class="i">\uD83D\uDCED</div><h3>Ainda n\u00e3o h\u00e1 dados para a '+nomeFilial()+'</h3><p>Cadastre as metas de sell-through e sell-in em Or\u00e7amento \u2192 Metas e ajuste as premissas. A proje\u00e7\u00e3o aparece aqui assim que houver metas.</p></div>';return;}
+  if(!pjRows(PJ.cen).length){b.innerHTML='<div class="pj-empty"><div class="i">\uD83D\uDCED</div><h3>Sem dados para este cen\u00e1rio</h3><p>Confira as metas e as premissas desta filial para o cen\u00e1rio \u201c'+pjCenInfo(PJ.cen).n+'\u201d.</p></div>';return;}
+  var av=(PJ.avisos&&PJ.avisos[PJ.cen])||[],avH=av.length?'<div class="pj-banner warn"><div class="pj-b-ico">\u26A0\uFE0F</div><div>'+av.map(pjEsc).join('<br>')+'</div></div>':'';
+  if(PJ.view==='geral'){b.innerHTML=avH+pjGeralHTML();pjGeralCharts();}
+  else if(PJ.view==='dfc'){b.innerHTML=avH+pjDfcHTML();pjDfcInit();}
+  else if(PJ.view==='cenarios'){b.innerHTML=avH+pjCenariosHTML();pjCenariosCharts();}
+  else{b.innerHTML=avH+pjPremissasHTML();}
 }
 
 // ---------- gráficos: base ----------
