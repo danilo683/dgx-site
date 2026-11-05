@@ -328,6 +328,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .orc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
 .prem-intro{font-size:12.5px;color:#9FB4C6;background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:12px 16px;margin-bottom:1rem;line-height:1.55}
 .prem-intro b{color:#E2EAF4}
+.end-tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.end-tbl th{background:#1F3044;color:#E2EAF4;font-weight:600;font-size:11px;padding:9px 6px;text-align:center;border-bottom:1px solid #2A4058}
+.end-tbl td{padding:4px 5px;border-bottom:1px solid #1F3044;vertical-align:middle}
+.end-tbl tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+.end-tbl .orc-in{min-width:0;font-size:12px;border-bottom:1px solid #2A4058;padding:4px 2px}
+.end-tbl .orc-in:focus{border-bottom-color:#00B4D8;background:rgba(0,180,216,.07)}
+.end-tbl .end-l{text-align:left}
+.end-del{background:transparent;border:0;color:#8BA0B0;cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
+.end-del:hover{color:#E88;background:rgba(232,136,136,.12)}
+.end-add{margin-top:12px;background:#00B4D8;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.end-add:hover{filter:brightness(1.1)}
+.end-wrap{overflow-x:auto;background:#121C28;border:0.5px solid #1F3044;border-radius:10px;padding:6px}
 .meta-tbl{width:100%!important;min-width:0!important;table-layout:fixed}
 .meta-tbl th.orc-lbl,.meta-tbl td.orc-lbl{width:250px;min-width:250px;max-width:250px;position:static}
 .meta-tbl th.orc-tot,.meta-tbl td.orc-tot{width:104px;min-width:104px;position:static}
@@ -399,7 +411,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="nav-item nav-sub" id="nav-orc-comp" onclick="orcNav('comp',this)">Orçado × Realizado</div>
       <div class="nav-item nav-sub" id="nav-orc-metas" onclick="metaNav(this)">Metas</div>
     </div>
-    <div class="nav-item disabled"><span class="nav-icon">🏦</span>Endividamento<span class="nav-badge">Em breve</span></div>
+    <div class="nav-item" id="nav-endiv" onclick="setPage('endividamento',this)"><span class="nav-icon">🏦</span>Endividamento</div>
     <div class="sidebar-section">Comercial</div>
     <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
     <div class="nav-item disabled"><span class="nav-icon">🧑‍💼</span>Vendedores<span class="nav-badge">Em breve</span></div>
@@ -651,7 +663,7 @@ function doLogout(){sb.auth.signOut().then(function(){window.location.href='/cli
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});if(el)el.classList.add('active');renderPage(page);}
 var periods={inicio:'',vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Mar 2026',dfc:'Jan – Abr 2026',produtos:'',estoque:'',orcamento:'2026',metas:'2026'};
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE — Resultado do Exercício',dfc:'DFC — Fluxo de Caixa',produtos:'An\u00e1lise de Produtos',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',orcamento:'Or\u00e7amento'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE — Resultado do Exercício',dfc:'DFC — Fluxo de Caixa',produtos:'An\u00e1lise de Produtos',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',orcamento:'Or\u00e7amento',endividamento:'Endividamento Banc\u00e1rio'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -664,6 +676,7 @@ function renderPage(page){
   else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
   else if(page==='orcamento'){c.innerHTML=orcHTML();initOrcamento();}
   else if(page==='metas'){c.innerHTML=metasHTML();initMetas();}
+  else if(page==='endividamento'){c.innerHTML=endHTML();initEnd();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">🔒</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -3889,6 +3902,96 @@ async function metaEdit(inp){
   st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
 }
 function metaNav(el){setPage('metas',el);document.getElementById('topbarTitle').textContent='Orçamento — Metas';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+
+// ══════════════════════════════════════════════
+// ENDIVIDAMENTO BANCÁRIO — cadastro das dívidas (tabela endividamento no Supabase)
+// ══════════════════════════════════════════════
+var END={rows:[],carregado:false,erro:''};
+var END_COLS=[
+ ['contrato','Número do contrato','t',120],['instituicao','Instituição Financeira','t',110],['tipo','Tipo de contrato','t',140],
+ ['data_contratacao','Data contratação','d',96],['valor_contratado','Valor contratado','m',108],['total_parcelas','Total parcelas','i',66],
+ ['valor_parcela','Valor Parcela','m',92],['carencia_meses','Carência (m)','i',64],['parcelas_pagas','Parcelas pagas','i',66],
+ ['taxa_am','Taxa (%a.m.)','p',70],['saldo_devedor','Saldo devedor','m',108],['garantias','Garantias','t',86]
+];
+function endEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function endFmt(tipo,v){
+  if(v===null||v===undefined||v==='')return '';
+  if(tipo==='d'){var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'/'+m[2]+'/'+m[1]:'';}
+  if(tipo==='m'||tipo==='p')return parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(tipo==='i')return String(parseInt(v));
+  return String(v);
+}
+function endParse(tipo,txt){
+  txt=String(txt||'').trim();
+  if(!txt)return {ok:true,v:null};
+  if(tipo==='t')return {ok:true,v:txt};
+  if(tipo==='d'){
+    var m=txt.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if(!m)return {ok:false};
+    var d=parseInt(m[1]),mo=parseInt(m[2]),y=parseInt(m[3]);
+    var dt=new Date(Date.UTC(y,mo-1,d));
+    if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==mo-1||dt.getUTCDate()!==d)return {ok:false};
+    return {ok:true,v:y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0')};
+  }
+  var x=orcParse(txt);
+  if(x===null)return {ok:false};
+  if(tipo==='i')x=Math.round(x);
+  return {ok:true,v:x};
+}
+function endHTML(){
+  return '<div class="prem-intro"><b>Endividamento bancário</b> — cadastro dos contratos de empréstimo e financiamento. Edite qualquer campo direto na tabela (salva ao sair do campo). Datas no formato dd/mm/aaaa; valores em reais; taxa em % ao mês.</div>'
+   +'<div class="orc-head"><div class="orc-status" id="end-status"></div></div>'
+   +'<div id="end-corpo"></div>';
+}
+async function initEnd(){
+  END.carregado=false;END.erro='';endDesenhar();
+  var r=await sb.from('endividamento').select('*').eq('cliente_id',clienteIdAtual()).order('data_contratacao',{ascending:true}).order('id',{ascending:true});
+  if(r.error){END.erro='Não foi possível carregar o endividamento (a tabela "endividamento" precisa existir no Supabase).';console.error(r.error);END.rows=[];}
+  else END.rows=r.data||[];
+  END.carregado=true;endDesenhar();
+}
+function endDesenhar(){
+  var el=document.getElementById('end-corpo');if(!el)return;
+  if(!END.carregado){el.innerHTML='<div class="prem-intro">Carregando…</div>';return;}
+  if(END.erro){el.innerHTML='<div class="prem-intro" style="color:#E88">'+END.erro+'</div>';return;}
+  var h='<div class="end-wrap"><table class="end-tbl"><thead><tr>';
+  END_COLS.forEach(function(c){h+='<th style="width:'+c[3]+'px">'+c[1]+'</th>';});
+  h+='<th style="width:34px"></th></tr></thead><tbody>';
+  if(!END.rows.length)h+='<tr><td colspan="'+(END_COLS.length+1)+'" style="text-align:center;color:#8BA0B0;padding:18px">Nenhuma dívida cadastrada. Use o botão abaixo para adicionar.</td></tr>';
+  END.rows.forEach(function(r){
+    h+='<tr data-id="'+r.id+'">';
+    END_COLS.forEach(function(c){
+      h+='<td><input class="orc-in'+(c[2]==='t'?' end-l':'')+'" data-f="'+c[0]+'" data-k="'+c[2]+'" value="'+endEsc(endFmt(c[2],r[c[0]]))+'" onfocus="this.select()" onchange="endSalvar(this)"'+(c[2]==='t'?' style="text-align:left"':'')+'></td>';
+    });
+    h+='<td><button class="end-del" title="Excluir esta dívida" onclick="endExcluir('+r.id+')">✕</button></td></tr>';
+  });
+  h+='</tbody></table></div><button class="end-add" onclick="endAdd()">+ Adicionar dívida</button>';
+  el.innerHTML=h;
+}
+function endStatus(msg,err){var s=document.getElementById('end-status');if(s)s.innerHTML=err?'<span style="color:#E88">'+msg+'</span>':msg;}
+async function endSalvar(inp){
+  var tr=inp.closest('tr'),id=parseInt(tr.getAttribute('data-id')),f=inp.getAttribute('data-f'),k=inp.getAttribute('data-k');
+  var row=END.rows.filter(function(x){return x.id===id;})[0];if(!row)return;
+  var p=endParse(k,inp.value);
+  if(!p.ok){inp.value=endFmt(k,row[f]);endStatus(k==='d'?'Data inválida — use dd/mm/aaaa.':'Valor inválido.',true);return;}
+  var upd={};upd[f]=p.v;upd.updated_at=new Date().toISOString();
+  var r=await sb.from('endividamento').update(upd).eq('id',id).eq('cliente_id',clienteIdAtual());
+  if(r.error){endStatus('Erro ao salvar: '+(r.error.message||r.error),true);return;}
+  row[f]=p.v;inp.value=endFmt(k,p.v);endStatus('✓ Salvo');
+}
+async function endAdd(){
+  var r=await sb.from('endividamento').insert({cliente_id:clienteIdAtual()}).select();
+  if(r.error||!r.data||!r.data.length){endStatus('Erro ao adicionar: '+((r.error&&r.error.message)||'sem retorno'),true);return;}
+  END.rows.push(r.data[0]);endDesenhar();endStatus('✓ Linha adicionada');
+  var ins=document.querySelectorAll('#end-corpo tbody tr:last-child input');if(ins.length)ins[0].focus();
+}
+async function endExcluir(id){
+  var row=END.rows.filter(function(x){return x.id===id;})[0];if(!row)return;
+  if(!confirm('Excluir a dívida '+(row.contrato||'(sem número)')+'?'))return;
+  var r=await sb.from('endividamento').delete().eq('id',id).eq('cliente_id',clienteIdAtual());
+  if(r.error){endStatus('Erro ao excluir: '+(r.error.message||r.error),true);return;}
+  END.rows=END.rows.filter(function(x){return x.id!==id;});endDesenhar();endStatus('✓ Excluída');
+}
 
 // ══════════════════════════════════════════════
 // IMPORTAÇÃO DO REALIZADO — aba "Lançamentos" do DFC do franqueado
