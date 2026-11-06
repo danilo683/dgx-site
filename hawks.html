@@ -6155,6 +6155,48 @@ function dreoTabela(){
   });
   return h+'</tbody></table></div>';
 }
+// ── Break even (EBITDA e Lucro Líquido) sobre o DRE Orçado gravado/editado ──
+function dreoBE(v){
+  var Z=dreoZ(),g=function(c){return v[c]||Z;},S=dreoResumo(v),RB=g('RB'),RL=S.RL;
+  var vari=dreoZ(),fix=dreoZ(),abaixo=dreoZ();
+  ESTRUTURA_DESPESAS.forEach(function(b,bi){b.linhas.forEach(function(l){if(l.resultado)return;
+    var x=dreoVal(l,v);
+    if(bi===0)vari=dreoSoma(vari,x);else if(l.codigo==='12')fix=dreoSoma(fix,x);else abaixo=dreoSoma(abaixo,x);});});
+  var CM=dreoSoma(dreoSoma(RL,dreoSoma(g('CMV'),g('PC'))),vari);   // margem de contribuição
+  var sum=function(a){return a.reduce(function(s,x){return s+x;},0);};
+  function calc(idx,custo){ // custo = custos fixos (negativos) a cobrir
+    var cm=idx==null?(sum(RB)?sum(CM)/sum(RB):0):(RB[idx]?CM[idx]/RB[idx]:0),c=idx==null?sum(custo):custo[idx];
+    var rb=idx==null?sum(RB):RB[idx],be=(cm>0&&c)?-c/cm:null;
+    return {cm:cm,fix:c,be:be,seg:(be!==null&&rb)?(rb-be)/rb:null,rb:rb,rlRatio:(idx==null?(sum(RB)?sum(RL)/sum(RB):0):(RB[idx]?RL[idx]/RB[idx]:0))};
+  }
+  var fixLL=dreoSoma(fix,abaixo),out={CM:CM,eb:[],ll:[]};
+  for(var i=0;i<12;i++){out.eb.push(calc(i,fix));out.ll.push(calc(i,fixLL));}
+  out.ebA=calc(null,fix);out.llA=calc(null,fixLL);return out;
+}
+function dreoBEHTML(){
+  if(!Object.keys(DREO.v).length)return '';
+  var B=dreoBE(DREO.v),f=function(x){return x===null||x===undefined?'—':dreoF(x);},p=function(x){return x===null||x===undefined?'—':(x*100).toFixed(1)+'%';};
+  function bloco(t,K,KA){
+    var h='<tr class="qd-bloco"><td colspan="14"><span class="qd-bloco-t">'+t+'</span></td></tr>';
+    var lin=[['Margem de contribuição (% da Receita Bruta)',function(k){return p(k.cm);}],
+      ['Custos fixos a cobrir',function(k){return f(k.fix);}],
+      ['Faturamento de equilíbrio — Receita Bruta',function(k){return f(k.be);},1],
+      ['Faturamento de equilíbrio — Receita Líquida',function(k){return k.be===null?'—':dreoF(k.be*k.rlRatio);}],
+      ['Receita Bruta orçada',function(k){return f(k.rb);}],
+      ['Margem de segurança',function(k){return p(k.seg);},2]];
+    lin.forEach(function(l){
+      h+='<tr class="'+(l[2]===1?'highlight':'')+'"><td style="padding-left:12px">'+l[0]+'</td>';
+      K.forEach(function(k){var neg=l[2]===2&&k.seg!==null&&k.seg<0;h+='<td'+(neg?' style="color:#E58B8B"':'')+'>'+l[1](k)+'</td>';});
+      h+='<td><b>'+l[1](KA)+'</b></td></tr>';});
+    return h;
+  }
+  var h='<div class="chart-card" style="margin-top:1rem"><div class="qd-header"><div><div class="chart-title">Break even — DRE Orçado '+DREO.ano+'</div><div class="chart-sub">Margem de contribuição = Receita Líquida − CMV − política comercial − despesas variáveis (blocos 7 a 11). Fixos = Despesas Gerais e Adm. Mensal usa a margem do mês; o ano usa a média do ano. Meses com margem de segurança negativa estão abaixo do equilíbrio. Impostos sobre vendas e sobre o lucro ainda em branco.</div></div></div>'
+   +'<div class="dre-frz-wrap"><table class="dre-table dre-frz"><thead><tr><th style="min-width:300px">Linha</th>'+ORC_M.map(function(m){return '<th style="min-width:100px">'+m+'/'+String(DREO.ano).slice(2)+'</th>';}).join('')+'<th style="min-width:110px">Ano</th></tr></thead><tbody>'
+   +bloco('Break even do EBITDA (EBITDA = 0)',B.eb,B.ebA)
+   +bloco('Break even do Lucro Líquido (Lucro Líquido = 0) — inclui depreciação e resultado financeiro',B.ll,B.llA)
+   +'</tbody></table></div></div>';
+  return h;
+}
 function dreoToggle(c){DREO.abertos[c]=!DREO.abertos[c];dreoDesenhar();}
 function dreoExpandir(ab){
   function walk(ls){ls.forEach(function(l){if(l.filhos){DREO.abertos[l.codigo]=ab;walk(l.filhos);}});}
@@ -6172,7 +6214,7 @@ function dreoDesenhar(){
    +anos.map(function(a){return '<option value="'+a+'"'+(a===DREO.ano?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'
    +'<div><div class="chart-title">DRE Orçado '+DREO.ano+' — '+nomeFilial()+'</div><div class="chart-sub">'+(tem?(DREO.cenGer?'Gerado com o cenário '+(PREM_CEN.filter(function(c){return c[0]===DREO.cenGer;})[0]||['',DREO.cenGer])[1]+' · ':'')+'células editáveis · clique nos grupos para expandir':'Nenhum DRE orçado gravado para este ano — use Gerar DRE orçado')+'</div></div></div>'
    +'<div style="white-space:nowrap"><button class="qd-btn" onclick="dreoGerarAbrir()" style="color:#00B4D8;border-color:#00B4D8">Gerar DRE orçado</button><button class="qd-btn" onclick="dreoExpandir(true)">Expandir tudo</button><button class="qd-btn" onclick="dreoExpandir(false)">Recolher</button></div></div>'
-   +(DREO.erro?'<div class="qd-aviso">'+DREO.erro+'</div>':'')+dreoTabela()+'</div>';
+   +(DREO.erro?'<div class="qd-aviso">'+DREO.erro+'</div>':'')+dreoTabela()+'</div>'+dreoBEHTML();
   el.innerHTML=h;
   var w2=el.querySelector('.dre-frz-wrap');if(w2){w2.scrollLeft=sl;w2.scrollTop=st;}
 }
