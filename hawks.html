@@ -6363,7 +6363,7 @@ async function dreoPrevia(){
   var lin=[['Receita Bruta',G.v.RB],['Receita Líquida',S.RL],['Margem Bruta',S.MB],['EBITDA',S.R2],['Resultado Operacional',S.R3],['Lucro Líquido',S.R5]];
   h+='<div style="overflow:auto"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Linha</th>'+ORC_M.map(function(n){return '<th>'+n+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';
   lin.forEach(function(l){var t=l[1].reduce(function(a,b){return a+b;},0);h+='<tr><td style="text-align:left">'+l[0]+'</td>'+l[1].map(function(x){return '<td>'+f(x)+'</td>';}).join('')+'<td><b>'+f(t)+'</b></td></tr>';});
-  h+='</tbody></table></div><div style="margin-top:.6rem"><button class="adm-btn imp-go" onclick="dreoGravar()">Gravar DRE orçado '+DREO.ano+'</button></div>';
+  h+='</tbody></table></div>'+(G.v.RB.some(function(x){return x;})?'<div style="margin-top:.6rem"><button class="adm-btn imp-go" onclick="dreoGravar()">Gravar DRE orçado '+DREO.ano+'</button></div>':'<div class="imp-p" style="margin-top:.6rem">Cadastre as metas de sell-through deste ano para poder gravar.</div>');
   el.innerHTML=h;
 }
 async function dreoGravar(){
