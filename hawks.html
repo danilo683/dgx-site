@@ -4623,7 +4623,7 @@ function pedPainelSVG(x, sim, snaps, Wd){
 // Nada é gravado: a Projeção sempre reflete o que está preenchido em Orçamento → Metas e Premissas.
 // Todas as funções deste bloco usam o prefixo "pj" para não colidir com o restante do dash.
 // ══════════════════════════════════════════════════════════════
-var PJ={carregado:false,carregando:false,erro:null,dados:{},prem:{},cen:'base',view:'geral',tbl:'anual',open:{},charts:[],versao:''};
+var PJ={fil:'atual',resAtual:null,resConsol:null,carregado:false,carregando:false,erro:null,dados:{},prem:{},cen:'base',view:'geral',tbl:'anual',open:{},charts:[],versao:''};
 var PJ_CEN=[
   {k:'base',n:'Base',c:'#00B4D8'},{k:'conservador',n:'Conservador',c:'#E74C3C'},
   {k:'otimista',n:'Otimista',c:'#2ECC71'},{k:'livre',n:'Livre',c:'#9B59B6'}
@@ -4721,36 +4721,91 @@ function pjMontaPrem(cen){
   pjExcecoes().forEach(function(e){out.push({cenario:cen,grupo:'Exce\u00e7\u00f5es por m\u00eas (Metas)',chave:'exc_'+e.mk,rotulo:pjLbl(e.mk),valor_num:null,valor_txt:e.txt,formato:'',fonte:'Cadastradas em Or\u00e7amento \u2192 Metas (Sell-in e Sell-through)',ordem:o++});});
   return out;
 }
+// Calcula a projeção da FILIAL global atual (Metas, Premissas, títulos e realizado dessa filial)
+async function pjCalcFilial(){
+  if(!PREM.carregado)await initPremOrc();
+  if(!META.carregado)await initMetas();
+  if(GEN.titulos===undefined)await genCarregarTitulos();
+  var re=await pjRealizado(),R={dados:{},prem:{},avisos:{},vazio:false};
+  PJ_HIST_RAZAO=genGeral('cv_hist');
+  var ateMk=genMk(2029,12),temProj=false;
+  PJ_CEN.forEach(function(c){
+    var cen=c.k,rows=[];
+    re.rows.forEach(function(x){rows.push(pjMontaRow(cen,x.mkn,true,x.vendas,x.compras,x.L,x.ini,x.fim));});
+    // o motor lê o caixa inicial do Orçamento aberto (ORC.r); aqui o saldo vem do realizado, então esvazio ORC.r só durante o cálculo
+    var sv=ORC.r,res;ORC.r={};
+    try{res=genCalcular(cen,re.de,ateMk,GEN.titulos,re.cxAnt!==null&&re.cxAnt!==undefined?Math.round(re.cxAnt*100)/100:null);}finally{ORC.r=sv;}
+    res.meses.forEach(function(o,i){
+      var ini=i===0?o.ini:res.meses[i-1].fim;
+      var r=pjMontaRow(cen,o.mk,false,o.st,o.si,o.L,ini,o.fim);r.caixa_pre=o.antes;
+      if(o.st||o.si)temProj=true;
+      rows.push(r);
+    });
+    R.dados[cen]=rows;R.avisos[cen]=res.aviso;R.prem[cen]=pjMontaPrem(cen);
+  });
+  R.vazio=!temProj&&!re.rows.length;
+  return R;
+}
+// Consolidado: roda o motor em cada filial e soma por mês; nos meses 100% projetados o aporte é recalculado sobre o caixa mínimo somado.
+async function pjConsolidar(){
+  var orig=FILIAL,ord=FILIAIS.map(function(f){return f.k;}).filter(function(k){return k!==orig;}).concat([orig]),porF={},avs=[];
+  try{
+    for(var i=0;i<ord.length;i++){
+      FILIAL=ord[i];PREM.carregado=false;META.carregado=false;GEN.titulos=undefined;
+      try{porF[ord[i]]=await pjCalcFilial();}
+      catch(e){if(ord[i]===orig)throw e;avs.push('A filial '+filialNomeDe(ord[i])+' não entrou no consolidado: '+((e&&e.message)||e));}
+    }
+  }finally{FILIAL=orig;}
+  var fks=Object.keys(porF),res={dados:{},prem:{},avisos:{},vazio:true,atual:porF[orig]};
+  fks.forEach(function(fk){if(!porF[fk].vazio)res.vazio=false;});
+  PJ_CEN.forEach(function(c){
+    var cen=c.k,map={},cxm=0;
+    fks.forEach(function(fk){
+      (porF[fk].dados[cen]||[]).forEach(function(r){(map[r.mk]=map[r.mk]||[]).push(r);});
+      var p=(porF[fk].prem[cen]||[]).filter(function(x){return x.chave==='cxm';})[0];cxm+=p&&p.valor_num!==null?pjN(p.valor_num):10000;
+    });
+    var mks=Object.keys(map).sort(),ultReal=null;
+    mks.forEach(function(mk){if(map[mk].some(function(r){return r.realizado;}))ultReal=mk;});
+    var start=ultReal===null?mks[0]:(mks[mks.indexOf(ultReal)+1]||'9999-99'),rows=[],prev=null;
+    mks.forEach(function(mk){
+      var L=map[mk],o={cen:cen,mk:mk,realizado:L.every(function(r){return r.realizado;}),caixa_pre:null,lbl:L[0].lbl,ano:L[0].ano};
+      PJ_NUM.forEach(function(f){o[f]=L.reduce(function(a,r){return a+r[f];},0);});
+      if(mk>=start){
+        if(prev)o.caixa_inicial=prev.caixa_final;
+        var pre=o.caixa_inicial+o.caixa_operacional+o.sai_invest+o.pgto_financ+o.antecipacao+o.encargos_antec+o.outros_financ;
+        o.aporte=Math.max(0,cxm-pre);o.caixa_pre=pre;o.caixa_final=pre+o.aporte;
+      }
+      o.desp=PJ_DESP.reduce(function(a,f){return a+o[f];},0);o.antec_liq=o.antecipacao+o.encargos_antec;
+      rows.push(o);prev=o;
+    });
+    res.dados[cen]=rows;
+    res.prem[cen]=[{cenario:cen,grupo:'Consolidado',chave:'cxm',rotulo:'Caixa mínimo (soma das filiais)',valor_num:cxm,valor_txt:null,formato:'brl',fonte:'',ordem:0}];
+    res.avisos[cen]=avs.slice();
+    fks.forEach(function(fk){(porF[fk].avisos[cen]||[]).forEach(function(a){res.avisos[cen].push(filialNomeDe(fk)+': '+a);});});
+  });
+  return res;
+}
+function pjAplica(R){PJ.dados=R.dados;PJ.prem=R.prem;PJ.avisos=R.avisos;PJ.vazio=R.vazio;}
 async function pjCarregar(){
   if(PJ.carregado||PJ.carregando)return;
   PJ.carregando=true;PJ.erro=null;
   try{
-    if(!PREM.carregado)await initPremOrc();
-    if(!META.carregado)await initMetas();
-    if(GEN.titulos===undefined)await genCarregarTitulos();
-    var re=await pjRealizado();
-    PJ.dados={};PJ.prem={};PJ.avisos={};PJ.vazio=false;
-    PJ_HIST_RAZAO=genGeral('cv_hist');
-    var ateMk=genMk(2029,12),temProj=false;
-    PJ_CEN.forEach(function(c){
-      var cen=c.k,rows=[];
-      re.rows.forEach(function(x){rows.push(pjMontaRow(cen,x.mkn,true,x.vendas,x.compras,x.L,x.ini,x.fim));});
-      // o motor lê o caixa inicial do Orçamento aberto (ORC.r); aqui o saldo vem do realizado, então esvazio ORC.r só durante o cálculo
-      var sv=ORC.r,res;ORC.r={};
-      try{res=genCalcular(cen,re.de,ateMk,GEN.titulos,re.cxAnt!==null&&re.cxAnt!==undefined?Math.round(re.cxAnt*100)/100:null);}finally{ORC.r=sv;}
-      res.meses.forEach(function(o,i){
-        var ini=i===0?o.ini:res.meses[i-1].fim;
-        var r=pjMontaRow(cen,o.mk,false,o.st,o.si,o.L,ini,o.fim);r.caixa_pre=o.antes;
-        if(o.st||o.si)temProj=true;
-        rows.push(r);
-      });
-      PJ.dados[cen]=rows;PJ.avisos[cen]=res.aviso;PJ.prem[cen]=pjMontaPrem(cen);
-    });
-    PJ.vazio=!temProj&&!re.rows.length;
-    PJ.versao='calculada com as Metas e Premissas atuais';
+    if(PJ.fil==='consol'){
+      if(!PJ.resConsol){PJ.resConsol=await pjConsolidar();PJ.resAtual=PJ.resConsol.atual;}
+      pjAplica(PJ.resConsol);PJ.versao='consolidado das filiais · aporte recalculado sobre o caixa mínimo somado';
+    }else{
+      if(!PJ.resAtual)PJ.resAtual=await pjCalcFilial();
+      pjAplica(PJ.resAtual);PJ.versao='calculada com as Metas e Premissas atuais';
+    }
     PJ.carregado=true;
   }catch(e){console.error(e);PJ.erro=(e&&e.message)?e.message:String(e);}
   PJ.carregando=false;
+}
+function pjFilNome(){return PJ.fil==='consol'?'Consolidado ('+FILIAIS.map(function(f){return f.nome;}).join(', ')+')':nomeFilial();}
+async function pjSetFil(f){
+  if(PJ.carregando||PJ.fil===f)return;
+  PJ.fil=f;PJ.carregado=false;pjRenderShell();
+  await pjCarregar();pjRenderShell();
 }
 function pjRows(cen){return PJ.dados[cen]||[];}
 function pjProj(cen){return pjRows(cen).filter(function(r){return!r.realizado;});}
@@ -4778,7 +4833,7 @@ function pjKpis(cen){
 
 // ---------- casca e navegação ----------
 function projecaoHTML(){
-  return '<div class="pj-head"><div><h2>Proje\u00e7\u00e3o de DFC \u00b7 3 anos</h2><p id="pj-sub"></p></div><div class="pj-scen" id="pj-scen"></div></div>'
+  return '<div class="pj-head"><div><h2>Proje\u00e7\u00e3o de DFC \u00b7 3 anos</h2><p id="pj-sub"></p></div><div><div class="pj-scen" id="pj-fil" style="margin-bottom:6px"></div><div class="pj-scen" id="pj-scen"></div></div></div>'
     +'<div class="dfc-nav" id="pj-nav">'
     +'<button class="dfc-nav-btn" data-v="geral" onclick="pjSetView(\'geral\')">Vis\u00e3o geral</button>'
     +'<button class="dfc-nav-btn" data-v="dfc" onclick="pjSetView(\'dfc\')">DFC projetado</button>'
@@ -4788,18 +4843,20 @@ function projecaoHTML(){
     +'<div class="confidential">\u00a9 2026 DGX Consulting \u00b7 Uso exclusivo Hawks Beauty '+nomeFilial()+' \u00b7 N\u00e3o compartilhar</div>';
 }
 async function initProjecao(){
-  PJ.carregado=false;PJ.carregando=false;PJ.erro=null; // recalcula a cada abertura, para refletir Metas e Premissas
+  PJ.fil='atual';PJ.resAtual=null;PJ.resConsol=null;PJ.carregado=false;PJ.carregando=false;PJ.erro=null; // recalcula a cada abertura, para refletir Metas e Premissas
   pjRenderShell();
   await pjCarregar();
   pjRenderShell();
 }
 function pjRenderShell(){
+  var fl=document.getElementById('pj-fil');
+  if(fl){fl.innerHTML=[['atual','Filial '+nomeFilial()],['consol','Consolidado']].map(function(x){return'<div class="pj-pill'+(x[0]===PJ.fil?' active':'')+'" style="--pj-c:#F5C16C" onclick="pjSetFil(\''+x[0]+'\')">'+x[1]+'</div>';}).join('');}
   var sc=document.getElementById('pj-scen');
   if(sc){sc.innerHTML=PJ_CEN.map(function(c){return'<div class="pj-pill'+(c.k===PJ.cen?' active':'')+'" style="--pj-c:'+c.c+'" onclick="pjSetCen(\''+c.k+'\')"><span class="pj-dot" style="background:'+c.c+'"></span>'+c.n+'</div>';}).join('');}
   document.querySelectorAll('#pj-nav .dfc-nav-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-v')===PJ.view);});
   var sub=document.getElementById('pj-sub');
   var pr0=PJ.carregado?pjProj(PJ.cen):[];
-  if(sub)sub.textContent=PJ.carregado?('Hawks '+nomeFilial()+(pr0.length?' \u00b7 '+pr0[0].lbl+' a '+pr0[pr0.length-1].lbl:'')+' \u00b7 '+(PJ.versao||'')):'Hawks '+nomeFilial();
+  if(sub)sub.textContent=PJ.carregado?('Hawks '+pjFilNome()+(pr0.length?' \u00b7 '+pr0[0].lbl+' a '+pr0[pr0.length-1].lbl:'')+' \u00b7 '+(PJ.versao||'')):'Hawks '+pjFilNome();
   pjRenderBody();
 }
 function pjSetCen(k){PJ.cen=k;pjRenderShell();}
@@ -5023,6 +5080,7 @@ function pjValFmt(p){
   return v.toLocaleString('pt-BR');
 }
 function pjPremissasHTML(){
+  if(PJ.fil==='consol')return '<div class="pj-empty"><div class="i">\u2139\uFE0F</div><h3>Premissas são por filial</h3><p>O consolidado soma as projeções de cada filial. Para ver ou ajustar as premissas, volte para uma filial (botão acima) ou use Orçamento → Premissas.</p></div>';
   var cen=PJ.cen,ci=pjCenInfo(cen),rows=PJ.prem[cen]||[],base=PJ.prem['base']||[];
   var bmap={};base.forEach(function(p){bmap[p.chave]=p;});
   var h='<div class="pj-sect">Como o modelo funciona</div><div class="pj-steps">'
