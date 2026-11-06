@@ -4807,6 +4807,39 @@ async function pjSetFil(f){
   PJ.fil=f;PJ.carregado=false;pjRenderShell();
   await pjCarregar();pjRenderShell();
 }
+// Break even de caixa (por ano, meses projetados): faturamento (sell-through) em que o caixa fecha em zero
+function pjBEAno(rs){
+  var s=function(f){return pjSoma(rs,f);},v=s('vendas');
+  var varOut=s('pgto_truss')+s('pgto_comissoes')+s('pgto_mkt')+s('pgto_logistica');           // saídas que acompanham as vendas
+  var fixOut=s('pgto_nao_truss')+s('pgto_pessoal')+s('pgto_prolabore')+s('pgto_ocupacao')+s('pgto_gerais')+s('pgto_terceiros')+s('pgto_impostos');
+  var outros=s('sai_invest')+s('pgto_financ')+s('encargos_antec');                               // investimento, dívida e encargos
+  var cm=v?(s('ent_clientes')+s('juros_multas')+varOut)/v:0;
+  function be(custo){return(cm>0&&custo)?-custo/cm:null;}
+  var o={n:rs.length,ano:rs[0].ano,vendas:v,cm:cm,fixo:fixOut,outros:outros,beOp:be(fixOut),beCx:be(fixOut+outros)};
+  o.segOp=(o.beOp!==null&&v)?(v-o.beOp)/v:null;o.segCx=(o.beCx!==null&&v)?(v-o.beCx)/v:null;
+  return o;
+}
+function pjBEHTML(){
+  var pr=pjProj(PJ.cen);if(!pr.length)return '';
+  var anos={};pr.forEach(function(r){(anos[r.ano]=anos[r.ano]||[]).push(r);});
+  var A=Object.keys(anos).sort().map(function(a){return pjBEAno(anos[a]);});
+  var f=function(x){return x===null?'—':pjMi(x);},p=function(x){return x===null?'—':pjPct(x);};
+  var lin=[['Meses projetados',function(a){return String(a.n);}],
+    ['Vendas orçadas (sell-through)',function(a){return pjMi(a.vendas);}],
+    ['Margem de contribuição de caixa (% das vendas)',function(a){return pjPct(a.cm);}],
+    ['Saídas fixas de caixa',function(a){return pjMi(a.fixo);}],
+    ['Investimento, dívida e encargos',function(a){return pjMi(a.outros);}],
+    ['Break even operacional (caixa operacional = 0)',function(a){return f(a.beOp);},1],
+    ['Margem de segurança — operacional',function(a){return p(a.segOp);},2,'segOp'],
+    ['Break even de caixa (cobre também investimento, dívida e encargos)',function(a){return f(a.beCx);},1],
+    ['Margem de segurança — caixa',function(a){return p(a.segCx);},2,'segCx']];
+  var h='<div class="pj-sect">Break even de caixa · '+pjFilNome()+' · cenário '+pjCenInfo(PJ.cen).n+'</div>'
+   +'<div class="pj-note" style="font-size:12px;color:#8BA0B0;margin-bottom:8px">Faturamento anual de sell-through em que o caixa fecha em zero. Saídas variáveis: Truss, comissões, marketing e logística; fixas: pessoal, pró-labore, ocupação, gerais, terceiros, fornecedores não Truss e impostos. Ano com poucos meses projetados (ex.: 2026) é parcial. O break even contábil (EBITDA, Resultado Operacional e Lucro Líquido) está em Orçamento → DRE Orçado.</div>'
+   +'<div style="overflow:auto"><table class="dfc-tbl"><thead><tr><th style="text-align:left">Linha</th>'+A.map(function(a){return '<th>'+a.ano+(a.n<12?' ('+a.n+'m)':'')+'</th>';}).join('')+'</tr></thead><tbody>';
+  lin.forEach(function(l){
+    h+='<tr><td style="text-align:left'+(l[2]===1?';font-weight:600':'')+'">'+l[0]+'</td>'+A.map(function(a){var neg=l[3]&&a[l[3]]!==null&&a[l[3]]<0;return '<td'+(neg?' style="color:#E58B8B"':'')+(l[2]===1?' style="font-weight:600"':'')+'>'+l[1](a)+'</td>';}).join('')+'</tr>';});
+  return h+'</tbody></table></div>';
+}
 function pjRows(cen){return PJ.dados[cen]||[];}
 function pjProj(cen){return pjRows(cen).filter(function(r){return!r.realizado;});}
 function pjReal(cen){return pjRows(cen).filter(function(r){return r.realizado;});}
@@ -4870,7 +4903,7 @@ function pjRenderBody(){
   if(PJ.vazio){b.innerHTML='<div class="pj-empty"><div class="i">\uD83D\uDCED</div><h3>Ainda n\u00e3o h\u00e1 dados para a '+nomeFilial()+'</h3><p>Cadastre as metas de sell-through e sell-in em Or\u00e7amento \u2192 Metas e ajuste as premissas. A proje\u00e7\u00e3o aparece aqui assim que houver metas.</p></div>';return;}
   if(!pjRows(PJ.cen).length){b.innerHTML='<div class="pj-empty"><div class="i">\uD83D\uDCED</div><h3>Sem dados para este cen\u00e1rio</h3><p>Confira as metas e as premissas desta filial para o cen\u00e1rio \u201c'+pjCenInfo(PJ.cen).n+'\u201d.</p></div>';return;}
   var av=(PJ.avisos&&PJ.avisos[PJ.cen])||[],avH=av.length?'<div class="pj-banner warn"><div class="pj-b-ico">\u26A0\uFE0F</div><div>'+av.map(pjEsc).join('<br>')+'</div></div>':'';
-  if(PJ.view==='geral'){b.innerHTML=avH+pjGeralHTML();pjGeralCharts();}
+  if(PJ.view==='geral'){b.innerHTML=avH+pjGeralHTML()+pjBEHTML();pjGeralCharts();}
   else if(PJ.view==='dfc'){b.innerHTML=avH+pjDfcHTML();pjDfcInit();}
   else if(PJ.view==='cenarios'){b.innerHTML=avH+pjCenariosHTML();pjCenariosCharts();}
   else{b.innerHTML=avH+pjPremissasHTML();}
@@ -6216,10 +6249,10 @@ function dreoTabela(){
 // ── Break even (EBITDA e Lucro Líquido) sobre o DRE Orçado gravado/editado ──
 function dreoBE(v){
   var Z=dreoZ(),g=function(c){return v[c]||Z;},S=dreoResumo(v),RB=g('RB'),RL=S.RL;
-  var vari=dreoZ(),fix=dreoZ(),abaixo=dreoZ();
+  var vari=dreoZ(),fix=dreoZ(),abaixo=dreoZ(),dep=dreoZ();
   ESTRUTURA_DESPESAS.forEach(function(b,bi){b.linhas.forEach(function(l){if(l.resultado)return;
     var x=dreoVal(l,v);
-    if(bi===0)vari=dreoSoma(vari,x);else if(l.codigo==='12')fix=dreoSoma(fix,x);else abaixo=dreoSoma(abaixo,x);});});
+    if(bi===0)vari=dreoSoma(vari,x);else if(l.codigo==='12')fix=dreoSoma(fix,x);else{abaixo=dreoSoma(abaixo,x);if(l.codigo==='13')dep=dreoSoma(dep,x);}});});
   var CM=dreoSoma(dreoSoma(RL,dreoSoma(g('CMV'),g('PC'))),vari);   // margem de contribuição
   var sum=function(a){return a.reduce(function(s,x){return s+x;},0);};
   function calc(idx,custo){ // custo = custos fixos (negativos) a cobrir
@@ -6227,9 +6260,9 @@ function dreoBE(v){
     var rb=idx==null?sum(RB):RB[idx],be=(cm>0&&c)?-c/cm:null;
     return {cm:cm,fix:c,be:be,seg:(be!==null&&rb)?(rb-be)/rb:null,rb:rb,rlRatio:(idx==null?(sum(RB)?sum(RL)/sum(RB):0):(RB[idx]?RL[idx]/RB[idx]:0))};
   }
-  var fixLL=dreoSoma(fix,abaixo),out={CM:CM,eb:[],ll:[]};
-  for(var i=0;i<12;i++){out.eb.push(calc(i,fix));out.ll.push(calc(i,fixLL));}
-  out.ebA=calc(null,fix);out.llA=calc(null,fixLL);return out;
+  var fixLL=dreoSoma(fix,abaixo),fixRO=dreoSoma(fix,dep),out={CM:CM,eb:[],ro:[],ll:[]};
+  for(var i=0;i<12;i++){out.eb.push(calc(i,fix));out.ro.push(calc(i,fixRO));out.ll.push(calc(i,fixLL));}
+  out.ebA=calc(null,fix);out.roA=calc(null,fixRO);out.llA=calc(null,fixLL);return out;
 }
 function dreoBEHTML(){
   if(!Object.keys(DREO.v).length)return '';
@@ -6251,6 +6284,7 @@ function dreoBEHTML(){
   var h='<div class="chart-card" style="margin-top:1rem"><div class="qd-header"><div><div class="chart-title">Break even — DRE Orçado '+DREO.ano+'</div><div class="chart-sub">Margem de contribuição = Receita Líquida − CMV − política comercial − despesas variáveis (blocos 7 a 11). Fixos = Despesas Gerais e Adm. Mensal usa a margem do mês; o ano usa a média do ano. Meses com margem de segurança negativa estão abaixo do equilíbrio. Impostos sobre vendas e sobre o lucro ainda em branco.</div></div></div>'
    +'<div class="dre-frz-wrap"><table class="dre-table dre-frz"><thead><tr><th style="min-width:300px">Linha</th>'+ORC_M.map(function(m){return '<th style="min-width:100px">'+m+'/'+String(DREO.ano).slice(2)+'</th>';}).join('')+'<th style="min-width:110px">Ano</th></tr></thead><tbody>'
    +bloco('Break even do EBITDA (EBITDA = 0)',B.eb,B.ebA)
+   +bloco('Break even do Resultado Operacional (contábil: EBITDA − depreciação = 0)',B.ro,B.roA)
    +bloco('Break even do Lucro Líquido (Lucro Líquido = 0) — inclui depreciação e resultado financeiro',B.ll,B.llA)
    +'</tbody></table></div></div>';
   return h;
