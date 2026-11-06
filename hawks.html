@@ -456,6 +456,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-caret{margin-left:auto;font-size:10px;opacity:.6;transition:transform .15s}
 .nav-parent.open .nav-caret{transform:rotate(180deg)}
 #orc-sub{display:none}#orc-sub.open{display:block}
+.dreo-in{width:92px;background:transparent;border:1px dashed #2a3f55;border-radius:4px;color:inherit;font:inherit;text-align:right;padding:2px 4px}.dreo-in:focus{outline:1px solid #00B4D8;background:#0F1923}.dreo-in::placeholder{color:#5d7388}.dreo-in.dreo-neg{color:#E58B8B}
 
 .prem-intro{font-size:12.5px;color:#9FB4C6;background:#162230;border:0.5px solid #1F3044;border-radius:10px;padding:12px 16px;margin-bottom:1rem;line-height:1.55}
 .prem-intro b{color:#E2EAF4}
@@ -531,6 +532,7 @@ select.prem-in{text-align:left}
       <div class="nav-item nav-sub" id="nav-orc-metas" onclick="metaNav(this)">Metas</div>
       <div class="nav-item nav-sub" id="nav-orc-prem" onclick="premNav(this)">Premissas</div>
       <div class="nav-item nav-sub" id="nav-orc-orcado" onclick="orcNav('orcado',this)">Orçado</div>
+      <div class="nav-item nav-sub" id="nav-orc-dre" onclick="dreoNav(this)">DRE Orçado</div>
       <div class="nav-item nav-sub" id="nav-orc-realizado" onclick="orcNav('realizado',this)">Realizado</div>
       <div class="nav-item nav-sub" id="nav-orc-comp" onclick="orcNav('comp',this)">Orçado × Realizado</div>
     </div>
@@ -984,7 +986,7 @@ function doLogout(){sb.auth.signOut().then(function(){window.location.href='/cli
 var periods={inicio:'',vendas:'Jan \u2013 Mar 2026',dre:'Jan \u2013 Mar 2026',dfc:'Jan \u2013 Abr 2026',margem:'Jan \u2013 Abr 2026',estoque:'',simulador:'Simula\u00e7\u00e3o',projecao:'Set/26 \u2013 Dez/29',orcamento:'Planejamento di\u00e1rio e mensal',premorc:'Cen\u00e1rios e premissas',metas:'Franqueador, franqueado, realista e realizado'};
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');renderPage(page);}
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',projecao:'Proje\u00e7\u00e3o DFC \u2014 3 anos',orcamento:'Or\u00e7amento',premorc:'Or\u00e7amento \u2014 Premissas',metas:'Or\u00e7amento \u2014 Metas',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',produtos:'An\u00e1lise de Produtos',simulador:'Simulador'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE \u2014 Demonstrativo de Resultado',dfc:'DFC \u2014 Fluxo de Caixa',projecao:'Proje\u00e7\u00e3o DFC \u2014 3 anos',orcamento:'Or\u00e7amento',premorc:'Or\u00e7amento \u2014 Premissas',dreorc:'Or\u00e7amento \u2014 DRE Or\u00e7ado',metas:'Or\u00e7amento \u2014 Metas',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',produtos:'An\u00e1lise de Produtos',simulador:'Simulador'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -997,6 +999,7 @@ function renderPage(page){
   else if(page==='metas'){c.innerHTML=metasHTML();initMetas();}
   else if(page==='premorc'){c.innerHTML=premHTML();initPremOrc();}
   else if(page==='orcamento'){c.innerHTML=orcHTML();initOrcamento();}
+  else if(page==='dreorc'){c.innerHTML=dreoPageHTML();initDreOrc();}
   else if(page==='projecao'){c.innerHTML=projecaoHTML();initProjecao();}
   else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
   else if(page==='produtos'){c.innerHTML=produtosHTML();document.getElementById('topbarPeriod').textContent=periods.produtos||'';setTimeout(initProdutos,80);}
@@ -5490,6 +5493,8 @@ function premDesenhar(){
     var key=g.itens[0].soma;
     if(key){var ok=Math.abs(somas[key]-1)<0.0005;h+='<tr class="prem-chk"><td class="orc-lbl orc-sub">Conferência (deve somar 100%)</td><td style="color:'+(ok?'#6FD39A':'#E58B8B')+'">'+premFmt('pct',somas[key])+'</td><td colspan="2" style="text-align:left;color:'+(ok?'#6FD39A':'#E58B8B')+'">'+(ok?'✓ fecha em 100%':'Não fecha em 100% — ajuste os valores')+'</td></tr>';}
   });
+  h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="4">DRE Orçado (calibrado no DRE realizado — editável)</td></tr>';
+  dreoPremItens().forEach(function(it){h+='<tr><td class="orc-lbl orc-sub" style="white-space:normal">'+it.n+'</td><td>'+premInput(it.t,'todos',it.k,it.v)+'</td><td style="text-align:left">'+premStatusChip(it.st)+'</td><td style="text-align:left;white-space:normal;color:#8BA0B0">'+it.o+'</td></tr>';});
   h+='</tbody></table></div><div id="prem-bt"></div>';
   el.innerHTML=h;premBtDesenhar();
 }
@@ -6026,6 +6031,217 @@ async function genGravar(){
   if(err){console.error(err);if(pg)pg.innerHTML='<span style="color:#E88">Erro ao gravar: '+(err.message||err)+'</span>';return;}
   if(pg)pg.innerHTML='<span style="color:#6FD39A">✓ Orçado gravado ('+rows.length+' lançamentos). Atualizando…</span>';
   await orcCarregar();orcDesenhar();setTimeout(genFechar,900);
+}
+
+// ══════════════════════════════════════════════
+// DRE ORÇADO — ano todo (Jan–Dez), por filial. Tabela Supabase: orcamento_dre (cliente_id, ano, mes, codigo, valor, cenario)
+// Receita Bruta = meta de sell-through considerada (× alavancas do cenário); demais linhas projetadas do histórico do DRE realizado.
+// ══════════════════════════════════════════════
+var DREO={ano:2027,v:{},carregado:false,erro:'',cenGer:'',ger:null,abertos:{}};
+var DREO_TOP=[['RB','(+) Receita Bruta'],['DESC','(-) Descontos e Abatimentos'],['TROC','(-) Trocas e Devoluções'],['IMP','(-) Impostos sobre Vendas']];
+var DREO_NATPOS={'11.2':1,'14.1':1,'14.2':1,'RB':1,'PC':1};
+var DREO_JUROS={'14.3.4':1,'14.3.5':1};
+function dreoZ(){return [0,0,0,0,0,0,0,0,0,0,0,0];}
+function dreoSoma(a,b){return a.map(function(x,i){return x+b[i];});}
+function dreoNat(c){return DREO_NATPOS[c]?1:-1;}
+function dreoKind(top){if(top==='12')return 'fix';if(top==='13')return 'dep';if(top==='14')return 'fin';if(top==='16')return 'imp';return 'var';}
+// contas "folha": sem filhos, ou com lançamento próprio no realizado (mesma regra de despValores)
+function dreoFolhas(){
+  var out=[];
+  function walk(l,top){
+    if(!l.filhos||!l.filhos.length||DESPESAS_DADOS[l.codigo]){out.push({codigo:l.codigo,nome:l.nome,top:top});return;}
+    l.filhos.forEach(function(f){walk(f,top);});
+  }
+  ESTRUTURA_DESPESAS.forEach(function(b){b.linhas.forEach(function(l){if(!l.resultado)walk(l,l.codigo);});});
+  return out;
+}
+// calibra pelo DRE realizado: últimos N meses fechados (com despesas lançadas)
+function dreoCalibrar(){
+  var D=DRE_TOPLINE,mc=D.mesesChave||[],N=Math.max(1,Math.round(premGet('todos','dre_n',6))),fech=[];
+  for(var i=0;i<mc.length;i++){var s=0;Object.keys(DESPESAS_DADOS).forEach(function(c){s+=Math.abs((DESPESAS_DADOS[c]||[])[i]||0);});if(s>0)fech.push(i);}
+  var w=fech.slice(-N),R={n:w.length,meses:w.map(function(i){return D.meses[i];}),rb:0,desc:0,rl:0,pc:0,mb:0,rate:{},avg:{}};
+  w.forEach(function(i){R.rb+=D.receitaBruta[i];R.desc+=D.descontosAbatimentos[i];R.rl+=D.receitaLiquida[i];R.pc+=D.politicaComercial[i];R.mb+=D.margemBruta[i];});
+  R.pDesc=R.rb?-R.desc/R.rb:0;R.pMb=R.rl?R.mb/R.rl:0;R.pPc=R.rl?R.pc/R.rl:0;
+  dreoFolhas().forEach(function(f){var s=0,a=DESPESAS_DADOS[f.codigo]||[];w.forEach(function(i){s+=a[i]||0;});R.rate[f.codigo]=R.rl?s/R.rl:0;R.avg[f.codigo]=w.length?s/w.length:0;});
+  return R;
+}
+function dreoR5(x){return Math.round(x*100000)/100000;}
+function dreoPrem(C){
+  return {n:premGet('todos','dre_n',6),desc:premGet('todos','dre_desc',dreoR5(C.pDesc)),mb:premGet('todos','dre_mb',dreoR5(C.pMb)),pc:premGet('todos','dre_pc',dreoR5(C.pPc)),dep:premGet('todos','dre_dep',0)};
+}
+function dreoPremItens(){
+  var C=dreoCalibrar(),j=C.n?(C.meses.join(', ')):'sem meses fechados';
+  return [
+   {k:'dre_n',n:'Janela de calibração: nº de meses fechados mais recentes',t:'int',v:6,st:'v',o:'Usa os últimos N meses com despesas lançadas no DRE realizado. Hoje: '+j+'.'},
+   {k:'dre_desc',n:'Descontos e abatimentos (% da Receita Bruta)',t:'pct',v:dreoR5(C.pDesc),st:'c',o:'Calibrado na janela acima.'},
+   {k:'dre_mb',n:'Margem bruta (% da Receita Líquida)',t:'pct',v:dreoR5(C.pMb),st:'c',o:'Calibrado na janela acima. Define o Custo Produto (CMV) do DRE Orçado.'},
+   {k:'dre_pc',n:'Política comercial / verbas de ciclo (% da Receita Líquida)',t:'pct',v:dreoR5(C.pPc),st:'c',o:'Calibrado na janela acima.'},
+   {k:'dre_dep',n:'Depreciação e amortização (R$ por mês)',t:'brl',v:0,st:'p',o:'Zerada por padrão. Informe o valor mensal se houver.'}];
+}
+// Receita Bruta mensal = meta de sell-through considerada × alavancas do cenário (sem usar vendas realizadas)
+function dreoCalcular(cen,ano){
+  var C=dreoCalibrar(),P=dreoPrem(C),L=function(k){return genLever(cen,k);},vend=L('vend'),cresc=L('cresc'),rq=L('rq'),ri=L('ri'),rf=L('rf'),ipca=L('ipca'),aviso=[];
+  function rb(a,m){var c=metaConsiderada('st',a,m);
+    if(c.v){var k=a+'-'+String(m).padStart(2,'0');return c.v*vend*((k>=ri&&k<=rf)?1-rq:1);}
+    if(a>=2028)return rb(a-1,m)*(1+cresc);return 0;}
+  var V={RB:dreoZ(),DESC:dreoZ(),TROC:dreoZ(),IMP:dreoZ(),CMV:dreoZ(),PC:dreoZ()},RL=dreoZ(),inf=Math.pow(1+ipca,Math.max(0,ano-2026)),r2=function(x){return Math.round(x*100)/100;};
+  for(var m=0;m<12;m++){
+    var b=rb(ano,m+1);V.RB[m]=r2(b);V.DESC[m]=r2(-b*P.desc);RL[m]=V.RB[m]+V.DESC[m];
+    V.PC[m]=r2(RL[m]*P.pc);V.CMV[m]=r2(-RL[m]*(1-P.mb+P.pc));
+  }
+  if(!V.RB.some(function(x){return x;}))aviso.push('Não há meta de sell-through para '+ano+' (Orçamento → Metas): a Receita Bruta ficou zerada.');
+  if(!C.n)aviso.push('Não há meses fechados com despesas no DRE realizado: as despesas ficaram zeradas.');
+  dreoFolhas().forEach(function(f){
+    var k=dreoKind(f.top),arr=dreoZ(),tem=false;
+    for(var i=0;i<12;i++){var x=0;
+      if(k==='var')x=(C.rate[f.codigo]||0)*RL[i];
+      else if(k==='fix')x=(C.avg[f.codigo]||0)*inf;
+      else if(k==='dep')x=-P.dep;
+      else if(k==='fin')x=DREO_JUROS[f.codigo]?(C.avg[f.codigo]||0):0;
+      arr[i]=r2(x);if(arr[i])tem=true;}
+    if(tem)V[f.codigo]=arr;
+  });
+  return {v:V,C:C,P:P,aviso:aviso,cen:cen,ipca:ipca};
+}
+function dreoVal(l,v){
+  if(v[l.codigo])return v[l.codigo];
+  if(l.filhos&&l.filhos.length){var a=dreoZ();l.filhos.forEach(function(f){a=dreoSoma(a,dreoVal(f,v));});return a;}
+  return dreoZ();
+}
+function dreoResumo(v){
+  var Z=dreoZ(),g=function(c){return v[c]||Z;},RL=dreoSoma(dreoSoma(g('RB'),g('DESC')),dreoSoma(g('TROC'),g('IMP')));
+  var MB=dreoSoma(dreoSoma(RL,g('CMV')),g('PC')),ac=MB.slice(),R={RL:RL,MB:MB};
+  ESTRUTURA_DESPESAS.forEach(function(b){b.linhas.forEach(function(l){if(l.resultado)R[l.codigo]=ac.slice();else ac=dreoSoma(ac,dreoVal(l,v));});});
+  return R;
+}
+function dreoF(v){if(!v)return '—';var s='R$ '+Math.abs(Math.round(v)).toLocaleString('pt-BR');return v<0?'('+s+')':s;}
+function dreoCel(c,i,val){
+  var ns=dreoNat(c),x=val*ns;
+  return '<td><input class="dreo-in'+(val<0&&ns>0||val>0&&ns<0?' dreo-neg':'')+'" data-c="'+c+'" data-i="'+i+'" value="'+(x?Math.round(x).toLocaleString('pt-BR'):'')+'" placeholder="—" onfocus="this.select()" onchange="dreoEdit(this)"></td>';
+}
+function dreoLinha(l,nivel,RL,RLt){
+  var v=DREO.v,vals=dreoVal(l,v),tot=vals.reduce(function(a,b){return a+b;},0);
+  var tem=!!(l.filhos&&l.filhos.length)&&!v[l.codigo],folha=!(l.filhos&&l.filhos.length)||!!v[l.codigo],ab=!!DREO.abertos[l.codigo];
+  var h='<tr class="'+(tem?'qd-grupo':'')+'"'+(tem?' onclick="dreoToggle(\''+l.codigo+'\')"':'')+'><td style="padding-left:'+(12+nivel*18)+'px">'+(tem?'<span class="qd-caret'+(ab?' open':'')+'">▸</span>':'')+'<span class="qd-codigo">'+l.codigo+'</span>'+l.nome+'</td>';
+  vals.forEach(function(x,i){
+    var pct=(RL[i]&&x)?(x/RL[i]*100).toFixed(1)+'%':'—';
+    h+=(folha?dreoCel(l.codigo,i,x):'<td'+(x===0?' class="qd-zero"':'')+'>'+despFmt(x)+'</td>')+'<td class="v-pct'+(x===0?' qd-zero':'')+'">'+pct+'</td>';
+  });
+  h+='<td'+(tot===0?' class="qd-zero"':'')+'>'+despFmt(tot)+'</td><td class="v-pct'+(tot===0?' qd-zero':'')+'">'+((RLt&&tot)?(tot/RLt*100).toFixed(1)+'%':'—')+'</td></tr>';
+  if(tem&&ab)l.filhos.forEach(function(f){h+=dreoLinha(f,nivel+1,RL,RLt);});
+  return h;
+}
+function dreoRowCalc(lbl,vals,RL,RLt,cls){
+  var tot=vals.reduce(function(a,b){return a+b;},0),h='<tr class="'+(cls||'')+'"><td style="padding-left:12px">'+lbl+'</td>';
+  vals.forEach(function(x,i){h+='<td>'+despFmt(x)+'</td><td class="v-pct">'+((RL[i]&&x)?(x/RL[i]*100).toFixed(1)+'%':'—')+'</td>';});
+  return h+'<td>'+despFmt(tot)+'</td><td class="v-pct">'+((RLt&&tot)?(tot/RLt*100).toFixed(1)+'%':'—')+'</td></tr>';
+}
+function dreoRowTop(c,lbl,vals,RL,RLt){
+  var tot=vals.reduce(function(a,b){return a+b;},0),h='<tr><td style="padding-left:12px">'+lbl+'</td>';
+  vals.forEach(function(x,i){h+=dreoCel(c,i,x)+'<td class="v-pct">'+((RL[i]&&x)?(x/RL[i]*100).toFixed(1)+'%':'—')+'</td>';});
+  return h+'<td>'+despFmt(tot)+'</td><td class="v-pct">'+((RLt&&tot)?(tot/RLt*100).toFixed(1)+'%':'—')+'</td></tr>';
+}
+function dreoTabela(){
+  var v=DREO.v,Z=dreoZ(),g=function(c){return v[c]||Z;},S=dreoResumo(v),RL=S.RL,RLt=RL.reduce(function(a,b){return a+b;},0);
+  var h='<div class="dre-frz-wrap"><table class="dre-table dre-frz"><thead><tr><th style="min-width:280px">Conta</th>'
+   +ORC_M.map(function(m){return '<th style="min-width:100px">'+m+'/'+String(DREO.ano).slice(2)+'</th><th style="min-width:55px">%RL</th>';}).join('')+'<th style="min-width:100px">Acum.</th><th style="min-width:55px">%RL</th></tr></thead><tbody>';
+  h+=dreoRowTop('RB',DREO_TOP[0][1],g('RB'),RL,RLt)+dreoRowTop('DESC',DREO_TOP[1][1],g('DESC'),RL,RLt)+dreoRowTop('TROC',DREO_TOP[2][1],g('TROC'),RL,RLt)+dreoRowTop('IMP',DREO_TOP[3][1],g('IMP'),RL,RLt);
+  h+=dreoRowCalc('= Receita Líquida',RL,RL,RLt,'highlight');
+  h+=dreoRowTop('CMV','(-) Custo Produto (CMV)',g('CMV'),RL,RLt)+dreoRowTop('PC','(+) Política Comercial (verbas de ciclo)',g('PC'),RL,RLt);
+  h+=dreoRowCalc('= Margem Bruta',S.MB,RL,RLt,'highlight');
+  ESTRUTURA_DESPESAS.forEach(function(b){
+    h+='<tr class="qd-bloco"><td colspan="27"><span class="qd-bloco-t">'+b.bloco+'</span></td></tr>';
+    b.linhas.forEach(function(l){h+=l.resultado?dreoRowCalc(l.nome,S[l.codigo],RL,RLt,'highlight'):dreoLinha(l,0,RL,RLt);});
+  });
+  return h+'</tbody></table></div>';
+}
+function dreoToggle(c){DREO.abertos[c]=!DREO.abertos[c];dreoDesenhar();}
+function dreoExpandir(ab){
+  function walk(ls){ls.forEach(function(l){if(l.filhos){DREO.abertos[l.codigo]=ab;walk(l.filhos);}});}
+  ESTRUTURA_DESPESAS.forEach(function(b){walk(b.linhas);});if(!ab)DREO.abertos={};dreoDesenhar();
+}
+function dreoPageHTML(){
+  return '<div class="prem-intro"><b>DRE Orçado</b> — ano todo (Jan–Dez), por filial, no formato do DRE realizado. A <b>Receita Bruta</b> vem da meta de sell-through considerada; descontos, margem bruta e política comercial vêm das <b>Premissas</b> (calibradas no DRE realizado); cada conta de despesa é projetada pelo próprio histórico (variáveis = % da Receita Líquida; fixas = média mensal corrigida pela inflação). Use <b>Gerar DRE orçado</b> para calcular e gravar; depois cada célula pode ser ajustada. Despesas são digitadas como valor positivo.</div>'
+   +'<div class="orc-status" id="dreo-status" style="margin:0 0 .75rem"></div><div id="dreo-corpo"></div>';
+}
+function dreoDesenhar(){
+  var el=document.getElementById('dreo-corpo');if(!el)return;
+  var wrap=el.querySelector('.dre-frz-wrap'),sl=wrap?wrap.scrollLeft:0,st=wrap?wrap.scrollTop:0;
+  var anos=[2026,2027,2028,2029],tem=Object.keys(DREO.v).length>0;
+  var h='<div class="chart-card"><div class="qd-header"><div style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap"><div class="orc-sel"><label>Ano</label><select onchange="dreoAno(this.value)">'
+   +anos.map(function(a){return '<option value="'+a+'"'+(a===DREO.ano?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'
+   +'<div><div class="chart-title">DRE Orçado '+DREO.ano+' — '+nomeFilial()+'</div><div class="chart-sub">'+(tem?(DREO.cenGer?'Gerado com o cenário '+(PREM_CEN.filter(function(c){return c[0]===DREO.cenGer;})[0]||['',DREO.cenGer])[1]+' · ':'')+'células editáveis · clique nos grupos para expandir':'Nenhum DRE orçado gravado para este ano — use Gerar DRE orçado')+'</div></div></div>'
+   +'<div style="white-space:nowrap"><button class="qd-btn" onclick="dreoGerarAbrir()" style="color:#00B4D8;border-color:#00B4D8">Gerar DRE orçado</button><button class="qd-btn" onclick="dreoExpandir(true)">Expandir tudo</button><button class="qd-btn" onclick="dreoExpandir(false)">Recolher</button></div></div>'
+   +(DREO.erro?'<div class="qd-aviso">'+DREO.erro+'</div>':'')+dreoTabela()+'</div>';
+  el.innerHTML=h;
+  var w2=el.querySelector('.dre-frz-wrap');if(w2){w2.scrollLeft=sl;w2.scrollTop=st;}
+}
+async function dreoCarregar(){
+  DREO.v={};DREO.erro='';DREO.cenGer='';
+  var cid=clienteIdAtual(),from=0,ps=1000;
+  while(true){
+    var r=await sb.from('orcamento_dre').select('mes,codigo,valor,cenario').eq('cliente_id',cid).eq('ano',DREO.ano).range(from,from+ps-1);
+    if(r.error){DREO.erro='Não foi possível carregar o DRE orçado (rode o SQL 08_orcamento_dre.sql no Supabase).';console.error(r.error);break;}
+    (r.data||[]).forEach(function(x){var a=DREO.v[x.codigo]||(DREO.v[x.codigo]=dreoZ());a[x.mes-1]=parseFloat(x.valor);if(x.cenario)DREO.cenGer=x.cenario;});
+    if((r.data||[]).length<ps)break;from+=ps;
+  }
+  DREO.carregado=true;
+}
+async function dreoAno(a){DREO.ano=parseInt(a);await dreoCarregar();dreoDesenhar();}
+async function initDreOrc(){
+  dreoDesenhar();
+  if(!PREM.carregado)await initPremOrc();
+  if(!META.carregado)await initMetas();
+  await dreoCarregar();dreoDesenhar();
+}
+function dreoNav(el){setPage('dreorc',el);document.getElementById('topbarTitle').textContent='Orçamento — DRE Orçado';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+async function dreoEdit(inp){
+  var c=inp.getAttribute('data-c'),i=parseInt(inp.getAttribute('data-i')),s=String(inp.value||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.'),x=s?parseFloat(s):0;
+  if(isNaN(x))x=0;
+  var val=Math.round(x*dreoNat(c)*100)/100,arr=(DREO.v[c]||dreoZ()).slice();arr[i]=val;
+  if(arr.every(function(z){return !z;}))delete DREO.v[c];else DREO.v[c]=arr;
+  var cid=clienteIdAtual(),err=null;
+  if(!val){var d=await sb.from('orcamento_dre').delete().eq('cliente_id',cid).eq('ano',DREO.ano).eq('mes',i+1).eq('codigo',c);err=d.error;}
+  else{var u=await sb.from('orcamento_dre').upsert({cliente_id:cid,ano:DREO.ano,mes:i+1,codigo:c,valor:val,cenario:DREO.cenGer||null},{onConflict:'cliente_id,ano,mes,codigo'});err=u.error;}
+  dreoDesenhar();
+  var st=document.getElementById('dreo-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
+}
+// ── Gerar: prévia + gravar ──
+function dreoGerarAbrir(){
+  var m=document.getElementById('dreo-modal');if(m)m.remove();
+  var d=document.createElement('div');d.id='dreo-modal';d.className='imp-bg';
+  d.innerHTML='<div class="imp-box"><div class="imp-h"><b>Gerar DRE orçado de '+DREO.ano+' — '+nomeFilial()+'</b><button class="imp-x" onclick="dreoGerarFechar()">×</button></div><div class="imp-b">'
+   +'<p class="imp-p">Calcula Jan–Dez/'+DREO.ano+' com as <b>metas</b> de sell-through e as <b>premissas</b> do cenário escolhido (descontos, margem bruta, política comercial, inflação das despesas fixas, janela de calibração). Mostra uma prévia antes de gravar; depois de gravado, cada célula pode ser editada.</p>'
+   +'<div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin:.6rem 0"><div class="orc-sel"><label>Cenário</label><select id="dreo-cen">'+PREM_CEN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===(DREO.cenGer||'base')?' selected':'')+'>'+c[1]+'</option>';}).join('')+'</select></div>'
+   +'<button class="adm-btn imp-go" onclick="dreoPrevia()">Calcular prévia</button></div><div id="dreo-prev"></div></div></div>';
+  document.body.appendChild(d);
+}
+function dreoGerarFechar(){var m=document.getElementById('dreo-modal');if(m)m.remove();DREO.ger=null;}
+async function dreoPrevia(){
+  var el=document.getElementById('dreo-prev');el.innerHTML='<div class="imp-p">Carregando metas e premissas…</div>';
+  if(!PREM.carregado)await initPremOrc();
+  if(!META.carregado)await initMetas();
+  var cen=document.getElementById('dreo-cen').value,G=dreoCalcular(cen,DREO.ano);DREO.ger=G;
+  var S=dreoResumo(G.v),f=function(x){return x?Math.round(x).toLocaleString('pt-BR'):'—';},h='';
+  G.aviso.forEach(function(a){h+='<div class="imp-warn" style="margin-bottom:.4rem">'+a+'</div>';});
+  if(Object.keys(DREO.v).length)h+='<div class="imp-warn" style="margin-bottom:.4rem">Já existe DRE orçado gravado para '+DREO.ano+': ao gravar, ele é <b>substituído</b> (inclusive ajustes manuais).</div>';
+  h+='<div class="imp-p">Calibração: '+(G.C.n?G.C.n+' meses fechados ('+G.C.meses.join(', ')+')':'sem histórico')+' · descontos '+premFmt('pct',G.P.desc)+' da RB · margem bruta '+premFmt('pct',G.P.mb)+' da RL · política comercial '+premFmt('pct',G.P.pc)+' da RL · inflação das fixas '+premFmt('pct',G.ipca)+' a.a. (a partir de Jan/27).</div>';
+  var lin=[['Receita Bruta',G.v.RB],['Receita Líquida',S.RL],['Margem Bruta',S.MB],['EBITDA',S.R2],['Resultado Operacional',S.R3],['Lucro Líquido',S.R5]];
+  h+='<div style="overflow:auto"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Linha</th>'+ORC_M.map(function(n){return '<th>'+n+'</th>';}).join('')+'<th>Total</th></tr></thead><tbody>';
+  lin.forEach(function(l){var t=l[1].reduce(function(a,b){return a+b;},0);h+='<tr><td style="text-align:left">'+l[0]+'</td>'+l[1].map(function(x){return '<td>'+f(x)+'</td>';}).join('')+'<td><b>'+f(t)+'</b></td></tr>';});
+  h+='</tbody></table></div><div style="margin-top:.6rem"><button class="adm-btn imp-go" onclick="dreoGravar()">Gravar DRE orçado '+DREO.ano+'</button></div>';
+  el.innerHTML=h;
+}
+async function dreoGravar(){
+  var G=DREO.ger;if(!G)return;var el=document.getElementById('dreo-prev'),cid=clienteIdAtual(),err=null;
+  el.insertAdjacentHTML('beforeend','<div class="imp-p" id="dreo-prog">Gravando…</div>');
+  var d=await sb.from('orcamento_dre').delete().eq('cliente_id',cid).eq('ano',DREO.ano);if(d.error)err=d.error;
+  var rows=[];Object.keys(G.v).forEach(function(c){G.v[c].forEach(function(x,i){if(x)rows.push({cliente_id:cid,ano:DREO.ano,mes:i+1,codigo:c,valor:x,cenario:G.cen});});});
+  for(var i=0;i<rows.length&&!err;i+=500){var u=await sb.from('orcamento_dre').upsert(rows.slice(i,i+500),{onConflict:'cliente_id,ano,mes,codigo'});if(u.error)err=u.error;}
+  var pg=document.getElementById('dreo-prog');
+  if(err){console.error(err);if(pg)pg.innerHTML='<span style="color:#E88">Erro ao gravar: '+(err.message||err)+'</span>';return;}
+  if(pg)pg.innerHTML='<span style="color:#6FD39A">✓ DRE orçado gravado ('+rows.length+' lançamentos).</span>';
+  await dreoCarregar();dreoDesenhar();setTimeout(dreoGerarFechar,900);
 }
 
 // ── Títulos reais a receber (aba "Contas a Receber - Clientes" do franqueado) ──
