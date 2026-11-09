@@ -370,6 +370,7 @@ select.prem-in{text-align:left}
 .prem-chip{display:inline-block;font-size:10px;border:1px solid;border-radius:10px;padding:2px 8px;white-space:nowrap}
 .prem-chk td{background:#0F1923;font-size:11px}
 .dfc-section-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8BA0B0;margin:0 0 .5rem}
+.orc-in.meta-flag-trx{color:#5FB4FF;border-color:#2c5a85}
 .meta-tbl{width:100%!important;min-width:0!important;table-layout:fixed}
 .meta-tbl th.orc-lbl,.meta-tbl td.orc-lbl{width:250px;min-width:250px;max-width:250px;position:static}
 .meta-tbl th.orc-tot,.meta-tbl td.orc-tot{width:104px;min-width:104px;position:static}
@@ -3879,6 +3880,7 @@ async function initMetas(){
   var cid=clienteIdAtual(),r=await sb.from('orcamento_metas').select('indicador,tipo,ano,mes,valor').eq('cliente_id',cid).range(0,4999);
   if(r.error){META.erro='Não foi possível carregar as metas (rode o SQL 05_orcamento_metas.sql no Supabase).';console.error(r.error);}
   else(r.data||[]).forEach(function(x){META.v[metaKey(x.indicador,x.tipo,x.ano,x.mes)]=parseFloat(x.valor);});
+  if(!PREM.carregado)await initPremOrc(); // padrão e exceções por mês ficam em orcamento_premissas
   META.carregado=true;metasDesenhar();
 }
 function metaSetAno(a){META.ano=a;metasDesenhar();}
@@ -3913,7 +3915,32 @@ function metasDesenhar(){
     ms.forEach(function(m){var r=metaGet(i,'realizado',a,m),mt=metaGet(i,p[0],a,m);if(r&&mt){sr+=r;sm+=mt;h+='<td class="'+(r>=mt?'orc-pos':'orc-neg')+'">'+(r/mt*100).toFixed(1).replace('.',',')+'%</td>';}else h+='<td>—</td>';});
     h+='<td class="orc-tot">'+(sm?(sr/sm*100).toFixed(1).replace('.',',')+'%':'—')+'</td></tr>';
   });
-  h+='</tbody></table></div><div class="orc-hint" style="margin-top:.6rem">Valores em R$. Na meta realista, o número em cinza é o que vale enquanto você não preencher. Passe o mouse no nome da linha para ver o que cada uma significa.</div>';
+  // premissas por mês (exceções ao padrão das Premissas)
+  var gp=function(r){return function(a2,m2){return genTrussPrazos(a2,m2)[r];};},rp=function(f){return function(a2,m2){return genRecPol(a2,m2)[f];};};
+  var realSi=function(a2,m2){return !!metaGetRaw('si','realizado',a2,m2);},realSt=function(a2,m2){return !!metaGet('st','realizado',a2,m2);};
+  var colsp=ms.length+2;
+  if(i==='si'){
+    var tipD='Dias separados por /. Cada dia é uma parcela igual (ex.: 60/90/120 = 3 parcelas). Máximo de 210 dias.';
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="'+colsp+'">Pagamento à Truss por quinzena do pedido — exceções ao padrão (em branco = vale o padrão das Premissas)</td></tr>';
+    h+=metaExcLinha('% dos pedidos na 1ª quinzena (dias 1 a 15)','pct','trxq1_',a,ms,gp('q1'),0,'',undefined,realSi);
+    h+=metaExcLinha('% dos pedidos na 2ª quinzena (dia 16 em diante)','pct','trxq2_',a,ms,gp('q2'),0,'',undefined,realSi);
+    h+=metaExcLinha('Prazos da 1ª quinzena (dias após o pedido)','txt','trxp1_',a,ms,gp('p1'),210,tipD,undefined,realSi);
+    h+=metaExcLinha('Prazos da 2ª quinzena (dias após o pedido)','txt','trxp2_',a,ms,gp('p2'),210,tipD,undefined,realSi);
+    h+=metaExcConf('Conferência (1ª + 2ª quinzena deve somar 100%)',ms,a,function(a2,m2){var R=genTrussPrazos(a2,m2);return R.q1+R.q2;});
+  }
+  if(i==='st'){
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="'+colsp+'">Mix de vendas por mês da venda — exceções ao padrão (em branco = vale o padrão das Premissas)</td></tr>';
+    h+=metaExcLinha('Boleto','pct','rxmb_',a,ms,rp('bol'),0,'',undefined,realSt);
+    h+=metaExcLinha('Cartão parcelado','pct','rxmc_',a,ms,rp('cp'),0,'',undefined,realSt);
+    h+=metaExcLinha('À vista / pix (recebido no mês da venda)','pct','rxmp_',a,ms,rp('pix'),0,'',undefined,realSt);
+    h+=metaExcLinha('Cartão à vista (D+30, mês seguinte)','pct','rxma_',a,ms,rp('cav'),0,'',undefined,realSt);
+    h+=metaExcConf('Conferência (deve somar 100%)',ms,a,function(a2,m2){var P=genRecPol(a2,m2);return P.bol+P.cp+P.pix+P.cav;});
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="'+colsp+'">Recebimento a prazo (boleto + cartão parcelado) por mês da venda — exceções ao padrão</td></tr>';
+    h+=metaExcLinha('Condição de recebimento (dias)','txt','rxdi_',a,ms,null,254,'Se preenchida, substitui a curva padrão: cada dia é uma parcela igual que cai no mês round(dias/30). Ex.: 30/60/90 = 1/3 em cada uma das defasagens 1, 2 e 3. Máximo de 254 dias (defasagem 8). As linhas de defasagem abaixo, se preenchidas, valem sobre ela.','padrão',realSt);
+    for(var dl=0;dl<9;dl++)h+=metaExcLinha('Defasagem '+dl+(dl===1?' mês':' meses'),'pct','rxd'+dl+'_',a,ms,(function(l){return function(a2,m2){return genRecPol(a2,m2).rec[l];};})(dl),0,'',undefined,realSt);
+    h+=metaExcConf('Conferência (deve somar 100%)',ms,a,function(a2,m2){return genRecPol(a2,m2).rec.reduce(function(x,y){return x+y;},0);});
+  }
+  h+='</tbody></table></div><div class="orc-hint" style="margin-top:.6rem">Valores em R$. Na meta realista, o número em cinza é o que vale enquanto você não preencher. Passe o mouse no nome da linha para ver o que cada uma significa.'+(i==='si'?'<br>Prazos por quinzena: o número em cinza é o padrão das Premissas. Preencha só os meses com prazo especial (azul = exceção). Cada dia vira uma parcela igual, e meses com sell-in realizado usam sempre o padrão.':'')+(i==='st'?'<br>Mix e recebimento por mês da venda: o número em cinza é o padrão das Premissas. Preencha só os meses com política diferente (azul = exceção) e confira se cada bloco fecha em 100%. Meses com venda realizada usam sempre o padrão.':'')+'</div>';
   el.innerHTML=h;
   metasGrafico(ms);
 }
@@ -3934,6 +3961,67 @@ async function metaEdit(inp){
   st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
 }
 function metaNav(el){setPage('metas',el);document.getElementById('topbarTitle').textContent='Orçamento — Metas';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+
+// ── Premissas por mês: exceções ao padrão das Premissas (orcamento_premissas, cenário 'todos', chave + 'AAAA-MM') ──
+function genGeral(k){var def;PREM_GERAL.forEach(function(g){g.itens.forEach(function(it){if(it.k===k)def=it.v;});});return premGet('todos',k,def);}
+// Regra de pagamento Truss do pedido do mês a/m: padrão das Premissas, com exceção por mês. Mês com sell-in realizado usa sempre o padrão.
+function genTrussPrazos(a,m){
+  var d={q1:genGeral('trq1'),q2:genGeral('trq2'),p1:genGeral('trp1'),p2:genGeral('trp2')};
+  if(metaGetRaw('si','realizado',a,m))return d;
+  var mk=a+'-'+String(m).padStart(2,'0'),x1=premGet('todos','trxq1_'+mk),x2=premGet('todos','trxq2_'+mk),y1=premGet('todos','trxp1_'+mk),y2=premGet('todos','trxp2_'+mk);
+  if(x1!==undefined&&x2!==undefined){d.q1=x1;d.q2=x2;}
+  else if(x1!==undefined){d.q1=x1;d.q2=1-x1;}
+  else if(x2!==undefined){d.q2=x2;d.q1=1-x2;}
+  if(y1!==undefined)d.p1=y1;
+  if(y2!==undefined)d.p2=y2;
+  return d;
+}
+// Política de recebimento das vendas do mês a/m: mix e curva por defasagem (0 a 8 meses). Mês com venda realizada usa sempre o padrão.
+function recFromDias(str){var P=String(str).split('/').map(Number),r=[0,0,0,0,0,0,0,0,0];P.forEach(function(d){r[Math.min(8,Math.round(d/30))]+=1/P.length;});return r;}
+function genRecPol(a,m){
+  var G=genGeral,P={bol:G('mix_bol'),cp:G('mix_cp'),pix:G('mix_pix'),cav:G('mix_cav'),rec:[G('rec0'),G('rec1'),G('rec2'),G('rec3'),G('rec4'),G('rec5'),G('rec6'),G('rec7'),G('rec8')]};
+  if(metaGet('st','realizado',a,m))return P;
+  var mk=a+'-'+String(m).padStart(2,'0'),g=function(p){return premGet('todos',p+mk);},v;
+  if((v=g('rxmb_'))!==undefined)P.bol=v;
+  if((v=g('rxmc_'))!==undefined)P.cp=v;
+  if((v=g('rxmp_'))!==undefined)P.pix=v;
+  if((v=g('rxma_'))!==undefined)P.cav=v;
+  if((v=g('rxdi_'))!==undefined)P.rec=recFromDias(v);
+  for(var l=0;l<9;l++){if((v=g('rxd'+l+'_'))!==undefined)P.rec[l]=v;}
+  return P;
+}
+async function metaPrazoEdit(inp){
+  var pref=inp.getAttribute('data-k'),t=inp.getAttribute('data-t'),mx=parseInt(inp.getAttribute('data-max'))||0,m=parseInt(inp.getAttribute('data-m')),a=META.ano;
+  var key=pref+a+'-'+String(m).padStart(2,'0'),k=premKey('todos',key),cid=clienteIdAtual(),st=document.getElementById('meta-status'),err=null;
+  var raw=String(inp.value||'').trim(),val=premParse(t,raw);
+  var msg=function(x){if(st)st.innerHTML='<span style="color:#E88">'+x+'</span>';metasDesenhar();};
+  if(raw&&val===null){msg('Valor inválido. Use dias separados por "/" (ex.: 60/90/120) ou um percentual (ex.: 50).');return;}
+  if(t==='txt'&&val&&mx&&val.split('/').some(function(d){return +d>mx;})){msg('Prazo máximo de '+mx+' dias.');return;}
+  if(t==='pct'&&val!==null&&(val<0||val>1)){msg('O percentual deve estar entre 0% e 100%.');return;}
+  if(val===null){
+    delete PREM.over[k];
+    var r=await sb.from('orcamento_premissas').delete().eq('cliente_id',cid).eq('cenario','todos').eq('chave',key);err=r&&r.error;
+  }else{
+    PREM.over[k]=val;
+    var r2=await sb.from('orcamento_premissas').upsert({cliente_id:cid,cenario:'todos',chave:key,valor_num:(t==='txt'?null:val),valor_txt:(t==='txt'?val:null)},{onConflict:'cliente_id,cenario,chave'});err=r2&&r2.error;
+  }
+  metasDesenhar();
+  st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
+}
+// linhas de exceção por mês: campo vazio = padrão (cinza); preenchido = exceção (azul); mês realizado = travado
+function metaExcLinha(rot,t,pref,a,ms,res,max,tip,ph0,realFn){
+  var h='<tr><td class="orc-lbl orc-sub" style="white-space:normal"'+(tip?' title="'+tip+'"':'')+'>'+rot+'</td>';
+  ms.forEach(function(m){
+    var mk=a+'-'+String(m).padStart(2,'0'),ov=premGet('todos',pref+mk),real=realFn(a,m),on=(ov!==undefined&&!real);
+    h+='<td><input class="orc-in'+(on?' meta-flag-trx':'')+'" data-k="'+pref+'" data-m="'+m+'" data-t="'+t+'" data-max="'+(max||'')+'" value="'+(on?premFmt(t,ov):'')+'" placeholder="'+(ph0!==undefined?ph0:premFmt(t,res(a,m)))+'" onfocus="this.select()" onchange="metaPrazoEdit(this)"'+(real?' disabled title="Mês realizado: vale o padrão"':'')+'></td>';
+  });
+  return h+'<td class="orc-tot"></td></tr>';
+}
+function metaExcConf(rot,ms,a,somaFn){
+  var h='<tr class="meta-pct"><td class="orc-lbl orc-sub">'+rot+'</td>';
+  ms.forEach(function(m){var s=somaFn(a,m),ok=Math.abs(s-1)<0.0005;h+='<td class="'+(ok?'orc-pos':'orc-neg')+'">'+premFmt('pct',s)+'</td>';});
+  return h+'<td class="orc-tot"></td></tr>';
+}
 
 // ══════════════════════════════════════════════
 // PREMISSAS ORÇAMENTO — mesma tela da Hawks, com os valores padrão da aba "Premissas" da planilha da Fnyx
@@ -3959,12 +4047,12 @@ var PREM_ALAV=[
  {k:'aL',n:'Antecipação: meses antecipados',t:'int',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'}
 ];
 var PREM_GERAL=[
- {g:'Mix de vendas (a planilha traz o mesmo valor em todos os meses)',itens:[
+ {g:'Mix de vendas (padrão — exceções por mês em Metas → Sell-through; a planilha traz o mesmo valor em todos os meses)',itens:[
   {k:'mix_bol',n:'Boleto',t:'pct',v:0.8,st:'f',o:'Aba Premissas · "% por método de Venda".',soma:'mix'},
   {k:'mix_cp',n:'Cartão parcelado',t:'pct',v:0.12,st:'f',o:'',soma:'mix'},
   {k:'mix_pix',n:'À vista / pix (recebido no mês da venda)',t:'pct',v:0.05,st:'f',o:'',soma:'mix'},
   {k:'mix_cav',n:'Cartão à vista (D+30, mês seguinte)',t:'pct',v:0.03,st:'f',o:'Assumido D+30, como na Hawks.',soma:'mix'}]},
- {g:'Recebimento a prazo (boleto + cartão parcelado) por defasagem em meses',itens:[
+ {g:'Recebimento a prazo (boleto + cartão parcelado) por defasagem em meses (padrão — exceções por mês em Metas → Sell-through)',itens:[
   {k:'rec0',n:'Defasagem 0 mês',t:'pct',v:0.02,st:'c',o:'Derivado das "Condições no boleto e cartão parcelado" e do "% vendido em cada condição" da planilha (60% em 30/60/90/120 dias, 20% em 30/60/90, etc.). Parcela em d dias cai no mês round(d/30).',soma:'rec'},
   {k:'rec1',n:'Defasagem 1 mês',t:'pct',v:0.293917,st:'c',o:'',soma:'rec'},
   {k:'rec2',n:'Defasagem 2 meses',t:'pct',v:0.263917,st:'c',o:'',soma:'rec'},
@@ -3974,7 +4062,7 @@ var PREM_GERAL=[
   {k:'rec6',n:'Defasagem 6 meses',t:'pct',v:0.00125,st:'c',o:'',soma:'rec'},
   {k:'rec7',n:'Defasagem 7 meses',t:'pct',v:0.00125,st:'c',o:'',soma:'rec'},
   {k:'rec8',n:'Defasagem 8 meses',t:'pct',v:0.00125,st:'c',o:'',soma:'rec'}]},
- {g:'Pagamento a fornecedores Truss por quinzena do pedido',itens:[
+ {g:'Pagamento a fornecedores Truss por quinzena do pedido (padrão — exceções por mês em Metas → Sell-in)',itens:[
   {k:'trq1',n:'% dos pedidos na 1ª quinzena (dias 1 a 15)',t:'pct',v:0.95,st:'f',o:'Aba Premissas · "% de pedidos por quinzena" (projetado). Realizado varia muito: Jan/26 87,9%, Set/26 54,5%.',soma:'trs'},
   {k:'trq2',n:'% dos pedidos na 2ª quinzena (dia 16 em diante)',t:'pct',v:0.05,st:'f',o:'',soma:'trs'},
   {k:'trp1',n:'Prazos da 1ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:null,st:'b',o:'Não consta na planilha da Fnyx. Separe os dias por "/" (na Hawks: 45/75/105/135).'},
