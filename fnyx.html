@@ -360,6 +360,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .end-add{margin-top:12px;background:#00B4D8;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .end-add:hover{filter:brightness(1.1)}
 .end-wrap{overflow-x:auto;background:#121C28;border:0.5px solid #1F3044;border-radius:10px;padding:6px}
+.prem-tbl{width:100%}
+.prem-tbl td{vertical-align:middle}
+.prem-tbl th.orc-lbl,.prem-tbl td.orc-lbl{min-width:290px;max-width:310px}
+.prem-in{width:100%;min-width:92px;max-width:150px;background:rgba(255,255,255,0.03);border:1px solid #1F3044;border-radius:6px;color:#E2EAF4;text-align:right;font-size:12px;padding:5px 8px;outline:none;font-family:inherit}
+.prem-in:focus{border-color:#00B4D8}
+.prem-mod{color:#5FB4FF;border-color:#2c5a85}
+select.prem-in{text-align:left}
+.prem-chip{display:inline-block;font-size:10px;border:1px solid;border-radius:10px;padding:2px 8px;white-space:nowrap}
+.prem-chk td{background:#0F1923;font-size:11px}
+.dfc-section-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8BA0B0;margin:0 0 .5rem}
 .meta-tbl{width:100%!important;min-width:0!important;table-layout:fixed}
 .meta-tbl th.orc-lbl,.meta-tbl td.orc-lbl{width:250px;min-width:250px;max-width:250px;position:static}
 .meta-tbl th.orc-tot,.meta-tbl td.orc-tot{width:104px;min-width:104px;position:static}
@@ -430,6 +440,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="nav-item nav-sub" id="nav-orc-realizado" onclick="orcNav('realizado',this)">Realizado</div>
       <div class="nav-item nav-sub" id="nav-orc-comp" onclick="orcNav('comp',this)">Orçado × Realizado</div>
       <div class="nav-item nav-sub" id="nav-orc-metas" onclick="metaNav(this)">Metas</div>
+      <div class="nav-item nav-sub" id="nav-orc-prem" onclick="premNav(this)">Premissas</div>
     </div>
     <div class="nav-item" id="nav-endiv" onclick="setPage('endividamento',this)"><span class="nav-icon">🏦</span>Endividamento</div>
     <div class="sidebar-section">Comercial</div>
@@ -696,6 +707,7 @@ function renderPage(page){
   else if(page==='estoque'){c.innerHTML=estoqueHTML();initEstoque();}
   else if(page==='orcamento'){c.innerHTML=orcHTML();initOrcamento();}
   else if(page==='metas'){c.innerHTML=metasHTML();initMetas();}
+  else if(page==='premorc'){c.innerHTML=premHTML();initPremOrc();}
   else if(page==='endividamento'){c.innerHTML=endHTML();initEnd();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">🔒</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
@@ -3922,6 +3934,153 @@ async function metaEdit(inp){
   st=document.getElementById('meta-status');if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
 }
 function metaNav(el){setPage('metas',el);document.getElementById('topbarTitle').textContent='Orçamento — Metas';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
+
+// ══════════════════════════════════════════════
+// PREMISSAS ORÇAMENTO — mesma tela da Hawks, com os valores padrão da aba "Premissas" da planilha da Fnyx
+// Tabela Supabase: orcamento_premissas (cliente_id, cenario, chave, valor_num, valor_txt)
+// Documentação editável: por ora NÃO alimenta o Orçado (o gerador de orçado ainda não existe na Fnyx).
+// ══════════════════════════════════════════════
+var PREM_CEN=[['base','Base'],['conservador','Conservador'],['otimista','Otimista'],['livre','Livre']];
+// tipos: pct | brl | int | mes | modo | txt ; st: f = da planilha da Fnyx, c = calculado a partir da planilha, b = em branco (preencher)
+var PREM_ALAV=[
+ {k:'vend',n:'Vendas realizadas vs. meta do franqueado (sell-through)',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha. Na Hawks, Base = 100% da meta.'},
+ {k:'cresc',n:'Crescimento a.a. das metas após o último ano com meta',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha (as metas vão até Dez/27).'},
+ {k:'rq',n:'Ruptura de produtos: queda de vendas na janela',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'ri',n:'Ruptura: mês inicial',t:'mes',v:[null,null,null,null],st:'b',o:''},
+ {k:'rf',n:'Ruptura: mês final',t:'mes',v:[null,null,null,null],st:'b',o:''},
+ {k:'inad',n:'Inadimplência de boletos',t:'pct',v:[0.08,null,null,null],st:'f',o:'Base = 8%: valor projetado da planilha a partir de Out/26. Na planilha, Jul a Set/26 usam 18%, 16% e 16%. Conservador e Otimista em branco.'},
+ {k:'shift',n:'Atraso de recebimento: % do a prazo deslocado +1 mês',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'modo',n:'Base de compras (1 = meta sell-in do franqueado; 2 = % histórico das vendas)',t:'modo',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'cf',n:'Compras vs. meta sell-in (só modo 1)',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'ipca',n:'Inflação anual sobre despesas fixas',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'cxm',n:'Caixa mínimo',t:'brl',v:[null,null,null,null],st:'b',o:'A planilha calcula um "Caixa Mínimo Operacional" mês a mês (Set/26: R$ 657 mil), mas não traz uma premissa fixa.'},
+ {k:'alim',n:'Antecipação de recebíveis: limite (% dos recebíveis do mês antecipado)',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'atx',n:'Antecipação: taxa (deságio) % a.m.',t:'pct',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'},
+ {k:'aL',n:'Antecipação: meses antecipados',t:'int',v:[null,null,null,null],st:'b',o:'Não consta na planilha.'}
+];
+var PREM_GERAL=[
+ {g:'Mix de vendas (a planilha traz o mesmo valor em todos os meses)',itens:[
+  {k:'mix_bol',n:'Boleto',t:'pct',v:0.8,st:'f',o:'Aba Premissas · "% por método de Venda".',soma:'mix'},
+  {k:'mix_cp',n:'Cartão parcelado',t:'pct',v:0.12,st:'f',o:'',soma:'mix'},
+  {k:'mix_pix',n:'À vista / pix (recebido no mês da venda)',t:'pct',v:0.05,st:'f',o:'',soma:'mix'},
+  {k:'mix_cav',n:'Cartão à vista (D+30, mês seguinte)',t:'pct',v:0.03,st:'f',o:'Assumido D+30, como na Hawks.',soma:'mix'}]},
+ {g:'Recebimento a prazo (boleto + cartão parcelado) por defasagem em meses',itens:[
+  {k:'rec0',n:'Defasagem 0 mês',t:'pct',v:0.02,st:'c',o:'Derivado das "Condições no boleto e cartão parcelado" e do "% vendido em cada condição" da planilha (60% em 30/60/90/120 dias, 20% em 30/60/90, etc.). Parcela em d dias cai no mês round(d/30).',soma:'rec'},
+  {k:'rec1',n:'Defasagem 1 mês',t:'pct',v:0.293917,st:'c',o:'',soma:'rec'},
+  {k:'rec2',n:'Defasagem 2 meses',t:'pct',v:0.263917,st:'c',o:'',soma:'rec'},
+  {k:'rec3',n:'Defasagem 3 meses',t:'pct',v:0.233917,st:'c',o:'',soma:'rec'},
+  {k:'rec4',n:'Defasagem 4 meses',t:'pct',v:0.18325,st:'c',o:'',soma:'rec'},
+  {k:'rec5',n:'Defasagem 5 meses',t:'pct',v:0.00125,st:'c',o:'Vem da condição de 8 parcelas (30 a 240 dias), que pesa 1% das vendas.',soma:'rec'},
+  {k:'rec6',n:'Defasagem 6 meses',t:'pct',v:0.00125,st:'c',o:'',soma:'rec'},
+  {k:'rec7',n:'Defasagem 7 meses',t:'pct',v:0.00125,st:'c',o:'',soma:'rec'},
+  {k:'rec8',n:'Defasagem 8 meses',t:'pct',v:0.00125,st:'c',o:'',soma:'rec'}]},
+ {g:'Pagamento a fornecedores Truss por quinzena do pedido',itens:[
+  {k:'trq1',n:'% dos pedidos na 1ª quinzena (dias 1 a 15)',t:'pct',v:0.95,st:'f',o:'Aba Premissas · "% de pedidos por quinzena" (projetado). Realizado varia muito: Jan/26 87,9%, Set/26 54,5%.',soma:'trs'},
+  {k:'trq2',n:'% dos pedidos na 2ª quinzena (dia 16 em diante)',t:'pct',v:0.05,st:'f',o:'',soma:'trs'},
+  {k:'trp1',n:'Prazos da 1ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:null,st:'b',o:'Não consta na planilha da Fnyx. Separe os dias por "/" (na Hawks: 45/75/105/135).'},
+  {k:'trp2',n:'Prazos da 2ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:null,st:'b',o:'Não consta na planilha da Fnyx (na Hawks: 30/60/90/120).'},
+  {k:'ap0',n:'Contas a pagar em aberto no início (fim de Out/26)',t:'brl',v:1015536,st:'f',o:'Aba Premissas · "Saldo Contas a Pagar (realizado)", Out/26, o último mês realizado.'}]},
+ {g:'Despesas fixas (a planilha da Fnyx traz só o total, sem abrir por categoria)',itens:[
+  {k:'f_total',n:'Estrutura fixa total (por mês)',t:'brl',v:373693,st:'c',o:'Média Mar–Set/26 da linha "Estrutura fixa" da planilha (jul/26 foi o pico: R$ 508 mil).'}]},
+ {g:'Despesas variáveis (% das entradas de clientes)',itens:[
+  {k:'v_comis',n:'Comissões',t:'pct',v:null,st:'b',o:'Não consta na planilha.'},
+  {k:'v_mkt',n:'Marketing (despesas comerciais)',t:'pct',v:null,st:'b',o:''},
+  {k:'v_log',n:'Logística',t:'pct',v:null,st:'b',o:''}]},
+ {g:'Impostos, juros e multas',itens:[
+  {k:'imp_m',n:'Imposto mensal recorrente (% das entradas)',t:'pct',v:null,st:'b',o:'Não consta na planilha.'},
+  {k:'imp_t',n:'Imposto trimestral (% das entradas dos 3 meses anteriores)',t:'pct',v:null,st:'b',o:''},
+  {k:'jm',n:'Juros e multas recebidos (% das entradas)',t:'pct',v:null,st:'b',o:''}]},
+ {g:'Investimento, dívida e caixa',itens:[
+  {k:'capex',n:'CAPEX mensal',t:'brl',v:0,st:'f',o:'A planilha mostra CAPEX zero na maioria dos meses (R$ 660 em Out/25 e R$ 260 em Jul/26).'},
+  {k:'divida',n:'Serviço da dívida bancária (por mês)',t:'brl',v:null,st:'b',o:'Não consta na planilha. O cadastro de Endividamento soma as parcelas atuais (R$ 35.927 por mês em Nov/26).'},
+  {k:'divida27',n:'Serviço da dívida bancária a partir de 2027 (por mês)',t:'brl',v:null,st:'b',o:''},
+  {k:'cx0',n:'Caixa inicial',t:'brl',v:null,st:'b',o:'Não consta na aba Premissas (usar o último saldo do DFC).'},
+  {k:'cv_hist',n:'Compras ÷ vendas histórico (modo 2)',t:'pct',v:null,st:'b',o:''}]}
+];
+var PREM={over:{},carregado:false,erro:'',cen:'base'};
+var PREM_ST={f:['Da planilha da Fnyx','#6FD39A'],c:['Calculado da planilha','#7FB8E8'],b:['Em branco · preencher','#F5C16C']};
+function premKey(c,k){return c+'|'+k;}
+function premGet(c,k,def){var x=PREM.over[premKey(c,k)];return x===undefined?def:x;}
+function premFmt(t,v){
+  if(v===null||v===undefined||v==='')return '';
+  if(t==='txt')return String(v);
+  if(t==='pct')return (v*100).toFixed(3).replace(/\.?0+$/,'').replace('.',',')+'%';
+  if(t==='brl')return Math.round(v).toLocaleString('pt-BR');
+  if(t==='mes'){var p=String(v).split('-');return ORC_M[parseInt(p[1])-1]+'/'+p[0].slice(2);}
+  return String(v);
+}
+function premParse(t,s){
+  s=String(s||'').trim();if(!s)return null;
+  if(t==='txt'){s=s.replace(/\s+/g,'').replace(/[;,\-]/g,'/');return /^\d+(\/\d+)*$/.test(s)?s:null;}
+  if(t==='mes'){return /^\d{4}-\d{2}$/.test(s)?s:null;}
+  var x=parseFloat(s.replace(/[^0-9,\-]/g,'').replace(',','.'));if(isNaN(x))return null;
+  if(t==='pct')return x/100;
+  if(t==='brl'||t==='int'||t==='modo')return t==='brl'?x:Math.round(x);
+  return x;
+}
+function premInput(t,c,k,def){
+  var v=premGet(c,k,def),mod=PREM.over[premKey(c,k)]!==undefined;
+  if(v===null||v===undefined)v='';
+  var id=' data-c="'+c+'" data-k="'+k+'" data-t="'+t+'" data-def="'+((def===null||def===undefined)?'':def)+'"';
+  if(t==='txt')return '<input class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+v+'" onfocus="this.select()" onchange="premEdit(this)">';
+  if(t==='mes')return '<input type="month" class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+v+'" onchange="premEdit(this)">';
+  if(t==='modo')return '<select class="prem-in'+(mod?' prem-mod':'')+'"'+id+' onchange="premEdit(this)"><option value=""'+(v===''?' selected':'')+'>—</option><option value="1"'+(v==1?' selected':'')+'>1 · meta sell-in</option><option value="2"'+(v==2?' selected':'')+'>2 · % histórico</option></select>';
+  return '<input class="prem-in'+(mod?' prem-mod':'')+'"'+id+' value="'+premFmt(t,v)+'" onfocus="this.select()" onchange="premEdit(this)">';
+}
+function premHTML(){
+  return '<div class="prem-intro"><b>Premissas do Orçamento</b> — mesma tela da Hawks, com os valores padrão vindos da aba <b>Premissas</b> da planilha de fluxo de caixa da Fnyx. O que a planilha não traz aparece <b style="color:#F5C16C">em branco</b> para você preencher. Valores em azul foram alterados por você; passe o mouse no valor para ver o padrão. Por ora, não alimentam o Orçado.</div>'
+  +'<div class="orc-status" id="prem-status" style="margin:0 0 .75rem"></div><div id="prem-corpo"></div>';
+}
+async function initPremOrc(){
+  premDesenhar();
+  PREM.over={};PREM.erro='';
+  var cid=clienteIdAtual();
+  var r=await sb.from('orcamento_premissas').select('cenario,chave,valor_num,valor_txt').eq('cliente_id',cid);
+  if(r.error){PREM.erro='Não foi possível carregar as alterações salvas (a tabela orcamento_premissas precisa existir no Supabase). Os valores abaixo são os padrões.';console.error(r.error);}
+  else(r.data||[]).forEach(function(x){PREM.over[premKey(x.cenario,x.chave)]=(x.valor_txt!==null&&x.valor_txt!==undefined&&x.valor_txt!=='')?x.valor_txt:parseFloat(x.valor_num);});
+  PREM.carregado=true;premDesenhar();
+}
+function premStatusChip(st){var s=PREM_ST[st];return '<span class="prem-chip" style="color:'+s[1]+';border-color:'+s[1]+'55">'+s[0]+'</span>';}
+function premDesenhar(){
+  var el=document.getElementById('prem-corpo');if(!el)return;
+  var st=document.getElementById('prem-status');if(st)st.innerHTML=PREM.erro?'<span style="color:#E88">'+PREM.erro+'</span>':'';
+  var h='<div class="dfc-section-label">Alavancas por cenário</div><div class="orc-outer" style="max-height:none"><table class="dfc-tbl prem-tbl"><thead><tr><th class="orc-lbl" style="text-align:left">Premissa</th>'+PREM_CEN.map(function(c){return'<th>'+c[1]+'</th>';}).join('')+'<th style="text-align:left">Status</th><th style="text-align:left;min-width:240px">Observação / origem</th></tr></thead><tbody>';
+  PREM_ALAV.forEach(function(a){
+    h+='<tr><td class="orc-lbl" style="white-space:normal">'+a.n+'</td>'+PREM_CEN.map(function(c,i){return'<td>'+premInput(a.t,c[0],a.k,a.v[i])+'</td>';}).join('')+'<td style="text-align:left">'+premStatusChip(a.st)+'</td><td style="text-align:left;white-space:normal;color:#8BA0B0">'+a.o+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="dfc-section-label" style="margin-top:1.5rem">Premissas gerais (valem para todos os cenários)</div><div class="orc-outer" style="max-height:none"><table class="dfc-tbl prem-tbl"><thead><tr><th class="orc-lbl" style="text-align:left">Premissa</th><th>Valor</th><th style="text-align:left">Status</th><th style="text-align:left;min-width:240px">Observação / origem</th></tr></thead><tbody>';
+  var somas={};
+  PREM_GERAL.forEach(function(g){
+    h+='<tr class="dfc-grp"><td class="orc-lbl" colspan="4">'+g.g+'</td></tr>';
+    g.itens.forEach(function(it){
+      if(it.soma)somas[it.soma]=(somas[it.soma]||0)+(premGet('todos',it.k,it.v)||0);
+      h+='<tr><td class="orc-lbl orc-sub" style="white-space:normal">'+it.n+'</td><td>'+premInput(it.t,'todos',it.k,it.v)+'</td><td style="text-align:left">'+premStatusChip(it.st)+'</td><td style="text-align:left;white-space:normal;color:#8BA0B0">'+it.o+'</td></tr>';
+    });
+    var key=g.itens[0].soma;
+    if(key){var ok=Math.abs(somas[key]-1)<0.0005;h+='<tr class="prem-chk"><td class="orc-lbl orc-sub">Conferência (deve somar 100%)</td><td style="color:'+(ok?'#6FD39A':'#E58B8B')+'">'+premFmt('pct',somas[key])+'</td><td colspan="2" style="text-align:left;color:'+(ok?'#6FD39A':'#E58B8B')+'">'+(ok?'✓ fecha em 100%':'Não fecha em 100% — ajuste os valores')+'</td></tr>';}
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+async function premEdit(inp){
+  var c=inp.getAttribute('data-c'),k=inp.getAttribute('data-k'),t=inp.getAttribute('data-t'),def=inp.getAttribute('data-def');
+  var val=(t==='modo')?(inp.value===''?null:parseInt(inp.value)):premParse(t,inp.value);
+  var defN=(t==='mes'||t==='txt')?(def===''?null:def):(def===''?null:parseFloat(def));
+  var key=premKey(c,k);
+  var cid=clienteIdAtual(),st=document.getElementById('prem-status'),err=null;
+  if(val===null||val===defN){
+    delete PREM.over[key];
+    var r=await sb.from('orcamento_premissas').delete().eq('cliente_id',cid).eq('cenario',c).eq('chave',k);err=r&&r.error;
+  }else{
+    PREM.over[key]=val;
+    var row={cliente_id:cid,cenario:c,chave:k,valor_num:((t==='mes'||t==='txt')?null:val),valor_txt:((t==='mes'||t==='txt')?val:null)};
+    var r2=await sb.from('orcamento_premissas').upsert(row,{onConflict:'cliente_id,cenario,chave'});err=r2&&r2.error;
+  }
+  premDesenhar();
+  if(st)st.innerHTML=err?'<span style="color:#E88">Erro ao salvar: '+(err.message||err)+'</span>':'✓ Salvo';
+}
+function premNav(el){setPage('premorc',el);document.getElementById('topbarTitle').textContent='Orçamento — Premissas';document.getElementById('nav-orcamento').classList.add('open');document.getElementById('orc-sub').classList.add('open');}
 
 // ══════════════════════════════════════════════
 // ENDIVIDAMENTO BANCÁRIO — cadastro das dívidas (tabela endividamento no Supabase)
