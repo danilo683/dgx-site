@@ -370,6 +370,10 @@ select.prem-in{text-align:left}
 .prem-chip{display:inline-block;font-size:10px;border:1px solid;border-radius:10px;padding:2px 8px;white-space:nowrap}
 .prem-chk td{background:#0F1923;font-size:11px}
 .dfc-section-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8BA0B0;margin:0 0 .5rem}
+.pj-scen{display:flex;gap:6px;flex-wrap:wrap}.pj-pill{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;font-size:12px;border:.5px solid #1F3044;background:#162230;color:#8BA0B0;cursor:pointer}.pj-pill.active{border-color:var(--pj-c);color:#E2EAF4;background:#0F1923}.pj-dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.pj-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}@media(max-width:900px){.pj-kpis{grid-template-columns:repeat(2,1fr)}}
+.pj-kpi{background:#111f35;border:1px solid rgba(0,174,239,.12);border-top:3px solid var(--k);border-radius:10px;padding:12px 14px}.pj-kpi .l{font-size:11px;color:#6B8BAA}.pj-kpi .v{font-size:20px;font-weight:600;color:#E2EAF4;margin:3px 0}.pj-kpi .s{font-size:11px;color:#8BA0B0}
+.pj-note{font-size:12px;color:#9FB4C6;line-height:1.55;margin-top:.4rem}.pj-tbl{width:100%;font-size:11.5px}.pj-tbl td,.pj-tbl th{padding:5px 10px;text-align:right;white-space:nowrap}.pj-tbl .pj-sec td{background:#162230;color:#00D4DA;font-weight:600;text-align:left}.pj-tbl .pj-tot td{font-weight:600}
 .orc-in.meta-flag-trx{color:#5FB4FF;border-color:#2c5a85}
 .meta-tbl{width:100%!important;min-width:0!important;table-layout:fixed}
 .meta-tbl th.orc-lbl,.meta-tbl td.orc-lbl{width:250px;min-width:250px;max-width:250px;position:static}
@@ -443,6 +447,7 @@ select.prem-in{text-align:left}
       <div class="nav-item nav-sub" id="nav-orc-metas" onclick="metaNav(this)">Metas</div>
       <div class="nav-item nav-sub" id="nav-orc-prem" onclick="premNav(this)">Premissas</div>
     </div>
+    <div class="nav-item" id="nav-projecao" onclick="setPage('projecao',this)"><span class="nav-icon">🔮</span>Projeção DFC</div>
     <div class="nav-item" id="nav-endiv" onclick="setPage('endividamento',this)"><span class="nav-icon">🏦</span>Endividamento</div>
     <div class="sidebar-section">Comercial</div>
     <div class="nav-item disabled"><span class="nav-icon">👥</span>Clientes<span class="nav-badge">Em breve</span></div>
@@ -693,9 +698,9 @@ document.addEventListener('DOMContentLoaded',async function(){
 });
 function doLogout(){sb.auth.signOut().then(function(){window.location.href='/clientes';});}
 function setPage(page,el){document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active');});if(el)el.classList.add('active');renderPage(page);}
-var periods={inicio:'',vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Mar 2026',dfc:'Jan – Abr 2026',produtos:'',estoque:'',orcamento:'2026',metas:'2026'};
+var periods={inicio:'',vendas:'Jan – Mar 2026',margem:'Jan – Mar 2026',dre:'Jan – Mar 2026',dfc:'Jan – Abr 2026',produtos:'',estoque:'',orcamento:'2026',metas:'2026',projecao:'Nov/26 – Dez/27'};
 function renderPage(page){
-  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE — Resultado do Exercício',dfc:'DFC — Fluxo de Caixa',produtos:'An\u00e1lise de Produtos',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',orcamento:'Or\u00e7amento',endividamento:'Endividamento Banc\u00e1rio'};
+  var titles={inicio:'In\u00edcio',vendas:'Vendas',margem:'Margem / Rentabilidade',dre:'DRE — Resultado do Exercício',dfc:'DFC — Fluxo de Caixa',produtos:'An\u00e1lise de Produtos',estoque:'Estoque \u2014 Sugest\u00e3o de Pedido',orcamento:'Or\u00e7amento',endividamento:'Endividamento Banc\u00e1rio',projecao:'Proje\u00e7\u00e3o DFC'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarPeriod').textContent=periods[page]||'2026';
   var c=document.getElementById('content');
@@ -710,6 +715,7 @@ function renderPage(page){
   else if(page==='metas'){c.innerHTML=metasHTML();initMetas();}
   else if(page==='premorc'){c.innerHTML=premHTML();initPremOrc();}
   else if(page==='endividamento'){c.innerHTML=endHTML();initEnd();}
+  else if(page==='projecao'){c.innerHTML=projecaoHTML();initProjecao();}
   else{c.innerHTML='<div class="coming-soon"><div class="cs-icon">🔒</div><h2>'+titles[page]+'</h2><p>Em desenvolvimento.</p><span class="cs-badge">Em breve</span></div>';}
 }
 // ══════════════════════════════════════════════
@@ -3621,7 +3627,7 @@ function orcDesenhar(){
   var el=document.getElementById('orc-tbl');if(!el)return;el.classList.toggle('orc-mes',ORC.modo!=='comp');
   var tb=document.querySelectorAll('#orc-tabs button');for(var q=0;q<tb.length;q++)tb[q].classList.toggle('active',tb[q].getAttribute('data-m')===ORC.modo);
   var cb=document.getElementById('orc-chartbox');cb.style.display=ORC.modo==='comp'?'block':'none';
-  var ib=document.getElementById('orc-imp-btn');if(ib)ib.style.display=ORC.modo==='realizado'?'inline-block':'none';var gb=document.getElementById('orc-gen-btn');if(gb)gb.style.display='none'; /* gerador de orçado: pendente na Fnyx (precisa de Metas/Premissas) */
+  var ib=document.getElementById('orc-imp-btn');if(ib)ib.style.display=ORC.modo==='realizado'?'inline-block':'none';var gb=document.getElementById('orc-gen-btn');if(gb)gb.style.display=ORC.modo==='orcado'?'inline-block':'none';
   if(ORC.modo!=='comp'&&ORC.chart){ORC.chart.destroy();ORC.chart=null;}
   document.getElementById('orc-hint').innerHTML=ORC.modo==='comp'?'Forecast = meses fechados com o realizado + meses restantes com o orçado (calculado na hora, não é gravado). Δ = realizado − orçado. <span class="orc-pos">Verde</span> = favorável (entrou mais ou saiu menos), <span class="orc-neg">vermelho</span> = desfavorável.':(ORC.modo==='realizado'?'<b>Realizado:</b> ':'')+'Valores em R$, sempre positivos (o sinal vem do plano de contas). Na visão mensal, o valor digitado entra no <b>dia 1</b>; se houver lançamentos em vários dias, a célula do mês fica somente leitura.';
   var vb=document.querySelectorAll('#orc-view button');for(var i=0;i<vb.length;i++)vb[i].classList.toggle('active',vb[i].getAttribute('data-v')===ORC.view);
@@ -4085,6 +4091,364 @@ var PREM_GERAL=[
   {k:'cx0',n:'Caixa inicial',t:'brl',v:null,st:'b',o:'Não consta na aba Premissas (usar o último saldo do DFC).'},
   {k:'cv_hist',n:'Compras ÷ vendas histórico (modo 2)',t:'pct',v:null,st:'b',o:''}]}
 ];
+// ══════════════════════════════════════════════
+// GERAR ORÇADO A PARTIR DE METAS E PREMISSAS (com prévia antes de gravar) — mesmo motor da Hawks
+// Vendas (ST) → recebimentos por defasagem; compras (SI) → pagamento Truss; estrutura fixa, variáveis (% das entradas),
+// impostos, capex, dívida, antecipação e aporte p/ caixa mínimo. Premissa em branco = neutra (ver GEN_NEUTRO) e gera aviso.
+// ══════════════════════════════════════════════
+var GEN={res:null,cen:'base',de:null,semRin:false};
+var GEN_NEUTRO={vend:1,cresc:0,rq:0,ri:'',rf:'',inad:0,shift:0,modo:1,cf:1,ipca:0,cxm:0,alim:0,atx:0,aL:0};
+function genMk(a,m){return a*12+(m-1);}
+function genDe(mk){return {a:Math.floor(mk/12),m:(mk%12)+1};}
+function genLever(cen,k){
+  var ix=0;PREM_CEN.forEach(function(c,i){if(c[0]===cen)ix=i;});
+  var d=PREM_ALAV.filter(function(x){return x.k===k;})[0];
+  var v=premGet(cen,k,d.v[ix]);
+  if((v===null||v===undefined)&&cen!=='base')v=genLever('base',k); // cenário em branco herda o Base
+  if(v===null||v===undefined)v=GEN_NEUTRO[k];
+  return v;
+}
+var GEN_TC={};
+// Fração do valor de um pedido (feito no mês a/m) paga em cada mês de defasagem: 1ª quinzena (dias 1–15) e 2ª (16 em diante), parcelas iguais em N dias
+function genTrussCoefs(a,m){
+  var R=genTrussPrazos(a,m),p1s=R.p1||'0',p2s=R.p2||'0'; // prazo em branco: paga no próprio mês do pedido (aviso na prévia)
+  var key=a*12+m+'|'+R.q1+'|'+R.q2+'|'+p1s+'|'+p2s;if(GEN_TC[key])return GEN_TC[key];
+  var q1=R.q1,q2=R.q2,p1=String(p1s).split('/').map(Number),p2=String(p2s).split('/').map(Number),nd=new Date(a,m,0).getDate(),C=[0,0,0,0,0,0,0,0,0];
+  for(var day=1;day<=nd;day++){
+    var q=day<=15,share=q?q1/15:q2/Math.max(1,nd-15),P=q?p1:p2;
+    P.forEach(function(d){var dt=new Date(a,m-1,day+d),lag=(dt.getFullYear()*12+dt.getMonth())-(a*12+m-1);if(lag>=0&&lag<C.length)C[lag]+=share/P.length;});
+  }
+  return GEN_TC[key]=C;
+}
+function genCalcular(cen,deMk,ateMk,tit,cxAnt){
+  tit=tit&&tit.baseMk?tit:null;
+  var L=function(k){return genLever(cen,k);},G=function(k){var v=genGeral(k);return (v===null||v===undefined)?0:v;},aviso=[];
+  var vend=L('vend'),cresc=L('cresc'),rq=L('rq'),ri=L('ri'),rf=L('rf'),inad=L('inad'),shift=L('shift'),modo=L('modo'),cf=L('cf'),ipca=L('ipca'),cxm=L('cxm'),alim=L('alim'),atx=L('atx'),aL=L('aL');
+  // avisos de premissas em branco
+  var brA=[],brG=[];
+  [['vend','vendas vs. meta (assumido 100%)'],['cf','compras vs. meta SI (assumido 100%)'],['ipca','inflação das fixas (assumida 0%)'],['cxm','caixa mínimo (assumido 0)'],['alim','antecipação (sem antecipação)']].forEach(function(x){var d=PREM_ALAV.filter(function(y){return y.k===x[0];})[0],v=premGet(cen,x[0],d.v[0]);if(v===null||v===undefined)brA.push(x[1]);});
+  [['v_comis','comissões'],['v_mkt','marketing'],['v_log','logística'],['imp_m','imposto mensal'],['imp_t','imposto trimestral'],['jm','juros e multas recebidos'],['divida','serviço da dívida']].forEach(function(x){var v=genGeral(x[0]);if(v===null||v===undefined)brG.push(x[1]);});
+  if(!genGeral('trp1')||!genGeral('trp2'))brG.push('prazos de pagamento à Truss (compras pagas no mês do pedido)');
+  if(brA.length||brG.length)aviso.push('Premissas em branco, tratadas como neutras: '+brA.concat(brG).join('; ')+'. Preencha em Orçamento → Premissas para o resultado refletir a realidade.');
+  var cacheST={},cacheSI={};
+  function rupt(a,m){var k=a+'-'+String(m).padStart(2,'0');return (k>=ri&&k<=rf)?1-rq:1;}
+  function st(a,m){var k=genMk(a,m);if(cacheST[k])return cacheST[k];
+    var r=metaGet('st','realizado',a,m),o;
+    if(r){o={v:r,f:'realizado'};}
+    else{var c=metaConsiderada('st',a,m);
+      if(c.v)o={v:c.v*vend*rupt(a,m),f:c.fonte};
+      else if(a>=2028){var p=st(a-1,m);o={v:p.v*(1+cresc),f:'crescimento'};}
+      else o={v:0,f:null};}
+    return cacheST[k]=o;}
+  function si(a,m){var k=genMk(a,m);if(cacheSI[k])return cacheSI[k];
+    var r=metaGetRaw('si','realizado',a,m),o;
+    if(r){o={v:r,f:'realizado'};}
+    else if(modo==2){o={v:st(a,m).v*G('cv_hist'),f:'% histórico'};}
+    else{var c=metaConsiderada('si',a,m);
+      if(c.v)o={v:c.v*cf,f:c.fonte};
+      else if(a>=2028){var p=si(a-1,m);o={v:p.v*(1+cresc),f:'crescimento'};}
+      else o={v:0,f:null};}
+    return cacheSI[k]=o;}
+  var cacheC={};
+  function Cmes(a,m){var k=genMk(a,m);if(cacheC[k])return cacheC[k];
+    var P=genRecPol(a,m),A=[];for(var q=0;q<9;q++)A[q]=P.rec[q]*(1-shift)+shift*(q>0?P.rec[q-1]:0);
+    var pz=(P.bol*(1-inad)+P.cp);
+    var C=[P.pix+pz*A[0],P.cav+pz*A[1]];for(var q2=2;q2<9;q2++)C[q2]=pz*A[q2];
+    return cacheC[k]=C;}
+  function recebM(mk){var s=0;for(var d=0;d<9;d++){var x=genDe(mk-d);s+=Cmes(x.a,x.m)[d]*st(x.a,x.m).v;}return s;}
+  function recebSplit(mk){
+    var real=0,prev=0;for(var d=0;d<9;d++){var x=genDe(mk-d),o=st(x.a,x.m);var v=Cmes(x.a,x.m)[d]*o.v;if(o.f==='realizado')real+=v;else prev+=v;}return {real:real,prev:prev};}
+  var out=[],antec={},cx=null;
+  for(var mk=deMk;mk<=ateMk;mk++){
+    var t=genDe(mk),a=t.a,m=t.m,k=a+'-'+String(m).padStart(2,'0');
+    var o={mk:mk,a:a,m:m,L:{},fonte:{st:st(a,m).f,si:si(a,m).f},st:st(a,m).v,si:si(a,m).v};
+    var sp=recebSplit(mk),recT=sp.real+sp.prev;
+    var antPrev=antec[mk-aL]||0;
+    var dprev=Math.min(antPrev,sp.prev);
+    o.L['2.1.1.1']=sp.real-(antPrev-dprev);o.L['2.1.1.2']=sp.prev-dprev;
+    o.L['2.1.2.2']=G('jm')*recT;
+    var trR=0,trP=0;
+    for(var kk=0;kk<9;kk++){var xs=genDe(mk-kk),ss=si(xs.a,xs.m),cf2=genTrussCoefs(xs.a,xs.m)[kk]||0;if(!cf2||!ss.v)continue;var vv=cf2*ss.v;if(ss.f==='realizado')trR+=vv;else trP+=vv;}
+    o.L['3.1.1.1']=trR;o.L['3.1.1.2']=trP;
+    var inf=Math.pow(1+ipca,Math.max(0,a-2026));
+    o.L['3.1.3.7']=G('f_total')*inf; // a planilha da Fnyx traz só a estrutura fixa total: lançada em Despesas gerais
+    o.L['3.1.3.3']=G('v_mkt')*recT;o.L['3.1.3.4']=G('v_comis')*recT;o.L['3.1.3.5']=G('v_log')*recT;
+    var imp=G('imp_m')*recT;if(m%3===1)imp+=G('imp_t')*(recebM(mk-1)+recebM(mk-2)+recebM(mk-3));
+    o.L['3.1.4.1']=imp;
+    var d27=genGeral('divida27');
+    o.L['3.3.1.1']=G('capex');o.L['3.2.1.1']=(a>=2027&&d27!==null&&d27!==undefined)?d27:G('divida');
+    var ini;
+    if(cx===null){
+      var rin=GEN.semRin?undefined:(a===ORC.ano?ORC.r[orcKey(m,1,'1.1')]:undefined);
+      if(rin!==undefined)ini=rin;
+      else if(cxAnt!=null&&mk===deMk){ini=cxAnt;o.iniFonte='saldo final do mês anterior (realizado + orçado)';}
+      else if(genGeral('cx0')!=null){ini=G('cx0');}
+      else{ini=0;aviso.push('Sem caixa inicial para '+ORC_M[m-1]+'/'+a+' (o saldo parte de zero). Importe o realizado ou digite o caixa inicial.');}
+      o.ini=ini;o.iniManual=true;
+    }else ini=cx;
+    var ent=0,sai=0;Object.keys(o.L).forEach(function(c){if(c.charAt(0)==='2')ent+=o.L[c];else sai+=o.L[c];});
+    var antes=ini+ent-sai;
+    var nec=Math.max(0,cxm-antes),face=0,enc=0,aporte=0;
+    if(nec>0){
+      if(alim>0&&aL>0){var disp=alim*recebM(mk+aL);face=Math.min(disp,nec/(1-atx*aL));enc=face*atx*aL;}
+      aporte=Math.max(0,nec-(face-enc));
+    }
+    if(face){o.L['2.2.1.2']=face;antec[mk]=face;}
+    if(enc)o.L['3.2.1.2']=enc;
+    if(aporte)o.L['2.2.1.3']=aporte;
+    o.antes=antes;o.fim=antes+face-enc+aporte;o.ent=ent+face+aporte;o.sai=sai+enc;
+    cx=o.fim;out.push(o);
+  }
+  var semMeta=out.filter(function(x){return !x.fonte.st||(!x.fonte.si&&modo==1);}).map(function(x){return ORC_M[x.m-1]+'/'+String(x.a).slice(2);});
+  if(semMeta.length)aviso.push('Sem meta de sell-through ou sell-in em: '+semMeta.join(', ')+'. Esses meses ficam subestimados (cadastre em Metas).');
+  return {meses:out,aviso:aviso,cen:cen};
+}
+var GEN_LIN=[['2.1.1.1','Recebimentos de vendas concluídas (ST realizado)',1],['2.1.1.2','Recebimentos de vendas previstas (ST projetado)',1],['2.1.2.2','Juros e multas da inadimplência',1],['3.1.1.1','Pagamento Truss — compras concluídas',-1],['3.1.1.2','Pagamento Truss — compras previstas',-1],['3.1.3.7','Estrutura fixa total (lançada em Despesas gerais)',-1],['3.1.3.3','Marketing',-1],['3.1.3.4','Comissões',-1],['3.1.3.5','Logística',-1],['3.1.4.1','Impostos',-1],['3.3.1.1','Capex',-1],['3.2.1.1','Dívida bancária',-1],['2.2.1.2','Antecipação de recebíveis',1],['3.2.1.2','Encargos da antecipação',-1],['2.2.1.3','Aporte necessário (resultado do modelo)',1]];
+function genAbrir(){
+  var m=document.getElementById('gen-modal');if(m)m.remove();
+  var d=document.createElement('div');d.id='gen-modal';d.className='imp-bg';
+  var de=1;for(var i=1;i<=12;i++){var tem=false;Object.keys(ORC.r).forEach(function(k){if(k.indexOf(i+'|')===0&&k.indexOf('|3.')>0)tem=true;});if(tem)de=i+1;}
+  if(de>12)de=12;GEN.de=de;
+  d.innerHTML='<div class="imp-box"><div class="imp-h"><b>Gerar orçado de '+ORC.ano+' a partir de Metas e Premissas</b><button class="imp-x" onclick="genFechar()">×</button></div><div class="imp-b">'
+   +'<p class="imp-p">O orçado é calculado com as <b>metas</b> (sell-through e sell-in, na ordem realista → franqueado → franqueador) e as <b>premissas</b> do cenário escolhido: recebimentos por defasagem, pagamento Truss por prazo, estrutura fixa e variáveis, impostos, dívida e aporte para manter o caixa mínimo. Nada é gravado antes de você conferir a prévia.</p>'
+   +'<div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin:.6rem 0"><div class="orc-sel"><label>Cenário</label><select id="gen-cen">'+PREM_CEN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===GEN.cen?' selected':'')+'>'+c[1]+'</option>';}).join('')+'</select></div>'
+   +'<div class="orc-sel"><label>Gerar a partir de</label><select id="gen-de">'+ORC_M.map(function(n,i){return '<option value="'+(i+1)+'"'+((i+1)===de?' selected':'')+'>'+n+'/'+ORC.ano+'</option>';}).join('')+'</select></div>'
+   +'<button class="adm-btn imp-go" onclick="genPrevia()">Calcular prévia</button></div><div id="gen-prev"></div></div></div>';
+  document.body.appendChild(d);
+}
+function genFechar(){var m=document.getElementById('gen-modal');if(m)m.remove();GEN.res=null;}
+async function genCaixaAnterior(){
+  // saldo final de Dez do ano anterior: meses fechados = realizado, demais = orçado (mesma regra do Forecast)
+  var cid=clienteIdAtual(),a=ORC.ano-1,R={},V={},from=0,ps=1000;
+  while(true){
+    var q=await sb.from('orcamento_dfc').select('tipo,mes,dia,codigo,valor').eq('cliente_id',cid).eq('ano',a).order('tipo').order('mes').order('dia').order('codigo').range(from,from+ps-1);
+    if(q.error)return null;
+    (q.data||[]).forEach(function(x){(x.tipo==='realizado'?R:V)[orcKey(x.mes,x.dia,x.codigo)]=parseFloat(x.valor);});
+    if((q.data||[]).length<ps)break;from+=ps;
+  }
+  if(!Object.keys(R).length&&!Object.keys(V).length)return null;
+  var fech={},F={};
+  Object.keys(R).forEach(function(k){var p=k.split('|');if(p[2]!=='1.1')fech[p[0]]=true;});
+  Object.keys(R).forEach(function(k){if(fech[k.split('|')[0]])F[k]=R[k];});
+  Object.keys(V).forEach(function(k){if(!fech[k.split('|')[0]])F[k]=V[k];});
+  var an=ORC.ano;ORC.ano=a;var fin;try{fin=orcIniciais(F).fin[12];}finally{ORC.ano=an;}
+  return fin;
+}
+async function genPrevia(){
+  var el=document.getElementById('gen-prev');el.innerHTML='<div class="imp-p">Carregando metas e premissas…</div>';
+  if(!PREM.carregado)await initPremOrc();
+  if(!META.carregado)await initMetas();
+  GEN.cen=document.getElementById('gen-cen').value;var de=parseInt(document.getElementById('gen-de').value);
+  var cxAnt=null;
+  if(ORC.r[orcKey(de,1,'1.1')]===undefined){
+    if(de>1){var FS=orcForecastStore();cxAnt=orcIniciais(FS.F).fin[de-1];}
+    else{cxAnt=await genCaixaAnterior();}
+    if(cxAnt!==null&&cxAnt!==undefined)cxAnt=Math.round(cxAnt*100)/100;else cxAnt=null;
+  }
+  GEN.semRin=false;
+  var r=genCalcular(GEN.cen,genMk(ORC.ano,de),genMk(ORC.ano,12),null,cxAnt);GEN.res=r;
+  var f=function(v){return v?Math.round(v).toLocaleString('pt-BR'):'—';};
+  var h='';r.aviso.forEach(function(a){h+='<div class="imp-warn" style="margin-bottom:.4rem">'+a+'</div>';});
+  var existe=0;Object.keys(ORC.v).forEach(function(k){var mm=parseInt(k.split('|')[0]);if(mm>=de&&k.split('|')[2]!=='1.1')existe++;});
+  if(existe)h+='<div class="imp-warn" style="margin-bottom:.4rem">Já existem <b>'+existe+'</b> lançamentos no Orçado de '+ORC_M[de-1]+' a Dez/'+ORC.ano+'. Ao gravar, eles são <b>substituídos</b>.</div>';
+  h+='<div style="overflow:auto"><table class="dfc-tbl imp-tbl"><thead><tr><th style="text-align:left">Linha</th>'+r.meses.map(function(x){return '<th>'+ORC_M[x.m-1]+'</th>';}).join('')+'</tr></thead><tbody>';
+  h+='<tr><td style="text-align:left;color:#8BA0B0">Sell-through (vendas) · fonte</td>'+r.meses.map(function(x){return '<td>'+f(x.st)+'<br><span style="font-size:9px;color:#8BA0B0">'+(x.fonte.st||'sem meta')+'</span></td>';}).join('')+'</tr>';
+  h+='<tr><td style="text-align:left;color:#8BA0B0">Sell-in (compras) · fonte</td>'+r.meses.map(function(x){return '<td>'+f(x.si)+'<br><span style="font-size:9px;color:#8BA0B0">'+(x.fonte.si||'sem meta')+'</span></td>';}).join('')+'</tr>';
+  h+='<tr><td style="text-align:left"><b>Caixa inicial</b>'+(r.meses[0].iniFonte?'<br><span style="font-size:9px;color:#8BA0B0">1º mês: '+r.meses[0].iniFonte+'</span>':'')+'</td>'+r.meses.map(function(x,i){return '<td>'+(i===0?f(x.ini):f(r.meses[i-1].fim))+'</td>';}).join('')+'</tr>';
+  GEN_LIN.forEach(function(l){var tem=r.meses.some(function(x){return x.L[l[0]];});if(!tem)return;
+    h+='<tr><td style="text-align:left">'+l[1]+'</td>'+r.meses.map(function(x){var v=x.L[l[0]];return '<td class="'+(l[2]>0?'orc-pos':'')+'">'+(v?(l[2]<0?'-':'')+f(v):'—')+'</td>';}).join('')+'</tr>';});
+  h+='<tr><td style="text-align:left"><b>Saldo final do caixa</b></td>'+r.meses.map(function(x){return '<td><b>'+f(x.fim)+'</b></td>';}).join('')+'</tr></tbody></table></div>';
+  h+='<div class="imp-p" style="margin-top:.6rem">A linha de <b>aporte</b> mostra quanto precisa entrar para o caixa não ficar abaixo do mínimo ('+Math.round(genLever(GEN.cen,'cxm')).toLocaleString('pt-BR')+'): é o resultado do modelo, não uma decisão já tomada. Ao gravar, cada valor entra no <b>dia 1</b> do mês, e você pode ajustar célula a célula depois.</div>'
+    +'<div style="margin-top:.6rem"><button class="adm-btn imp-go" onclick="genGravar()">Gravar no Orçado ('+ORC_M[de-1]+' a Dez/'+ORC.ano+')</button></div>';
+  el.innerHTML=h;
+}
+async function genGravar(){
+  var r=GEN.res;if(!r)return;var el=document.getElementById('gen-prev'),cid=clienteIdAtual(),err=null;
+  el.insertAdjacentHTML('beforeend','<div class="imp-p" id="gen-prog">Gravando…</div>');
+  var meses=r.meses.map(function(x){return x.m;});
+  var d=await sb.from('orcamento_dfc').delete().eq('cliente_id',cid).eq('tipo','orcado').eq('ano',ORC.ano).in('mes',meses);
+  if(d.error)err=d.error;
+  var rows=[];
+  r.meses.forEach(function(x,i){
+    Object.keys(x.L).forEach(function(c){var v=Math.round(x.L[c]*100)/100;if(v>0)rows.push({cliente_id:cid,tipo:'orcado',ano:ORC.ano,mes:x.m,dia:1,codigo:c,valor:v});});
+    if(i===0&&x.iniManual&&x.ini)rows.push({cliente_id:cid,tipo:'orcado',ano:ORC.ano,mes:x.m,dia:1,codigo:'1.1',valor:Math.round(x.ini*100)/100});
+  });
+  for(var i=0;i<rows.length&&!err;i+=500){var u=await sb.from('orcamento_dfc').upsert(rows.slice(i,i+500),{onConflict:'cliente_id,tipo,ano,mes,dia,codigo'});if(u.error)err=u.error;}
+  var pg=document.getElementById('gen-prog');
+  if(err){console.error(err);if(pg)pg.innerHTML='<span style="color:#E88">Erro ao gravar: '+(err.message||err)+'</span>';return;}
+  if(pg)pg.innerHTML='<span style="color:#6FD39A">✓ Orçado gravado ('+rows.length+' lançamentos). Atualizando…</span>';
+  await orcCarregar();orcDesenhar();setTimeout(genFechar,900);
+}
+
+// ══════════════════════════════════════════════
+// PROJEÇÃO DFC — meses fechados (realizado) + projeção pelo motor Metas + Premissas, comparada ao orçado gravado
+// ══════════════════════════════════════════════
+var PJ_CEN=[{k:'base',n:'Base',c:'#00B4D8'},{k:'conservador',n:'Conservador',c:'#F39C12'},{k:'otimista',n:'Otimista',c:'#2ECC71'},{k:'livre',n:'Livre',c:'#B48AFF'}];
+var PJ={cen:'base',view:'geral',carregado:false,carregando:false,erro:null,RD:{},OD:{},R11:{},O11:{},RS:{},OS:{},ult:null,ini:null,fim:null,res:{},charts:[]};
+function pjMi(v){if(v===null||v===undefined)return '—';var a=Math.abs(v);return (v<0?'-':'')+'R$ '+(a>=1e6?(a/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi':Math.round(a/1e3).toLocaleString('pt-BR')+' mil');}
+function pjN(v){if(v===null||v===undefined)return '—';return (Math.round(v)).toLocaleString('pt-BR');}
+function pjLbl(mk){var d=genDe(mk);return ORC_M[d.m-1]+'/'+String(d.a).slice(2);}
+function pjSoma(D,mk,pref){var o=D[mk]||{},s=0;Object.keys(o).forEach(function(c){if(c.indexOf(pref)===0)s+=o[c];});return s;}
+function pjRowD(D,mk){
+  var op=pjSoma(D,mk,'2.1')-pjSoma(D,mk,'3.1');
+  return {entOp:pjSoma(D,mk,'2.1'),saiOp:pjSoma(D,mk,'3.1'),op:op,inv:pjSoma(D,mk,'2.3')-pjSoma(D,mk,'3.3'),
+    fin:pjSoma(D,mk,'2.2')-pjSoma(D,mk,'3.2')-((D[mk]||{})['2.2.1.3']||0),aporte:(D[mk]||{})['2.2.1.3']||0};
+}
+function pjRowL(L){
+  var s=function(p){var t=0;Object.keys(L).forEach(function(c){if(c.indexOf(p)===0)t+=L[c];});return t;};
+  return {entOp:s('2.1'),saiOp:s('3.1'),op:s('2.1')-s('3.1'),inv:s('2.3')-s('3.3'),fin:s('2.2')-s('3.2')-(L['2.2.1.3']||0),aporte:L['2.2.1.3']||0};
+}
+function pjKill(){PJ.charts.forEach(function(c){try{c.destroy();}catch(e){}});PJ.charts=[];}
+async function pjCarregar(){
+  PJ.carregando=true;PJ.erro=null;PJ.carregado=false;
+  try{
+    var cid=clienteIdAtual(),from=0,ps=1000,RD={},OD={},R11={},O11={};
+    while(true){
+      var r=await sb.from('orcamento_dfc').select('tipo,ano,mes,codigo,valor').eq('cliente_id',cid).order('ano').order('mes').order('tipo').order('codigo').order('dia').range(from,from+ps-1);
+      if(r.error)throw r.error;
+      (r.data||[]).forEach(function(x){var mk=genMk(x.ano,x.mes),v=parseFloat(x.valor),D=x.tipo==='realizado'?RD:OD;
+        if(x.codigo==='1.1'){(x.tipo==='realizado'?R11:O11)[mk]=v;return;}
+        if(!D[mk])D[mk]={};D[mk][x.codigo]=(D[mk][x.codigo]||0)+v;});
+      if((r.data||[]).length<ps)break;from+=ps;
+    }
+    if(!PREM.carregado)await initPremOrc();
+    if(!META.carregado)await initMetas();
+    PJ.RD=RD;PJ.OD=OD;PJ.R11=R11;PJ.O11=O11;
+    var cl=Object.keys(RD).map(Number).sort(function(a,b){return a-b;});
+    if(!cl.length){PJ.vazio=true;PJ.carregado=true;PJ.carregando=false;return;}
+    PJ.vazio=false;PJ.ult=cl[cl.length-1];
+    // saldo realizado encadeado
+    var RS={},bal=null;
+    for(var mk=cl[0];mk<=PJ.ult;mk++){
+      var ini=R11[mk]!==undefined?R11[mk]:(bal===null?0:bal),rw=pjRowD(RD,mk);
+      var fim=ini+rw.op+rw.inv+rw.fin+rw.aporte;
+      RS[mk]={ini:ini,fim:fim,r:rw,fechado:!!RD[mk]};bal=fim;
+    }
+    PJ.RS=RS;
+    // saldo do orçado gravado
+    var om=Object.keys(OD).map(Number).sort(function(a,b){return a-b;}),OS={};
+    if(om.length){var ob=null;
+      for(var m2=om[0];m2<=om[om.length-1];m2++){
+        var i2=O11[m2]!==undefined?O11[m2]:(ob!==null?ob:(RS[m2-1]?RS[m2-1].fim:0)),ro=pjRowD(OD,m2);
+        var f2=i2+ro.op+ro.inv+ro.fin+ro.aporte;OS[m2]={ini:i2,fim:f2,r:ro,tem:!!OD[m2]};ob=f2;
+      }}
+    PJ.OS=OS;
+    PJ.ini=PJ.ult+1;PJ.fim=genMk(2027,12);
+    PJ.res={};PJ.avisos={};
+    GEN.semRin=true;
+    try{PJ_CEN.forEach(function(c){var x=genCalcular(c.k,PJ.ini,PJ.fim,null,RS[PJ.ult].fim);PJ.res[c.k]=x;});}finally{GEN.semRin=false;}
+    PJ.carregado=true;
+  }catch(e){console.error(e);PJ.erro=(e&&e.message)||String(e);}
+  PJ.carregando=false;
+}
+function projecaoHTML(){
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:1rem"><div><div style="font-size:18px;font-weight:600;color:#E2EAF4">Projeção de DFC</div><div id="pj-sub" style="font-size:12px;color:#6B8BAA"></div></div><div class="pj-scen" id="pj-scen"></div></div>'
+   +'<div class="dfc-nav" id="pj-nav"><button class="dfc-nav-btn" data-v="geral" onclick="pjSetView(\'geral\')">Visão geral</button><button class="dfc-nav-btn" data-v="tab" onclick="pjSetView(\'tab\')">Realizado × Orçado × Projeção</button><button class="dfc-nav-btn" data-v="cen" onclick="pjSetView(\'cen\')">Cenários</button></div>'
+   +'<div id="pj-body"><div class="imp-p">Carregando projeção…</div></div>'
+   +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · Não compartilhar</div>';
+}
+async function initProjecao(){PJ.carregado=false;pjShell();await pjCarregar();pjShell();}
+function pjSetCen(k){PJ.cen=k;pjShell();}
+function pjSetView(v){PJ.view=v;pjShell();}
+function pjShell(){
+  var sc=document.getElementById('pj-scen');if(!sc)return;
+  sc.innerHTML=PJ_CEN.map(function(c){return '<div class="pj-pill'+(c.k===PJ.cen?' active':'')+'" style="--pj-c:'+c.c+'" onclick="pjSetCen(\''+c.k+'\')"><span class="pj-dot" style="background:'+c.c+'"></span>'+c.n+'</div>';}).join('');
+  document.querySelectorAll('#pj-nav .dfc-nav-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-v')===PJ.view);});
+  var sub=document.getElementById('pj-sub');
+  sub.textContent=PJ.carregado&&!PJ.vazio?('Realizado até '+pjLbl(PJ.ult)+' · projeção de '+pjLbl(PJ.ini)+' a '+pjLbl(PJ.fim)+' (até onde há metas)'):'Fnyx Cosmetics';
+  pjBody();
+}
+function pjBody(){
+  var b=document.getElementById('pj-body');if(!b)return;pjKill();
+  if(PJ.carregando||(!PJ.carregado&&!PJ.erro)){b.innerHTML='<div class="imp-p">Carregando projeção…</div>';return;}
+  if(PJ.erro){b.innerHTML='<div class="imp-warn">Não foi possível carregar a projeção: '+PJ.erro+'</div>';return;}
+  if(PJ.vazio){b.innerHTML='<div class="imp-warn">Ainda não há realizado em Orçamento → Realizado. Importe o realizado para a projeção partir do saldo atual.</div>';return;}
+  var r=PJ.res[PJ.cen],av=r.aviso.map(function(a){return '<div class="imp-warn" style="margin:0 0 .5rem">'+a+'</div>';}).join('');
+  if(PJ.view==='geral'){b.innerHTML=av+pjGeralHTML();pjGeralCharts();}
+  else if(PJ.view==='tab'){b.innerHTML=av+pjTabHTML();}
+  else{b.innerHTML=av+pjCenHTML();pjCenCharts();}
+}
+function pjKpis(cen){
+  var ms=PJ.res[cen].meses,ap=0,nA=0,mn=ms[0];
+  ms.forEach(function(o){var a=o.L['2.2.1.3']||0;if(a>0){ap+=a;nA++;}if(o.fim<mn.fim)mn=o;});
+  var ops=ms.map(function(o){return pjRowL(o.L).op;}),opM=ops.reduce(function(x,y){return x+y;},0)/ops.length;
+  var rm=[];for(var k=PJ.ult-5;k<=PJ.ult;k++)if(PJ.RS[k]&&PJ.RS[k].fechado)rm.push(PJ.RS[k].r.op);
+  var opR=rm.length?rm.reduce(function(x,y){return x+y;},0)/rm.length:0;
+  return {aporte:ap,nApo:nA,min:mn,opMedio:opM,opReal:opR,nReal:rm.length,final:ms[ms.length-1],cxm:genLever(cen,'cxm')};
+}
+function pjCard(l,v,s,cor){return '<div class="pj-kpi" style="--k:'+cor+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
+function pjGeralHTML(){
+  var cen=PJ.cen,k=pjKpis(cen),ci=PJ_CEN.filter(function(c){return c.k===cen;})[0];
+  var h='<div class="pj-kpis">'
+   +pjCard('Aporte necessário ('+PJ.res[cen].meses.length+' meses)',pjMi(k.aporte),k.aporte>0?(k.nApo+' meses com aporte'):'nenhum aporte necessário',k.aporte>0?'#E74C3C':'#2ECC71')
+   +pjCard('Menor saldo de caixa',pjMi(k.min.fim),'em '+pjLbl(k.min.mk)+' · mínimo '+pjMi(k.cxm),'#F39C12')
+   +pjCard('Caixa operacional médio/mês',pjMi(k.opMedio),k.nReal?('realizado (últ. '+k.nReal+' meses): '+pjMi(k.opReal)):'',k.opMedio<0?'#E74C3C':'#2ECC71')
+   +pjCard('Saldo de caixa em '+pjLbl(k.final.mk),pjMi(k.final.fim),'já inclui os aportes',ci.c)+'</div>';
+  h+='<div class="chart-card"><div class="chart-title">Saldo de caixa: realizado, projetado e orçado</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Cenário '+ci.n+' · o orçado é o que está gravado em Orçamento → Orçado</div>'
+   +'<div class="legend" style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#8BA0B0;margin-bottom:8px"><span><b style="color:#00B4D8">━</b> Realizado</span><span><b style="color:#7FDBF0">┅</b> Projetado (modelo)</span><span><b style="color:#B48AFF">┅</b> Orçado gravado</span><span><b style="color:#E74C3C">┅</b> Caixa mínimo</span><span><b style="color:#F5C16C">▮</b> Aporte necessário</span></div>'
+   +'<div class="chart-wrap" style="height:320px"><canvas id="pj-ch-saldo"></canvas></div></div>';
+  h+='<div class="chart-card"><div class="chart-title">Caixa operacional por mês</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Entradas de clientes menos saídas operacionais · barras: realizado/projetado · linha: orçado gravado</div><div class="chart-wrap" style="height:260px"><canvas id="pj-ch-op"></canvas></div></div>';
+  h+='<div class="pj-note"><b>Como ler:</b> o caixa mínimo é o piso que o modelo tenta manter; quando o caixa operacional não cobre, ele calcula o aporte necessário para chegar nele. Meses fechados vêm do realizado importado; os demais vêm das metas e das premissas. Para ver o orçado mês a mês nas linhas do DFC, use Orçamento → Orçado × Realizado (depois de gravar o orçado gerado).</div>';
+  return h;
+}
+function pjSerie(){
+  // meses exibidos: até 6 realizados + projeção
+  var a=Math.max(PJ.ini-6,Math.min.apply(null,Object.keys(PJ.RS).map(Number))),mks=[];
+  for(var k=a;k<=PJ.fim;k++)mks.push(k);
+  return mks;
+}
+function pjGeralCharts(){
+  var mks=pjSerie(),res=PJ.res[PJ.cen],proj={};res.meses.forEach(function(o){proj[o.mk]=o;});
+  var labs=mks.map(pjLbl),cxm=genLever(PJ.cen,'cxm');
+  var sR=mks.map(function(m){return (PJ.RS[m]&&m<=PJ.ult)?PJ.RS[m].fim:null;});
+  var sP=mks.map(function(m){return proj[m]?proj[m].fim:(m===PJ.ult?PJ.RS[m].fim:null);});
+  var sO=mks.map(function(m){return (PJ.OS[m]&&PJ.OS[m].tem)?PJ.OS[m].fim:null;});
+  var ap=mks.map(function(m){return proj[m]?(proj[m].L['2.2.1.3']||0):((PJ.RS[m]&&m<=PJ.ult)?PJ.RS[m].r.aporte:0);});
+  var opts=function(){return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){if(c.parsed.y===null)return null;return ' '+c.dataset.label+': '+pjMi(c.parsed.y);}}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0',font:{size:10},maxRotation:0}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8BA0B0',font:{size:10},callback:function(v){return pjMi(v);}}}}};};
+  PJ.charts.push(new Chart(document.getElementById('pj-ch-saldo'),{type:'bar',data:{labels:labs,datasets:[
+    {type:'bar',label:'Aporte',data:ap,backgroundColor:'#F5C16C',borderRadius:3,maxBarThickness:16,order:3},
+    {type:'line',label:'Saldo realizado',data:sR,borderColor:'#00B4D8',backgroundColor:'#00B4D8',borderWidth:2.5,pointRadius:3,tension:.25,order:1},
+    {type:'line',label:'Saldo projetado',data:sP,borderColor:'#7FDBF0',backgroundColor:'#7FDBF0',borderWidth:2.5,borderDash:[6,4],pointRadius:2,tension:.25,order:1},
+    {type:'line',label:'Saldo orçado gravado',data:sO,borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2,borderDash:[2,3],pointRadius:2,tension:.25,order:1},
+    {type:'line',label:'Caixa mínimo',data:mks.map(function(){return cxm;}),borderColor:'#E74C3C',borderWidth:1.2,borderDash:[2,4],pointRadius:0,order:2}]},options:opts()}));
+  var op=mks.map(function(m){return proj[m]?pjRowL(proj[m].L).op:((PJ.RS[m]&&m<=PJ.ult)?PJ.RS[m].r.op:null);});
+  var oo=mks.map(function(m){return (PJ.OS[m]&&PJ.OS[m].tem)?PJ.OS[m].r.op:null;});
+  PJ.charts.push(new Chart(document.getElementById('pj-ch-op'),{type:'bar',data:{labels:labs,datasets:[
+    {type:'bar',label:'Caixa operacional',data:op,backgroundColor:mks.map(function(m,i){return m<=PJ.ult?'rgba(139,160,176,.55)':(op[i]>=0?'#2ECC71':'#E74C3C');}),borderRadius:3,maxBarThickness:16,order:2},
+    {type:'line',label:'Orçado gravado',data:oo,borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2,pointRadius:2,order:1}]},options:opts()}));
+}
+function pjTabHTML(){
+  var mks=pjSerie(),res=PJ.res[PJ.cen],proj={};res.meses.forEach(function(o){proj[o.mk]=o;});
+  var comb=function(m){if(proj[m]){var r=pjRowL(proj[m].L);r.fim=proj[m].fim;r.tipo='proj';return r;}if(PJ.RS[m]&&m<=PJ.ult){var q=PJ.RS[m].r;return {entOp:q.entOp,saiOp:q.saiOp,op:q.op,inv:q.inv,fin:q.fin,aporte:q.aporte,fim:PJ.RS[m].fim,tipo:'real'};}return null;};
+  var orc=function(m){var o=PJ.OS[m];if(!o||!o.tem)return null;var q=o.r;return {entOp:q.entOp,saiOp:q.saiOp,op:q.op,inv:q.inv,fin:q.fin,aporte:q.aporte,fim:o.fim};};
+  var th='<thead><tr><th style="text-align:left">R$</th>'+mks.map(function(m){return '<th>'+pjLbl(m)+'<br><span style="font-size:9px;color:'+(m<=PJ.ult?'#8BA0B0':'#7FDBF0')+'">'+(m<=PJ.ult?'realizado':'projeção')+'</span></th>';}).join('')+'</tr></thead>';
+  var cell=function(v,cls){return '<td class="'+(cls||'')+'">'+(v===null||v===undefined?'—':pjN(v))+'</td>';};
+  var LIN=[['entOp','Entradas operacionais',1],['saiOp','Saídas operacionais',-1],['op','Caixa operacional',0],['inv','Investimentos',0],['fin','Financiamento (sem aporte)',0],['aporte','Aporte necessário',1],['fim','Saldo final do caixa',0]];
+  var sec=function(tit,fn){var h='<tr class="pj-sec"><td colspan="'+(mks.length+1)+'">'+tit+'</td></tr>';
+    LIN.forEach(function(l){h+='<tr'+(l[0]==='fim'||l[0]==='op'?' class="pj-tot"':'')+'><td style="text-align:left">'+l[1]+'</td>'+mks.map(function(m){var r=fn(m);return cell(r?(l[2]<0?-r[l[0]]:r[l[0]]):null);}).join('')+'</tr>';});return h;};
+  var dif='<tr class="pj-sec"><td colspan="'+(mks.length+1)+'">Diferença: realizado/projeção − orçado gravado</td></tr>';
+  [['op','Caixa operacional'],['fim','Saldo final do caixa']].forEach(function(l){dif+='<tr><td style="text-align:left">'+l[1]+'</td>'+mks.map(function(m){var a=comb(m),o=orc(m);if(!a||!o)return '<td>—</td>';var d=a[l[0]]-o[l[0]];return '<td class="'+(d>=0?'orc-pos':'orc-neg')+'">'+pjN(d)+'</td>';}).join('')+'</tr>';});
+  var h='<div class="orc-outer"><table class="dfc-tbl pj-tbl">'+th+'<tbody>'+sec('Realizado (meses fechados) e Projeção do modelo · cenário '+PJ_CEN.filter(function(c){return c.k===PJ.cen;})[0].n,comb)+sec('Orçado gravado (Orçamento → Orçado)',orc)+dif+'</tbody></table></div>';
+  if(!Object.keys(PJ.OS).length)h+='<div class="imp-warn" style="margin-top:.6rem">Ainda não há orçado gravado. Em Orçamento → Orçado use "Gerar orçado (Metas + Premissas)" para nov/dez 2026 e 2027, e a comparação aparece aqui.</div>';
+  // detalhe da projeção
+  var rp=res.meses,d2='<div class="chart-title" style="margin:1.2rem 0 .5rem">Detalhe da projeção (linhas do DFC)</div><div class="orc-outer"><table class="dfc-tbl pj-tbl"><thead><tr><th style="text-align:left">R$</th>'+rp.map(function(o){return '<th>'+pjLbl(o.mk)+'</th>';}).join('')+'</tr></thead><tbody>';
+  d2+='<tr><td style="text-align:left;color:#8BA0B0">Vendas (ST) usadas</td>'+rp.map(function(o){return cell(o.st);}).join('')+'</tr><tr><td style="text-align:left;color:#8BA0B0">Compras (SI) usadas</td>'+rp.map(function(o){return cell(o.si);}).join('')+'</tr>';
+  GEN_LIN.forEach(function(l){if(!rp.some(function(o){return o.L[l[0]];}))return;d2+='<tr><td style="text-align:left">'+l[1]+'</td>'+rp.map(function(o){var v=o.L[l[0]];return cell(v?(l[2]<0?-v:v):0);}).join('')+'</tr>';});
+  d2+='<tr class="pj-tot"><td style="text-align:left">Saldo final do caixa</td>'+rp.map(function(o){return cell(o.fim);}).join('')+'</tr></tbody></table></div>';
+  return h+d2;
+}
+function pjCenHTML(){
+  var h='<div class="chart-card"><div class="chart-title">Saldo de caixa por cenário</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Cenário sem premissa própria herda o Base. Se as alavancas dos cenários ainda estão em branco (Premissas), as linhas coincidem.</div><div class="chart-wrap" style="height:300px"><canvas id="pj-ch-cen"></canvas></div></div>';
+  h+='<div class="orc-outer"><table class="dfc-tbl pj-tbl"><thead><tr><th style="text-align:left">Cenário</th><th>Aporte necessário</th><th>Menor saldo</th><th>Mês do menor saldo</th><th>Caixa operacional médio/mês</th><th>Saldo final</th></tr></thead><tbody>';
+  PJ_CEN.forEach(function(c){var k=pjKpis(c.k);h+='<tr><td style="text-align:left"><span class="pj-dot" style="background:'+c.c+'"></span> '+c.n+'</td><td>'+pjN(k.aporte)+'</td><td>'+pjN(k.min.fim)+'</td><td>'+pjLbl(k.min.mk)+'</td><td>'+pjN(k.opMedio)+'</td><td>'+pjN(k.final.fim)+'</td></tr>';});
+  return h+'</tbody></table></div>';
+}
+function pjCenCharts(){
+  var base=PJ.res.base.meses;
+  PJ.charts.push(new Chart(document.getElementById('pj-ch-cen'),{type:'line',data:{labels:base.map(function(o){return pjLbl(o.mk);}),datasets:PJ_CEN.map(function(c){return {label:c.n,data:PJ.res[c.k].meses.map(function(o){return o.fim;}),borderColor:c.c,backgroundColor:c.c,borderWidth:2.2,pointRadius:2,tension:.25};})},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#8BA0B0',font:{size:11},boxWidth:10}},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+pjMi(c.parsed.y);}}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0',font:{size:10},maxRotation:0}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8BA0B0',font:{size:10},callback:function(v){return pjMi(v);}}}}}}));
+}
+
 var PREM={over:{},carregado:false,erro:'',cen:'base'};
 var PREM_ST={f:['Da planilha da Fnyx','#6FD39A'],c:['Calculado da planilha','#7FB8E8'],b:['Em branco · preencher','#F5C16C']};
 function premKey(c,k){return c+'|'+k;}
