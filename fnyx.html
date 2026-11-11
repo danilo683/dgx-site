@@ -4452,18 +4452,31 @@ function pjCenCharts(){
 }
 
 // ══════════════════════════════════════════════
-// CICLO FINANCEIRO — PMR, PME, DOH, PMP, ciclo e NCG, mês a mês (realizado + projetado)
-// v1: PMR fixo pela política das Premissas; PME de 100 dias e DOH de 90 dias fixos em todos os meses.
+// CICLO FINANCEIRO — PMF/PMR, PMC/PMP, PME/DOH, ciclo e NCG, mês a mês
+// PMF e PMC = prazo concedido nas vendas e compras do mês (olham para frente, com as exceções por mês).
+// PMR e PMP = prazo médio ORIGINAL dos títulos ainda em aberto no fim do mês (carteira de contas a receber e a pagar), calculado pelo modelo.
+// PME e DOH: valores lineares (100 e 90 dias) até haver histórico de estoque.
 // ══════════════════════════════════════════════
 var CF={cen:'base'};
-var CF_PME=100,CF_DOH=90; // dias, lineares (iguais em todos os meses) até haver histórico de estoque
-function cfPMR(){
-  var G=function(k){var v=genGeral(k);return (v===null||v===undefined)?0:v;},d=0;
-  for(var l=0;l<9;l++)d+=G('rec'+l)*l*30;
-  return G('mix_pix')*0+G('mix_cav')*30+(G('mix_bol')+G('mix_cp'))*d;
-}
+var CF_PME=100,CF_DOH=90;
 function cfAvg(s){var p=String(s||'0').split('/').map(Number);return p.reduce(function(x,y){return x+y;},0)/p.length;}
-function cfPMP(a,m){var R=genTrussPrazos(a,m);return R.q1*cfAvg(R.p1)+R.q2*cfAvg(R.p2);}
+// política de recebimento do mês de venda: fração recebida em cada defasagem (0..8) e prazo original (dias) de cada fração
+function cfRecCoefs(a,m){
+  var P=genRecPol(a,m),pz=P.bol+P.cp,C=[],D=[];
+  for(var l=0;l<9;l++){var c=pz*P.rec[l];D[l]=l*30;if(l===0)c+=P.pix;if(l===1)c+=P.cav;C[l]=c;}
+  return {C:C,D:D};
+}
+function cfPMF(a,m){var r=cfRecCoefs(a,m),n=0,d=0;for(var l=0;l<9;l++){n+=r.C[l]*r.D[l];d+=r.C[l];}return d?n/d:0;}
+// política de pagamento do mês da compra: fração paga em cada defasagem e soma dos prazos (dias) por defasagem
+function cfTrussLag(a,m){
+  var R=genTrussPrazos(a,m),p1=String(R.p1||'0').split('/').map(Number),p2=String(R.p2||'0').split('/').map(Number),nd=new Date(a,m,0).getDate(),C=[0,0,0,0,0,0,0,0,0],S=[0,0,0,0,0,0,0,0,0];
+  for(var day=1;day<=nd;day++){
+    var q=day<=15,share=q?R.q1/15:R.q2/Math.max(1,nd-15),P=q?p1:p2;
+    P.forEach(function(d){var dt=new Date(a,m-1,day+d),lag=(dt.getFullYear()*12+dt.getMonth())-(a*12+m-1);if(lag>=0&&lag<9){C[lag]+=share/P.length;S[lag]+=share/P.length*d;}});
+  }
+  return {C:C,S:S};
+}
+function cfPMC(a,m){var r=cfTrussLag(a,m),n=0,d=0;for(var l=0;l<9;l++){n+=r.S[l];d+=r.C[l];}return d?n/d:0;}
 function cfHTML(){
   return '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:1rem"><div><div style="font-size:18px;font-weight:600;color:#E2EAF4">Ciclo financeiro</div><div id="cf-sub" style="font-size:12px;color:#6B8BAA"></div></div><div class="pj-scen" id="cf-scen"></div></div><div id="cf-body"><div class="imp-p">Carregando…</div></div>'
    +'<div class="confidential">© 2026 DGX Consulting · Uso exclusivo Fnyx Cosmetics · Não compartilhar</div>';
@@ -4477,44 +4490,56 @@ function cfShell(){
   if(PJ.carregando||(!PJ.carregado&&!PJ.erro)){b.innerHTML='<div class="imp-p">Carregando…</div>';return;}
   if(PJ.erro){b.innerHTML='<div class="imp-warn">Não foi possível carregar: '+PJ.erro+'</div>';return;}
   if(PJ.vazio){b.innerHTML='<div class="imp-warn">Ainda não há realizado em Orçamento → Realizado. Importe o realizado para o ciclo partir dos meses fechados.</div>';return;}
-  document.getElementById('cf-sub').textContent='Realizado até '+pjLbl(PJ.ult)+' · projeção até '+pjLbl(PJ.fim)+'';
+  document.getElementById('cf-sub').textContent='Realizado até '+pjLbl(PJ.ult)+' · projeção até '+pjLbl(PJ.fim);
   var mks=pjSerie(),proj={};PJ.res[CF.cen].meses.forEach(function(o){proj[o.mk]=o;});
-  var pmr=cfPMR(),L=mks.map(function(mk){
-    var t=genDe(mk),st,si;
-    if(proj[mk]){st=proj[mk].st;si=proj[mk].si;}
-    else{st=metaGet('st','realizado',t.a,t.m)||0;si=metaGet('si','realizado',t.a,t.m)||0;}
-    var pmp=cfPMP(t.a,t.m),ar=st*pmr/30,ap=si*pmp/30,es=si*CF_PME/30;
-    return {mk:mk,real:mk<=PJ.ult,st:st,si:si,pmr:pmr,pme:CF_PME,doh:CF_DOH,pmp:pmp,cop:pmr+CF_PME,cic:pmr+CF_PME-pmp,ar:ar,es:es,ap:ap,ncg:ar+es-ap};
+  // vendas e compras de cada mês (inclui os meses anteriores à janela exibida, que compõem a carteira)
+  var ST={},SI={},a0=mks[0]-9;
+  for(var k=a0;k<=mks[mks.length-1];k++){var t=genDe(k);if(proj[k]){ST[k]=proj[k].st;SI[k]=proj[k].si;}else{ST[k]=metaGet('st','realizado',t.a,t.m)||0;SI[k]=metaGet('si','realizado',t.a,t.m)||0;}}
+  var RC={},TC={};
+  for(var k2=a0;k2<=mks[mks.length-1];k2++){var t2=genDe(k2);RC[k2]=cfRecCoefs(t2.a,t2.m);TC[k2]=cfTrussLag(t2.a,t2.m);}
+  var L=mks.map(function(mk){
+    var t=genDe(mk),arV=0,arD=0,apV=0,apD=0;
+    for(var v=mk-8;v<=mk;v++){
+      if(v<a0)continue;var age=mk-v;
+      for(var l=age+1;l<9;l++){ // ainda em aberto no fim do mês mk
+        var ra=RC[v].C[l]*ST[v];arV+=ra;arD+=ra*RC[v].D[l];
+        var pa=TC[v].C[l]*SI[v];apV+=pa;apD+=TC[v].S[l]*SI[v];
+      }
+    }
+    var pmr=arV?arD/arV:0,pmp=apV?apD/apV:0,pmf=cfPMF(t.a,t.m),pmc=cfPMC(t.a,t.m),es=SI[mk]*CF_PME/30;
+    return {mk:mk,real:mk<=PJ.ult,st:ST[mk],si:SI[mk],pmf:pmf,pmr:pmr,pmc:pmc,pmp:pmp,pme:CF_PME,doh:CF_DOH,cop:pmr+CF_PME,cic:pmr+CF_PME-pmp,ar:arV,es:es,ap:apV,ncg:arV+es-apV};
   });
   var cur=L.filter(function(x){return x.mk===PJ.ult;})[0]||L[0],fin=L[L.length-1];
-  var h='<div class="pj-kpis" style="grid-template-columns:repeat(3,1fr)">'
-   +pjCard('PMR (prazo médio de recebimento)',pmr.toFixed(0)+' dias','política das Premissas, igual em todos os meses','#00B4D8')
-   +pjCard('PME (prazo médio de estoque)',CF_PME+' dias','linear, igual em todos os meses','#2ECC71')
-   +pjCard('DOH (dias de estoque disponível)',CF_DOH+' dias','linear, igual em todos os meses','#7FDBF0')
-   +pjCard('PMP (prazo médio de pagamento)',cur.pmp.toFixed(0)+' dias','pagamento à Truss em '+pjLbl(cur.mk),'#F39C12')
-   +pjCard('Ciclo financeiro',(cur.cic).toFixed(0)+' dias','PME + PMR − PMP em '+pjLbl(cur.mk),cur.cic>0?'#E74C3C':'#2ECC71')
-   +pjCard('NCG em '+pjLbl(fin.mk),pjMi(fin.ncg),'contas a receber + estoque − fornecedores (estimados)','#B48AFF')+'</div>';
-  h+='<div class="chart-card"><div class="chart-title">Prazos médios e ciclo, em dias</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Ciclo financeiro = PME + PMR − PMP. Positivo = a empresa recebe depois de pagar a Truss e precisa financiar a diferença</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch1"></canvas></div></div>';
-  h+='<div class="chart-card"><div class="chart-title">Necessidade de capital de giro (R$)</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Contas a receber + estoque − fornecedores, todos estimados</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch2"></canvas></div></div>';
-  var c=function(v,f){return '<td>'+f(v)+'</td>';},d1=function(v){return v.toFixed(0);};
-  var row=function(n,k,f,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td style="text-align:left">'+n+'</td>'+L.map(function(x){return c(x[k],f);}).join('')+'</tr>';};
+  var h='<div class="pj-kpis">'
+   +pjCard('PMF (faturamento do mês)',cur.pmf.toFixed(0)+' dias','prazo concedido nas vendas de '+pjLbl(cur.mk),'#7FDBF0')
+   +pjCard('PMR (carteira a receber)',cur.pmr.toFixed(0)+' dias','prazo original dos títulos em aberto','#00B4D8')
+   +pjCard('PMC (compras do mês)',cur.pmc.toFixed(0)+' dias','prazo concedido pela Truss nas compras de '+pjLbl(cur.mk),'#F5C16C')
+   +pjCard('PMP (carteira a pagar)',cur.pmp.toFixed(0)+' dias','prazo original dos títulos em aberto','#F39C12')
+   +pjCard('PME (estoque, histórico)',CF_PME+' dias','linear, igual em todos os meses','#2ECC71')
+   +pjCard('DOH (estoque, demanda futura)',CF_DOH+' dias','linear, igual em todos os meses','#9AE6B4')
+   +pjCard('Ciclo financeiro',cur.cic.toFixed(0)+' dias','PME + PMR − PMP em '+pjLbl(cur.mk),cur.cic>0?'#E74C3C':'#2ECC71')
+   +pjCard('NCG em '+pjLbl(fin.mk),pjMi(fin.ncg),'receber + estoque − pagar (estimados)','#B48AFF')+'</div>';
+  h+='<div class="chart-card"><div class="chart-title">Prazos médios e ciclo, em dias</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Linhas cheias = carteira em aberto (PMR, PMP). Tracejadas = o que foi fechado no mês (PMF, PMC) e o DOH. Ciclo financeiro = PME + PMR − PMP</div><div class="chart-wrap" style="height:300px"><canvas id="cf-ch1"></canvas></div></div>';
+  h+='<div class="chart-card"><div class="chart-title">Necessidade de capital de giro (R$)</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Contas a receber + estoque − contas a pagar, todos estimados pelo modelo</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch2"></canvas></div></div>';
+  var d1=function(v){return v.toFixed(0);};
+  var row=function(n,k,f,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td style="text-align:left">'+n+'</td>'+L.map(function(x){return '<td>'+f(x[k])+'</td>';}).join('')+'</tr>';};
   h+='<div class="orc-outer"><table class="dfc-tbl pj-tbl"><thead><tr><th style="text-align:left">Mês</th>'+L.map(function(x){return '<th>'+pjLbl(x.mk)+'<br><span style="font-size:9px;color:'+(x.real?'#8BA0B0':'#7FDBF0')+'">'+(x.real?'realizado':'projeção')+'</span></th>';}).join('')+'</tr></thead><tbody>'
    +row('Vendas (sell-through)','st',pjN)+row('Compras (sell-in)','si',pjN)
-   +row('PMR (dias)','pmr',d1)+row('PME (dias)','pme',d1)+row('DOH (dias)','doh',d1)+row('Ciclo operacional (PME + PMR, dias)','cop',d1)+row('PMP (dias)','pmp',d1)+row('Ciclo financeiro (dias)','cic',d1,'pj-tot')
-   +row('Contas a receber (estimado)','ar',pjN)+row('Estoque (estimado)','es',pjN)+row('Fornecedores Truss (estimado)','ap',pjN)+row('NCG (R$)','ncg',pjN,'pj-tot')+'</tbody></table></div>';
-  h+='<div class="pj-note"><b>Como é calculado (v1):</b> o <b>PMR</b> é a média dos dias de recebimento da política das Premissas (à vista 0, cartão à vista 30, boleto e cartão parcelado pela curva de defasagem), por enquanto igual em todos os meses; não considera as exceções por mês de Metas. O <b>PMP</b> é a média dos prazos da Truss ponderada pela quinzena do pedido, mês a mês (inclui as exceções cadastradas em Metas → Sell-in). Contas a receber = vendas do mês × PMR ÷ 30 e fornecedores = compras do mês × PMP ÷ 30. O <b>PME</b> (100 dias) e o <b>DOH</b> (90 dias) são valores fixos, iguais em todos os meses, enquanto não há histórico de estoque; o estoque em R$ é estimado como compras do mês × PME ÷ 30 (compras ao custo como aproximação do CMV). O ciclo financeiro usa o PME; o DOH aparece como referência de cobertura.</div>';
+   +row('PMF · faturamento do mês (dias)','pmf',d1)+row('PMR · carteira a receber (dias)','pmr',d1)
+   +row('PMC · compras do mês (dias)','pmc',d1)+row('PMP · carteira a pagar (dias)','pmp',d1)
+   +row('PME (dias)','pme',d1)+row('DOH (dias)','doh',d1)
+   +row('Ciclo operacional (PME + PMR, dias)','cop',d1)+row('Ciclo financeiro (dias)','cic',d1,'pj-tot')
+   +row('Contas a receber (carteira, R$)','ar',pjN)+row('Estoque (estimado, R$)','es',pjN)+row('Contas a pagar Truss (carteira, R$)','ap',pjN)+row('NCG (R$)','ncg',pjN,'pj-tot')+'</tbody></table></div>';
+  h+='<div class="pj-note"><b>Como é calculado:</b> <b>PMF</b> = prazo médio concedido nas vendas do mês, ponderado pelo valor (à vista 0 dia, cartão à vista 30, boleto e cartão parcelado pela curva de defasagem de cada mês, com as exceções de Metas). <b>PMR</b> = prazo original médio, ponderado pelo valor, dos títulos que ainda estão a receber no fim do mês, somando todos os meses de venda ainda em aberto; por isso ele reage com atraso a uma mudança de prazo. <b>PMC</b> e <b>PMP</b> seguem a mesma lógica no lado da Truss (prazos por quinzena do pedido). Hoje a carteira vem do modelo (vendas × política das Premissas), inclusive nos meses fechados; quando houver o saldo real de contas a receber e a pagar, o realizado passa a vir deles. <b>PME</b> (100 dias, pelo consumo histórico) e <b>DOH</b> (90 dias, pela demanda futura) são fixos até haver o saldo de estoque; o estoque em R$ é estimado como compras do mês × PME ÷ 30.</div>';
   b.innerHTML=h;
   var labs=L.map(function(x){return pjLbl(x.mk);}),ax=function(fmt){return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#8BA0B0',font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0',font:{size:10},maxRotation:0}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8BA0B0',font:{size:10},callback:fmt}}}};};
+  var ln=function(lbl,k,cor,dash,w){return {label:lbl,data:L.map(function(x){return x[k];}),borderColor:cor,backgroundColor:cor,borderWidth:w||2,borderDash:dash||[],pointRadius:dash?0:2};};
   PJ.charts.push(new Chart(document.getElementById('cf-ch1'),{type:'line',data:{labels:labs,datasets:[
-    {label:'PMR',data:L.map(function(x){return x.pmr;}),borderColor:'#00B4D8',backgroundColor:'#00B4D8',borderWidth:2,pointRadius:2},
-    {label:'PMP',data:L.map(function(x){return x.pmp;}),borderColor:'#F39C12',backgroundColor:'#F39C12',borderWidth:2,pointRadius:2},
-    {label:'PME',data:L.map(function(x){return x.pme;}),borderColor:'#2ECC71',backgroundColor:'#2ECC71',borderWidth:2,pointRadius:2},
-    {label:'DOH',data:L.map(function(x){return x.doh;}),borderColor:'#7FDBF0',backgroundColor:'#7FDBF0',borderWidth:2,borderDash:[5,4],pointRadius:0},
-    {label:'Ciclo financeiro',data:L.map(function(x){return x.cic;}),borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2.5,pointRadius:3}]},options:ax(function(v){return v+' d';})}));
+    ln('PMR','pmr','#00B4D8'),ln('PMF','pmf','#00B4D8',[5,4]),ln('PMP','pmp','#F39C12'),ln('PMC','pmc','#F39C12',[5,4]),ln('PME','pme','#2ECC71'),ln('DOH','doh','#2ECC71',[5,4]),ln('Ciclo financeiro','cic','#B48AFF',null,2.8)]},options:ax(function(v){return v+' d';})}));
   PJ.charts.push(new Chart(document.getElementById('cf-ch2'),{type:'bar',data:{labels:labs,datasets:[
     {type:'bar',label:'Contas a receber',data:L.map(function(x){return x.ar;}),backgroundColor:'rgba(0,180,216,.55)',borderRadius:3,maxBarThickness:18},
     {type:'bar',label:'Estoque',data:L.map(function(x){return x.es;}),backgroundColor:'rgba(46,204,113,.5)',borderRadius:3,maxBarThickness:18},
-    {type:'bar',label:'Fornecedores',data:L.map(function(x){return -x.ap;}),backgroundColor:'rgba(243,156,18,.55)',borderRadius:3,maxBarThickness:18},
+    {type:'bar',label:'Contas a pagar',data:L.map(function(x){return -x.ap;}),backgroundColor:'rgba(243,156,18,.55)',borderRadius:3,maxBarThickness:18},
     {type:'line',label:'NCG',data:L.map(function(x){return x.ncg;}),borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2.5,pointRadius:3}]},options:ax(function(v){return pjMi(v);})}));
 }
 
