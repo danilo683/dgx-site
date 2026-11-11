@@ -4071,8 +4071,8 @@ var PREM_GERAL=[
  {g:'Pagamento a fornecedores Truss por quinzena do pedido (padrão — exceções por mês em Metas → Sell-in)',itens:[
   {k:'trq1',n:'% dos pedidos na 1ª quinzena (dias 1 a 15)',t:'pct',v:0.95,st:'f',o:'Aba Premissas · "% de pedidos por quinzena" (projetado). Realizado varia muito: Jan/26 87,9%, Set/26 54,5%.',soma:'trs'},
   {k:'trq2',n:'% dos pedidos na 2ª quinzena (dia 16 em diante)',t:'pct',v:0.05,st:'f',o:'',soma:'trs'},
-  {k:'trp1',n:'Prazos da 1ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:null,st:'b',o:'Não consta na planilha da Fnyx. Separe os dias por "/" (na Hawks: 45/75/105/135).'},
-  {k:'trp2',n:'Prazos da 2ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:null,st:'b',o:'Não consta na planilha da Fnyx (na Hawks: 30/60/90/120).'},
+  {k:'trp1',n:'Prazos da 1ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:'45/75/105/135',st:'h',o:'Não consta na planilha da Fnyx: usado o mesmo prazo da Hawks (45/75/105/135). Ajuste quando a Fnyx confirmar. Separe os dias por "/".'},
+  {k:'trp2',n:'Prazos da 2ª quinzena (dias após o pedido; parcelas iguais)',t:'txt',v:'30/60/90/120',st:'h',o:'Não consta na planilha da Fnyx: usado o mesmo prazo da Hawks (30/60/90/120). Ajuste quando a Fnyx confirmar.'},
   {k:'ap0',n:'Contas a pagar em aberto no início (fim de Out/26)',t:'brl',v:1015536,st:'f',o:'Aba Premissas · "Saldo Contas a Pagar (realizado)", Out/26, o último mês realizado.'}]},
  {g:'Despesas fixas (a planilha da Fnyx traz só o total, sem abrir por categoria)',itens:[
   {k:'f_total',n:'Estrutura fixa total (por mês)',t:'brl',v:373693,st:'c',o:'Média Mar–Set/26 da linha "Estrutura fixa" da planilha (jul/26 foi o pico: R$ 508 mil).'}]},
@@ -4450,7 +4450,7 @@ function pjCenCharts(){
 }
 
 var PREM={over:{},carregado:false,erro:'',cen:'base'};
-var PREM_ST={f:['Da planilha da Fnyx','#6FD39A'],c:['Calculado da planilha','#7FB8E8'],b:['Em branco · preencher','#F5C16C']};
+var PREM_ST={h:['Igual à Hawks (validar)','#B48AFF'],f:['Da planilha da Fnyx','#6FD39A'],c:['Calculado da planilha','#7FB8E8'],b:['Em branco · preencher','#F5C16C']};
 function premKey(c,k){return c+'|'+k;}
 function premGet(c,k,def){var x=PREM.over[premKey(c,k)];return x===undefined?def:x;}
 function premFmt(t,v){
