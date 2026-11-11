@@ -4452,10 +4452,11 @@ function pjCenCharts(){
 }
 
 // ══════════════════════════════════════════════
-// CICLO FINANCEIRO — PMR, PMP, ciclo (sem estoque) e NCG parcial, mês a mês (realizado + projetado)
-// v1: PMR fixo pela política das Premissas (igual em todos os meses); PME fora desta versão.
+// CICLO FINANCEIRO — PMR, PME, DOH, PMP, ciclo e NCG, mês a mês (realizado + projetado)
+// v1: PMR fixo pela política das Premissas; PME de 100 dias e DOH de 90 dias fixos em todos os meses.
 // ══════════════════════════════════════════════
 var CF={cen:'base'};
+var CF_PME=100,CF_DOH=90; // dias, lineares (iguais em todos os meses) até haver histórico de estoque
 function cfPMR(){
   var G=function(k){var v=genGeral(k);return (v===null||v===undefined)?0:v;},d=0;
   for(var l=0;l<9;l++)d+=G('rec'+l)*l*30;
@@ -4476,40 +4477,45 @@ function cfShell(){
   if(PJ.carregando||(!PJ.carregado&&!PJ.erro)){b.innerHTML='<div class="imp-p">Carregando…</div>';return;}
   if(PJ.erro){b.innerHTML='<div class="imp-warn">Não foi possível carregar: '+PJ.erro+'</div>';return;}
   if(PJ.vazio){b.innerHTML='<div class="imp-warn">Ainda não há realizado em Orçamento → Realizado. Importe o realizado para o ciclo partir dos meses fechados.</div>';return;}
-  document.getElementById('cf-sub').textContent='Realizado até '+pjLbl(PJ.ult)+' · projeção até '+pjLbl(PJ.fim)+' · sem estoque (PME fora desta versão)';
+  document.getElementById('cf-sub').textContent='Realizado até '+pjLbl(PJ.ult)+' · projeção até '+pjLbl(PJ.fim)+'';
   var mks=pjSerie(),proj={};PJ.res[CF.cen].meses.forEach(function(o){proj[o.mk]=o;});
   var pmr=cfPMR(),L=mks.map(function(mk){
     var t=genDe(mk),st,si;
     if(proj[mk]){st=proj[mk].st;si=proj[mk].si;}
     else{st=metaGet('st','realizado',t.a,t.m)||0;si=metaGet('si','realizado',t.a,t.m)||0;}
-    var pmp=cfPMP(t.a,t.m),ar=st*pmr/30,ap=si*pmp/30;
-    return {mk:mk,real:mk<=PJ.ult,st:st,si:si,pmr:pmr,pmp:pmp,cic:pmr-pmp,ar:ar,ap:ap,ncg:ar-ap};
+    var pmp=cfPMP(t.a,t.m),ar=st*pmr/30,ap=si*pmp/30,es=si*CF_PME/30;
+    return {mk:mk,real:mk<=PJ.ult,st:st,si:si,pmr:pmr,pme:CF_PME,doh:CF_DOH,pmp:pmp,cop:pmr+CF_PME,cic:pmr+CF_PME-pmp,ar:ar,es:es,ap:ap,ncg:ar+es-ap};
   });
   var cur=L.filter(function(x){return x.mk===PJ.ult;})[0]||L[0],fin=L[L.length-1];
-  var h='<div class="pj-kpis">'
+  var h='<div class="pj-kpis" style="grid-template-columns:repeat(3,1fr)">'
    +pjCard('PMR (prazo médio de recebimento)',pmr.toFixed(0)+' dias','política das Premissas, igual em todos os meses','#00B4D8')
+   +pjCard('PME (prazo médio de estoque)',CF_PME+' dias','linear, igual em todos os meses','#2ECC71')
+   +pjCard('DOH (dias de estoque disponível)',CF_DOH+' dias','linear, igual em todos os meses','#7FDBF0')
    +pjCard('PMP (prazo médio de pagamento)',cur.pmp.toFixed(0)+' dias','pagamento à Truss em '+pjLbl(cur.mk),'#F39C12')
-   +pjCard('Ciclo financeiro (sem estoque)',(cur.cic).toFixed(0)+' dias','PMR − PMP em '+pjLbl(cur.mk),cur.cic>0?'#E74C3C':'#2ECC71')
-   +pjCard('NCG parcial em '+pjLbl(fin.mk),pjMi(fin.ncg),'contas a receber − fornecedores (estimados)','#B48AFF')+'</div>';
-  h+='<div class="chart-card"><div class="chart-title">Prazos médios e ciclo, em dias</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Ciclo positivo = a empresa recebe depois de pagar a Truss e precisa financiar a diferença</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch1"></canvas></div></div>';
-  h+='<div class="chart-card"><div class="chart-title">Necessidade de capital de giro parcial (R$)</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Contas a receber estimadas − fornecedores estimados · sem estoque</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch2"></canvas></div></div>';
+   +pjCard('Ciclo financeiro',(cur.cic).toFixed(0)+' dias','PME + PMR − PMP em '+pjLbl(cur.mk),cur.cic>0?'#E74C3C':'#2ECC71')
+   +pjCard('NCG em '+pjLbl(fin.mk),pjMi(fin.ncg),'contas a receber + estoque − fornecedores (estimados)','#B48AFF')+'</div>';
+  h+='<div class="chart-card"><div class="chart-title">Prazos médios e ciclo, em dias</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Ciclo financeiro = PME + PMR − PMP. Positivo = a empresa recebe depois de pagar a Truss e precisa financiar a diferença</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch1"></canvas></div></div>';
+  h+='<div class="chart-card"><div class="chart-title">Necessidade de capital de giro (R$)</div><div style="font-size:11px;color:#6B8BAA;margin-bottom:.6rem">Contas a receber + estoque − fornecedores, todos estimados</div><div class="chart-wrap" style="height:280px"><canvas id="cf-ch2"></canvas></div></div>';
   var c=function(v,f){return '<td>'+f(v)+'</td>';},d1=function(v){return v.toFixed(0);};
   var row=function(n,k,f,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td style="text-align:left">'+n+'</td>'+L.map(function(x){return c(x[k],f);}).join('')+'</tr>';};
   h+='<div class="orc-outer"><table class="dfc-tbl pj-tbl"><thead><tr><th style="text-align:left">Mês</th>'+L.map(function(x){return '<th>'+pjLbl(x.mk)+'<br><span style="font-size:9px;color:'+(x.real?'#8BA0B0':'#7FDBF0')+'">'+(x.real?'realizado':'projeção')+'</span></th>';}).join('')+'</tr></thead><tbody>'
    +row('Vendas (sell-through)','st',pjN)+row('Compras (sell-in)','si',pjN)
-   +row('PMR (dias)','pmr',d1)+row('PMP (dias)','pmp',d1)+row('Ciclo financeiro (dias)','cic',d1,'pj-tot')
-   +row('Contas a receber (estimado)','ar',pjN)+row('Fornecedores Truss (estimado)','ap',pjN)+row('NCG parcial (R$)','ncg',pjN,'pj-tot')+'</tbody></table></div>';
-  h+='<div class="pj-note"><b>Como é calculado (v1):</b> o <b>PMR</b> é a média dos dias de recebimento da política das Premissas (à vista 0, cartão à vista 30, boleto e cartão parcelado pela curva de defasagem), por enquanto igual em todos os meses; não considera as exceções por mês de Metas. O <b>PMP</b> é a média dos prazos da Truss ponderada pela quinzena do pedido, mês a mês (inclui as exceções cadastradas em Metas → Sell-in). Contas a receber = vendas do mês × PMR ÷ 30 e fornecedores = compras do mês × PMP ÷ 30. O <b>estoque (PME)</b> ficou fora desta versão, então o ciclo e a NCG mostrados são parciais.</div>';
+   +row('PMR (dias)','pmr',d1)+row('PME (dias)','pme',d1)+row('DOH (dias)','doh',d1)+row('Ciclo operacional (PME + PMR, dias)','cop',d1)+row('PMP (dias)','pmp',d1)+row('Ciclo financeiro (dias)','cic',d1,'pj-tot')
+   +row('Contas a receber (estimado)','ar',pjN)+row('Estoque (estimado)','es',pjN)+row('Fornecedores Truss (estimado)','ap',pjN)+row('NCG (R$)','ncg',pjN,'pj-tot')+'</tbody></table></div>';
+  h+='<div class="pj-note"><b>Como é calculado (v1):</b> o <b>PMR</b> é a média dos dias de recebimento da política das Premissas (à vista 0, cartão à vista 30, boleto e cartão parcelado pela curva de defasagem), por enquanto igual em todos os meses; não considera as exceções por mês de Metas. O <b>PMP</b> é a média dos prazos da Truss ponderada pela quinzena do pedido, mês a mês (inclui as exceções cadastradas em Metas → Sell-in). Contas a receber = vendas do mês × PMR ÷ 30 e fornecedores = compras do mês × PMP ÷ 30. O <b>PME</b> (100 dias) e o <b>DOH</b> (90 dias) são valores fixos, iguais em todos os meses, enquanto não há histórico de estoque; o estoque em R$ é estimado como compras do mês × PME ÷ 30 (compras ao custo como aproximação do CMV). O ciclo financeiro usa o PME; o DOH aparece como referência de cobertura.</div>';
   b.innerHTML=h;
   var labs=L.map(function(x){return pjLbl(x.mk);}),ax=function(fmt){return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#8BA0B0',font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{color:'#8BA0B0',font:{size:10},maxRotation:0}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8BA0B0',font:{size:10},callback:fmt}}}};};
   PJ.charts.push(new Chart(document.getElementById('cf-ch1'),{type:'line',data:{labels:labs,datasets:[
     {label:'PMR',data:L.map(function(x){return x.pmr;}),borderColor:'#00B4D8',backgroundColor:'#00B4D8',borderWidth:2,pointRadius:2},
     {label:'PMP',data:L.map(function(x){return x.pmp;}),borderColor:'#F39C12',backgroundColor:'#F39C12',borderWidth:2,pointRadius:2},
+    {label:'PME',data:L.map(function(x){return x.pme;}),borderColor:'#2ECC71',backgroundColor:'#2ECC71',borderWidth:2,pointRadius:2},
+    {label:'DOH',data:L.map(function(x){return x.doh;}),borderColor:'#7FDBF0',backgroundColor:'#7FDBF0',borderWidth:2,borderDash:[5,4],pointRadius:0},
     {label:'Ciclo financeiro',data:L.map(function(x){return x.cic;}),borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2.5,pointRadius:3}]},options:ax(function(v){return v+' d';})}));
   PJ.charts.push(new Chart(document.getElementById('cf-ch2'),{type:'bar',data:{labels:labs,datasets:[
     {type:'bar',label:'Contas a receber',data:L.map(function(x){return x.ar;}),backgroundColor:'rgba(0,180,216,.55)',borderRadius:3,maxBarThickness:18},
+    {type:'bar',label:'Estoque',data:L.map(function(x){return x.es;}),backgroundColor:'rgba(46,204,113,.5)',borderRadius:3,maxBarThickness:18},
     {type:'bar',label:'Fornecedores',data:L.map(function(x){return -x.ap;}),backgroundColor:'rgba(243,156,18,.55)',borderRadius:3,maxBarThickness:18},
-    {type:'line',label:'NCG parcial',data:L.map(function(x){return x.ncg;}),borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2.5,pointRadius:3}]},options:ax(function(v){return pjMi(v);})}));
+    {type:'line',label:'NCG',data:L.map(function(x){return x.ncg;}),borderColor:'#B48AFF',backgroundColor:'#B48AFF',borderWidth:2.5,pointRadius:3}]},options:ax(function(v){return pjMi(v);})}));
 }
 
 var PREM={over:{},carregado:false,erro:'',cen:'base'};
