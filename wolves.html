@@ -457,6 +457,14 @@ async function loadFrequencia() {
       const jogos=parseInt(r[3])||0; // r[2]=ID, r[3]=Frequência
       return nome && nome.toLowerCase()!=='jogador' && jogos>0;
     });
+    // Sempre em ordem decrescente de frequência (desempate: % e depois nome)
+    data.sort((a,b)=>{
+      const ja=parseInt(a[3])||0, jb=parseInt(b[3])||0;
+      if (jb!==ja) return jb-ja;
+      const pa=parseInt((a[4]||'0').replace('%','').trim())||0, pb=parseInt((b[4]||'0').replace('%','').trim())||0;
+      if (pb!==pa) return pb-pa;
+      return a[1].trim().localeCompare(b[1].trim(),'pt-BR');
+    });
     data.forEach((r,i)=>{
       const nome=r[1].trim();
       const jogos=parseInt(r[3])||0;          // Frequência (nº de jogos)
