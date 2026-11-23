@@ -401,6 +401,8 @@ async function loadArtilharia() {
       const gols=parseInt(r[2])||0;
       return nome && nome.toLowerCase()!=='jogador' && gols>0;
     });
+    // Sempre em ordem decrescente (desempate: nome)
+    data.sort((a,b)=>((parseInt(b[2])||0)-(parseInt(a[2])||0)) || a[1].trim().localeCompare(b[1].trim(),'pt-BR'));
     data.forEach((r,i)=>{
       const nome=r[1].trim(), gols=parseInt(r[2])||0;
       const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
@@ -429,6 +431,8 @@ async function loadAssistencias() {
       const ass=parseInt(r[2])||0;
       return nome && nome.toLowerCase()!=='jogador' && ass>0;
     });
+    // Sempre em ordem decrescente (desempate: nome)
+    data.sort((a,b)=>((parseInt(b[2])||0)-(parseInt(a[2])||0)) || a[1].trim().localeCompare(b[1].trim(),'pt-BR'));
     data.forEach((r,i)=>{
       const nome=r[1].trim(), ass=parseInt(r[2])||0;
       const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
