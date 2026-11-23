@@ -5,8 +5,8 @@
  * Lê a "Planilha Geral Wolves 2026" via GViz, abas Extrato, Atletas,
  * Participação, Calendário e ConciliacaoLog.
  *
- * Abas (menu horizontal): Resumo · Campeonato · Orçamento 2026 · Projeção 2027
- * · Reservas · Aproveitamento.
+ * Abas (menu horizontal): Resumo · Inadimplência (Total/Campeonato/Pelada)
+ * · Realizado 2026 · Orçamento 2027 · Reservas · Aproveitamento.
  *
  * Orçamento, Projeção 2027 e Reservas são digitados no site e ficam salvos no
  * navegador (localStorage, chave "dgx-wolves-v1").
@@ -193,7 +193,22 @@
 
   // ───────────────────────── carga de dados ─────────────────────────
   let D = null; // dados carregados da planilha
-  const ui = { tab: 'resumo', jogador: '' };
+  const ui = { tab: 'resumo', jogador: '', sub: 'total' };
+
+  // Categoria de uma linha do Extrato (usa a coluna Obs; Descrição como apoio)
+  function catExtrato(obs, desc, valor) {
+    const o = norm(obs);
+    const d = norm(desc);
+    if (o.includes('rifa')) return 'Rifa';
+    if (o.includes('rdb') || o.includes('investimento') || d.includes('rdb')) return '__RDB__';
+    if (o.includes('campeonato')) return 'Campeonato';
+    if (o.includes('arbitr')) return 'Arbitragem';
+    if (o.includes('campo')) return 'Campo';
+    if (o.includes('uniforme') || o.includes('equipamento')) return 'Equipamentos/Uniforme';
+    if (o.includes('fatura') || d.includes('fatura')) return 'Fatura';
+    if (o && o !== '?') return String(obs).trim();
+    return valor >= 0 ? 'Mensalidades/jogos' : 'Outras despesas';
+  }
 
   async function carregarDados() {
     const [extrato, atletas, part, cal] = await Promise.all([
@@ -212,6 +227,9 @@
     const iValor = colIndex(extrato.cols, 'Valor');
     const iSaldo = colIndex(extrato.cols, 'Saldo');
     const iConc = colIndex(extrato.cols, 'Conciliado');
+    const iObs = colIndex(extrato.cols, 'Obs', true);
+    const iDesc = colIndex(extrato.cols, 'Descrição', true);
+    const cat26 = { rec: {}, des: {}, rdb: Array(12).fill(0) };
 
     let cum = null;
     const monthly = {};
@@ -229,6 +247,16 @@
       const conc = (row[iConc] || '').toString().trim().toLowerCase() === 'sim';
       if (!conc) naoConciliados.push({ valor });
       const key = monthKeyFromBR(dataTexto);
+      if (key && key.slice(0, 4) === '2026' && valor !== 0) {
+        const mi = parseInt(key.slice(5, 7), 10) - 1;
+        const cat = catExtrato(iObs >= 0 ? row[iObs] : '', iDesc >= 0 ? row[iDesc] : '', valor);
+        if (cat === '__RDB__') cat26.rdb[mi] += valor;
+        else {
+          const grp = valor > 0 ? cat26.rec : cat26.des;
+          if (!grp[cat]) grp[cat] = Array(12).fill(0);
+          grp[cat][mi] += Math.abs(valor);
+        }
+      }
       if (key) {
         if (!monthly[key]) monthly[key] = { entradas: 0, saidas: 0, saldoFinal: null };
         if (valor > 0) monthly[key].entradas += valor;
@@ -276,7 +304,23 @@
     };
     let colunaCampUsada = false;
     if (pCamp >= 0) colunaCampUsada = part.rows.some((row) => campTruthy(row[pCamp]));
-    const fallbackSet = new Set(CAMPEONATO_DATAS_FALLBACK.map(normDateBR));
+    // Jogos de campeonato = jogos realizados cuja Obs no Calendário cita "Caxambu" (Copa Caxambu)
+    const copaSet = new Set();
+    if (cal) {
+      const cD = colIndex(cal.cols, 'DATA', true);
+      const cR = colIndex(cal.cols, 'Realizado', true);
+      let cO = colIndex(cal.cols, 'Obs', true);
+      if (cO < 0 && cD >= 0) cO = cD + 10;
+      cal.rows.forEach((row, i) => {
+        if (cD < 0 || cO < 0) return;
+        const dt = cal.rowsF[i][cD];
+        if (!dt) return;
+        if (cR >= 0 && norm(row[cR]) !== 'sim') return;
+        if (norm(row[cO]).includes('caxambu')) copaSet.add(normDateBR(dt));
+      });
+    }
+    const campFonte = colunaCampUsada ? 'coluna' : copaSet.size ? 'calendario' : 'fallback';
+    const fallbackSet = copaSet.size ? copaSet : new Set(CAMPEONATO_DATAS_FALLBACK.map(normDateBR));
 
     const jogadores = {};
     const jogosMap = {};
@@ -383,6 +427,8 @@
       jogadores: listaJog,
       jogos: jogosArr,
       colunaCampUsada,
+      campFonte,
+      cat26,
       campColExiste: pCamp >= 0,
       devedoresPel,
       devedoresCamp,
@@ -616,41 +662,161 @@
     if (ui.jogador) renderPlayer(ui.jogador);
   }
 
-  // ───────────────────────── aba: Campeonato ─────────────────────────
-  function tabCampeonato() {
-    const jogosCamp = D.jogos.filter((g) => g.camp);
-    const emAberto = D.totalCampAberto;
+  // ───────────────────────── aba: Inadimplência (Total · Campeonato · Pelada) ─────────────────────────
+  const SUBS = [['total', 'Total'], ['campeonato', '🏆 Campeonato'], ['pelada', 'Pelada']];
+
+  function inadTipo(kind) {
+    const isCamp = kind === 'camp';
+    const cor = isCamp ? COR_CAMP : COR_PELADA;
+    const cls = isCamp ? 'wv-camp' : 'wv-neg';
+    const jogos = D.jogos.filter((g) => !!g.camp === isCamp);
+    const dev = D.jogadores.reduce((s, j) => s + j[kind].dev, 0);
+    const pago = D.jogadores.reduce((s, j) => s + j[kind].pago, 0);
+    const devedores = D.jogadores.filter((j) => j[kind].saldo < -0.005);
+    const aberto = devedores.reduce((s, j) => s - j[kind].saldo, 0);
     const rows = D.jogadores
-      .filter((j) => j.camp.dev > 0 || j.camp.pago > 0)
-      .sort((a, b) => a.camp.saldo - b.camp.saldo)
+      .filter((j) => j[kind].dev > 0 || j[kind].pago > 0)
+      .sort((a, b) => a[kind].saldo - b[kind].saldo)
       .map((j) => `<tr>
         <td>${esc(j.nome)}${j.tipo ? ` <span style="color:var(--text2);font-size:12px;">· ${esc(j.tipo)}</span>` : ''}</td>
-        <td>${fmtBRL(j.camp.dev)}</td><td>${fmtBRL(j.camp.pago)}</td>
-        <td class="${j.camp.saldo < -0.005 ? 'wv-camp' : 'wv-pos'}">${fmtBRL(j.camp.saldo)}</td></tr>`)
+        <td>${fmtBRL(j[kind].dev)}</td><td>${fmtBRL(j[kind].pago)}</td>
+        <td class="${j[kind].saldo < -0.005 ? cls : 'wv-pos'}">${fmtBRL(j[kind].saldo)}</td></tr>`)
       .join('');
-    const gamesRows = jogosCamp.map((g) => `<tr><td>${esc(g.data)}</td><td>${g.presentes}</td><td>${fmtBRL(g.devido)}</td><td>${fmtBRL(g.pago)}</td><td class="${g.pago - g.devido < -0.005 ? 'wv-camp' : 'wv-pos'}">${fmtBRL(g.pago - g.devido)}</td></tr>`).join('');
-    const fonte = D.colunaCampUsada
-      ? 'Identificado pela coluna <strong>Campeonato</strong> da aba Participação.'
-      : `Ainda não há coluna <strong>Campeonato</strong> preenchida na aba Participação — usando as datas ${CAMPEONATO_DATAS_FALLBACK.map(esc).join(' e ')}. Crie a coluna "Campeonato" e marque "Sim" nas linhas desses jogos para o site passar a ler dela.`;
+    const gamesRows = jogos.map((g) => `<tr><td>${esc(g.data)}</td><td>${g.presentes}</td><td>${fmtBRL(g.devido)}</td><td>${fmtBRL(g.pago)}</td><td class="${g.pago - g.devido < -0.005 ? cls : 'wv-pos'}">${fmtBRL(g.pago - g.devido)}</td></tr>`).join('');
+    const fonte = isCamp
+      ? (D.campFonte === 'coluna'
+        ? 'Jogos identificados pela coluna <strong>Campeonato</strong> da aba Participação.'
+        : D.campFonte === 'calendario'
+          ? 'Jogos de campeonato = jogos realizados com <strong>Copa Caxambu</strong> na Obs da aba Calendário.'
+          : `Nenhum jogo com "Copa Caxambu" na Obs do Calendário — usando as datas ${CAMPEONATO_DATAS_FALLBACK.map(esc).join(' e ')}.`)
+      : 'Pelada = todos os jogos que não são de campeonato.';
     return `
-      <p class="section-intro">Cobrança do campeonato, separada da inadimplência da pelada.</p>
+      <p class="section-intro">${isCamp ? 'Cobrança do campeonato (Copa Caxambu), separada da pelada.' : 'Cobrança da pelada, separada do campeonato.'}</p>
       <div class="rp-cards">
-        <div class="rp-card"><div class="rp-label" style="color:${COR_CAMP}">Devido (campeonato)</div><div class="rp-value">${fmtBRL(D.totalCampDevido)}</div></div>
-        <div class="rp-card"><div class="rp-label">Pago</div><div class="rp-value pos">${fmtBRL(D.totalCampPago)}</div></div>
-        <div class="rp-card"><div class="rp-label" style="color:${COR_CAMP}">Em aberto</div><div class="rp-value" style="color:${COR_CAMP}">${fmtBRL(emAberto)}</div></div>
-        <div class="rp-card"><div class="rp-label">Inadimplentes</div><div class="rp-value">${D.devedoresCamp.length}</div></div>
+        <div class="rp-card"><div class="rp-label" style="color:${cor}">Devido (${isCamp ? 'campeonato' : 'pelada'})</div><div class="rp-value">${fmtBRL(dev)}</div></div>
+        <div class="rp-card"><div class="rp-label">Pago</div><div class="rp-value pos">${fmtBRL(pago)}</div></div>
+        <div class="rp-card"><div class="rp-label" style="color:${cor}">Em aberto</div><div class="rp-value" style="color:${cor}">${fmtBRL(aberto)}</div></div>
+        <div class="rp-card"><div class="rp-label">Inadimplentes</div><div class="rp-value">${devedores.length}</div></div>
       </div>
       <p class="wv-note">${fonte}</p>
 
-      ${sectionHead('Jogos do campeonato', '')}
+      ${sectionHead(isCamp ? 'Jogos do campeonato' : 'Jogos da pelada', '')}
       <div class="ini-card wv-scroll">
-        ${gamesRows ? `<table class="wv-table"><thead><tr><th>Jogo</th><th>Presentes</th><th>Devido</th><th>Pago</th><th>Saldo</th></tr></thead><tbody>${gamesRows}</tbody></table>` : '<div class="ini-empty">Nenhum jogo de campeonato identificado.</div>'}
+        ${gamesRows ? `<table class="wv-table"><thead><tr><th>Jogo</th><th>Presentes</th><th>Devido</th><th>Pago</th><th>Saldo</th></tr></thead><tbody>${gamesRows}</tbody></table>` : '<div class="ini-empty">Nenhum jogo identificado.</div>'}
       </div>
 
-      ${sectionHead('Por jogador', 'saldo do campeonato (negativo = devendo)')}
+      ${sectionHead('Por jogador', 'saldo (negativo = devendo)')}
       <div class="ini-card wv-scroll">
-        ${rows ? `<table class="wv-table"><thead><tr><th>Jogador</th><th>Devido</th><th>Pago</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="ini-empty">Sem cobranças de campeonato.</div>'}
+        ${rows ? `<table class="wv-table"><thead><tr><th>Jogador</th><th>Devido</th><th>Pago</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="ini-empty">Sem cobranças.</div>'}
       </div>`;
+  }
+
+  function inadTotal() {
+    const lista = D.jogadores
+      .map((j) => ({ j, tot: j.pel.saldo + j.camp.saldo }))
+      .filter((x) => x.tot < -0.005)
+      .sort((a, b) => a.tot - b.tot);
+    const aberto = lista.reduce((s, x) => s - x.tot, 0);
+    const rows = lista.map(({ j, tot }) => {
+      const pel = j.pel.saldo < -0.005 ? `<span class="wv-neg">${fmtBRL(j.pel.saldo)}</span>` : fmtBRL(j.pel.saldo);
+      const cp = j.camp.saldo < -0.005 ? `<span class="wv-camp">${fmtBRL(j.camp.saldo)}</span>` : fmtBRL(j.camp.saldo);
+      return `<tr><td>${esc(j.nome)}${j.tipo ? ` <span style="color:var(--text2);font-size:12px;">· ${esc(j.tipo)}</span>` : ''}</td><td>${pel}</td><td>${cp}</td><td class="wv-neg">${fmtBRL(tot)}</td></tr>`;
+    }).join('');
+    return `
+      <p class="section-intro">Pelada e campeonato somados. O saldo de cada jogador é o que ele pagou menos o que deve nos dois (negativo = devendo).</p>
+      <div class="rp-cards">
+        <div class="rp-card"><div class="rp-label" style="color:${COR_PELADA}">Total em aberto</div><div class="rp-value" style="color:${COR_PELADA}">${fmtBRL(aberto)}</div></div>
+        <div class="rp-card"><div class="rp-label" style="color:${COR_PELADA}">Pelada em aberto</div><div class="rp-value">${fmtBRL(D.totalPelAberto)}</div></div>
+        <div class="rp-card"><div class="rp-label" style="color:${COR_CAMP}">Campeonato em aberto</div><div class="rp-value">${fmtBRL(D.totalCampAberto)}</div></div>
+        <div class="rp-card"><div class="rp-label">Inadimplentes</div><div class="rp-value">${lista.length}</div></div>
+      </div>
+      ${sectionHead('Por jogador', 'ordenado do maior para o menor débito')}
+      <div class="ini-card wv-scroll">
+        ${rows ? `<table class="wv-table"><thead><tr><th>Jogador</th><th>Pelada</th><th>Campeonato</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="ini-empty">Ninguém devendo 🎉</div>'}
+      </div>`;
+  }
+
+  function tabInadimplencia() {
+    const nav = `<div class="wv-tabs" id="wv-subtabs" style="margin:0 0 18px;">${SUBS.map(([id, label]) => `<button class="wv-tab${id === ui.sub ? ' active' : ''}" data-sub="${id}">${label}</button>`).join('')}</div>`;
+    const body = ui.sub === 'campeonato' ? inadTipo('camp') : ui.sub === 'pelada' ? inadTipo('pel') : inadTotal();
+    return nav + body;
+  }
+
+  function afterInadimplencia() {
+    const nav = document.getElementById('wv-subtabs');
+    if (!nav) return;
+    nav.addEventListener('click', (ev) => {
+      const b = ev.target.closest('[data-sub]');
+      if (!b) return;
+      ui.sub = b.dataset.sub;
+      renderTab();
+    });
+  }
+
+  // ───────────────────────── aba: Realizado 2026 ─────────────────────────
+  function tabReal26() {
+    const c = D.cat26;
+    const ord = (grp) => Object.keys(grp).sort((a, b) => sumArr(grp[b]) - sumArr(grp[a]));
+    const linhas = (grp, cor) => ord(grp).map((k) => `<tr><td>${esc(k)}</td>${grp[k].map((v) => `<td${cor && v ? ` class="${cor}"` : ''}>${v ? fmtBRL(v) : '<span style="color:var(--text2)">—</span>'}</td>`).join('')}<td class="tot-line">${fmtBRL(sumArr(grp[k]))}</td></tr>`).join('');
+    const somaGrp = (grp) => MESES_PT.map((_, m) => Object.keys(grp).reduce((s, k) => s + grp[k][m], 0));
+    const rec = somaGrp(c.rec);
+    const des = somaGrp(c.des);
+    const res = rec.map((x, i) => x - des[i]);
+    const posneg = (v) => (v < 0 ? 'wv-neg' : '');
+    const tot = (label, arr, cls, bold) => `<tr class="${bold ? 'tot' : ''}"><td>${label}</td>${arr.map((v) => `<td class="${cls ? cls(v) : ''}">${fmtBRL(v)}</td>`).join('')}<td class="${cls ? cls(sumArr(arr)) : ''}">${fmtBRL(sumArr(arr))}</td></tr>`;
+    const sec = (t) => `<tr><td colspan="14" style="text-align:left;color:var(--text2);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding-top:14px;">${t}</td></tr>`;
+    const head = `<tr><th>Categoria</th>${MESES_PT.map((m) => `<th>${m}</th>`).join('')}<th>Total</th></tr>`;
+    const caixa = res.map((x, i) => x + c.rdb[i]);
+    return `
+      <p class="section-intro">Realizado de 2026 direto do Extrato (entradas e saídas por mês), agrupado pela coluna <strong>Obs</strong>. Lançamentos sem Obs entram em "Mensalidades/jogos" (entradas) ou "Outras despesas" (saídas). Aplicações e resgates de RDB ficam fora do resultado.</p>
+      <div class="rp-cards">
+        <div class="rp-card"><div class="rp-label">Receitas 2026</div><div class="rp-value pos">${fmtBRL(sumArr(rec))}</div></div>
+        <div class="rp-card"><div class="rp-label">Despesas 2026</div><div class="rp-value neg">${fmtBRL(sumArr(des))}</div></div>
+        <div class="rp-card"><div class="rp-label">Resultado</div><div class="rp-value ${sumArr(res) >= 0 ? 'pos' : 'neg'}">${fmtBRL(sumArr(res))}</div></div>
+        <div class="rp-card"><div class="rp-label">Saldo em caixa</div><div class="rp-value ${D.saldoAtual >= 0 ? 'pos' : 'neg'}">${fmtBRL(D.saldoAtual)}</div></div>
+      </div>
+      ${sectionHead('Receitas × despesas por mês', 'resultado do mês em linha')}
+      <div class="rp-chart-wrap" id="wv-chart-real"></div>
+      ${sectionHead('Realizado por categoria', 'valores do Extrato')}
+      <div class="ini-card wv-scroll"><table class="wv-table">
+        <thead>${head}</thead>
+        <tbody>
+          ${sec('Receitas')}${linhas(c.rec)}${tot('Total receitas', rec, null, true)}
+          ${sec('Despesas')}${linhas(c.des)}${tot('Total despesas', des, null, true)}
+        </tbody>
+        <tfoot>
+          ${tot('Resultado do mês', res, posneg, true)}
+          ${tot('Aplicações (−) / resgates (+) RDB', c.rdb, posneg, false)}
+          ${tot('Variação do caixa', caixa, posneg, true)}
+        </tfoot>
+      </table></div>`;
+  }
+
+  function chartReal26() {
+    const t = chartTheme();
+    const c = D.cat26;
+    const somaGrp = (grp) => MESES_PT.map((_, m) => Object.keys(grp).reduce((s, k) => s + grp[k][m], 0));
+    const rec = somaGrp(c.rec);
+    const des = somaGrp(c.des);
+    return {
+      data: {
+        labels: MESES_PT,
+        datasets: [
+          { type: 'bar', label: 'Receitas', data: rec, backgroundColor: COR_VERDE, borderRadius: 4, order: 2 },
+          { type: 'bar', label: 'Despesas', data: des, backgroundColor: '#f87171', borderRadius: 4, order: 2 },
+          { type: 'line', label: 'Resultado do mês', data: rec.map((x, i) => x - des[i]), borderColor: COR_ROXO, backgroundColor: COR_ROXO, pointRadius: 4, tension: 0.3, order: 1 },
+        ],
+      },
+      options: {
+        responsive: true, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: t.text } }, tooltip: { callbacks: { label: (i) => `${i.dataset.label}: ${fmtBRL(i.parsed.y)}` } } },
+        scales: { x: { ticks: { color: t.text }, grid: { color: t.grid } }, y: { ticks: { color: t.text, callback: fmtAxisK }, grid: { color: t.grid } } },
+      },
+    };
+  }
+
+  async function afterReal26() {
+    await drawChart('wv-chart-real', 'wv-cv-real', chartReal26());
   }
 
   // ───────────────────────── abas: Orçamento 2026 / Projeção 2027 ─────────────────────────
@@ -738,14 +904,10 @@
             <input id="wv-saldo-ini" class="wv-btn" type="number" step="0.01" style="width:130px;margin-left:6px;" value="${model.saldoInicial != null ? model.saldoInicial : ''}" placeholder="${D.saldoAtual.toFixed(2)}">
           </label>
           <span class="wv-note" style="margin:0;">vazio = usa o saldo em caixa de hoje (${fmtBRL(D.saldoAtual)})</span>
-          <span style="flex:1"></span>
-          <label style="color:var(--text2);font-size:13px;">Ajuste
-            <input id="wv-ajuste" class="wv-btn" type="number" step="0.1" style="width:80px;margin-left:6px;" value="0"> %
-          </label>
-          <button class="wv-btn" id="wv-copy26">Copiar orçamento 2026 → 2027</button>
+
         </div>`;
     return `
-      <p class="section-intro">${is26 ? 'Orçamento de 2026 digitado aqui, comparado com o realizado do Extrato (entradas e saídas por mês).' : 'Projeção de 2027: receitas e despesas previstas mês a mês e o saldo acumulado resultante.'}</p>
+      <p class="section-intro">${is26 ? 'Orçamento de 2026 digitado aqui, comparado com o realizado do Extrato (entradas e saídas por mês).' : 'Orçamento de 2027 (começando do zero): receitas e despesas previstas mês a mês e o saldo acumulado resultante.'}</p>
       ${extra}
       <div class="ini-card">
         <div class="wv-top">
@@ -870,18 +1032,6 @@
       if (ini) ini.addEventListener('change', () => {
         model.saldoInicial = ini.value === '' ? null : parseFloat(ini.value);
         saveStore(); refreshFoot(); redrawChart();
-      });
-      const cp = document.getElementById('wv-copy26');
-      if (cp) cp.addEventListener('click', () => {
-        const pct = parseFloat((document.getElementById('wv-ajuste') || {}).value) || 0;
-        if (!store.orc2026.lines.length) { alert('O orçamento 2026 ainda está vazio.'); return; }
-        if (model.lines.length && !confirm('Substituir as linhas atuais da projeção 2027 pelo orçamento 2026?')) return;
-        model.lines = store.orc2026.lines.map((l) => ({
-          id: uid(), tipo: l.tipo, nome: l.nome,
-          v: l.v.map((v) => (v === '' || v == null ? '' : Math.round(parseFloat(v) * (1 + pct / 100) * 100) / 100)),
-        }));
-        saveStore();
-        renderTab();
       });
     }
     void body;
@@ -1025,9 +1175,9 @@
   // ───────────────────────── orquestração ─────────────────────────
   const TABS = [
     ['resumo', 'Resumo'],
-    ['campeonato', '🏆 Campeonato'],
-    ['orc2026', 'Orçamento 2026'],
-    ['proj27', 'Projeção 2027'],
+    ['inadimplencia', 'Inadimplência'],
+    ['real26', 'Realizado 2026'],
+    ['proj27', 'Orçamento 2027'],
     ['reservas', 'Reservas'],
     ['aprov', 'Aproveitamento'],
   ];
@@ -1040,8 +1190,8 @@
     if (!body) return;
     document.querySelectorAll('#wv-tabs .wv-tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === ui.tab));
     switch (ui.tab) {
-      case 'campeonato': body.innerHTML = tabCampeonato(); break;
-      case 'orc2026': body.innerHTML = tabOrcamento('orc2026'); await afterOrcamento('orc2026'); break;
+      case 'inadimplencia': body.innerHTML = tabInadimplencia(); afterInadimplencia(); break;
+      case 'real26': body.innerHTML = tabReal26(); await afterReal26(); break;
       case 'proj27': body.innerHTML = tabOrcamento('proj27'); await afterOrcamento('proj27'); break;
       case 'reservas': body.innerHTML = tabReservas(); afterReservas(); break;
       case 'aprov': body.innerHTML = tabAproveitamento(); await afterAproveitamento(); break;
