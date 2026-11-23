@@ -95,6 +95,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3
 .cal-table td{padding:.7rem 1rem;font-size:.85rem;color:var(--gray2);border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
 .cal-table tr:hover td{background:rgba(232,123,30,.04)}
 .cal-table tr.future td{opacity:.5}
+.cal-table tr.copa td:first-child{box-shadow:inset 3px 0 0 var(--orange)}
+.cal-table tr.copa td{background:rgba(232,123,30,.05)}
+.badge-copa{display:inline-block;margin-left:.5rem;padding:.12rem .5rem;border:1px solid rgba(232,123,30,.5);color:var(--orange);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.badge-nogame{background:rgba(139,160,176,.1);color:var(--gray)}
 .badge{display:inline-block;padding:.2rem .6rem;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif}
 .badge-win{background:rgba(76,217,123,.15);color:#4CD97B}
 .badge-draw{background:rgba(255,204,68,.12);color:#FFCC44}
@@ -329,7 +333,9 @@ async function loadCalendario() {
 
       const isPast    = realizado==='sim';
       const isCanceled= !isPast && obs.toLowerCase().includes('cancelado');
-      const isPending = !isPast && !isCanceled;
+      const isNoGame  = !isPast && !isCanceled && /adiado|sem rodada|chap[eé]u/i.test(obs);
+      const isPending = !isPast && !isCanceled && !isNoGame;
+      const isCopa    = /caxambu/i.test(obs);
 
       let badge='', placarHtml='<span style="color:var(--gray);font-size:.8rem">—</span>';
       if (isPast) {
@@ -341,13 +347,16 @@ async function loadCalendario() {
         else badge='<span class="badge badge-pending">Realizado</span>';
       } else if (isCanceled) {
         badge='<span class="badge badge-cancel">Cancelado</span>';
+      } else if (isNoGame) {
+        badge='<span class="badge badge-nogame">Sem jogo</span>';
       } else {
         badge='<span class="badge badge-pending">Aguardando</span>';
       }
 
-      const filterKey = isPast ? cartel.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') : (isCanceled?'cancelado':'pendente');
+      const filterKey = isPast ? cartel.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') : (isCanceled?'cancelado':(isNoGame?'semjogo':'pendente'));
       const tr = document.createElement('tr');
-      if (isPending||isCanceled) tr.classList.add('future');
+      if (isPending||isCanceled||isNoGame) tr.classList.add('future');
+      if (isCopa) tr.classList.add('copa');
       tr.dataset.filter = filterKey;
       tr.innerHTML = `
         <td>${data}</td>
@@ -355,7 +364,7 @@ async function loadCalendario() {
         <td>${placarHtml}</td>
         <td style="color:var(--white)">${adversario||'<span style="opacity:.3">—</span>'}</td>
         <td>${badge}</td>
-        <td style="color:var(--gray);font-size:.78rem">${obs}</td>
+        <td style="color:var(--gray);font-size:.78rem">${isCopa ? obs.replace(/\s*\(?\s*copa caxambu\s*\)?/i,'').trim() + '<span class="badge-copa">Copa Caxambu</span>' : obs}</td>
       `;
       body.appendChild(tr);
     }
@@ -392,6 +401,8 @@ async function loadArtilharia() {
       const gols=parseInt(r[2])||0;
       return nome && nome.toLowerCase()!=='jogador' && gols>0;
     });
+    // Sempre em ordem decrescente (desempate: nome)
+    data.sort((a,b)=>((parseInt(b[2])||0)-(parseInt(a[2])||0)) || a[1].trim().localeCompare(b[1].trim(),'pt-BR'));
     data.forEach((r,i)=>{
       const nome=r[1].trim(), gols=parseInt(r[2])||0;
       const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
@@ -420,6 +431,8 @@ async function loadAssistencias() {
       const ass=parseInt(r[2])||0;
       return nome && nome.toLowerCase()!=='jogador' && ass>0;
     });
+    // Sempre em ordem decrescente (desempate: nome)
+    data.sort((a,b)=>((parseInt(b[2])||0)-(parseInt(a[2])||0)) || a[1].trim().localeCompare(b[1].trim(),'pt-BR'));
     data.forEach((r,i)=>{
       const nome=r[1].trim(), ass=parseInt(r[2])||0;
       const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
@@ -447,6 +460,14 @@ async function loadFrequencia() {
       const nome=(r[1]||'').trim();
       const jogos=parseInt(r[3])||0; // r[2]=ID, r[3]=Frequência
       return nome && nome.toLowerCase()!=='jogador' && jogos>0;
+    });
+    // Sempre em ordem decrescente de frequência (desempate: % e depois nome)
+    data.sort((a,b)=>{
+      const ja=parseInt(a[3])||0, jb=parseInt(b[3])||0;
+      if (jb!==ja) return jb-ja;
+      const pa=parseInt((a[4]||'0').replace('%','').trim())||0, pb=parseInt((b[4]||'0').replace('%','').trim())||0;
+      if (pb!==pa) return pb-pa;
+      return a[1].trim().localeCompare(b[1].trim(),'pt-BR');
     });
     data.forEach((r,i)=>{
       const nome=r[1].trim();
