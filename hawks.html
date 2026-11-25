@@ -3210,6 +3210,8 @@ var PED_PARAM_PADRAO = {
   lift_10: 1, lift_15: 1, lift_20: 1,   // efeito padrão da campanha por desconto (1 = neutro). O histórico calibra por SKU quando há 2+ meses de campanha
   dias_faturamento: 5,       // dias entre entrada do pedido e faturamento (exemplo; a validar)
   mes_ref: '',               // 'YYYY-MM' p/ forçar o último mês fechado; vazio = automático
+  demanda_corrente: 1,       // 1 = vendas parciais do mês corrente entram na demanda (peso = dias decorridos ÷ dias do mês)
+  data_corte: '',            // 'AAAA-MM-DD' = dia considerado como "hoje" nas vendas do mês corrente (simular pedido no dia 20); vazio = hoje
   feriados_extra: ''         // datas AAAA-MM-DD separadas por vírgula (feriados estaduais etc.)
 };
 var PED_FERIADOS_NAC = ['2026-01-01','2026-04-03','2026-04-21','2026-05-01','2026-09-07','2026-10-12',
@@ -3317,8 +3319,10 @@ function pedConstruirSerie(rows,alias){
   });
   return { serie:serie, minKey:minKey, maxKey:maxKey };
 }
+function pedDataCorte(hoje,P){ return /^\d{4}-\d{2}-\d{2}$/.test(P.data_corte) ? pedParseYMD(P.data_corte) : hoje; }
 function pedMesRef(maxKey,hoje,P){
   if (/^\d{4}-\d{2}$/.test(P.mes_ref)) return P.mes_ref;
+  hoje = pedDataCorte(hoje,P);
   var atual = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
   return maxKey===atual ? pedMesMais(maxKey,-1) : maxKey;   // mês corrente é parcial
 }
@@ -3403,6 +3407,14 @@ function pedCalcular(fvRows, estRows, P, hoje, alias, camp, fatores){
   if (ref < esperado) res.avisos.push('Último mês de vendas carregado: '+ref.slice(5,7)+'/'+ref.slice(0,4)+' — faltam meses recentes; a demanda pode estar defasada. Atualize fato_vendas.');
   if (res.mesesComDado < P.janela_meses) res.avisos.push('Hist\u00f3rico de vendas tem '+res.mesesComDado+' meses (janela configurada: '+P.janela_meses+'). A m\u00e9dia usa s\u00f3 os meses dispon\u00edveis.');
 
+  /* demanda corrente: mês corrente (ainda aberto) presente nas vendas carregadas */
+  var corte = pedDataCorte(hoje,P), dcMes = pedYMD(corte).slice(0,7);
+  var dcDiasMes = new Date(corte.getFullYear(), corte.getMonth()+1, 0).getDate(), dcDias = Math.max(1, corte.getDate());
+  var dcOn = !!(P.demanda_corrente && base.maxKey===dcMes && ref<dcMes), dcPeso = Math.min(1, dcDias/dcDiasMes);
+  res.demandaCorrente = dcOn ? { mes:dcMes, dias:dcDias, diasMes:dcDiasMes, peso:dcPeso, corte:corte } : null;
+  if (dcOn) res.avisos.push('Demanda corrente ativa: vendas de '+dcMes.slice(5,7)+'/'+dcMes.slice(0,4)+' at\u00e9 o dia '+dcDias+' de '+dcDiasMes+' entram na demanda com peso '+Math.round(dcPeso*100)+'% (o restante vem da m\u00e9dia hist\u00f3rica). Confira se o arquivo de vendas vai at\u00e9 essa data.');
+  else if (P.demanda_corrente && base.maxKey!==dcMes) res.avisos.push('Demanda corrente inativa: n\u00e3o h\u00e1 vendas de '+dcMes.slice(5,7)+'/'+dcMes.slice(0,4)+' carregadas (\u00faltimo m\u00eas: '+base.maxKey.slice(5,7)+'/'+base.maxKey.slice(0,4)+').');
+
   var temEst = !!(estRows && estRows.length), estMap = {};
   (estRows||[]).forEach(function(r){
     var k=pedNormSku(r.sku); if(!k) return;
@@ -3418,6 +3430,12 @@ function pedCalcular(fvRows, estRows, P, hoje, alias, camp, fatores){
   Object.keys(chaves).forEach(function(k){
     var s = base.serie[k] || vazio, e = estMap[k];
     var m = pedMetricasSku(s, meses, base.minKey, P, camp ? camp[k] : null);
+    m.mediaHist = m.mediaPond; m.parcial = null;
+    if (dcOn){                                                                   // demanda corrente: vendido no mês + restante previsto
+      var vend = Math.max(0, s.m[dcMes]||0);
+      m.parcial = { vendido:vend, proj: vend/dcDias*dcDiasMes, peso:dcPeso };
+      m.mediaPond = dcPeso*m.parcial.proj + (1-dcPeso)*m.mediaHist;
+    }
     var est = temEst ? (e ? e.qtd : (P.estoque_ausente_zero ? 0 : null)) : null;
     var transito = e ? e.transito : 0;
     if (temEst && !e && base.serie[k]) semPosicao++;
@@ -3831,6 +3849,8 @@ var PED_PARAM_CAMPOS = [
     ['fornecedores_truss','Fornecedores TRUSS (partes do nome, separadas por vírgula)','text','Vegan (fábrica antiga) e Calamo (nova): só eles entram no pedido'],
     ['dias_faturamento','Dias entre pedido e faturamento','1','Exemplo informado (5); a validar'],
     ['mes_ref','Último mês fechado (AAAA-MM; vazio = auto)','text',''],
+    ['demanda_corrente','Demanda corrente: vendas do mês atual entram na demanda (0 = off, 1 = on)','1','Peso da venda real = dias decorridos ÷ dias do mês; o restante vem da média histórica'],
+    ['data_corte','Data de corte das vendas do mês (AAAA-MM-DD; vazio = hoje)','text','Para simular o pedido em outro dia (ex.: dia 20). Use a data até a qual o arquivo de vendas vai'],
     ['feriados_extra','Feriados extras (AAAA-MM-DD, separados por vírgula)','text','Estaduais/municipais'] ]],
   ['Campanha e risco', [
     ['limite_risco','Risco de ruptura que destaca o SKU (%)','1','Chance de faltar produto até a chegada do pedido; acima do limite a célula fica vermelha'],
