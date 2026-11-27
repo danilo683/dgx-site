@@ -2835,7 +2835,7 @@ function pedPaginaHTML(){
   /* gr\u00e1ficos */
   h += '<div class="ped-grid2">'
     +'<div class="chart-card"><div class="chart-title">Sa\u00fade do estoque por SKU</div><div class="chart-sub">Demanda di\u00e1ria \u00d7 cobertura em dias \u00b7 tamanho = unidades em estoque \u00b7 faixas: risco, saud\u00e1vel e capital parado \u00b7 linha laranja: in\u00edcio da curva A</div>'
-    +'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Curva A</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Curva B</span><span class="leg"><span class="leg-dot" style="background:#A8C8E0"></span>Curva C</span></div>'
+    +pedDispCampHTML()+'<div class="legend"><span class="leg"><span class="leg-dot" style="background:#00B4D8"></span>Curva A</span><span class="leg"><span class="leg-dot" style="background:#5B8DB8"></span>Curva B</span><span class="leg"><span class="leg-dot" style="background:#A8C8E0"></span>Curva C</span><span class="leg" id="pedLegCamp" style="display:none"><span class="leg-dot" style="background:#FFC21A"></span><span id="pedLegCampTxt"></span></span></div>'
     +'<div class="chart-wrap" style="height:300px"><canvas id="chartPedDisp"></canvas></div></div>'
     +'<div class="chart-card"><div class="chart-title">Status por categoria</div><div class="chart-sub">N\u00ba de SKUs por situa\u00e7\u00e3o de cobertura</div>'
     +'<div class="legend">'+['ruptura','critico','ok','excesso','sem_giro'].map(function(s){return '<span class="leg"><span class="leg-dot" style="background:'+PED_STATUS[s][1]+'"></span>'+PED_STATUS[s][0]+'</span>';}).join('')+'</div>'
@@ -3028,6 +3028,15 @@ function pedRenderDesembolso(){
 }
 
 /* ── gráficos ── */
+/* dispers\u00e3o: destaque dos SKUs em campanha no m\u00eas escolhido */
+var PED_DISP_CAMP = '';
+function pedDispCampMeses(){ var ms = {}; (PED_CAMP_ROWS||[]).forEach(function(r){ ms[String(r.mes).slice(0,7)] = 1; }); return Object.keys(ms).sort(); }
+function pedDispCampHTML(){
+  var ks = pedDispCampMeses(); if (!ks.length) return ''; if (PED_DISP_CAMP && ks.indexOf(PED_DISP_CAMP)<0) PED_DISP_CAMP = '';
+  return '<div class="bi-filters"><label>Campanha</label><select id="pedDispCamp" onchange="pedDispCampMes(this.value)"><option value="">Sem destaque</option>'+ks.map(function(k){ return '<option value="'+k+'"'+(k===PED_DISP_CAMP?' selected':'')+'>'+pedMesLabel(k)+'</option>'; }).join('')+'</select><span class="ped-sub">pinta de amarelo os produtos em campanha no m\u00eas escolhido</span></div>';
+}
+function pedDispCampMes(v){ PED_DISP_CAMP = v || ''; pedDesenharGraficos(); }
+function pedDispCampLeg(n){ var l = document.getElementById('pedLegCamp'), t = document.getElementById('pedLegCampTxt'); if (!l || !t) return; l.style.display = PED_DISP_CAMP ? '' : 'none'; t.textContent = PED_DISP_CAMP ? 'Em campanha em '+pedMesLabel(PED_DISP_CAMP)+' ('+n+')' : ''; }
 function pedDesenharGraficos(){
   if (typeof Chart==='undefined' || !PED_RES || !PED_RES.skus.length) return;
   var R = PED_RES, P = R.P, tc = '#8BA0B0', gc = 'rgba(255,255,255,0.06)';
@@ -3042,10 +3051,14 @@ function pedDesenharGraficos(){
     var nAR = Apts.filter(function(x){ return x.cobertura<lt; }).length;
     var dmin = pts.length ? Math.min.apply(null, pts.map(function(x){ return x.dDia; })) : 1, dmax = pts.length ? Math.max.apply(null, pts.map(function(x){ return x.dDia; })) : 10;
     var xmin = Math.pow(10, Math.floor(Math.log(dmin)/Math.LN10)), xmax = Math.pow(10, Math.ceil(Math.log(dmax)/Math.LN10));
+    var emCamp = function(x){ return !!(PED_DISP_CAMP && x.camp && x.camp[PED_DISP_CAMP]); };
+    var bolha = function(x){ return { x:x.dDia, y:Math.min(x.cobertura,CAP), r:Math.max(3,Math.min(14,3+Math.sqrt(Math.max(0,x.est||0))*0.28)), _x:x }; };
     var ds = ['A','B','C'].map(function(c){
       return { label:'Curva '+c, backgroundColor:cor[c]+'cc', borderColor:'#3d6e94', borderWidth:1,
-        data: pts.filter(function(x){ return x.curva===c; }).map(function(x){ return { x:x.dDia, y:Math.min(x.cobertura,CAP), r:Math.max(3,Math.min(14,3+Math.sqrt(Math.max(0,x.est||0))*0.28)), _x:x }; }) };
+        data: pts.filter(function(x){ return x.curva===c && !emCamp(x); }).map(function(x){ return { x:x.dDia, y:Math.min(x.cobertura,CAP), r:Math.max(3,Math.min(14,3+Math.sqrt(Math.max(0,x.est||0))*0.28)), _x:x }; }) };
     });
+    var ptsCamp = pts.filter(emCamp); pedDispCampLeg(ptsCamp.length);
+    if (PED_DISP_CAMP) ds.push({ label:'Em campanha', backgroundColor:'rgba(255,194,26,0.9)', borderColor:'#FFC21A', borderWidth:2, data:ptsCamp.map(bolha) });
     var zonas = { id:'pedZonas',
       beforeDatasetsDraw:function(ch){ var a=ch.chartArea, y=ch.scales.y, x=ch.scales.x, c=ch.ctx, yL=y.getPixelForValue(lt), yE=y.getPixelForValue(Math.min(exc,CAP));
         c.save(); c.fillStyle='rgba(208,59,59,0.06)'; c.fillRect(a.left,yL,a.width,a.bottom-yL);
@@ -3064,7 +3077,7 @@ function pedDesenharGraficos(){
         c.textAlign='left'; c.font='11px sans-serif';
         c.restore(); } };
     new Chart(cv, { type:'bubble', plugins:[zonas], data:{ datasets:ds }, options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ right:12, top:4 } }, plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label:function(c){ var x=c.raw._x; return [x.skuOrig+' \u00b7 '+x.produto.slice(0,30), 'Demanda: '+pedFmtN(x.dDia,2)+'/dia \u00b7 Estoque: '+pedFmtN(x.est)+' \u00b7 Cobertura: '+pedFmtN(x.cobertura)+' d']; } } } },
+        tooltip:{ callbacks:{ label:function(c){ var x=c.raw._x; return [x.skuOrig+' \u00b7 '+x.produto.slice(0,30), 'Demanda: '+pedFmtN(x.dDia,2)+'/dia \u00b7 Estoque: '+pedFmtN(x.est)+' \u00b7 Cobertura: '+pedFmtN(x.cobertura)+' d'].concat(emCamp(x) ? ['Campanha: '+Math.round(x.camp[PED_DISP_CAMP].desc*100)+'% off'+(x.camp[PED_DISP_CAMP].pacote?' \u00b7 '+x.camp[PED_DISP_CAMP].pacote:'')] : []); } } } },
       scales:{ x:{ type:'logarithmic', min:xmin, max:xmax, title:{display:true,text:'Demanda di\u00e1ria (un./dia, escala log)',color:tc,font:{size:10}}, ticks:{color:tc, callback:function(v){ return [0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000].indexOf(v)>=0 ? v : ''; }}, grid:{color:gc} },
                y:{ min:-12, max:CAP+12, title:{display:true,text:'Cobertura (dias; limitada a '+CAP+')',color:tc,font:{size:10}}, ticks:{color:tc, stepSize:30, callback:function(v){ return v<0 ? '' : v; }}, grid:{display:false} } } } });
   }
@@ -3379,7 +3392,7 @@ function pedFatorMudou(inp){
 ══════════════════════════════════════════════════════════════════════ */
 var PED_SEL = null, PED_PROJ = 4, PED_CEN = 'sugestao', PED_SNAP = {};
 var PP = { txt:'#8BA0B0', pri:'#E2EAF4', grid:'rgba(255,255,255,0.08)', bar:'#00B4D8', barp:'rgba(0,180,216,0.22)', est:'#00D4DA', sem:'#8BA0B0',
-           ss:'#e74c3c', alvo:'#C8B89A', ped:'#7c9cff', cheg:'#2ECC71', hoje:'#ff8a3d', camp:'rgba(255,138,61,0.13)', zona:'rgba(255,255,255,0.035)' };
+           ss:'#e74c3c', alvo:'#C8B89A', ped:'#7c9cff', cheg:'#2ECC71', hoje:'#ff8a3d', camp:'rgba(255,138,61,0.13)', campbar:'#FFC21A', zona:'rgba(255,255,255,0.035)' };
 
 function pedPainelSku(){ return (PED_SEL && PED_RES) ? (PED_RES.skus.filter(function(x){ return x.sku===PED_SEL; })[0] || null) : null; }
 function pedPainelHTML(){
@@ -3391,7 +3404,7 @@ function pedPainelHTML(){
     +'<div class="bi-filters"><label>Produto</label><select id="pedPSel" onchange="pedPainelSelecionar(this.value)" style="max-width:340px">'+ops+'</select>'
     +'<label>Proje\u00e7\u00e3o</label><select id="pedPProj" onchange="pedPainelOpcao()"><option value="3">3 meses</option><option value="4">4 meses</option><option value="6">6 meses</option></select>'
     +'<label>Cen\u00e1rio</label><select id="pedPCen" onchange="pedPainelOpcao()"><option value="sugestao">Com a sugest\u00e3o</option><option value="editada">Com a minha quantidade</option><option value="sem">Se n\u00e3o pedir nada</option></select></div>'
-    +'<div class="legend">'+sw(PP.bar,'Vendas do m\u00eas')+sw(PP.est,'Estoque com os pedidos')+sw(PP.sem,'Se n\u00e3o pedir nada')+sw(PP.ss,'Estoque de seguran\u00e7a')+sw(PP.alvo,'N\u00edvel alvo')+sw(PP.ped,'Pedido')+sw(PP.cheg,'Chegada')+sw('rgba(255,138,61,.45)','Campanha')+'</div>'
+    +'<div class="legend">'+sw(PP.bar,'Vendas do m\u00eas')+sw(PP.campbar,'Vendas em m\u00eas de campanha')+sw(PP.est,'Estoque com os pedidos')+sw(PP.sem,'Se n\u00e3o pedir nada')+sw(PP.ss,'Estoque de seguran\u00e7a')+sw(PP.alvo,'N\u00edvel alvo')+sw(PP.ped,'Pedido')+sw(PP.cheg,'Chegada')+sw('rgba(255,138,61,.45)','Campanha')+'</div>'
     +'<div id="pedPainelInfo" class="ped-sub" style="margin-bottom:8px"></div><div id="pedPainelSvg"></div></div>';
 }
 async function pedPainelCarregarSnap(x){
@@ -3475,7 +3488,7 @@ function pedPainelSVG(x, sim, snaps, Wd){
   months.forEach(function(k,i){
     var bx = X(starts[i])+2, bw = Math.max(4, X(starts[i+1])-X(starts[i])-4), cx = bx+bw/2, ob = vals[i], lab = mon[+k.slice(5,7)-1] + ((i===0 || k.slice(5,7)==='01') ? '/'+k.slice(2,4) : '');
     if (ob.v!==null) { var h = B1-Y1(ob.v), hist = ob.tipo==='h';
-      o += '<rect x="'+bx.toFixed(1)+'" y="'+Y1(ob.v).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" fill="'+(hist?PP.bar:PP.barp)+'"'+(hist?'':' stroke="'+PP.bar+'" stroke-dasharray="4 3"')+'><title>'+pedMesLabel(k)+': '+pedFmtN(ob.v)+' un'+(hist?'':' (proje\u00e7\u00e3o)')+'</title></rect>'+T(cx,Y1(ob.v)-4,pedFmtN(ob.v),'middle',PP.pri); }
+      o += '<rect x="'+bx.toFixed(1)+'" y="'+Y1(ob.v).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" fill="'+(hist?(x.camp&&x.camp[k]?PP.campbar:PP.bar):PP.barp)+'"'+(hist?'':' stroke="'+PP.bar+'" stroke-dasharray="4 3"')+'><title>'+pedMesLabel(k)+': '+pedFmtN(ob.v)+' un'+(hist?(x.camp&&x.camp[k]?' \u00b7 m\u00eas de campanha ('+Math.round(x.camp[k].desc*100)+'% off)':''):' (proje\u00e7\u00e3o)')+'</title></rect>'+T(cx,Y1(ob.v)-4,pedFmtN(ob.v),'middle',PP.pri); }
     else o += T(cx,B1-8,'sem dados','middle');
     o += T(cx,B2+16,lab,'middle');
   });
