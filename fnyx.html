@@ -3398,10 +3398,10 @@ function pedPainelSku(){ return (PED_SEL && PED_RES) ? (PED_RES.skus.filter(func
 function pedPainelHTML(){
   if (!PED_RES || !PED_RES.skus.length) return '';
   var lista = PED_RES.skus.filter(function(x){ return x.dDia>0 || (x.est||0)>0; }).sort(function(a,b){ return pedSemAcento(a.produto) < pedSemAcento(b.produto) ? -1 : 1; });
-  var ops = '<option value="">(escolha um produto)</option>' + lista.slice(0,900).map(function(x){ return '<option value="'+escapeHtml(x.sku)+'"'+(x.sku===PED_SEL?' selected':'')+'>'+escapeHtml(x.skuOrig)+' \u00b7 '+escapeHtml(x.produto).slice(0,50)+'</option>'; }).join('');
+  PED_CB_LISTA = lista.map(function(x){ return { sku:x.sku, label:x.skuOrig+' \u00b7 '+String(x.produto||'').slice(0,60), busca:pedSemAcento(x.skuOrig+' '+x.produto) }; });
   function sw(c,t,x){ return '<span class="leg"><span class="leg-dot" style="background:'+c+(x||'')+'"></span>'+t+'</span>'; }
   return '<div class="chart-card" id="pedPainel"><div class="chart-title">Curva do produto</div><div class="chart-sub">Vendas por m\u00eas e estoque projetado, com pedidos, chegadas, estoque de seguran\u00e7a e n\u00edvel alvo. Clique em um produto da tabela para abrir aqui.</div>'
-    +'<div class="bi-filters"><label>Produto</label><select id="pedPSel" onchange="pedPainelSelecionar(this.value)" style="max-width:340px">'+ops+'</select>'
+    +'<div class="bi-filters"><label>Produto</label><span class="ped-cb"><input type="text" id="pedPSel" autocomplete="off" spellcheck="false" placeholder="Digite o c\u00f3digo ou o nome do produto" value="'+escapeHtml(pedCbLabelSel())+'" onfocus="pedCbAbrir(this)" oninput="pedCbInput(this)" onkeydown="pedCbTecla(event,this)" onblur="pedCbFechar()"><div id="pedPList" class="ped-cb-list" style="display:none"></div></span>'
     +'<label>Proje\u00e7\u00e3o</label><select id="pedPProj" onchange="pedPainelOpcao()"><option value="3">3 meses</option><option value="4">4 meses</option><option value="6">6 meses</option></select>'
     +'<label>Cen\u00e1rio</label><select id="pedPCen" onchange="pedPainelOpcao()"><option value="sugestao">Com a sugest\u00e3o</option><option value="editada">Com a minha quantidade</option><option value="sem">Se n\u00e3o pedir nada</option></select></div>'
     +'<div class="legend">'+sw(PP.bar,'Vendas do m\u00eas')+sw(PP.campbar,'Vendas em m\u00eas de campanha')+sw(PP.est,'Estoque com os pedidos')+sw(PP.sem,'Se n\u00e3o pedir nada')+sw(PP.ss,'Estoque de seguran\u00e7a')+sw(PP.alvo,'N\u00edvel alvo')+sw(PP.ped,'Pedido')+sw(PP.cheg,'Chegada')+sw('rgba(255,138,61,.45)','Campanha')+'</div>'
@@ -3414,6 +3414,41 @@ async function pedPainelCarregarSnap(x){
     PED_SNAP[x.sku] = r.error ? [] : (r.data||[]).filter(function(q){ return pedNormSku(q.sku)===x.sku; }).map(function(q){ return { d:String(q.data_posicao).slice(0,10), q:parseFloat(q.qtd)||0 }; });
   } catch(e){ PED_SNAP[x.sku] = []; }
 }
+/* ── busca de produto (Curva do produto): digita e a lista filtra por código e nome ── */
+var PED_CB_LISTA = [], PED_CB_VIS = [], PED_CB_ATIVO = 0;
+function pedCbEstilo(){
+  if (document.getElementById('pedCbCss')) return;
+  var st = document.createElement('style'); st.id = 'pedCbCss';
+  st.textContent = '.ped-cb{position:relative;display:inline-block}.ped-cb input{font-size:13px;padding:6px 12px;border-radius:6px;border:0.5px solid #1F3044;background:#162230;color:#E2EAF4;outline:none;width:340px;max-width:100%}.ped-cb input:focus{border-color:#00B4D8}'
+    + '.ped-cb-list{position:absolute;z-index:50;left:0;top:calc(100% + 4px);width:max(100%,460px);max-width:90vw;max-height:320px;overflow-y:auto;background:#162230;border:0.5px solid #1F3044;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.45)}'
+    + '.ped-cb-it{padding:7px 12px;font-size:12.5px;color:#E2EAF4;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ped-cb-it.ativo{background:#1F3A52}.ped-cb-it.sel{color:#00B4D8}.ped-cb-vazio{padding:8px 12px;font-size:12px;color:#8BA0B0}';
+  document.head.appendChild(st);
+}
+function pedCbLabelSel(){ var s = PED_SEL, it = s ? PED_CB_LISTA.filter(function(o){ return o.sku===s; })[0] : null; return it ? it.label : ''; }
+function pedCbFiltrar(q){
+  var tk = pedSemAcento(q).split(/\s+/).filter(Boolean);
+  return PED_CB_LISTA.filter(function(o){ return tk.every(function(t){ return o.busca.indexOf(t)>=0; }); });
+}
+function pedCbDesenhar(todos){
+  var box = document.getElementById('pedPList'), inp = document.getElementById('pedPSel'); if (!box || !inp) return;
+  PED_CB_VIS = pedCbFiltrar(todos ? '' : inp.value); if (PED_CB_ATIVO >= PED_CB_VIS.length) PED_CB_ATIVO = 0;
+  var MAX = 80, h = PED_CB_VIS.slice(0,MAX).map(function(o,i){ return '<div class="ped-cb-it'+(i===PED_CB_ATIVO?' ativo':'')+(o.sku===PED_SEL?' sel':'')+'" data-i="'+i+'" onmousedown="event.preventDefault();pedCbEscolher('+i+')">'+escapeHtml(o.label)+'</div>'; }).join('');
+  if (!PED_CB_VIS.length) h = '<div class="ped-cb-vazio">Nenhum produto encontrado</div>';
+  else if (PED_CB_VIS.length>MAX) h += '<div class="ped-cb-vazio">+ '+(PED_CB_VIS.length-MAX)+' produtos: continue digitando para filtrar</div>';
+  box.innerHTML = h; box.style.display = '';
+}
+function pedCbAbrir(inp){ pedCbEstilo(); inp.select(); PED_CB_ATIVO = 0; pedCbDesenhar(inp.value===pedCbLabelSel()); }
+function pedCbInput(inp){ PED_CB_ATIVO = 0; pedCbDesenhar(false); }
+function pedCbFechar(){ var box = document.getElementById('pedPList'), inp = document.getElementById('pedPSel'); if (box) box.style.display = 'none'; if (inp) inp.value = pedCbLabelSel(); }
+function pedCbEscolher(i){ var o = PED_CB_VIS[i]; if (!o) return; var inp = document.getElementById('pedPSel'), box = document.getElementById('pedPList'); if (box) box.style.display = 'none'; if (inp) { inp.value = o.label; inp.blur(); } pedPainelSelecionar(o.sku); }
+function pedCbTecla(ev, inp){
+  var box = document.getElementById('pedPList'); if (!box) return;
+  if (ev.key==='ArrowDown' || ev.key==='ArrowUp') { ev.preventDefault(); if (box.style.display==='none') return pedCbDesenhar(false);
+    var n = Math.min(PED_CB_VIS.length,80); if (!n) return; PED_CB_ATIVO = (PED_CB_ATIVO + (ev.key==='ArrowDown'?1:-1) + n) % n;
+    Array.prototype.forEach.call(box.querySelectorAll('.ped-cb-it'), function(el,i){ el.classList.toggle('ativo', i===PED_CB_ATIVO); if (i===PED_CB_ATIVO) el.scrollIntoView({ block:'nearest' }); }); }
+  else if (ev.key==='Enter') { ev.preventDefault(); if (PED_CB_VIS.length) pedCbEscolher(PED_CB_ATIVO); }
+  else if (ev.key==='Escape') { inp.blur(); }
+}
 async function pedPainelSelecionar(v, rolar){
   if (typeof v==='number') { var xl = PED_LINHAS[v]; v = xl ? xl.sku : ''; }
   PED_SEL = v || null; var x = pedPainelSku(); if (x) await pedPainelCarregarSnap(x);
@@ -3425,7 +3460,7 @@ function pedPainelOpcao(){
 }
 function pedPainelRender(){
   var box = document.getElementById('pedPainelSvg'); if (!box) return;
-  var ps = document.getElementById('pedPSel'); if (ps) ps.value = PED_SEL || '';
+  var ps = document.getElementById('pedPSel'); if (ps && document.activeElement!==ps) ps.value = pedCbLabelSel();
   var pp = document.getElementById('pedPProj'); if (pp) pp.value = String(PED_PROJ);
   var pc = document.getElementById('pedPCen'); if (pc) pc.value = PED_CEN;
   var x = pedPainelSku(), info = document.getElementById('pedPainelInfo');
